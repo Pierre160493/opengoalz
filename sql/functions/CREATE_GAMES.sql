@@ -14,17 +14,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DELETE FROM games; -- Nettoyage
-
 CREATE OR REPLACE FUNCTION generate_league_games (
   inp_id_league INTEGER -- The id of the league to generate games for
 ) RETURNS VOID AS $$
 DECLARE
-    num_teams INTEGER; -- Number of teams in the league
-    total_games INTEGER; -- Total number of games in the season
-    week_counter INTEGER := 1; -- Week number counter starts at 1
-    team_ids INTEGER[]; -- Array to store team IDs
-    team_count INTEGER; -- Number of teams in the league
+    loc_num_teams INTEGER; -- Number of teams in the league
+    loc_total_games INTEGER; -- Total number of games in the season
+    loc_week_counter INTEGER := 1; -- Week number counter starts at 1
+    loc_array_team_ids INTEGER[]; -- Array to store team IDs
+    loc_team_count INTEGER; -- Number of teams in the league
 BEGIN
     ------------ Checks
     ------ Check if the league exists
@@ -33,49 +31,37 @@ BEGIN
     END IF;
 
     ------ Check the number of teams in the league
-    SELECT COUNT(*) INTO num_teams FROM clubs WHERE id_league = inp_id_league;
-    IF num_teams <> 8 THEN 
-        RAISE EXCEPTION 'The number of teams in the league must be 8, found: %', num_teams;
+    SELECT COUNT(*) INTO loc_num_teams FROM clubs WHERE id_league = inp_id_league;
+    IF loc_num_teams <> 8 THEN 
+        RAISE EXCEPTION 'The number of teams in the league must be 8, found: %', loc_num_teams;
     END IF;
 
     ------------ Initialization
     ------ Total number of games in the season
-    total_games := (num_teams - 1) * 2;
+    loc_total_games := (loc_num_teams - 1) * 2;
     
     ------ Get team IDs
-    SELECT ARRAY(SELECT id FROM clubs WHERE id_league = inp_id_league ORDER BY id) INTO team_ids;
-    team_count := array_length(team_ids, 1);
+    SELECT ARRAY(SELECT id FROM clubs WHERE id_league = inp_id_league ORDER BY id) INTO loc_array_team_ids;
+    loc_team_count := array_length(loc_array_team_ids, 1);
 
     ------------ Processing
-    FOR i IN 1..team_count-1 LOOP
-        FOR j IN i+1..team_count LOOP
+    FOR i IN 1..loc_team_count-1 LOOP
+        FOR j IN i+1..loc_team_count LOOP
             -- Insert the game into the games table
             INSERT INTO games (id_club_left, id_club_right, week_number, date_start)
-            VALUES (team_ids[i], team_ids[j], week_counter,
-                DATE_TRUNC('minute', NOW() + (week_counter || ' minutes')::INTERVAL)
+            VALUES (loc_array_team_ids[i], loc_array_team_ids[j], loc_week_counter,
+                DATE_TRUNC('minute', NOW() + (loc_week_counter || ' minutes')::INTERVAL)
                 );
             
             -- Insert the reverse game into the games table
             INSERT INTO games (id_club_left, id_club_right, week_number, date_start)
-            VALUES (team_ids[j], team_ids[i], total_games - week_counter + 1,
-                DATE_TRUNC('minute', NOW() + ((total_games - week_counter + 1) || ' minutes')::INTERVAL)
+            VALUES (loc_array_team_ids[j], loc_array_team_ids[i], loc_total_games - loc_week_counter + 1,
+                DATE_TRUNC('minute', NOW() + ((loc_total_games - loc_week_counter + 1) || ' minutes')::INTERVAL)
                 );
             
             -- Increment the week counter
-            week_counter := week_counter + 1;
+            loc_week_counter := loc_week_counter + 1;
         END LOOP;
     END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
---SELECT generate_league_games(382);
-
---INSERT INTO games (id_club_left, id_club_right, week_number, date_start)
---VALUES (1, 2, 1, CURRENT_DATE);
-
-
-CREATE OR REPLACE FUNCTION next_saturday(week_number INTEGER) RETURNS DATE AS $$
-BEGIN
-    RETURN CURRENT_DATE + (7 - EXTRACT(DOW FROM CURRENT_DATE) + 6) % 7 + (week_number - 1) * 7;
 END;
 $$ LANGUAGE plpgsql;
