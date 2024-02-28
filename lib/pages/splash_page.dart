@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'chat_page.dart';
-import 'register_page.dart';
-import 'constants.dart';
+import 'package:opengoalz/pages/login_page.dart';
+import 'home_page.dart';
+import '../constants.dart';
 
 /// Page to redirect users to the appropriate page depending on the initial auth state
 class SplashPage extends StatefulWidget {
@@ -25,10 +25,10 @@ class SplashPageState extends State<SplashPage> {
     final session = supabase.auth.currentSession;
     if (session == null) {
       Navigator.of(context)
-          .pushAndRemoveUntil(RegisterPage.route(), (route) => false);
+          .pushAndRemoveUntil(LoginPage.route(), (route) => false);
     } else {
       Navigator.of(context)
-          .pushAndRemoveUntil(ChatPage.route(), (route) => false);
+          .pushAndRemoveUntil(HomePage.route(), (route) => false);
     }
   }
 

@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/splash_page.dart';
+import 'package:opengoalz/pages/splash_page.dart';
 
 const supabaseUrl =
     'https://kaderxuszmqjknsoyjpi.supabase.co'; // Get from Supabase Dashboard
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'My Chat App',
+      title: appName,
       theme: appTheme,
       home: const SplashPage(),
     );

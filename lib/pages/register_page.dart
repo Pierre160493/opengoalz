@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'chat_page.dart';
+import 'home_page.dart';
 import 'login_page.dart';
-import 'constants.dart';
+import '../constants.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key, required this.isRegistering}) : super(key: key);
@@ -41,7 +41,7 @@ class _RegisterPageState extends State<RegisterPage> {
       await supabase.auth.signUp(
           email: email, password: password, data: {'username': username});
       Navigator.of(context)
-          .pushAndRemoveUntil(ChatPage.route(), (route) => false);
+          .pushAndRemoveUntil(HomePage.route(), (route) => false);
     } on AuthException catch (error) {
       context.showErrorSnackBar(message: error.message);
     } catch (error) {
@@ -53,7 +53,23 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register'),
+        // Using Row widget to display widgets in a row
+        title: const Row(
+          children: [
+            // Text widget for the text on the left
+            Text('Register'),
+            // Expanded widget to take up the remaining space
+            Expanded(
+              // Center the child horizontally
+              child: Center(
+                child: Text(
+                  appBarTxt,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       body: Form(
         key: _formKey,

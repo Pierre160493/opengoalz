@@ -4,9 +4,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Supabase client
 final supabase = Supabase.instance.client;
 
+/// App Name
+const appName = 'OpenGoalZ';
+// const appName = 'OGZ';
+
+/// App Bar Text
+const appBarTxt = '$appName: The Open Source Football Manager Game';
+// const appBarTxt = '$appName: AppBarTxt';
+
 /// Simple preloader inside a Center widget
-const preloader =
-    Center(child: CircularProgressIndicator(color: Colors.orange));
+const preloader = Center(child: CircularProgressIndicator(color: Colors.green));
 
 /// Simple sized box to space out form elements
 const formSpacer = SizedBox(width: 16, height: 16);
@@ -19,7 +26,7 @@ const unexpectedErrorMessage = 'Unexpected error occurred.';
 
 /// Basic theme to change the look and feel of the app
 final appTheme = ThemeData.light().copyWith(
-  primaryColorDark: Colors.orange,
+  primaryColorDark: Colors.green,
   appBarTheme: const AppBarTheme(
     elevation: 1,
     backgroundColor: Colors.white,
@@ -29,21 +36,21 @@ final appTheme = ThemeData.light().copyWith(
       fontSize: 18,
     ),
   ),
-  primaryColor: Colors.orange,
+  primaryColor: Colors.green,
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
-      foregroundColor: Colors.orange,
+      foregroundColor: Colors.green,
     ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       foregroundColor: Colors.white,
-      backgroundColor: Colors.orange,
+      backgroundColor: Colors.green,
     ),
   ),
   inputDecorationTheme: InputDecorationTheme(
     floatingLabelStyle: const TextStyle(
-      color: Colors.orange,
+      color: Colors.green,
     ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
@@ -52,11 +59,11 @@ final appTheme = ThemeData.light().copyWith(
         width: 2,
       ),
     ),
-    focusColor: Colors.orange,
+    focusColor: Colors.green,
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(
-        color: Colors.orange,
+        color: Colors.green,
         width: 2,
       ),
     ),

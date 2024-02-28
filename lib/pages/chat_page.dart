@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'message.dart';
-import 'profile.dart';
-import 'constants.dart';
+import '../classes/message.dart';
+import '../classes/profile.dart';
+import '../constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timeago/timeago.dart';
 

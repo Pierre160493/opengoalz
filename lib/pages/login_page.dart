@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'chat_page.dart';
-import 'constants.dart';
+import 'home_page.dart';
+import 'register_page.dart';
+import '../constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
@@ -29,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text,
       );
       Navigator.of(context)
-          .pushAndRemoveUntil(ChatPage.route(), (route) => false);
+          .pushAndRemoveUntil(HomePage.route(), (route) => false);
     } on AuthException catch (error) {
       context.showErrorSnackBar(message: error.message);
     } catch (_) {
@@ -52,7 +53,25 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
+      appBar: AppBar(
+        // Using Row widget to display widgets in a row
+        title: const Row(
+          children: [
+            // Text widget for the text on the left
+            Text('Sign In !'),
+            // Expanded widget to take up the remaining space
+            Expanded(
+              // Center the child horizontally
+              child: Center(
+                child: Text(
+                  appBarTxt,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
       body: ListView(
         padding: formPadding,
         children: [
@@ -72,6 +91,13 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: _isLoading ? null : _signIn,
             child: const Text('Login'),
           ),
+          formSpacer,
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).push(RegisterPage.route());
+            },
+            child: const Text('I don\'t have an account'),
+          )
         ],
       ),
     );
