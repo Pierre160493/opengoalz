@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/pages/chat_page.dart';
-import 'package:opengoalz/pages/player_page.dart';
+import 'package:opengoalz/pages/players_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -98,7 +98,7 @@ class AppDrawer extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      const PlayerPage(), // Replace PlayerPage() with your player page widget
+                      const PlayersPage(), // Replace PlayerPage() with your player page widget
                 ),
               );
             },
