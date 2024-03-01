@@ -19,12 +19,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             alignment: Alignment.centerLeft,
             child: Text(pageName),
           ),
-          const Center(
-            child: Text(
-              appBarTxt,
-              textAlign: TextAlign.center,
-            ),
-          ),
+          // const Center(
+          //   child: Text(
+          //     appBarTxt,
+          //     textAlign: TextAlign.center,
+          //   ),
+          // ),
         ],
       ),
     );

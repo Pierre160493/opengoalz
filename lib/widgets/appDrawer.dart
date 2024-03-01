@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/pages/chat_page.dart';
+import 'package:opengoalz/pages/games_page.dart';
+import 'package:opengoalz/pages/home_page.dart';
 import 'package:opengoalz/pages/players_page.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -11,6 +13,21 @@ class AppDrawer extends StatelessWidget {
       // Add your NavigationBar content here
       child: ListView(
         children: [
+          ListTile(
+            // leading: const Icon(Icons.attach_money), // Add the chat icon
+            leading: const Icon(Icons.home), // Add the chat icon
+            title: const Text('Home'),
+            onTap: () {
+              // Navigate to home page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const HomePage(), // Replace PlayerPage() with your player page widget
+                ),
+              );
+            },
+          ),
           Container(
             color: Colors.grey, // Set the background color to grey
             child: ListTile(
@@ -39,8 +56,7 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading:
-                const Icon(Icons.waving_hand_outlined), // Add the chat icon
+            leading: const Icon(Icons.campaign_outlined), // Add the chat icon
             title: const Text('Fans'),
             onTap: () {
               // Handle navigation to item 2
@@ -58,6 +74,14 @@ class AppDrawer extends StatelessWidget {
             leading:
                 const Icon(Icons.engineering_outlined), // Add the chat icon
             title: const Text('Staff'),
+            onTap: () {
+              // Handle navigation to item 2
+            },
+          ),
+          ListTile(
+            leading:
+                const Icon(Icons.camera_indoor_outlined), // Add the chat icon
+            title: const Text('Scouts'),
             onTap: () {
               // Handle navigation to item 2
             },
@@ -114,7 +138,14 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.event_outlined), // Add the chat icon
             title: const Text('Games'),
             onTap: () {
-              // Handle navigation to item 2
+              // Navigate to player page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const GamesPage(), // Replace PlayerPage() with your player page widget
+                ),
+              );
             },
           ),
           ListTile(

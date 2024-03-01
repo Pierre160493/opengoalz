@@ -9,7 +9,8 @@ const appName = 'OpenGoalZ';
 // const appName = 'OGZ';
 
 /// App Bar Text
-const appBarTxt = '$appName: The Open Source Football Manager Game';
+// const appBarTxt = '$appName: The Open Source Football Manager Game';
+const appBarTxt = appName;
 // const appBarTxt = '$appName: AppBarTxt';
 
 /// Simple preloader inside a Center widget

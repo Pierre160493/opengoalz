@@ -12,6 +12,15 @@ class Player {
     required this.club_name,
     required this.username,
     required this.id_user,
+    required this.keeper,
+    required this.defense,
+    required this.playmaking,
+    required this.passes,
+    required this.winger,
+    required this.scoring,
+    required this.freekick,
+    required this.date_end_injury,
+    required this.isMine,
   });
 
   /// ID of the club
@@ -44,6 +53,21 @@ class Player {
   /// ID of the user
   final String id_user;
 
+  ////// Stats
+  final double keeper;
+  final double defense;
+  final double playmaking;
+  final double passes;
+  final double winger;
+  final double scoring;
+  final double freekick;
+
+  /// Player is injured
+  final DateTime? date_end_injury;
+
+  /// Whether the player belongs to the current user
+  final bool isMine;
+
   Player.fromMap({
     required Map<String, dynamic> map,
     required String myUserId,
@@ -56,5 +80,14 @@ class Player {
         age = map['age'],
         club_name = map['club_name'],
         username = map['username'],
-        id_user = map['id_user'];
+        id_user = map['id_user'],
+        keeper = map['keeper'],
+        defense = map['defense'],
+        playmaking = map['playmaking'],
+        passes = map['passes'],
+        winger = map['winger'],
+        scoring = map['scoring'],
+        freekick = map['freekick'],
+        date_end_injury = map['date_end_injury'],
+        isMine = myUserId == map['id_user'];
 }

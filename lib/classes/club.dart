@@ -29,7 +29,7 @@ class Club {
   /// Username of the club manager
   final String username;
 
-  /// Whether the message is sent by the user or not.
+  /// Whether the club is owned by the current user
   final bool isMine;
 
   Club.fromMap({
