@@ -1,7 +1,9 @@
 class Game {
   Game({
     required this.id,
+    required this.idClub,
     required this.dateStart,
+    required this.weekNumber,
     required this.idClubLeft,
     required this.nameClubLeft,
     required this.idClubRight,
@@ -20,21 +22,23 @@ class Game {
 
   /// ID of the game
   final int id;
+  final int? idClub;
 
   /// Date and time when the game starts
   final DateTime dateStart;
+  final int weekNumber;
 
   /// ID of the left club
   final int idClubLeft;
 
   /// Name of the left club
-  final String nameClubLeft;
+  final String? nameClubLeft;
 
   /// ID of the right club
   final int idClubRight;
 
   /// Name of the right club
-  final String nameClubRight;
+  final String? nameClubRight;
 
   /// ID of the stadium
   final int? idStadium;
@@ -46,10 +50,10 @@ class Game {
   final bool isCup;
 
   /// Number of goals scored by the left club
-  final int goalsLeft;
+  final int? goalsLeft;
 
   /// Number of goals scored by the right club
-  final int goalsRight;
+  final int? goalsRight;
 
   /// ID of the user for the left club
   final String? idUserClubLeft;
@@ -67,7 +71,9 @@ class Game {
     required Map<String, dynamic> map,
     required String myUserId,
   })  : id = map['id'],
+        idClub = map['id_club'],
         dateStart = DateTime.parse(map['date_start']),
+        weekNumber = map['week_number'],
         idClubLeft = map['id_club_left'],
         nameClubLeft = map['name_club_left'],
         idUserClubLeft = map['id_user_club_left'],
@@ -79,7 +85,7 @@ class Game {
         usernameClubRight = map['username_club_right'],
         goalsRight = map['goals_right'],
         idStadium = map['id_stadium'],
-        isPlayed = map['is_played'] == 1,
-        isCup = map['is_cup'] == 1;
+        isPlayed = map['is_played'] ?? false,
+        isCup = map['is_cup'] ?? false;
   // isMine = myUserId == map['id_user'];
 }

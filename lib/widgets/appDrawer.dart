@@ -3,6 +3,7 @@ import 'package:opengoalz/pages/chat_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/home_page.dart';
 import 'package:opengoalz/pages/players_page.dart';
+import 'package:opengoalz/pages/ranking_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -138,7 +139,6 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.event_outlined), // Add the chat icon
             title: const Text('Games'),
             onTap: () {
-              // Navigate to player page
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -151,9 +151,15 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading:
                 const Icon(Icons.emoji_events_outlined), // Add the chat icon
-            title: const Text('Series'),
+            title: const Text('Ranking'),
             onTap: () {
-              // Handle navigation to item 2
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const RankingPage(), // Replace PlayerPage() with your player page widget
+                ),
+              );
             },
           ),
           ListTile(
