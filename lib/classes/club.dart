@@ -18,16 +18,16 @@ class Club {
   final DateTime created_at;
 
   /// ID of the league where the club belongs
-  final int id_league;
+  final int? id_league;
 
   /// Date and time when the message was created
-  final String id_user;
+  final String? id_user;
 
   /// Name of the club
-  final String club_name;
+  final String? club_name;
 
   /// Username of the club manager
-  final String username;
+  final String? username;
 
   /// Whether the club is owned by the current user
   final bool isMine;

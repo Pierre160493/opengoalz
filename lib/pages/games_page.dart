@@ -130,7 +130,6 @@ class _HomePageState extends State<GamesPage> {
                           game.idUserClubLeft == supabase.auth.currentUser!.id
                               ? FontWeight.bold
                               : FontWeight.normal,
-                      color: Colors.black,
                       fontSize: 16,
                     ),
                   ),
@@ -141,7 +140,7 @@ class _HomePageState extends State<GamesPage> {
                     style: TextStyle(
                       color: (game.isPlayed == false ||
                               game.goalsLeft == game.goalsRight)
-                          ? Colors.black
+                          ? Colors.white
                           : (game.isPlayed &&
                                   ((game.idUserClubLeft ==
                                               supabase.auth.currentUser!.id &&
@@ -163,7 +162,6 @@ class _HomePageState extends State<GamesPage> {
                                 supabase.auth.currentUser!.id
                             ? FontWeight.bold
                             : FontWeight.normal,
-                        color: Colors.black,
                         fontSize: 16),
                   ),
                 ],
@@ -188,7 +186,6 @@ class _HomePageState extends State<GamesPage> {
                           text: 'Date: ',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
                             fontSize: 16,
                           ),
                         ),
@@ -196,7 +193,6 @@ class _HomePageState extends State<GamesPage> {
                           text:
                               DateFormat('d MMMM HH:mm').format(game.dateStart),
                           style: const TextStyle(
-                            color: Colors.black,
                             fontSize: 14,
                           ),
                         ),
@@ -209,7 +205,6 @@ class _HomePageState extends State<GamesPage> {
             Text(
               'W${game.weekNumber}',
               style: const TextStyle(
-                color: Colors.black,
                 fontSize: 14,
               ),
             ),

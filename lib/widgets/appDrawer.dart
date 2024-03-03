@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/pages/chat_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/home_page.dart';
@@ -6,6 +7,9 @@ import 'package:opengoalz/pages/players_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';
 
 class AppDrawer extends StatelessWidget {
+  // final Stream<List<Club>> clubStream; // Add clubStream as an input
+
+  // const AppDrawer({Key? key, required this.clubStream}) : super(key: key);
   const AppDrawer({Key? key}) : super(key: key);
 
   @override
@@ -153,13 +157,13 @@ class AppDrawer extends StatelessWidget {
                 const Icon(Icons.emoji_events_outlined), // Add the chat icon
             title: const Text('Ranking'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const RankingPage(), // Replace PlayerPage() with your player page widget
-                ),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) =>
+              //         const RankingPage(), // Replace PlayerPage() with your player page widget
+              //   ),
+              // );
             },
           ),
           ListTile(

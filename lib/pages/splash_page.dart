@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/login_page.dart';
+import 'package:provider/provider.dart';
 import 'home_page.dart';
 import '../constants.dart';
 
@@ -23,10 +25,15 @@ class SplashPageState extends State<SplashPage> {
     await Future.delayed(Duration.zero);
 
     final session = supabase.auth.currentSession;
+    final sessionProvider =
+        Provider.of<SessionProvider>(context, listen: false);
     if (session == null) {
       Navigator.of(context)
           .pushAndRemoveUntil(LoginPage.route(), (route) => false);
     } else {
+      sessionProvider.setLoggedIn(true); // Set isLoggedIn to true
+      sessionProvider.updateClubStream(
+          supabase.auth.currentUser!.id); // Update the club stream
       Navigator.of(context)
           .pushAndRemoveUntil(HomePage.route(), (route) => false);
     }

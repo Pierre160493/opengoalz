@@ -26,14 +26,14 @@ const formPadding = EdgeInsets.symmetric(vertical: 20, horizontal: 16);
 const unexpectedErrorMessage = 'Unexpected error occurred.';
 
 /// Basic theme to change the look and feel of the app
-final appTheme = ThemeData.light().copyWith(
-  primaryColorDark: Colors.green,
+final appTheme = ThemeData.dark().copyWith(
+  primaryColorDark: Colors.green[800],
   appBarTheme: const AppBarTheme(
     elevation: 1,
-    backgroundColor: Colors.white,
-    iconTheme: IconThemeData(color: Colors.black),
+    backgroundColor: Colors.black,
+    iconTheme: IconThemeData(color: Colors.white),
     titleTextStyle: TextStyle(
-      color: Colors.black,
+      color: Colors.white,
       fontSize: 18,
     ),
   ),
