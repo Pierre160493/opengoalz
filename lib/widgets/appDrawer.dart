@@ -157,13 +157,12 @@ class AppDrawer extends StatelessWidget {
                 const Icon(Icons.emoji_events_outlined), // Add the chat icon
             title: const Text('Ranking'),
             onTap: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //     builder: (context) =>
-              //         const RankingPage(), // Replace PlayerPage() with your player page widget
-              //   ),
-              // );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const RankingPage(idLeague: 1),
+                ),
+              );
             },
           ),
           ListTile(

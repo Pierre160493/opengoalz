@@ -42,13 +42,16 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Club>>(
-      stream: _clubStream,
+      stream: Provider.of<SessionProvider>(context).clubStream,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final clubs = snapshot.data!;
           return Scaffold(
-            appBar:
-                CustomAppBar(pageName: clubs[0].club_name ?? 'No club name'),
+            appBar: CustomAppBar(
+                pageName:
+                    clubs[Provider.of<SessionProvider>(context).nClubInList]
+                            .club_name ??
+                        'No club name'),
             // CustomAppBar(clubStream: _clubStream),
             // drawer: AppDrawer(clubStream: _clubStream),
             drawer: const AppDrawer(),
@@ -60,54 +63,69 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       const SizedBox(height: 16),
                       Text(
-                        'Hello ${clubs[0].username} !',
+                        'Hello ${clubs[Provider.of<SessionProvider>(context).nClubInList].username} !',
                         style: const TextStyle(fontSize: 24),
                       ),
-                      Text(
-                        Provider.of<SessionProvider>(context).isLoggedIn
-                            ? 'You are logged in'
-                            : 'You are not logged in',
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                      StreamBuilder<List<Club>>(
-                        stream:
-                            Provider.of<SessionProvider>(context).clubStream,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return CircularProgressIndicator();
-                          } else if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else {
-                            final clubs = snapshot.data ?? [];
-                            if (clubs.isEmpty) {
-                              return Text('No clubs found');
-                            } else {
-                              final clubName = clubs[0]
-                                  .username; // Assuming club name field is named clubName
-                              return Text(
-                                clubName ??
-                                    'No Club Name', // Use 'No Club Name' if clubName is null
-                                style: TextStyle(fontSize: 24),
-                              );
-                            }
-                          }
-                        },
-                      ),
                       const SizedBox(height: 16),
-                      Text(
-                        'Club name: ${clubs[0].club_name}',
-                        style: const TextStyle(fontSize: 18),
+                      RichText(
+                        text: TextSpan(
+                          text:
+                              'Selected club [${Provider.of<SessionProvider>(context).nClubInList}]: ',
+                          style: const TextStyle(fontSize: 18),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: clubs[Provider.of<SessionProvider>(context)
+                                      .nClubInList]
+                                  .club_name,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'List of clubs:',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
                       Expanded(
                         child: ListView.builder(
                           itemCount: clubs.length,
                           itemBuilder: (context, index) {
                             final club = clubs[index];
-                            return ListTile(
-                              title:
-                                  Text(club.club_name ?? 'ERROR: No club name'),
+                            return Card(
+                              child: ListTile(
+                                onTap: () {
+                                  // Define the action you want to perform when the ListTile is tapped
+                                  // For example, you can navigate to a new screen or show a dialog
+                                  print('Tapped on club: ${club.club_name}');
+                                  Provider.of<SessionProvider>(context,
+                                          listen: false)
+                                      .setnClubInList(index);
+                                },
+                                leading: CircleAvatar(
+                                  child: Text((index + 1)
+                                      .toString()), // Display index with +1 to start from 1 instead of 0
+                                ),
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        club.club_name ?? 'ERROR: No club name',
+                                      ),
+                                    ),
+                                    if (index ==
+                                        Provider.of<SessionProvider>(context)
+                                            .nClubInList)
+                                      const Icon(Icons.check_circle,
+                                          color: Colors
+                                              .green), // Display green tick icon if index matches nClubInList
+                                  ],
+                                ),
+                              ),
                             );
                           },
                         ),

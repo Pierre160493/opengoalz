@@ -1,91 +1,42 @@
-class Game {
-  Game({
-    required this.id,
+import 'package:flutter/material.dart';
+
+class Ranking {
+  Ranking({
     required this.idClub,
-    required this.dateStart,
-    required this.weekNumber,
-    required this.idClubLeft,
-    required this.nameClubLeft,
-    required this.idClubRight,
-    required this.nameClubRight,
-    required this.idStadium,
-    required this.isPlayed,
-    required this.isCup,
-    required this.goalsLeft,
-    required this.goalsRight,
-    required this.idUserClubLeft,
-    required this.usernameClubLeft,
-    required this.idUserClubRight,
-    required this.usernameClubRight,
-    // required this.isMine,
+    required this.nameClub,
+    required this.idUser,
+    required this.nPoints,
+    required this.nVictories,
+    required this.nDraws,
+    required this.nDefeats,
+    required this.totalGoalAverage,
+    required this.goalsScored,
+    required this.goalsTaken,
+    required this.idLeague,
   });
 
-  /// ID of the game
-  final int id;
-  final int? idClub;
+  final int idClub;
+  final String nameClub;
+  final String? idUser;
+  final int nPoints;
+  final int nVictories;
+  final int nDraws;
+  final int nDefeats;
+  final int totalGoalAverage;
+  final int goalsScored;
+  final int goalsTaken;
+  final int idLeague;
 
-  /// Date and time when the game starts
-  final DateTime dateStart;
-  final int weekNumber;
-
-  /// ID of the left club
-  final int idClubLeft;
-
-  /// Name of the left club
-  final String? nameClubLeft;
-
-  /// ID of the right club
-  final int idClubRight;
-
-  /// Name of the right club
-  final String? nameClubRight;
-
-  /// ID of the stadium
-  final int? idStadium;
-
-  /// Indicates whether the game is played
-  final bool isPlayed;
-
-  /// Indicates whether the game is a cup match
-  final bool isCup;
-
-  /// Number of goals scored by the left club
-  final int? goalsLeft;
-
-  /// Number of goals scored by the right club
-  final int? goalsRight;
-
-  /// ID of the user for the left club
-  final String? idUserClubLeft;
-
-  /// Username of the user for the left club
-  final String? usernameClubLeft;
-
-  /// ID of the user for the right club
-  final String? idUserClubRight;
-
-  /// Username of the user for the right club
-  final String? usernameClubRight;
-
-  Game.fromMap({
-    required Map<String, dynamic> map,
-    required String myUserId,
-  })  : id = map['id'],
-        idClub = map['id_club'],
-        dateStart = DateTime.parse(map['date_start']),
-        weekNumber = map['week_number'],
-        idClubLeft = map['id_club_left'],
-        nameClubLeft = map['name_club_left'],
-        idUserClubLeft = map['id_user_club_left'],
-        usernameClubLeft = map['username_club_left'],
-        goalsLeft = map['goals_left'],
-        idClubRight = map['id_club_right'],
-        nameClubRight = map['name_club_right'],
-        idUserClubRight = map['id_user_club_right'],
-        usernameClubRight = map['username_club_right'],
-        goalsRight = map['goals_right'],
-        idStadium = map['id_stadium'],
-        isPlayed = map['is_played'] ?? false,
-        isCup = map['is_cup'] ?? false;
-  // isMine = myUserId == map['id_user'];
+  Ranking.fromMap(Map<String, dynamic> map)
+      : idClub = map['id_club'],
+        nameClub = map['name_club'],
+        idUser = map['id_user'],
+        nPoints = map['n_points'],
+        nVictories = map['n_victories'],
+        nDraws = map['n_draws'],
+        nDefeats = map['n_defeats'],
+        totalGoalAverage = map['total_goal_average'],
+        goalsScored = map['goals_scored'],
+        goalsTaken = map['goals_taken'],
+        idLeague = map['id_league'];
 }

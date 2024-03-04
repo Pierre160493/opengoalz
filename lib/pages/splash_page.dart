@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +35,17 @@ class SplashPageState extends State<SplashPage> {
       sessionProvider.setLoggedIn(true); // Set isLoggedIn to true
       sessionProvider.updateClubStream(
           supabase.auth.currentUser!.id); // Update the club stream
+
+      sessionProvider.clubStream.listen((clubs) {
+        print(clubs.length);
+        for (Club club in clubs) {
+          if (club.is_default) {
+            sessionProvider.setnClubInList(clubs.indexOf(club));
+          }
+        }
+      });
+      // GlobalVariable.userID = session?.user?.id;
+      // sessionProvider.setnClubInList(Null as int?); // Set isLoggedIn to true
       Navigator.of(context)
           .pushAndRemoveUntil(HomePage.route(), (route) => false);
     }
