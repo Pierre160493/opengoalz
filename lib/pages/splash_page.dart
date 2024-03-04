@@ -26,28 +26,11 @@ class SplashPageState extends State<SplashPage> {
     await Future.delayed(Duration.zero);
 
     final session = supabase.auth.currentSession;
-    final sessionProvider =
-        Provider.of<SessionProvider>(context, listen: false);
     if (session == null) {
       Navigator.of(context)
           .pushAndRemoveUntil(LoginPage.route(), (route) => false);
     } else {
-      sessionProvider.setLoggedIn(true); // Set isLoggedIn to true
-      sessionProvider.updateClubStream(
-          supabase.auth.currentUser!.id); // Update the club stream
-
-      sessionProvider.clubStream.listen((clubs) {
-        print(clubs.length);
-        for (Club club in clubs) {
-          if (club.is_default) {
-            sessionProvider.setnClubInList(clubs.indexOf(club));
-          }
-        }
-      });
-      // GlobalVariable.userID = session?.user?.id;
-      // sessionProvider.setnClubInList(Null as int?); // Set isLoggedIn to true
-      Navigator.of(context)
-          .pushAndRemoveUntil(HomePage.route(), (route) => false);
+      navigateToHomePage(context);
     }
   }
 

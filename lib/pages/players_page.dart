@@ -19,10 +19,10 @@ class PlayersPage extends StatefulWidget {
   }
 
   @override
-  State<PlayersPage> createState() => _HomePageState();
+  State<PlayersPage> createState() => _PlayersPageState();
 }
 
-class _HomePageState extends State<PlayersPage> {
+class _PlayersPageState extends State<PlayersPage> {
   late final Stream<List<Player>> _playerStream;
   late int _playersCount = 0; // Number of players
   String _selectedFilter = 'Age'; // Default filter by age

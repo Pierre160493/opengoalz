@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/widgets/appBar.dart';
@@ -21,22 +22,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final Stream<List<Club>> _clubStream;
-
   @override
   void initState() {
-    final myUserId = supabase.auth.currentUser!.id;
-
-    _clubStream = supabase
-        .from('view_clubs')
-        .stream(primaryKey: ['id'])
-        .eq('id_user', myUserId)
-        .order('created_at')
-        .map((maps) => maps
-            .map((map) => Club.fromMap(map: map, myUserId: myUserId))
-            .toList());
-
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final sessionProvider =
+        Provider.of<SessionProvider>(context, listen: false);
+    sessionProvider.updateClubStream(supabase.auth.currentUser!.id);
   }
 
   @override
@@ -54,7 +50,7 @@ class _HomePageState extends State<HomePage> {
                         'No club name'),
             // CustomAppBar(clubStream: _clubStream),
             // drawer: AppDrawer(clubStream: _clubStream),
-            drawer: const AppDrawer(),
+            drawer: AppDrawer(),
             body: clubs.isEmpty
                 ? const Center(child: Text('No clubs found'))
                 : Column(
@@ -123,6 +119,27 @@ class _HomePageState extends State<HomePage> {
                                       const Icon(Icons.check_circle,
                                           color: Colors
                                               .green), // Display green tick icon if index matches nClubInList
+                                  ],
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Creation Date: ${DateFormat.yMMMMd('en_US').format(club.created_at)}',
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Cash: ${club.finances_cash}',
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Number of players: ${club.player_count}',
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Fan club size: ${club.fans_total_number}',
+                                    ),
                                   ],
                                 ),
                               ),

@@ -64,13 +64,11 @@ class PlayerCardSingle extends StatelessWidget {
                       text: 'Age: ',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black, // Set the text color to black
                       ),
                       children: [
                         TextSpan(
                           text: player.age.toStringAsFixed(2),
                           style: const TextStyle(
-                            color: Colors.black, // Set the text color to black
                             fontWeight:
                                 FontWeight.normal, // Remove bold font weight
                           ),
@@ -92,13 +90,11 @@ class PlayerCardSingle extends StatelessWidget {
                       text: 'Club: ',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black, // Set the text color to black
                       ),
                       children: [
                         TextSpan(
                           text: player.club_name,
                           style: const TextStyle(
-                            color: Colors.black, // Set the text color to black
                             fontWeight:
                                 FontWeight.normal, // Remove bold font weight
                           ),
@@ -119,7 +115,7 @@ class PlayerCardSingle extends StatelessWidget {
               SizedBox(
                 width: double.infinity, // Make radar chart fill available width
                 height: 200, // Adjust this value as needed
-                child: RadarChart.light(
+                child: RadarChart.dark(
                   ticks: const [25, 50, 75, 100],
                   features: const [
                     'Keeper',

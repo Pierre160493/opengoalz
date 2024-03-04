@@ -81,17 +81,8 @@ class PlayerCard extends StatelessWidget {
                 child: SizedBox(
                   width: 100, // Adjust this value as needed
                   height: 100, // Adjust this value as needed
-                  child: RadarChart.light(
+                  child: RadarChart.dark(
                     ticks: const [25, 50, 75, 100],
-                    // features: const [
-                    //   'Keeper',
-                    //   'Defense',
-                    //   'Passes',
-                    //   'Playmaking',
-                    //   'Winger',
-                    //   'Scoring',
-                    //   'Freekick',
-                    // ],
                     features: const [
                       'GK',
                       'DF',

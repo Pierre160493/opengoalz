@@ -1,34 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/chat_page.dart';
+import 'package:opengoalz/pages/fans_page.dart';
+import 'package:opengoalz/pages/finances_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/home_page.dart';
 import 'package:opengoalz/pages/players_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';
+import 'package:provider/provider.dart';
 
 class AppDrawer extends StatelessWidget {
-  // final Stream<List<Club>> clubStream; // Add clubStream as an input
-
-  // const AppDrawer({Key? key, required this.clubStream}) : super(key: key);
   const AppDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      // Add your NavigationBar content here
-      child: ListView(
+      child:
+          // StreamBuilder<List<Club>>(
+          //   stream: Provider.of<SessionProvider>(context).clubStream,
+          //   builder: (context, snapshot) {
+          //     if (snapshot.hasData) {
+          //       Text('test');
+          //     } else if (snapshot.connectionState == ConnectionState.waiting) {
+          //       return const Center(child: CircularProgressIndicator());
+          //     }
+
+          //     if (snapshot.hasError) {
+          //       return Center(child: Text('Error: ${snapshot.error}'));
+          //     }
+
+          //     List<Club>? clubs = snapshot.data;
+
+          //     return ListView(
+          ListView(
         children: [
           ListTile(
-            // leading: const Icon(Icons.attach_money), // Add the chat icon
-            leading: const Icon(Icons.home), // Add the chat icon
+            leading: const Icon(Icons.home), // Add the home icon
             title: const Text('Home'),
             onTap: () {
-              // Navigate to home page
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      const HomePage(), // Replace PlayerPage() with your player page widget
+                  builder: (context) => const HomePage(),
                 ),
               );
             },
@@ -57,14 +71,24 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.savings_outlined), // Add the chat icon
             title: const Text('Finances'),
             onTap: () {
-              // Handle navigation to item 2
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FinancesPage(),
+                ),
+              );
             },
           ),
           ListTile(
             leading: const Icon(Icons.campaign_outlined), // Add the chat icon
             title: const Text('Fans'),
             onTap: () {
-              // Handle navigation to item 2
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FansPage(),
+                ),
+              );
             },
           ),
           ListTile(
@@ -218,7 +242,10 @@ class AppDrawer extends StatelessWidget {
             },
           ),
         ],
+        // );
       ),
+      // },
+      // ),
     );
   }
 }

@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/ranking.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/widgets/player_card_single.dart';
 
-import '../classes/player.dart';
 import '../constants.dart';
 
 class RankingPage extends StatefulWidget {
@@ -69,7 +67,7 @@ class _RankingPageState extends State<RankingPage> {
             final rankings = snapshot.data ?? [];
             if (rankings.isEmpty) {
               return const Center(
-                child: Text('ERROR: No players found'),
+                child: Text('ERROR: No rankings found'),
               );
             } else {
               return Card(

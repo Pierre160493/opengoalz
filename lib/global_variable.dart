@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/pages/home_page.dart';
+import 'package:provider/provider.dart';
 import '../classes/club.dart';
 
 class SessionProvider extends ChangeNotifier {
@@ -54,4 +56,21 @@ class SessionProvider extends ChangeNotifier {
     _clubStreamController.close();
     super.dispose();
   }
+}
+
+void navigateToHomePage(BuildContext context) {
+  final sessionProvider = Provider.of<SessionProvider>(context, listen: false);
+  sessionProvider.setLoggedIn(true); // Set isLoggedIn to true
+  sessionProvider.updateClubStream(
+      supabase.auth.currentUser!.id); // Update the club stream
+
+  sessionProvider.clubStream.listen((clubs) {
+    for (Club club in clubs) {
+      if (club.is_default) {
+        sessionProvider.setnClubInList(clubs.indexOf(club));
+      }
+    }
+  });
+
+  Navigator.of(context).pushAndRemoveUntil(HomePage.route(), (route) => false);
 }
