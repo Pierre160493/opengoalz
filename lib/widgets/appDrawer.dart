@@ -15,25 +15,10 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Club selectedClub = Provider.of<SessionProvider>(context).selectedClub;
+
     return Drawer(
-      child:
-          // StreamBuilder<List<Club>>(
-          //   stream: Provider.of<SessionProvider>(context).clubStream,
-          //   builder: (context, snapshot) {
-          //     if (snapshot.hasData) {
-          //       Text('test');
-          //     } else if (snapshot.connectionState == ConnectionState.waiting) {
-          //       return const Center(child: CircularProgressIndicator());
-          //     }
-
-          //     if (snapshot.hasError) {
-          //       return Center(child: Text('Error: ${snapshot.error}'));
-          //     }
-
-          //     List<Club>? clubs = snapshot.data;
-
-          //     return ListView(
-          ListView(
+      child: ListView(
         children: [
           ListTile(
             leading: const Icon(Icons.home), // Add the home icon
@@ -51,9 +36,9 @@ class AppDrawer extends StatelessWidget {
             color: Colors.grey, // Set the background color to grey
             child: ListTile(
               leading: const Icon(Icons.add_home_work), // Add the chat icon
-              title: const Text(
-                'Club',
-                style: TextStyle(
+              title: Text(
+                'Club ${selectedClub.club_name ?? 'No club Name'}',
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   decoration: TextDecoration.underline,
                   decorationThickness: 1.0, // Change underline thickness
@@ -242,10 +227,7 @@ class AppDrawer extends StatelessWidget {
             },
           ),
         ],
-        // );
       ),
-      // },
-      // ),
     );
   }
 }

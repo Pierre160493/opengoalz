@@ -22,9 +22,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late Stream<List<Club>> _clubStream;
   @override
   void initState() {
     super.initState();
+    _clubStream =
+        Provider.of<SessionProvider>(context, listen: false).clubStream;
   }
 
   @override
@@ -38,7 +41,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Club>>(
-      stream: Provider.of<SessionProvider>(context).clubStream,
+      stream: _clubStream,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final clubs = snapshot.data!;
@@ -50,7 +53,7 @@ class _HomePageState extends State<HomePage> {
                         'No club name'),
             // CustomAppBar(clubStream: _clubStream),
             // drawer: AppDrawer(clubStream: _clubStream),
-            drawer: AppDrawer(),
+            drawer: const AppDrawer(),
             body: clubs.isEmpty
                 ? const Center(child: Text('No clubs found'))
                 : Column(
@@ -101,6 +104,9 @@ class _HomePageState extends State<HomePage> {
                                   Provider.of<SessionProvider>(context,
                                           listen: false)
                                       .setnClubInList(index);
+                                  Provider.of<SessionProvider>(context,
+                                          listen: false)
+                                      .setselectedClub(club);
                                 },
                                 leading: CircleAvatar(
                                   child: Text((index + 1)
