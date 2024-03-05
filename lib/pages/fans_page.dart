@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/fans.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:provider/provider.dart';
 
-import '../classes/club.dart';
-
 class FansPage extends StatefulWidget {
-  const FansPage({Key? key}) : super(key: key);
+  final int idClub;
+  const FansPage({Key? key, required this.idClub}) : super(key: key);
 
-  static Route<void> route() {
+  static Route<void> route(int idClub) {
     return MaterialPageRoute(
-      builder: (context) => const FansPage(),
+      builder: (context) => FansPage(idClub: idClub),
     );
   }
 
@@ -30,14 +27,14 @@ class _FansPageState extends State<FansPage> {
     _fansStream = supabase
         .from('fans')
         .stream(primaryKey: ['id'])
-        .eq('id_club', 1)
+        .eq('id_club', widget.idClub)
         .order('created_at')
         .map((maps) => maps
             .map((map) => {
                   'id': map['id'],
                   'created_at': map['created_at'],
-                  'amount': map['amount'],
-                  'description': map['description'],
+                  'additional_fans': map['additional_fans'],
+                  'mood': map['mood'],
                   // Add more fields here as needed
                 })
             .toList());
@@ -46,74 +43,50 @@ class _FansPageState extends State<FansPage> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final sessionProvider =
-        Provider.of<SessionProvider>(context, listen: false);
-    sessionProvider.updateClubStream(supabase.auth.currentUser!.id);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Club>>(
-      stream: Provider.of<SessionProvider>(context).clubStream,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final clubs = snapshot.data!;
-          return Scaffold(
-            appBar: CustomAppBar(
-                pageName:
-                    clubs[Provider.of<SessionProvider>(context).nClubInList]
-                            .club_name ??
-                        'No club name'),
-            // CustomAppBar(clubStream: _clubStream),
-            // drawer: AppDrawer(clubStream: _clubStream),
-            drawer: const AppDrawer(),
-            body: clubs.isEmpty
-                ? const Center(child: Text('No clubs found'))
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 16),
-                      Text(
-                        'Hello ${clubs[Provider.of<SessionProvider>(context).nClubInList].username} !',
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                      const SizedBox(height: 16),
-                      RichText(
-                        text: TextSpan(
-                          text:
-                              'Selected club [${Provider.of<SessionProvider>(context).nClubInList}]: ',
-                          style: const TextStyle(fontSize: 18),
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: clubs[Provider.of<SessionProvider>(context)
-                                      .nClubInList]
-                                  .club_name,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Fans',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      ),
-                    ],
-                  ),
-          );
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error occurred: ${snapshot.error}'));
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      },
+    return Scaffold(
+      appBar: CustomAppBar(
+          pageName:
+              Provider.of<SessionProvider>(context).selectedClub.club_name ??
+                  'No club name'),
+      // CustomAppBar(clubStream: _clubStream),
+      // drawer: AppDrawer(clubStream: _clubStream),
+      drawer: const AppDrawer(),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 16),
+          Text(
+            'Hello ${Provider.of<SessionProvider>(context).selectedClub.username} !',
+            style: const TextStyle(fontSize: 24),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: _fansStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final fansList = snapshot.data!;
+                  final totalFans = fansList.fold<int>(
+                    0,
+                    (previousValue, element) => previousValue +
+                        (element['additional_fans'] ?? 0) as int,
+                  );
+                  return Text(
+                    'Total number of fans: $totalFans',
+                    style: const TextStyle(fontSize: 18),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

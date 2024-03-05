@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/chat_page.dart';
@@ -32,179 +33,55 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
-          Container(
-            color: Colors.grey, // Set the background color to grey
-            child: ListTile(
-              leading: const Icon(Icons.add_home_work), // Add the chat icon
-              title: Text(
-                'Club ${selectedClub.club_name ?? 'No club Name'}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                  decorationThickness: 1.0, // Change underline thickness
-                  // decorationStyle:
-                  //     TextDecorationStyle.dotted, // Change underline style
-                ),
-              ),
-              onTap: () {
-                // Handle navigation to item 1
-              },
-            ),
-          ),
-          ListTile(
-            // leading: const Icon(Icons.attach_money), // Add the chat icon
-            leading: const Icon(Icons.savings_outlined), // Add the chat icon
-            title: const Text('Finances'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const FinancesPage(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.campaign_outlined), // Add the chat icon
-            title: const Text('Fans'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const FansPage(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            // leading: const Icon(Icons.fort_outlined), // Add the chat icon
-            leading: const Icon(Icons.stadium_outlined), // Add the chat icon
-            title: const Text('Stadium'),
-            onTap: () {
-              // Handle navigation to item 2
-            },
-          ),
-          ListTile(
-            leading:
-                const Icon(Icons.engineering_outlined), // Add the chat icon
-            title: const Text('Staff'),
-            onTap: () {
-              // Handle navigation to item 2
-            },
-          ),
-          ListTile(
-            leading:
-                const Icon(Icons.camera_indoor_outlined), // Add the chat icon
-            title: const Text('Scouts'),
-            onTap: () {
-              // Handle navigation to item 2
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.healing), // Add the chat icon
-            title: const Text('Medics'),
-            onTap: () {
-              // Handle navigation to item 2
-            },
-          ),
-          Container(
-            color: Colors.grey, // Set the background color to grey
-            child: ListTile(
-              leading:
-                  const Icon(Icons.group_add_outlined), // Add the chat icon
-              title: const Text(
-                'Main Team',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                  decorationThickness: 1.0, // Change underline thickness
-                  // decorationStyle:
-                  //     TextDecorationStyle.dotted, // Change underline style
-                ),
-              ),
-              onTap: () {
-                // Handle navigation to item 1
-              },
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.diversity_3), // Add the chat icon
-            title: const Text('Players'),
-            onTap: () {
-              // Navigate to player page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const PlayersPage(), // Replace PlayerPage() with your player page widget
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.currency_exchange), // Add the chat icon
-            title: const Text('Transfers'),
-            onTap: () {
-              // Handle navigation to item 2
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.event_outlined), // Add the chat icon
-            title: const Text('Games'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const GamesPage(), // Replace PlayerPage() with your player page widget
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading:
-                const Icon(Icons.emoji_events_outlined), // Add the chat icon
-            title: const Text('Ranking'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const RankingPage(idLeague: 1),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(
-                // Icons.data_exploration_outlined), // Add the chat icon
-                Icons.query_stats), // Add the chat icon
-            title: const Text('Training'),
-            onTap: () {
-              // Handle navigation to item 2
-            },
-          ),
-          // Add non-clickable Text widgets for information
-          Container(
-            color: Colors.grey, // Set the background color to grey
-            child: ListTile(
-              leading: const Icon(
-                  // Icons.child_friendly_outlined), // Add the chat icon
-                  Icons.school_outlined), // Add the chat icon
-              title: const Text(
-                'Young Team',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                  decorationThickness: 1.0, // Change underline thickness
-                  // decorationStyle:
-                  //     TextDecorationStyle.dotted, // Change underline style
-                ),
-              ),
-              onTap: () {
-                // Handle navigation to item 1
-              },
-            ),
-          ),
+          buildDrawerTitle('Club: ${selectedClub.club_name ?? 'No club Name'}'),
+          buildDrawerOption(
+              context,
+              Icons.savings_outlined,
+              'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.finances_cash)} €',
+              FinancesPage(
+                  idClub: selectedClub.id_club)), // Add the finances page
+          buildDrawerOption(context, Icons.campaign_outlined, 'Fans',
+              FansPage(idClub: selectedClub.id_club)), // Add the fans page
+          buildDrawerOption(
+            context,
+            Icons.stadium_outlined,
+            'Stadium',
+          ), // Add the Stadium page
+          buildDrawerOption(
+            context,
+            Icons.engineering_outlined,
+            'Staff',
+          ), // Add the Staff page
+          buildDrawerOption(
+            context,
+            Icons.camera_indoor_outlined,
+            'Scouts',
+          ), // Add the Scouts page
+          buildDrawerOption(
+              context, Icons.healing, 'Medics'), // Add the Medics page
+          buildDrawerTitle('Main Team'), // Add the Main Team page
+          buildDrawerOption(
+              context,
+              Icons.diversity_3,
+              'Players (${selectedClub.player_count})',
+              PlayersPage(
+                  idClub: selectedClub.id_club)), // Add the Players page
+          buildDrawerOption(
+            context,
+            Icons.currency_exchange,
+            'Transfers',
+          ), // Add the Transfers page
+          buildDrawerOption(context, Icons.event_outlined, 'Games',
+              const GamesPage()), // Add the Games page
+          buildDrawerOption(context, Icons.emoji_events_outlined, 'Rankings',
+              const RankingPage(idLeague: 1)), // Add the Rankings page
+          buildDrawerOption(
+            context,
+            Icons.query_stats,
+            'Training',
+          ), // Add the Training page
+          buildDrawerTitle('Young Team'),
+
           const SizedBox(
             height: 15,
           ),
@@ -218,16 +95,44 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
           ),
-          ListTile(
-            // leading: const Icon(Icons.chat), // Add the chat icon
-            leading: const Icon(Icons.wechat_outlined), // Add the chat icon
-            title: const Text('Chat'),
-            onTap: () {
-              Navigator.of(context).push(ChatPage.route());
-            },
-          ),
+          buildDrawerOption(context, Icons.wechat_outlined, 'Chat',
+              const ChatPage()), // Add the Rankings page
         ],
       ),
     );
   }
+}
+
+Widget buildDrawerTitle(String title) {
+  return Container(
+    color: Colors.blueGrey,
+    child: ListTile(
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 24.0,
+        ),
+      ),
+      onTap: () {
+        // Handle navigation
+      },
+    ),
+  );
+}
+
+Widget buildDrawerOption(BuildContext context, IconData icon, String title,
+    [Widget? page]) {
+  return ListTile(
+    leading: Icon(icon),
+    title: Text(title),
+    onTap: page != null
+        ? () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => page),
+            );
+          }
+        : null,
+  );
 }

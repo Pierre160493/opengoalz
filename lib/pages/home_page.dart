@@ -47,10 +47,10 @@ class _HomePageState extends State<HomePage> {
           final clubs = snapshot.data!;
           return Scaffold(
             appBar: CustomAppBar(
-                pageName:
-                    clubs[Provider.of<SessionProvider>(context).nClubInList]
-                            .club_name ??
-                        'No club name'),
+                pageName: Provider.of<SessionProvider>(context)
+                        .selectedClub
+                        .club_name ??
+                    'No club name'),
             // CustomAppBar(clubStream: _clubStream),
             // drawer: AppDrawer(clubStream: _clubStream),
             drawer: const AppDrawer(),
@@ -62,19 +62,19 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       const SizedBox(height: 16),
                       Text(
-                        'Hello ${clubs[Provider.of<SessionProvider>(context).nClubInList].username} !',
+                        'Hello ${Provider.of<SessionProvider>(context).selectedClub.username} !',
                         style: const TextStyle(fontSize: 24),
                       ),
                       const SizedBox(height: 16),
                       RichText(
                         text: TextSpan(
                           text:
-                              'Selected club [${Provider.of<SessionProvider>(context).nClubInList}]: ',
+                              'Selected club [${Provider.of<SessionProvider>(context).selectedClub.club_name}]: ',
                           style: const TextStyle(fontSize: 18),
                           children: <TextSpan>[
                             TextSpan(
-                              text: clubs[Provider.of<SessionProvider>(context)
-                                      .nClubInList]
+                              text: Provider.of<SessionProvider>(context)
+                                  .selectedClub
                                   .club_name,
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold),
@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
                       const Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'List of clubs:',
+                          'List of your clubs:',
                           style: TextStyle(fontSize: 18),
                         ),
                       ),
@@ -98,12 +98,6 @@ class _HomePageState extends State<HomePage> {
                             return Card(
                               child: ListTile(
                                 onTap: () {
-                                  // Define the action you want to perform when the ListTile is tapped
-                                  // For example, you can navigate to a new screen or show a dialog
-                                  print('Tapped on club: ${club.club_name}');
-                                  Provider.of<SessionProvider>(context,
-                                          listen: false)
-                                      .setnClubInList(index);
                                   Provider.of<SessionProvider>(context,
                                           listen: false)
                                       .setselectedClub(club);
@@ -119,9 +113,10 @@ class _HomePageState extends State<HomePage> {
                                         club.club_name ?? 'ERROR: No club name',
                                       ),
                                     ),
-                                    if (index ==
+                                    if (club.id_club ==
                                         Provider.of<SessionProvider>(context)
-                                            .nClubInList)
+                                            .selectedClub
+                                            .id_club)
                                       const Icon(Icons.check_circle,
                                           color: Colors
                                               .green), // Display green tick icon if index matches nClubInList

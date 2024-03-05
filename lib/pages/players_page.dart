@@ -10,11 +10,12 @@ import '../classes/player.dart';
 import '../constants.dart';
 
 class PlayersPage extends StatefulWidget {
-  const PlayersPage({Key? key}) : super(key: key);
+  final int idClub;
+  const PlayersPage({Key? key, required this.idClub}) : super(key: key);
 
-  static Route<void> route() {
+  static Route<void> route(int idClub) {
     return MaterialPageRoute(
-      builder: (context) => const PlayersPage(),
+      builder: (context) => PlayersPage(idClub: idClub),
     );
   }
 
@@ -29,9 +30,7 @@ class _PlayersPageState extends State<PlayersPage> {
 
   @override
   void initState() {
-    final myUserId = supabase.auth.currentUser!.id;
-
-    _playerStream = _fetchPlayersStream(myUserId);
+    _playerStream = _fetchPlayersStream();
 
     // Listen to the stream and update the player count
     _playerStream.listen((players) {
@@ -43,11 +42,11 @@ class _PlayersPageState extends State<PlayersPage> {
     super.initState();
   }
 
-  Stream<List<Player>> _fetchPlayersStream(String myUserId) {
+  Stream<List<Player>> _fetchPlayersStream() {
     var query = supabase
         .from('view_players')
         .stream(primaryKey: ['id'])
-        .eq('id_user', myUserId)
+        .eq('id_club', widget.idClub)
         .order('created_at');
 
     // Apply filter based on selected criteria
@@ -60,7 +59,8 @@ class _PlayersPageState extends State<PlayersPage> {
     }
 
     return query.map((maps) => maps
-        .map((map) => Player.fromMap(map: map, myUserId: myUserId))
+        .map((map) =>
+            Player.fromMap(map: map, myUserId: supabase.auth.currentUser!.id))
         .toList());
   }
 
@@ -102,8 +102,7 @@ class _PlayersPageState extends State<PlayersPage> {
                             _selectedFilter = newValue!;
                           });
                           // Update the stream query based on the new filter
-                          _playerStream = _fetchPlayersStream(
-                              supabase.auth.currentUser!.id);
+                          _playerStream = _fetchPlayersStream();
                         },
                         items: <String>['Age', 'First Name', 'Last Name']
                             .map<DropdownMenuItem<String>>((String value) {
