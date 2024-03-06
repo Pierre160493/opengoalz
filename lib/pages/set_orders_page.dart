@@ -354,6 +354,26 @@ class _SetOrdersPageState extends State<SetOrdersPage> {
                 child: player != null
                     ? Column(
                         children: [
+                          GestureDetector(
+                            onTap: () async {
+                              print('Delete player');
+                              await supabase
+                                  .from('games_team_comp')
+                                  .update({strPositionInDB: null}).match(
+                                      {'id': teamComp.id});
+                            },
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Icon(
+                                  Icons
+                                      .restore_from_trash, // Your additional icon
+                                  size: 20,
+                                  color: Colors.red,
+                                ),
+                              ],
+                            ),
+                          ),
                           const Icon(Icons.person,
                               size: 50, color: Colors.white),
                           Text(
