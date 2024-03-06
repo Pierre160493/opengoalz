@@ -53,7 +53,7 @@ class _HomePageState extends State<PlayerPage> {
       appBar: const CustomAppBar(
         pageName: 'Player Page',
       ),
-      drawer: const AppDrawer(),
+      // drawer: const AppDrawer(),
       body: StreamBuilder<List<Player>>(
         stream: _playerStream,
         builder: (context, snapshot) {

@@ -22,7 +22,7 @@ class Club {
   final DateTime created_at;
 
   /// ID of the league where the club belongs
-  final int? id_league;
+  final int id_league;
 
   /// Date and time when the message was created
   final String? id_user;

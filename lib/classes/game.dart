@@ -17,60 +17,58 @@ class Game {
     required this.usernameClubLeft,
     required this.idUserClubRight,
     required this.usernameClubRight,
-    // required this.isMine,
+    required this.idPlayerGKLeft,
+    required this.idPlayerLBLeft,
+    required this.idPlayerLCBLeft,
+    required this.idPlayerCBLeft,
+    required this.idPlayerRCBLeft,
+    required this.idPlayerRBLeft,
+    required this.idPlayerLWLeft,
+    required this.idPlayerLCMLeft,
+    required this.idPlayerCMLeft,
+    required this.idPlayerRCMLeft,
+    required this.idPlayerRWLeft,
+    required this.idPlayerLSLeft,
+    required this.idPlayerCSLeft,
+    required this.idPlayerRSLeft,
   });
 
-  /// ID of the game
   final int id;
-  final int? idClub;
-
-  /// Date and time when the game starts
+  final int idClub;
   final DateTime dateStart;
   final int weekNumber;
-
-  /// ID of the left club
   final int idClubLeft;
-
-  /// Name of the left club
   final String? nameClubLeft;
-
-  /// ID of the right club
   final int idClubRight;
-
-  /// Name of the right club
   final String? nameClubRight;
-
-  /// ID of the stadium
   final int? idStadium;
-
-  /// Indicates whether the game is played
   final bool isPlayed;
-
-  /// Indicates whether the game is a cup match
   final bool isCup;
-
-  /// Number of goals scored by the left club
   final int? goalsLeft;
-
-  /// Number of goals scored by the right club
   final int? goalsRight;
-
-  /// ID of the user for the left club
   final String? idUserClubLeft;
-
-  /// Username of the user for the left club
   final String? usernameClubLeft;
-
-  /// ID of the user for the right club
   final String? idUserClubRight;
-
-  /// Username of the user for the right club
   final String? usernameClubRight;
 
-  Game.fromMap({
-    required Map<String, dynamic> map,
-    required String myUserId,
-  })  : id = map['id'],
+  // New player IDs on the left side
+  final int? idPlayerGKLeft;
+  final int? idPlayerLBLeft;
+  final int? idPlayerLCBLeft;
+  final int? idPlayerCBLeft;
+  final int? idPlayerRCBLeft;
+  final int? idPlayerRBLeft;
+  final int? idPlayerLWLeft;
+  final int? idPlayerLCMLeft;
+  final int? idPlayerCMLeft;
+  final int? idPlayerRCMLeft;
+  final int? idPlayerRWLeft;
+  final int? idPlayerLSLeft;
+  final int? idPlayerCSLeft;
+  final int? idPlayerRSLeft;
+
+  Game.fromMap({required Map<String, dynamic> map})
+      : id = map['id'],
         idClub = map['id_club'],
         dateStart = DateTime.parse(map['date_start']),
         weekNumber = map['week_number'],
@@ -86,6 +84,19 @@ class Game {
         goalsRight = map['goals_right'],
         idStadium = map['id_stadium'],
         isPlayed = map['is_played'] ?? false,
-        isCup = map['is_cup'] ?? false;
-  // isMine = myUserId == map['id_user'];
+        isCup = map['is_cup'] ?? false,
+        idPlayerGKLeft = map['id_player_GK_left'],
+        idPlayerLBLeft = map['id_player_LB_left'],
+        idPlayerLCBLeft = map['id_player_LCB_left'],
+        idPlayerCBLeft = map['id_player_CB_left'],
+        idPlayerRCBLeft = map['id_player_RCB_left'],
+        idPlayerRBLeft = map['id_player_RB_left'],
+        idPlayerLWLeft = map['id_player_LW_left'],
+        idPlayerLCMLeft = map['id_player_LCM_left'],
+        idPlayerCMLeft = map['id_player_CM_left'],
+        idPlayerRCMLeft = map['id_player_RCM_left'],
+        idPlayerRWLeft = map['id_player_RW_left'],
+        idPlayerLSLeft = map['id_player_LS_left'],
+        idPlayerCSLeft = map['id_player_CS_left'],
+        idPlayerRSLeft = map['id_player_RS_left'];
 }

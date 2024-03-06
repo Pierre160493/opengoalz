@@ -36,9 +36,10 @@ class _RankingPageState extends State<RankingPage> {
     // Use id_league to make the query
     var query = supabase
         .from('view_ranking')
-        .stream(primaryKey: ['id_club']).eq('id_league', idLeague);
-    // .order('n_points DESC');
-    // .order('total_goal_average DESC');
+        .stream(primaryKey: ['id_club'])
+        .eq('id_league', idLeague)
+        .order('n_points DESC')
+        .order('total_goal_average');
 
     // Yield the result of the query
     yield* query

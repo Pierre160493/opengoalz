@@ -51,8 +51,6 @@ class _HomePageState extends State<HomePage> {
                         .selectedClub
                         .club_name ??
                     'No club name'),
-            // CustomAppBar(clubStream: _clubStream),
-            // drawer: AppDrawer(clubStream: _clubStream),
             drawer: const AppDrawer(),
             body: clubs.isEmpty
                 ? const Center(child: Text('No clubs found'))
@@ -62,14 +60,13 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       const SizedBox(height: 16),
                       Text(
-                        'Hello ${Provider.of<SessionProvider>(context).selectedClub.username} !',
+                        'Hello ${Provider.of<SessionProvider>(context).selectedClub.username ?? 'Unknown Manager'} !',
                         style: const TextStyle(fontSize: 24),
                       ),
                       const SizedBox(height: 16),
                       RichText(
                         text: TextSpan(
-                          text:
-                              'Selected club [${Provider.of<SessionProvider>(context).selectedClub.club_name}]: ',
+                          text: 'Your currently selected club is: ',
                           style: const TextStyle(fontSize: 18),
                           children: <TextSpan>[
                             TextSpan(
@@ -86,7 +83,7 @@ class _HomePageState extends State<HomePage> {
                       const Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'List of your clubs:',
+                          'Here is the list of your clubs:',
                           style: TextStyle(fontSize: 18),
                         ),
                       ),

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/pages/game_page.dart';
+import 'package:opengoalz/pages/set_orders_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 
@@ -9,11 +11,12 @@ import '../classes/game.dart';
 import '../constants.dart';
 
 class GamesPage extends StatefulWidget {
-  const GamesPage({Key? key}) : super(key: key);
+  final int idClub;
+  const GamesPage({Key? key, required this.idClub}) : super(key: key);
 
-  static Route<void> route() {
+  static Route<void> route(int idClub) {
     return MaterialPageRoute(
-      builder: (context) => const GamesPage(),
+      builder: (context) => GamesPage(idClub: idClub),
     );
   }
 
@@ -26,16 +29,12 @@ class _HomePageState extends State<GamesPage> {
 
   @override
   void initState() {
-    final myUserId = supabase.auth.currentUser!.id;
-
     _gameStream = supabase
         .from('view_games')
         .stream(primaryKey: ['id'])
-        .eq('id_user', myUserId)
+        .eq('id_club', widget.idClub)
         .order('date_start', ascending: true)
-        .map((maps) => maps
-            .map((map) => Game.fromMap(map: map, myUserId: myUserId))
-            .toList());
+        .map((maps) => maps.map((map) => Game.fromMap(map: map)).toList());
 
     super.initState();
   }
@@ -84,7 +83,13 @@ class _HomePageState extends State<GamesPage> {
                             itemCount: gamesNotPlayed.length,
                             itemBuilder: (context, index) {
                               final game = gamesNotPlayed[index];
-                              return _buildGameListItem(game);
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context)
+                                      .push(GamePage.route(game));
+                                },
+                                child: _buildGameListItem(game),
+                              );
                             },
                           ),
                         ),
@@ -114,59 +119,83 @@ class _HomePageState extends State<GamesPage> {
 
   Widget _buildGameListItem(Game game) {
     return Card(
-      elevation: 3,
+      elevation: 5,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: ListTile(
-        title: Column(
+        title: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RichText(
-              text: TextSpan(
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextSpan(
-                    text: game.nameClubLeft,
-                    style: TextStyle(
-                      fontWeight:
-                          game.idUserClubLeft == supabase.auth.currentUser!.id
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                      fontSize: 16,
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: game.nameClubLeft,
+                          style: TextStyle(
+                            fontWeight: game.idUserClubLeft ==
+                                    supabase.auth.currentUser!.id
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextSpan(
+                          text: game.isPlayed
+                              ? '   ${game.goalsLeft} - ${game.goalsRight}   '
+                              : ' vs ',
+                          style: TextStyle(
+                            color: (game.isPlayed == false ||
+                                    game.goalsLeft == game.goalsRight)
+                                ? Colors.white
+                                : (game.isPlayed &&
+                                        ((game.idUserClubLeft ==
+                                                    supabase
+                                                        .auth.currentUser!.id &&
+                                                game.goalsLeft! >
+                                                    game.goalsRight!) ||
+                                            (game.idUserClubRight ==
+                                                    supabase
+                                                        .auth.currentUser!.id &&
+                                                game.goalsLeft! <
+                                                    game.goalsRight!)))
+                                    ? Colors.green
+                                    : Colors.red,
+                            fontSize: 14,
+                            fontWeight: game.isPlayed
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        TextSpan(
+                          text: game.nameClubRight,
+                          style: TextStyle(
+                              fontWeight: game.idUserClubRight ==
+                                      supabase.auth.currentUser!.id
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              fontSize: 16),
+                        ),
+                      ],
                     ),
-                  ),
-                  TextSpan(
-                    text: game.isPlayed
-                        ? '   ${game.goalsLeft} - ${game.goalsRight}   '
-                        : ' vs ',
-                    style: TextStyle(
-                      color: (game.isPlayed == false ||
-                              game.goalsLeft == game.goalsRight)
-                          ? Colors.white
-                          : (game.isPlayed &&
-                                  ((game.idUserClubLeft ==
-                                              supabase.auth.currentUser!.id &&
-                                          game.goalsLeft! > game.goalsRight!) ||
-                                      (game.idUserClubRight ==
-                                              supabase.auth.currentUser!.id &&
-                                          game.goalsLeft! < game.goalsRight!)))
-                              ? Colors.green
-                              : Colors.red,
-                      fontSize: 14,
-                      fontWeight:
-                          game.isPlayed ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  TextSpan(
-                    text: game.nameClubRight,
-                    style: TextStyle(
-                        fontWeight: game.idUserClubRight ==
-                                supabase.auth.currentUser!.id
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        fontSize: 16),
                   ),
                 ],
               ),
             ),
+            ElevatedButton(
+              onPressed: game.isPlayed
+                  ? null
+                  : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SetOrdersPage(game: game)),
+                      );
+                    },
+              child: const Text('Set Orders'),
+            )
           ],
         ),
         subtitle: Row(

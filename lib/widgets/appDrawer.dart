@@ -72,9 +72,13 @@ class AppDrawer extends StatelessWidget {
             'Transfers',
           ), // Add the Transfers page
           buildDrawerOption(context, Icons.event_outlined, 'Games',
-              const GamesPage()), // Add the Games page
-          buildDrawerOption(context, Icons.emoji_events_outlined, 'Rankings',
-              const RankingPage(idLeague: 1)), // Add the Rankings page
+              GamesPage(idClub: selectedClub.id_club)), // Add the Games page
+          buildDrawerOption(
+              context,
+              Icons.emoji_events_outlined,
+              'Rankings',
+              RankingPage(
+                  idLeague: selectedClub.id_league)), // Add the Rankings page
           buildDrawerOption(
             context,
             Icons.query_stats,

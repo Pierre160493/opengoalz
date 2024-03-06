@@ -11,7 +11,11 @@ import '../constants.dart';
 
 class PlayersPage extends StatefulWidget {
   final int idClub;
-  const PlayersPage({Key? key, required this.idClub}) : super(key: key);
+  final bool
+      isReturningId; // Should the page return the id of the player clicked ?
+  const PlayersPage(
+      {Key? key, required this.idClub, this.isReturningId = false})
+      : super(key: key);
 
   static Route<void> route(int idClub) {
     return MaterialPageRoute(
@@ -70,7 +74,7 @@ class _PlayersPageState extends State<PlayersPage> {
       appBar: CustomAppBar(
         pageName: '${_playersCount.toString()} Players',
       ),
-      drawer: const AppDrawer(),
+      drawer: widget.isReturningId ? null : const AppDrawer(),
       body: StreamBuilder<List<Player>>(
         stream: _playerStream,
         builder: (context, snapshot) {
@@ -146,12 +150,14 @@ class _PlayersPageState extends State<PlayersPage> {
                         final player = players[index];
                         return InkWell(
                           onTap: () {
-                            // Navigate to player page
-                            Navigator.push(
-                              context,
-                              PlayerPage.route(player
-                                  .id), // Call the route method with the player ID
-                            );
+                            widget.isReturningId
+                                ? Navigator.of(context).pop(
+                                    player.id) // Return the id of the player
+                                : Navigator.push(
+                                    context,
+                                    PlayerPage.route(
+                                        player.id), // Navigate to player page
+                                  );
                           },
                           child: PlayerCard(player: player),
                         );
