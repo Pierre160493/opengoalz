@@ -101,7 +101,7 @@ class _SetOrdersPageState extends State<SetOrdersPage> {
                               ),
                             )
                           : Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(0.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -231,71 +231,85 @@ class _SetOrdersPageState extends State<SetOrdersPage> {
         idPlayer = teamComp.idGoalKeeper;
         strPositionInDB = 'idgoalkeeper';
         strPositionInUI = 'GoalKeeper';
+        strPositionInUI = 'GK';
         break;
       case 'LeftWingDefender':
         idPlayer = teamComp.idLeftBackWinger;
         strPositionInDB = 'idleftbackwinger';
         strPositionInUI = 'Left Back';
+        strPositionInUI = 'LB';
         break;
       case 'LeftCentralDefender':
         idPlayer = teamComp.idLeftCentralBack;
         strPositionInDB = 'idleftcentralback';
         strPositionInUI = 'Central Def';
+        strPositionInUI = 'LCB';
         break;
       case 'CentralDefender':
         idPlayer = teamComp.idCentralBack;
         strPositionInDB = 'idcentralback';
         strPositionInUI = 'Central Def';
+        strPositionInUI = 'CB';
         break;
       case 'RightCentralDefender':
         idPlayer = teamComp.idRightCentralBack;
         strPositionInDB = 'idrightcentralback';
         strPositionInUI = 'Central Def';
+        strPositionInUI = 'RCB';
         break;
       case 'RightWingDefender':
         idPlayer = teamComp.idRightBackWinger;
         strPositionInDB = 'idrightbackwinger';
         strPositionInUI = 'Right Back';
+        strPositionInUI = 'RB';
         break;
       case 'LeftWinger':
         idPlayer = teamComp.idLeftWinger;
         strPositionInDB = 'idleftwinger';
         strPositionInUI = 'Left Winger';
+        strPositionInUI = 'LW';
         break;
       case 'LeftMidFielder':
         idPlayer = teamComp.idLeftMidFielder;
         strPositionInDB = 'idleftmidfielder';
         strPositionInUI = 'MidFielder';
+        strPositionInUI = 'LCM';
         break;
       case 'CentralMidFielder':
         idPlayer = teamComp.idCentralMidFielder;
         strPositionInDB = 'idcentralmidfielder';
         strPositionInUI = 'MidFielder';
+        strPositionInUI = 'CM';
         break;
       case 'RightMidFielder':
         idPlayer = teamComp.idRightMidFielder;
         strPositionInDB = 'idrightmidfielder';
         strPositionInUI = 'MidFielder';
+        strPositionInUI = 'RCM';
         break;
       case 'RightWinger':
         idPlayer = teamComp.idRightWinger;
         strPositionInDB = 'idrightwinger';
         strPositionInUI = 'Right Winger';
+        strPositionInUI = 'RW';
         break;
       case 'LeftStriker':
         idPlayer = teamComp.idLeftStriker;
         strPositionInDB = 'idleftstriker';
         strPositionInUI = 'Striker';
+        strPositionInUI = 'LS';
         break;
       case 'CentralStriker':
         idPlayer = teamComp.idCentralStriker;
         strPositionInDB = 'idcentralstriker';
         strPositionInUI = 'Striker';
+        strPositionInUI = 'S';
         break;
       case 'RightStriker':
         idPlayer = teamComp.idRightStriker;
         strPositionInDB = 'idrightstriker';
         strPositionInUI = 'Striker';
+        strPositionInUI = 'RS';
         break;
       default:
         throw ArgumentError('Invalid position: $position');
@@ -348,8 +362,8 @@ class _SetOrdersPageState extends State<SetOrdersPage> {
             Card(
               elevation: 3.0,
               child: Container(
-                width: 100.0,
-                height: 100.0,
+                width: 48.0,
+                height: 60.0,
                 alignment: Alignment.center,
                 child: player != null
                     ? Column(
@@ -368,21 +382,22 @@ class _SetOrdersPageState extends State<SetOrdersPage> {
                                 Icon(
                                   Icons
                                       .restore_from_trash, // Your additional icon
-                                  size: 20,
+                                  size: 6,
                                   color: Colors.red,
                                 ),
                               ],
                             ),
                           ),
                           const Icon(Icons.person,
-                              size: 50, color: Colors.white),
+                              size: 12, color: Colors.white),
                           Text(
                             '${player.first_name[0].toUpperCase()}.${player.last_name}',
+                            style: const TextStyle(fontSize: 12.0),
                           ),
                         ],
                       )
                     : const Icon(Icons.add,
-                        size: 50,
+                        size: 12,
                         color: Colors
                             .white), // Placeholder icon when player is null
                 // child: Text(idPlayer != null ? idPlayer.toString() : 'NONE'),
