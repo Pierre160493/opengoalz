@@ -83,137 +83,130 @@ class _SetOrdersPageState extends State<SetOrdersPage> {
                     );
                   } else {
                     final players = playersSnapshot.data ?? [];
+                    print('PG: ${teamComp.length}');
                     return Scaffold(
                       appBar: CustomAppBar(
                         pageName:
                             'Set order for game ${widget.game.id}', // Accessing game data here
                       ),
                       // drawer: const AppDrawer(),
-                      body: teamComp.length != 2
-                          ? const Center(
-                              child: Text(
-                                'ERROR in the Database: Team composition must have exactly 2 entries, one for each club', // Error message
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red,
+                      body:
+                          // teamComp.length != 2
+                          //     ? const Center(
+                          //         child: Text(
+                          //           'ERROR in the Database: Team composition must have exactly 2 entries, one for each club', // Error message
+                          //           style: TextStyle(
+                          //             fontSize: 16,
+                          //             fontWeight: FontWeight.bold,
+                          //             color: Colors.red,
+                          //           ),
+                          //         ),
+                          //       )
+                          //     :
+                          Padding(
+                        padding: const EdgeInsets.all(0.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(16.0),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        buildPlayerCard('LeftStriker',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('CentralStriker',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('RightStriker',
+                                            teamComp[index], players),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                        height:
+                                            6.0), // Add spacing between rows
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        buildPlayerCard('LeftWinger',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('LeftMidFielder',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('CentralMidFielder',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('RightMidFielder',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('RightWinger',
+                                            teamComp[index], players),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                        height:
+                                            6.0), // Add spacing between rows
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        buildPlayerCard('LeftWingDefender',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('LeftCentralDefender',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('CentralDefender',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('RightCentralDefender',
+                                            teamComp[index], players),
+                                        const SizedBox(width: 6.0),
+                                        buildPlayerCard('RightWingDefender',
+                                            teamComp[index], players),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                        height:
+                                            6.0), // Add spacing between rows
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        buildPlayerCard('GoalKeeper',
+                                            teamComp[index], players),
+                                      ],
+                                    ),
+                                    // const SizedBox(
+                                    //     height: 16.0), // Add spacing between rows
+                                    // Row(
+                                    //   mainAxisAlignment: MainAxisAlignment.center,
+                                    //   children: [
+                                    //     buildPlayerCard('Substitute 1', teamComp[index].idSub1),
+                                    //     buildPlayerCard('Substitute 2', teamComp[index].idSub2),
+                                    //     buildPlayerCard('Substitute 3', teamComp[index].idSub3),
+                                    //     buildPlayerCard('Substitute 4', teamComp[index].idSub4),
+                                    //     buildPlayerCard('Substitute 5', teamComp[index].idSub5),
+                                    //     buildPlayerCard('Substitute 6', teamComp[index].idSub6),
+                                    //   ],
+                                    // ),
+                                  ],
                                 ),
                               ),
                             )
-                          : Padding(
-                              padding: const EdgeInsets.all(0.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 16),
-                                  Container(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: SingleChildScrollView(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              buildPlayerCard('LeftStriker',
-                                                  teamComp[index], players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard('CentralStriker',
-                                                  teamComp[index], players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard('RightStriker',
-                                                  teamComp[index], players),
-                                            ],
-                                          ),
-                                          const SizedBox(
-                                              height:
-                                                  6.0), // Add spacing between rows
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              buildPlayerCard('LeftWinger',
-                                                  teamComp[index], players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard('LeftMidFielder',
-                                                  teamComp[index], players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard(
-                                                  'CentralMidFielder',
-                                                  teamComp[index],
-                                                  players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard('RightMidFielder',
-                                                  teamComp[index], players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard('RightWinger',
-                                                  teamComp[index], players),
-                                            ],
-                                          ),
-                                          const SizedBox(
-                                              height:
-                                                  6.0), // Add spacing between rows
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              buildPlayerCard(
-                                                  'LeftWingDefender',
-                                                  teamComp[index],
-                                                  players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard(
-                                                  'LeftCentralDefender',
-                                                  teamComp[index],
-                                                  players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard('CentralDefender',
-                                                  teamComp[index], players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard(
-                                                  'RightCentralDefender',
-                                                  teamComp[index],
-                                                  players),
-                                              const SizedBox(width: 6.0),
-                                              buildPlayerCard(
-                                                  'RightWingDefender',
-                                                  teamComp[index],
-                                                  players),
-                                            ],
-                                          ),
-                                          const SizedBox(
-                                              height:
-                                                  6.0), // Add spacing between rows
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              buildPlayerCard('GoalKeeper',
-                                                  teamComp[index], players),
-                                            ],
-                                          ),
-                                          // const SizedBox(
-                                          //     height: 16.0), // Add spacing between rows
-                                          // Row(
-                                          //   mainAxisAlignment: MainAxisAlignment.center,
-                                          //   children: [
-                                          //     buildPlayerCard('Substitute 1', teamComp[index].idSub1),
-                                          //     buildPlayerCard('Substitute 2', teamComp[index].idSub2),
-                                          //     buildPlayerCard('Substitute 3', teamComp[index].idSub3),
-                                          //     buildPlayerCard('Substitute 4', teamComp[index].idSub4),
-                                          //     buildPlayerCard('Substitute 5', teamComp[index].idSub5),
-                                          //     buildPlayerCard('Substitute 6', teamComp[index].idSub6),
-                                          //   ],
-                                          // ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
+                          ],
+                        ),
+                      ),
                     );
                   }
                 });
