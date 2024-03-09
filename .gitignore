@@ -43,4 +43,4 @@ app.*.map.json
 /android/app/release
 
 # Ignore sensitive environment files
-.env
+#.env
