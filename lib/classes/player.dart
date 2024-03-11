@@ -20,6 +20,7 @@ class Player {
     required this.scoring,
     required this.freekick,
     required this.date_end_injury,
+    required this.date_firing,
     required this.isMine,
   });
 
@@ -64,6 +65,7 @@ class Player {
 
   /// Player is injured
   final DateTime? date_end_injury;
+  final DateTime? date_firing;
 
   /// Whether the player belongs to the current user
   final bool isMine;
@@ -88,6 +90,11 @@ class Player {
         winger = map['winger'],
         scoring = map['scoring'],
         freekick = map['freekick'],
-        date_end_injury = map['date_end_injury'],
+        date_end_injury = map['date_end_injury'] != null
+            ? DateTime.parse(map['date_end_injury'])
+            : null,
+        date_firing = map['date_firing'] != null
+            ? DateTime.parse(map['date_firing'])
+            : null,
         isMine = myUserId == map['id_user'];
 }

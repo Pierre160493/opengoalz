@@ -54,6 +54,34 @@ class PlayerCardSingle extends StatelessWidget {
                   ),
                 ],
               ),
+              if (player.date_firing != null)
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 24,
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: 'Will be fired in:',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        children: [
+                          TextSpan(
+                            text:
+                                ' ${player.date_firing!.difference(DateTime.now()).inDays.toString()} days',
+                            style: const TextStyle(
+                              fontWeight:
+                                  FontWeight.normal, // Remove bold font weight
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 6),
               Row(
                 children: [
                   const SizedBox(
@@ -78,8 +106,7 @@ class PlayerCardSingle extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(
-                  height: 6), // Add spacing between name and radar chart
+              const SizedBox(height: 6),
               Row(
                 children: [
                   const SizedBox(
