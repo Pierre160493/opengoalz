@@ -21,7 +21,8 @@ class Player {
     required this.freekick,
     required this.date_end_injury,
     required this.date_firing,
-    required this.isMine,
+    required this.date_sell,
+    // required this.isMine,
   });
 
   /// ID of the club
@@ -66,13 +67,14 @@ class Player {
   /// Player is injured
   final DateTime? date_end_injury;
   final DateTime? date_firing;
+  final DateTime? date_sell;
 
   /// Whether the player belongs to the current user
-  final bool isMine;
+  // final bool isMine;
 
   Player.fromMap({
     required Map<String, dynamic> map,
-    required String myUserId,
+    // required String myUserId,
   })  : id = map['id'],
         created_at = DateTime.parse(map['created_at']),
         id_club = map['id_club'],
@@ -96,5 +98,7 @@ class Player {
         date_firing = map['date_firing'] != null
             ? DateTime.parse(map['date_firing'])
             : null,
-        isMine = myUserId == map['id_user'];
+        date_sell =
+            map['date_sell'] != null ? DateTime.parse(map['date_sell']) : null;
+  // isMine = myUserId == map['id_user'];
 }

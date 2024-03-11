@@ -43,7 +43,8 @@ class _SetOrdersPageState extends State<SetOrdersPage> {
         .eq('id_club', widget.game.idClub)
         .map((maps) => maps
             .map((map) => Player.fromMap(
-                map: map, myUserId: supabase.auth.currentUser!.id))
+                // map: map, myUserId: supabase.auth.currentUser!.id))
+                map: map))
             .toList());
 
     super.initState();

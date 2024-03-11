@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'dart:math';
 
-import '../classes/player.dart';
+import 'package:opengoalz/classes/player.dart';
 
 class PlayerCardSingle extends StatelessWidget {
   final Player player;
@@ -63,16 +63,36 @@ class PlayerCardSingle extends StatelessWidget {
                     RichText(
                       text: TextSpan(
                         text: 'Will be fired in:',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
                         children: [
                           TextSpan(
                             text:
                                 ' ${player.date_firing!.difference(DateTime.now()).inDays.toString()} days',
                             style: const TextStyle(
+                                color: Colors.red, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 6),
+              if (player.date_end_injury != null)
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 24,
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: 'Still injured for: ',
+                        style: const TextStyle(),
+                        children: [
+                          TextSpan(
+                            text:
+                                ' ${player.date_end_injury!.difference(DateTime.now()).inDays.toString()} days',
+                            style: const TextStyle(
                               fontWeight:
-                                  FontWeight.normal, // Remove bold font weight
+                                  FontWeight.bold, // Remove bold font weight
                               color: Colors.red,
                             ),
                           ),
@@ -90,15 +110,12 @@ class PlayerCardSingle extends StatelessWidget {
                   RichText(
                     text: TextSpan(
                       text: 'Age: ',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
                       children: [
                         TextSpan(
                           text: player.age.toStringAsFixed(2),
                           style: const TextStyle(
                             fontWeight:
-                                FontWeight.normal, // Remove bold font weight
+                                FontWeight.bold, // Remove bold font weight
                           ),
                         ),
                       ],
@@ -115,15 +132,12 @@ class PlayerCardSingle extends StatelessWidget {
                   RichText(
                     text: TextSpan(
                       text: 'Club: ',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
                       children: [
                         TextSpan(
                           text: player.club_name,
                           style: const TextStyle(
                             fontWeight:
-                                FontWeight.normal, // Remove bold font weight
+                                FontWeight.bold, // Remove bold font weight
                           ),
                         ),
                       ],

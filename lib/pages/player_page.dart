@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/classes/player.dart';
 import 'package:opengoalz/widgets/player_card_single.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../classes/player.dart';
 import '../constants.dart';
 
 class PlayerPage extends StatefulWidget {
@@ -23,27 +23,28 @@ class PlayerPage extends StatefulWidget {
 }
 
 class _PlayerPageState extends State<PlayerPage> {
-  late final Stream<List<Player>> _playerStream;
+  Stream<List<Player>> _playerStream = const Stream.empty();
 
   @override
   void initState() {
-    final myUserId = supabase.auth.currentUser!.id;
-
-    _playerStream = _fetchPlayersStream(myUserId, widget.idPlayer);
-
     super.initState();
+    _playerStream = _fetchPlayersStream(widget.idPlayer);
   }
 
-  Stream<List<Player>> _fetchPlayersStream(String myUserId, int idPlayer) {
+  Stream<List<Player>> _fetchPlayersStream(int idPlayer) {
     var query = supabase
         .from('view_players')
-        .stream(primaryKey: ['id'])
-        .eq('id', idPlayer)
-        .order('created_at');
+        .stream(primaryKey: ['id']).eq('id', idPlayer);
 
-    return query.map((maps) => maps
-        .map((map) => Player.fromMap(map: map, myUserId: myUserId))
-        .toList());
+    return query
+        .map((maps) => maps.map((map) => Player.fromMap(map: map)).toList());
+  }
+
+  // Method to update the stream and force the StreamBuilder to rebuild
+  Stream<List<Player>> _updatePlayerStream() {
+    _playerStream = _fetchPlayersStream(widget.idPlayer);
+    setState(() {});
+    return _playerStream;
   }
 
   @override
@@ -76,8 +77,37 @@ class _PlayerPageState extends State<PlayerPage> {
                 title: Row(
                   children: [
                     Text(
-                      '${players[0].first_name} ${players[0].last_name.toUpperCase()}',
+                      '${players[0].first_name} ${players[0].last_name.toUpperCase()}  ',
                     ),
+                    if (players[0].date_sell != null)
+                      const Icon(
+                        Icons.currency_exchange,
+                        color: Colors.green,
+                        size: 30,
+                      ),
+                    // Row(
+                    //   children: [
+                    //     const SizedBox(width: 12),
+                    //     Container(
+                    //       decoration: BoxDecoration(
+                    //         // color: Colors.green,
+                    //         borderRadius: BorderRadius.circular(
+                    //             6), // Adjust the radius as needed
+                    //       ),
+                    //       child: const Row(
+                    //         children: [
+                    //           Icon(
+                    //             Icons.currency_exchange,
+                    //             color: Colors.green,
+                    //           ),
+                    //           // Text(
+                    //           //   ' ${players[0].date_sell!.difference(DateTime.now()).inDays.toString()}d',
+                    //           // ),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                     if (players[0].date_firing != null)
                       Row(
                         children: [
@@ -186,45 +216,146 @@ class _PlayerPageState extends State<PlayerPage> {
                     if (value != null) {
                       switch (value) {
                         case 'Sell':
-                          // Handle Sell action
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Confirm'),
+                                content: Text(
+                                    'Are you sure you want to sell ${players[0].first_name} ${players[0].last_name.toUpperCase()} ?'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pop(); // Close the dialog
+                                    },
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      Navigator.of(context)
+                                          .pop(); // Close the dialog
+                                      // Execute firing action if user confirms
+                                      try {
+                                        DateTime dateSell = DateTime.now()
+                                            .add(const Duration(days: 7));
+                                        await supabase.from('players').update({
+                                          'date_sell':
+                                              dateSell.toIso8601String()
+                                        }).match({'id': players[0].id});
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Center(
+                                              child: Column(
+                                                children: [
+                                                  Text(
+                                                    '${players[0].first_name} ${players[0].last_name.toUpperCase()}',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const Text(
+                                                    ' will be put in auction for 7 days !',
+                                                    style:
+                                                        TextStyle(fontSize: 16),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                        _playerStream = _updatePlayerStream();
+                                        print('PG: Seems OK');
+                                      } on PostgrestException catch (error) {
+                                        print(error);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(error.code!),
+                                          ),
+                                        );
+                                      }
+                                      print("PG: Fin");
+                                    },
+                                    child: const Text('Confirm'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                           break;
                         case 'Fire':
-                          try {
-                            DateTime date_firing =
-                                DateTime.now().add(const Duration(days: 7));
-                            await supabase.from('players').update({
-                              'date_firing': date_firing.toIso8601String()
-                            }).match({'id': players[0].id});
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Center(
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        '${players[0].first_name} ${players[0].last_name.toUpperCase()}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const Text(
-                                        ' has 7 days to pack his stuff or change your mind !',
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                    ],
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Confirm'),
+                                content: Text(
+                                    'Are you sure you want to fire ${players[0].first_name} ${players[0].last_name.toUpperCase()} ?'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pop(); // Close the dialog
+                                    },
+                                    child: const Text('Cancel'),
                                   ),
-                                ),
-                              ),
-                            );
-                            print('PG: Seems OK');
-                          } on PostgrestException catch (error) {
-                            print(error);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(error.code!),
-                              ),
-                            );
-                          }
-                          print("PG: Fin");
+                                  TextButton(
+                                    onPressed: () async {
+                                      Navigator.of(context)
+                                          .pop(); // Close the dialog
+                                      // Execute firing action if user confirms
+                                      try {
+                                        DateTime dateFiring = DateTime.now()
+                                            .add(const Duration(days: 7));
+                                        await supabase.from('players').update({
+                                          'date_firing':
+                                              dateFiring.toIso8601String()
+                                        }).match({'id': players[0].id});
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Center(
+                                              child: Column(
+                                                children: [
+                                                  Text(
+                                                    '${players[0].first_name} ${players[0].last_name.toUpperCase()}',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const Text(
+                                                    ' has 7 days to pack his stuff or change your mind !',
+                                                    style:
+                                                        TextStyle(fontSize: 16),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                        _playerStream = _updatePlayerStream();
+                                        print('PG: Seems OK');
+                                      } on PostgrestException catch (error) {
+                                        print(error);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(error.code!),
+                                          ),
+                                        );
+                                      }
+                                      print("PG: Fin");
+                                    },
+                                    child: const Text('Confirm'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                           break;
                         case 'Unfire':
                           try {
@@ -252,6 +383,8 @@ class _PlayerPageState extends State<PlayerPage> {
                                 ),
                               ),
                             );
+                            // Fetch updated data by calling _fetchPlayersStream again
+                            _playerStream = _updatePlayerStream();
                             print('Player unfired successfully.');
                           } on PostgrestException catch (error) {
                             print(error);

@@ -62,10 +62,9 @@ class _PlayersPageState extends State<PlayersPage> {
       query = query.order('last_name');
     }
 
-    return query.map((maps) => maps
-        .map((map) =>
-            Player.fromMap(map: map, myUserId: supabase.auth.currentUser!.id))
-        .toList());
+    return query.map((maps) => maps.map((map) =>
+        // Player.fromMap(map: map, myUserId: supabase.auth.currentUser!.id))
+        Player.fromMap(map: map)).toList());
   }
 
   @override

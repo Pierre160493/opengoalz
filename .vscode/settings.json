@@ -10,5 +10,8 @@
             "database": "postgres",
             "username": "postgres.kaderxuszmqjknsoyjpi"
         }
-    ]
+    ],
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true
+    }
 }
