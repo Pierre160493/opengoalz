@@ -25,6 +25,22 @@ const formPadding = EdgeInsets.symmetric(vertical: 20, horizontal: 16);
 /// Error message to display the user when unexpected error occurs.
 const unexpectedErrorMessage = 'Unexpected error occurred.';
 
+/// Icons
+
+const icon_home = Icons.home;
+const icon_finance = Icons.savings_outlined;
+const icon_fans = Icons.campaign_outlined;
+const icon_stadium = Icons.stadium_outlined;
+const icon_staff = Icons.engineering_outlined;
+const icon_scouts = Icons.camera_indoor_outlined;
+const icon_medics = Icons.healing;
+const icon_players = Icons.diversity_3;
+const icon_transfers = Icons.currency_exchange;
+const icon_games = Icons.event_outlined;
+const icon_rankings = Icons.emoji_events_outlined;
+const icon_training = Icons.query_stats;
+const icon_chat = Icons.wechat_outlined;
+
 /// Basic theme to change the look and feel of the app
 final appTheme = ThemeData.dark().copyWith(
   primaryColorDark: Colors.green[800],

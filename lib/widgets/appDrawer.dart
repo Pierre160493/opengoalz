@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/chat_page.dart';
 import 'package:opengoalz/pages/fans_page.dart';
@@ -22,7 +23,7 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         children: [
           ListTile(
-            leading: const Icon(Icons.home), // Add the home icon
+            leading: const Icon(icon_home), // Add the home icon
             title: const Text('Home'),
             onTap: () {
               Navigator.push(
@@ -36,52 +37,52 @@ class AppDrawer extends StatelessWidget {
           buildDrawerTitle('Club: ${selectedClub.club_name ?? 'No club Name'}'),
           buildDrawerOption(
               context,
-              Icons.savings_outlined,
+              icon_finance,
               'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.finances_cash)} €',
               FinancesPage(
                   idClub: selectedClub.id_club)), // Add the finances page
-          buildDrawerOption(context, Icons.campaign_outlined, 'Fans',
+          buildDrawerOption(context, icon_fans, 'Fans',
               FansPage(idClub: selectedClub.id_club)), // Add the fans page
           buildDrawerOption(
             context,
-            Icons.stadium_outlined,
+            icon_stadium,
             'Stadium',
           ), // Add the Stadium page
           buildDrawerOption(
             context,
-            Icons.engineering_outlined,
+            icon_staff,
             'Staff',
           ), // Add the Staff page
           buildDrawerOption(
             context,
-            Icons.camera_indoor_outlined,
+            icon_scouts,
             'Scouts',
           ), // Add the Scouts page
           buildDrawerOption(
-              context, Icons.healing, 'Medics'), // Add the Medics page
+              context, icon_medics, 'Medics'), // Add the Medics page
           buildDrawerTitle('Main Team'), // Add the Main Team page
           buildDrawerOption(
               context,
-              Icons.diversity_3,
+              icon_players,
               'Players (${selectedClub.player_count})',
               PlayersPage(
                   idClub: selectedClub.id_club)), // Add the Players page
           buildDrawerOption(
             context,
-            Icons.currency_exchange,
+            icon_transfers,
             'Transfers',
           ), // Add the Transfers page
-          buildDrawerOption(context, Icons.event_outlined, 'Games',
+          buildDrawerOption(context, icon_games, 'Games',
               GamesPage(idClub: selectedClub.id_club)), // Add the Games page
           buildDrawerOption(
               context,
-              Icons.emoji_events_outlined,
+              icon_rankings,
               'Rankings',
               RankingPage(
                   idLeague: selectedClub.id_league)), // Add the Rankings page
           buildDrawerOption(
             context,
-            Icons.query_stats,
+            icon_training,
             'Training',
           ), // Add the Training page
           buildDrawerTitle('Young Team'),
@@ -99,7 +100,7 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
           ),
-          buildDrawerOption(context, Icons.wechat_outlined, 'Chat',
+          buildDrawerOption(context, icon_chat, 'Chat',
               const ChatPage()), // Add the Rankings page
         ],
       ),
