@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/ranking.dart';
+import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 
@@ -77,7 +78,7 @@ class _RankingPageState extends State<RankingPage> {
                   columns: const [
                     DataColumn(label: Text('#')),
                     DataColumn(label: Text('Name')),
-                    DataColumn(label: Text('Points')),
+                    DataColumn(label: Text('Pts')),
                     DataColumn(label: Text('+-')),
                     DataColumn(label: Text('W')),
                     DataColumn(label: Text('T')),
@@ -88,6 +89,15 @@ class _RankingPageState extends State<RankingPage> {
                   rows: rankings.take(8).map((ranking) {
                     final index = rankings.indexOf(ranking) + 1;
                     return DataRow(
+                      onSelectChanged: (_) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  ClubPage(idClub: ranking.idClub)),
+                        );
+                        print('Clicked on row $index');
+                      },
                       cells: [
                         DataCell(Text(index.toString())),
                         DataCell(
@@ -110,6 +120,50 @@ class _RankingPageState extends State<RankingPage> {
                   }).toList(),
                 ),
               );
+              // return Card(
+              //   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              //   child: ListView(
+              //     shrinkWrap: true,
+              //     children: rankings.take(8).map((ranking) {
+              //       final index = rankings.indexOf(ranking) + 1;
+              //       return ListTile(
+              //         onTap: () {
+              //           // Handle row click here, you can navigate to a new page or perform any other action
+              //           print('Clicked on row $index');
+              //         },
+              //         title: Row(
+              //           children: [
+              //             SizedBox(
+              //               width: 20,
+              //               child: Text(index.toString()),
+              //             ),
+              //             SizedBox(width: 20),
+              //             Expanded(
+              //               child: Text(
+              //                 ranking.nameClub,
+              //                 overflow: TextOverflow.ellipsis,
+              //               ),
+              //             ),
+              //             SizedBox(width: 20),
+              //             Text(ranking.nPoints.toString()),
+              //             SizedBox(width: 20),
+              //             Text(ranking.totalGoalAverage.toString()),
+              //             SizedBox(width: 20),
+              //             Text(ranking.nVictories.toString()),
+              //             SizedBox(width: 20),
+              //             Text(ranking.nDraws.toString()),
+              //             SizedBox(width: 20),
+              //             Text(ranking.nDefeats.toString()),
+              //             SizedBox(width: 20),
+              //             Text(ranking.goalsScored.toString()),
+              //             SizedBox(width: 20),
+              //             Text(ranking.goalsTaken.toString()),
+              //           ],
+              //         ),
+              //       );
+              //     }).toList(),
+              //   ),
+              // );
             }
           }
         },

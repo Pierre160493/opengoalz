@@ -2,11 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/player.dart';
-import 'package:opengoalz/widgets/player_card_single.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../constants.dart';
