@@ -90,11 +90,16 @@ class _RankingPageState extends State<RankingPage> {
                     final index = rankings.indexOf(ranking) + 1;
                     return DataRow(
                       onSelectChanged: (_) {
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //       builder: (context) =>
+                        //           ClubPage(idClub: ranking.idClub)),
+                        // );
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  ClubPage(idClub: ranking.idClub)),
+                          ClubPage.route(
+                              ranking.idClub), // Navigate to player page
                         );
                         print('Clicked on row $index');
                       },

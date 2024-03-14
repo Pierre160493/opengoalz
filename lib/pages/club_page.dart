@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/players_page.dart';
+import 'package:opengoalz/pages/ranking_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:provider/provider.dart';
@@ -64,9 +65,10 @@ class _ClubPageState extends State<ClubPage> {
             return Text('Error: Multiple clubs found with id ${widget.idClub}');
           else
             return Scaffold(
-              // appBar:
-              //     CustomAppBar(pageName: clubs[0].club_name ?? 'No club name'),
-              drawer: const AppDrawer(),
+              appBar:
+                  // CustomAppBar(pageName: clubs[0].club_name ?? 'No club name'),
+                  _buildAppBar(clubs[0]),
+              // drawer: const AppDrawer(),
               body: clubs.isEmpty
                   ? const Center(child: Text('No clubs found'))
                   : Column(
@@ -74,13 +76,6 @@ class _ClubPageState extends State<ClubPage> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const SizedBox(height: 24),
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Here is the list of your clubs:',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ),
                         Expanded(
                           child: ListView.builder(
                             itemCount: clubs.length,
@@ -144,9 +139,64 @@ class _ClubPageState extends State<ClubPage> {
                                             )
                                         ],
                                       ),
-                                      subtitle: Text(
-                                          'Creation Date: ${DateFormat.yMMMMd('en_US').format(club.created_at)}'),
+                                      subtitle: Row(
+                                        children: [
+                                          Text(
+                                            'Creation Date: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${DateFormat.yMMMMd('en_US').format(club.created_at)}',
+                                          ),
+                                        ],
+                                      ),
                                     ),
+
+                                    /// User
+                                    const SizedBox(height: 6),
+                                    ListTile(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            24), // Adjust border radius as needed
+                                        side: const BorderSide(
+                                          color:
+                                              Colors.blueGrey, // Border color
+                                        ),
+                                      ),
+                                      leading: const Icon(
+                                        Icons.account_circle,
+                                        size: 30,
+                                      ), // Icon to indicate players
+                                      title: Row(
+                                        children: [
+                                          Text(
+                                            'User: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${club.username ?? 'No username'}',
+                                          ),
+                                        ],
+                                      ),
+                                      subtitle: Row(
+                                        children: [
+                                          Text(
+                                            'Since: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                              '${DateFormat.yMMMMd('en_US').format(club.created_at)}'),
+                                        ],
+                                      ),
+                                    ),
+
+                                    /// Players
                                     const SizedBox(height: 6),
                                     ListTile(
                                       onTap: () {
@@ -167,13 +217,192 @@ class _ClubPageState extends State<ClubPage> {
                                               Colors.blueGrey, // Border color
                                         ),
                                       ),
-                                      leading: const Icon(Icons
-                                          .people), // Icon to indicate players
+                                      leading: const Icon(
+                                        Icons.people,
+                                        size: 30,
+                                      ), // Icon to indicate players
                                       title: Text(
                                         'Number of players: ${club.player_count}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
+                                      ),
+                                    ),
+
+                                    /// League
+                                    const SizedBox(height: 6),
+                                    ListTile(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => RankingPage(
+                                              idLeague: club.id_league,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            24), // Adjust border radius as needed
+                                        side: const BorderSide(
+                                          color:
+                                              Colors.blueGrey, // Border color
+                                        ),
+                                      ),
+                                      leading: const Icon(
+                                        icon_rankings,
+                                        size: 30,
+                                      ), // Icon to indicate players
+                                      title: Row(
+                                        children: [
+                                          Text(
+                                            'League: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          // Text('${club.league_level}.${club.id_league}'),
+                                          Text('1.${club.id_league}'),
+                                        ],
+                                      ),
+                                      subtitle: Row(
+                                        children: [
+                                          Text(
+                                            'Country: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          // Text('${club.name_country}'),
+                                          Text('Country'),
+                                        ],
+                                      ),
+                                    ),
+
+                                    /// Finances
+                                    const SizedBox(height: 6),
+                                    ListTile(
+                                      onTap: () {},
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            24), // Adjust border radius as needed
+                                        side: const BorderSide(
+                                          color:
+                                              Colors.blueGrey, // Border color
+                                        ),
+                                      ),
+                                      leading: const Icon(
+                                        icon_finance,
+                                        size: 30,
+                                      ), // Icon to indicate players
+                                      title: Row(
+                                        children: [
+                                          Text(
+                                            'Finances: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          // Text('${club.league_level}.${club.id_league}'),
+                                          Text('${club.finances_cash}'),
+                                        ],
+                                      ),
+                                      // subtitle: Row(
+                                      //   children: [
+                                      //     Text(
+                                      //       'Country: ',
+                                      //       style: const TextStyle(
+                                      //         fontWeight: FontWeight.bold,
+                                      //       ),
+                                      //     ),
+                                      //     // Text('${club.name_country}'),
+                                      //     Text('Country'),
+                                      //   ],
+                                      // ),
+                                    ),
+
+                                    /// Fans
+                                    const SizedBox(height: 6),
+                                    ListTile(
+                                      onTap: () {},
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            24), // Adjust border radius as needed
+                                        side: const BorderSide(
+                                          color:
+                                              Colors.blueGrey, // Border color
+                                        ),
+                                      ),
+                                      leading: const Icon(
+                                        icon_fans,
+                                        size: 30,
+                                      ), // Icon to indicate players
+                                      title: Row(
+                                        children: [
+                                          Text(
+                                            'Fan Club Size: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          // Text('${club.league_level}.${club.id_league}'),
+                                          Text('${club.finances_cash}'),
+                                        ],
+                                      ),
+                                      subtitle: Row(
+                                        children: [
+                                          Text(
+                                            'Mood: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          // Text('${club.name_country}'),
+                                          Text('Happy'),
+                                        ],
+                                      ),
+                                    ),
+
+                                    /// Stadium
+                                    const SizedBox(height: 6),
+                                    ListTile(
+                                      onTap: () {},
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            24), // Adjust border radius as needed
+                                        side: const BorderSide(
+                                          color:
+                                              Colors.blueGrey, // Border color
+                                        ),
+                                      ),
+                                      leading: const Icon(
+                                        icon_stadium,
+                                        size: 30,
+                                      ), // Icon to indicate players
+                                      title: Row(
+                                        children: [
+                                          Text(
+                                            'Stadium Name: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          // Text('${club.name_stadium}'),
+                                          Text('Jardin de los Sueños'),
+                                        ],
+                                      ),
+                                      subtitle: Row(
+                                        children: [
+                                          Text(
+                                            'Size: ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          // Text('${club.name_country}'),
+                                          Text('12000 [10000 ; 1750 ; 250]'),
+                                        ],
                                       ),
                                     ),
                                   ],
@@ -191,6 +420,21 @@ class _ClubPageState extends State<ClubPage> {
           return const Center(child: CircularProgressIndicator());
         }
       },
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(Club club) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: AppBar(
+        title: Row(
+          children: [
+            Text(
+              '${club.club_name} ',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
