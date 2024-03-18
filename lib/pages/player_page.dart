@@ -154,7 +154,30 @@ class _PlayerPageState extends State<PlayerPage> {
       );
   }
 
+  // Future<void> _BidPlayer(Player player, int idClubBidder) async {
   Future<void> _BidPlayer(Player player) async {
+    // Checks
+    if (player.date_sell == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'ERROR: Player ${player.first_name} ${player.last_name.toUpperCase()} doesn\'t seem to be for sale'),
+        ),
+      );
+      return;
+    } else if (DateTime.now().isAfter(player.date_sell!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Player ${player.first_name} ${player.last_name.toUpperCase()} transfer\'s deadline is reached, bidding is over... '),
+        ),
+      );
+      return;
+    }
+
+    var date_sell = DateTime.now()
+        .add(const Duration(minutes: 5)); // Calculate the new date_sell
+
     final TextEditingController _priceController = TextEditingController(
         text: (player.amount_last_transfer_bid! +
                 max(1000, player.amount_last_transfer_bid! * 0.1))
@@ -170,7 +193,7 @@ class _PlayerPageState extends State<PlayerPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Are you sure you want to place a bid on ${player.first_name} ${player.last_name.toUpperCase()} ?',
+                'What\'s the value of the bid you want to place on ${player.first_name} ${player.last_name.toUpperCase()} ?',
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -211,15 +234,11 @@ class _PlayerPageState extends State<PlayerPage> {
                         .id_club
                   });
 
-                  // DateTime dateSell =
-                  //     DateTime.now().add(const Duration(days: 7));
-                  // await supabase
-                  //     .from('players')
-                  //     .update({'date_sell': dateSell.toIso8601String()}).match(
-                  //         {'id': player.id});
-
-                  // showPlayerSnackBar(
-                  //     context, player, 'will be put in auction for 7 days !');
+                  if (date_sell.isAfter(player.date_sell!)) {
+                    await supabase.from('players').update({
+                      'date_sell': date_sell.toIso8601String()
+                    }).match({'id': player.id});
+                  }
                   _playerStream = _updatePlayerStream();
                 } on PostgrestException catch (error) {
                   print(error);
@@ -476,7 +495,12 @@ class _PlayerPageState extends State<PlayerPage> {
                             color: Colors.green,
                           ),
                           onPressed: () {
-                            _BidPlayer(player);
+                            _BidPlayer(player
+                                //,
+                                // Provider.of<SessionProvider>(context)
+                                //     .selectedClub
+                                //     .id_club
+                                );
                           },
                         ),
                     ],

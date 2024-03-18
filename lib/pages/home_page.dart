@@ -64,22 +64,6 @@ class _HomePageState extends State<HomePage> {
                         'Hello ${Provider.of<SessionProvider>(context).selectedClub.username ?? 'Unknown Manager'} !',
                         style: const TextStyle(fontSize: 24),
                       ),
-                      const SizedBox(height: 16),
-                      RichText(
-                        text: TextSpan(
-                          text: 'Your currently selected club is: ',
-                          style: const TextStyle(fontSize: 18),
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: Provider.of<SessionProvider>(context)
-                                  .selectedClub
-                                  .club_name,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 24),
                       const Align(
                         alignment: Alignment.centerLeft,

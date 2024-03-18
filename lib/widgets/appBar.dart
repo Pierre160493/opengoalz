@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../constants.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String pageName;
@@ -19,12 +18,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             alignment: Alignment.centerLeft,
             child: Text(pageName),
           ),
-          // const Center(
-          //   child: Text(
-          //     appBarTxt,
-          //     textAlign: TextAlign.center,
-          //   ),
-          // ),
         ],
       ),
     );

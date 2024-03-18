@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/widgets/appBar.dart';
-import 'package:opengoalz/widgets/appDrawer.dart';
 
 import '../classes/game.dart';
-import '../constants.dart';
 
 class GamePage extends StatelessWidget {
   final Game game;

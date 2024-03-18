@@ -4,10 +4,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/players_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';
-import 'package:opengoalz/widgets/appBar.dart';
-import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:provider/provider.dart';
-// import 'package:provider/provider.dart';
 
 import '../classes/club.dart';
 

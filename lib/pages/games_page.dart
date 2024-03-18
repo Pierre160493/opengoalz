@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/pages/game_page.dart';
+import 'package:opengoalz/pages/game_result_page.dart';
 import 'package:opengoalz/pages/set_orders_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -185,16 +186,18 @@ class _HomePageState extends State<GamesPage> {
               ),
             ),
             ElevatedButton(
-              onPressed: game.isPlayed
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SetOrdersPage(game: game)),
-                      );
-                    },
-              child: const Text('Set Orders'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => game.isPlayed
+                          ? GameResultPage(game: game)
+                          : SetGameOrdersPage(game: game)),
+                );
+              },
+              child: game.isPlayed
+                  ? const Text('View details')
+                  : const Text('Set Orders'),
             )
           ],
         ),

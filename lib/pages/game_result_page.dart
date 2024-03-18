@@ -11,21 +11,21 @@ import 'package:provider/provider.dart';
 import '../classes/player.dart';
 import '../constants.dart';
 
-class SetGameOrdersPage extends StatefulWidget {
+class GameResultPage extends StatefulWidget {
   final Game game;
-  const SetGameOrdersPage({Key? key, required this.game}) : super(key: key);
+  const GameResultPage({Key? key, required this.game}) : super(key: key);
 
   static Route<void> route(Game game) {
     return MaterialPageRoute(
-      builder: (context) => SetGameOrdersPage(game: game),
+      builder: (context) => GameResultPage(game: game),
     );
   }
 
   @override
-  State<SetGameOrdersPage> createState() => _SetGameOrdersPageState();
+  State<GameResultPage> createState() => _GameResultPageState();
 }
 
-class _SetGameOrdersPageState extends State<SetGameOrdersPage> {
+class _GameResultPageState extends State<GameResultPage> {
   late final Stream<List<TeamComp>> _teamCompStream;
   late final Stream<List<Player>> _playersStream;
 
@@ -80,13 +80,27 @@ class _SetGameOrdersPageState extends State<SetGameOrdersPage> {
                     );
                   } else {
                     final players = playersSnapshot.data ?? [];
+                    print('PG: ${teamComp.length}');
                     return Scaffold(
                       appBar: CustomAppBar(
                         pageName:
-                            '${widget.game.nameClubLeft} vs ${widget.game.nameClubRight}', // Accessing game data here
+                            'Set order for game ${widget.game.id}', // Accessing game data here
                       ),
                       // drawer: const AppDrawer(),
-                      body: Padding(
+                      body:
+                          // teamComp.length != 2
+                          //     ? const Center(
+                          //         child: Text(
+                          //           'ERROR in the Database: Team composition must have exactly 2 entries, one for each club', // Error message
+                          //           style: TextStyle(
+                          //             fontSize: 16,
+                          //             fontWeight: FontWeight.bold,
+                          //             color: Colors.red,
+                          //           ),
+                          //         ),
+                          //       )
+                          //     :
+                          Padding(
                         padding: const EdgeInsets.all(0.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
