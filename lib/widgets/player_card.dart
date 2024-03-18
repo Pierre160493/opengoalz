@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
+import 'package:opengoalz/constants.dart';
 import 'dart:math';
 
 import '../classes/player.dart';
@@ -39,9 +40,34 @@ class PlayerCard extends StatelessWidget {
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${player.first_name} ${player.last_name}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      // Text(
+                      //   '${player.first_name} ${player.last_name}',
+                      //   style: const TextStyle(fontWeight: FontWeight.bold),
+                      // ),
+                      Row(
+                        children: [
+                          Text(
+                            '${player.first_name[0]}.${player.last_name.toUpperCase()} ',
+                          ),
+                          if (player.date_sell != null)
+                            const Icon(
+                              icon_transfers,
+                              color: Colors.green,
+                              size: 24,
+                            ),
+                          if (player.date_firing != null)
+                            const Icon(
+                              Icons.exit_to_app,
+                              color: Colors.red,
+                              size: 24,
+                            ),
+                          if (player.date_end_injury != null)
+                            const Icon(
+                              icon_medics,
+                              color: Colors.red,
+                              size: 24,
+                            ),
+                        ],
                       ),
                       Row(
                         children: [

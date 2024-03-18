@@ -1,29 +1,40 @@
 // ignore_for_file: non_constant_identifier_names
 
 class Player {
-  Player({
-    required this.id,
-    required this.created_at,
-    required this.id_club,
-    required this.first_name,
-    required this.last_name,
-    required this.date_birth,
-    required this.age,
-    required this.club_name,
-    required this.username,
-    required this.id_user,
-    required this.keeper,
-    required this.defense,
-    required this.playmaking,
-    required this.passes,
-    required this.winger,
-    required this.scoring,
-    required this.freekick,
-    required this.date_end_injury,
-    required this.date_firing,
-    required this.date_sell,
-    // required this.isMine,
-  });
+  Player(
+      {required this.id,
+      required this.created_at,
+      required this.id_club,
+      required this.first_name,
+      required this.last_name,
+      required this.date_birth,
+      required this.age,
+      required this.club_name,
+      required this.username,
+      required this.id_user,
+
+      /// Stats
+      required this.keeper,
+      required this.defense,
+      required this.playmaking,
+      required this.passes,
+      required this.winger,
+      required this.scoring,
+      required this.freekick,
+      required this.avg_stats,
+
+      /// Infos
+      required this.date_end_injury,
+      required this.date_firing,
+
+      /// Transfers
+      required this.date_sell,
+      required this.date_last_transfer_bid,
+      required this.amount_last_transfer_bid,
+      required this.id_club_last_transfer_bid,
+      required this.name_club_last_transfer_bid
+      // required this.isMine,
+      });
 
   /// ID of the club
   final int id;
@@ -47,13 +58,13 @@ class Player {
   final double age;
 
   /// Name of the club
-  final String club_name;
+  final String? club_name;
 
   /// Username of the club manager
-  final String username;
+  final String? username;
 
   /// ID of the user
-  final String id_user;
+  final String? id_user;
 
   ////// Stats
   final double keeper;
@@ -63,11 +74,18 @@ class Player {
   final double winger;
   final double scoring;
   final double freekick;
+  final double avg_stats;
 
   /// Player is injured
   final DateTime? date_end_injury;
   final DateTime? date_firing;
+
+  ///
   final DateTime? date_sell;
+  final DateTime? date_last_transfer_bid;
+  final int? amount_last_transfer_bid;
+  final int? id_club_last_transfer_bid;
+  final String? name_club_last_transfer_bid;
 
   /// Whether the player belongs to the current user
   // final bool isMine;
@@ -92,6 +110,7 @@ class Player {
         winger = map['winger'],
         scoring = map['scoring'],
         freekick = map['freekick'],
+        avg_stats = map['avg_stats'],
         date_end_injury = map['date_end_injury'] != null
             ? DateTime.parse(map['date_end_injury'])
             : null,
@@ -99,6 +118,18 @@ class Player {
             ? DateTime.parse(map['date_firing'])
             : null,
         date_sell =
-            map['date_sell'] != null ? DateTime.parse(map['date_sell']) : null;
+            map['date_sell'] != null ? DateTime.parse(map['date_sell']) : null,
+        date_last_transfer_bid = map['date_last_transfer_bid'] != null
+            ? DateTime.parse(map['date_last_transfer_bid'])
+            : null,
+        amount_last_transfer_bid = map['amount_last_transfer_bid'] != null
+            ? map['amount_last_transfer_bid']
+            : null,
+        id_club_last_transfer_bid = map['id_club_last_transfer_bid'] != null
+            ? map['id_club_last_transfer_bid']
+            : null,
+        name_club_last_transfer_bid = map['name_club_last_transfer_bid'] != null
+            ? map['name_club_last_transfer_bid']
+            : null;
   // isMine = myUserId == map['id_user'];
 }

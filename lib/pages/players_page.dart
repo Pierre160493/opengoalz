@@ -70,8 +70,41 @@ class _PlayersPageState extends State<PlayersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        pageName: '${_playersCount.toString()} Players',
+      appBar:
+          AppBar(
+        title: Column(
+          children: [
+            Text(
+              '${_playersCount.toString()} Players',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Club Name',
+              style: TextStyle(
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () {
+              // Add your action here
+            },
+            icon: Icon(Icons.search),
+          ),
+          IconButton(
+            onPressed: () {
+              // Add your action here
+            },
+            icon: Icon(Icons.filter_list),
+          ),
+        ],
       ),
       drawer: widget.isReturningId ? null : const AppDrawer(),
       body: StreamBuilder<List<Player>>(

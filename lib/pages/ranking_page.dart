@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/ranking.dart';
+import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:provider/provider.dart';
 
 import '../constants.dart';
 
@@ -88,18 +90,17 @@ class _RankingPageState extends State<RankingPage> {
                   ],
                   rows: rankings.take(8).map((ranking) {
                     final index = rankings.indexOf(ranking) + 1;
+                    var color = index.isOdd ? Colors.blueGrey : null;
+                    if (ranking.idClub ==
+                        Provider.of<SessionProvider>(context)
+                            .selectedClub
+                            .id_club) color = Colors.green;
                     return DataRow(
+                      color: MaterialStateProperty.all(color),
                       onSelectChanged: (_) {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //       builder: (context) =>
-                        //           ClubPage(idClub: ranking.idClub)),
-                        // );
                         Navigator.push(
                           context,
-                          ClubPage.route(
-                              ranking.idClub), // Navigate to player page
+                          ClubPage.route(ranking.idClub),
                         );
                         print('Clicked on row $index');
                       },

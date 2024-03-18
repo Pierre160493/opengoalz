@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/player.dart';
+import 'package:opengoalz/global_variable.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../constants.dart';
@@ -73,6 +75,9 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   Future<void> _SellPlayer(Player player) async {
+    final TextEditingController _priceController =
+        TextEditingController(text: '0'); // Initialize with default value
+
     if (player.date_firing != null)
       showPlayerSnackBar(context, player,
           'cannot put to auction because player is being fired !');
@@ -82,8 +87,23 @@ class _PlayerPageState extends State<PlayerPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Confirm'),
-            content: Text(
-                'Are you sure you want to sell ${player.first_name} ${player.last_name.toUpperCase()} ?'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Are you sure you want to sell ${player.first_name} ${player.last_name.toUpperCase()} ?',
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Start price',
+                  ),
+                ),
+              ],
+            ),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -94,17 +114,29 @@ class _PlayerPageState extends State<PlayerPage> {
               TextButton(
                 onPressed: () async {
                   Navigator.of(context).pop(); // Close the dialog
-                  // Execute firing action if user confirms
                   try {
+                    int? minimumPrice = int.tryParse(_priceController.text);
+                    if (minimumPrice == null || minimumPrice < 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Please enter a valid number for minimum price (should be a positive integer)'),
+                        ),
+                      );
+                      return;
+                    }
                     DateTime dateSell =
                         DateTime.now().add(const Duration(days: 7));
                     await supabase.from('players').update({
                       'date_sell': dateSell.toIso8601String()
                     }).match({'id': player.id});
-                    showPlayerSnackBar(
-                        context, player, 'will be put in auction for 7 days !');
+                    await supabase.from('transfers_bids').insert({
+                      'amount': minimumPrice,
+                      'id_player': player.id,
+                    });
+                    // showPlayerSnackBar(
+                    //     context, player, 'will be put in auction for 7 days !');
                     _playerStream = _updatePlayerStream();
-                    print('PG: Seems OK');
                   } on PostgrestException catch (error) {
                     print(error);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -113,7 +145,6 @@ class _PlayerPageState extends State<PlayerPage> {
                       ),
                     );
                   }
-                  print("PG: Fin");
                 },
                 child: const Text('Confirm'),
               ),
@@ -121,6 +152,90 @@ class _PlayerPageState extends State<PlayerPage> {
           );
         },
       );
+  }
+
+  Future<void> _BidPlayer(Player player) async {
+    final TextEditingController _priceController = TextEditingController(
+        text: (player.amount_last_transfer_bid! +
+                max(1000, player.amount_last_transfer_bid! * 0.1))
+            .toString()); // Initialize with current bid + offset
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to place a bid on ${player.first_name} ${player.last_name.toUpperCase()} ?',
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _priceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Minimum Bid',
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                try {
+                  int? newBid = int.tryParse(_priceController.text);
+                  if (newBid == null || newBid < 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            'Please enter a valid number for minimum price (should be greater or equal to ${_priceController})'),
+                      ),
+                    );
+                    return;
+                  }
+                  await supabase.from('transfers_bids').insert({
+                    'amount': newBid,
+                    'id_player': player.id,
+                    'id_club': Provider.of<SessionProvider>(context)
+                        .selectedClub
+                        .id_club
+                  });
+
+                  // DateTime dateSell =
+                  //     DateTime.now().add(const Duration(days: 7));
+                  // await supabase
+                  //     .from('players')
+                  //     .update({'date_sell': dateSell.toIso8601String()}).match(
+                  //         {'id': player.id});
+
+                  // showPlayerSnackBar(
+                  //     context, player, 'will be put in auction for 7 days !');
+                  _playerStream = _updatePlayerStream();
+                } on PostgrestException catch (error) {
+                  print(error);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(error.code!),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _FirePlayer(Player player) async {
@@ -160,7 +275,6 @@ class _PlayerPageState extends State<PlayerPage> {
                     ),
                   );
                 }
-                print("PG: Fin");
               },
               child: const Text('Confirm'),
             ),
@@ -314,67 +428,112 @@ class _PlayerPageState extends State<PlayerPage> {
             const SizedBox(
               height: 12,
             ),
-            if (player.date_sell != null)
-              ListTile(
-                onTap: () {},
-                leading: Icon(
-                  icon_transfers,
-                  size: 36,
-                  color: Colors.green,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      24), // Adjust border radius as needed
-                  side: const BorderSide(
-                    color: Colors.blueGrey, // Border color
-                  ),
-                ),
-                title: Text(
-                    'Date: ${DateFormat.yMMMMd('en_US').format(player.date_sell!)}'),
-                subtitle: Row(
-                  children: [
-                    StreamBuilder<int>(
-                      stream:
-                          Stream.periodic(const Duration(seconds: 1), (i) => i),
-                      builder: (context, snapshot) {
-                        final remainingTime =
-                            player.date_sell!.difference(DateTime.now());
-                        final daysLeft = remainingTime.inDays;
-                        final hoursLeft = remainingTime.inHours.remainder(24);
-                        final minutesLeft =
-                            remainingTime.inMinutes.remainder(60);
-                        final secondsLeft =
-                            remainingTime.inSeconds.remainder(60);
 
-                        return RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text:
-                                    '${DateFormat('EEEE d MMMM HH:mm', 'en_US').format(player.date_sell!)} in: ',
-                                style: TextStyle(),
-                              ),
-                              if (daysLeft >
-                                  0) // Conditionally include days left
+            /// Selling tile
+            if (player.date_sell != null)
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                      24), // Set borderRadius for the outer container
+                  border: Border.all(color: Colors.blueGrey),
+                ),
+                child: ExpansionTile(
+                  // Add your onTap logic here if needed
+                  // onTap: () {},
+
+                  leading: Icon(
+                    icon_transfers,
+                    size: 36,
+                    color: Colors.green,
+                  ),
+                  title: Row(
+                    children: [
+                      Text(
+                        player.id_club_last_transfer_bid != null
+                            ? 'Current Bid by ${player.name_club_last_transfer_bid}'
+                            : 'Asking Price: ',
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.blueGrey,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          player.amount_last_transfer_bid.toString(),
+                        ),
+                      ),
+                      if (player.id_club !=
+                          Provider.of<SessionProvider>(context)
+                              .selectedClub
+                              .id_club)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_circle_up_outlined,
+                            size: 24,
+                            color: Colors.green,
+                          ),
+                          onPressed: () {
+                            _BidPlayer(player);
+                          },
+                        ),
+                    ],
+                  ),
+                  subtitle: Row(
+                    children: [
+                      StreamBuilder<int>(
+                        stream: Stream.periodic(
+                            const Duration(seconds: 1), (i) => i),
+                        builder: (context, snapshot) {
+                          final remainingTime =
+                              player.date_sell!.difference(DateTime.now());
+                          final daysLeft = remainingTime.inDays;
+                          final hoursLeft = remainingTime.inHours.remainder(24);
+                          final minutesLeft =
+                              remainingTime.inMinutes.remainder(60);
+                          final secondsLeft =
+                              remainingTime.inSeconds.remainder(60);
+
+                          return RichText(
+                            text: TextSpan(
+                              children: [
                                 TextSpan(
-                                  text: '${daysLeft}d, ',
+                                  text:
+                                      '${DateFormat('EEE d HH:mm', 'en_US').format(player.date_sell!)} in: ',
+                                  style: TextStyle(),
+                                ),
+                                if (daysLeft > 0)
+                                  TextSpan(
+                                    text: '${daysLeft}d, ',
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                TextSpan(
+                                  text:
+                                      '${hoursLeft}h${minutesLeft}m${secondsLeft}s',
                                   style: const TextStyle(
                                     color: Colors.red,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              TextSpan(
-                                text:
-                                    '${hoursLeft}h${minutesLeft}m${secondsLeft}s',
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  // Additional information to be displayed when the tile is expanded
+                  children: <Widget>[
+                    // Add your additional widgets here
+                    // For example:
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Text("Additional information"),
                     ),
                   ],
                 ),
