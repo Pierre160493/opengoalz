@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_radar_chart/flutter_radar_chart.dart';
+// import 'package:flutter_radar_chart/flutter_radar_chart.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/player.dart';
 import 'package:opengoalz/global_variable.dart';
@@ -28,11 +29,28 @@ class PlayerPage extends StatefulWidget {
 
 class _PlayerPageState extends State<PlayerPage> {
   Stream<List<Player>> _playerStream = const Stream.empty();
+  Stream<List<Map>> _transferBidsStream = const Stream.empty();
 
   @override
   void initState() {
     super.initState();
     _playerStream = _fetchPlayersStream(widget.idPlayer);
+    _transferBidsStream = supabase
+        .from('transfers_bids')
+        .stream(primaryKey: ['id'])
+        .eq('id_player', widget.idPlayer)
+        .order('created_at', ascending: true)
+        .map((maps) => maps
+            .map((map) => {
+                  'id': map['id'],
+                  'id_player': map['id_player'],
+                  'created_at': map['created_at'],
+                  'id_transfer': map['id_transfer'],
+                  'amount': map['amount'],
+                  'id_club': map['id_club'],
+                  'name_club': map['name_club'],
+                })
+            .toList());
   }
 
   Stream<List<Player>> _fetchPlayersStream(int idPlayer) {
@@ -154,7 +172,6 @@ class _PlayerPageState extends State<PlayerPage> {
       );
   }
 
-  // Future<void> _BidPlayer(Player player, int idClubBidder) async {
   Future<void> _BidPlayer(Player player) async {
     // Checks
     if (player.date_sell == null) {
@@ -177,32 +194,43 @@ class _PlayerPageState extends State<PlayerPage> {
 
     var date_sell = DateTime.now()
         .add(const Duration(minutes: 5)); // Calculate the new date_sell
+    var min_bid = max(
+        player.amount_last_transfer_bid! +
+            1000, // We either add 1000 or 1% rounded to be clean
+        (player.amount_last_transfer_bid! * 1.02 / 1000).round() * 1000);
 
     final TextEditingController _priceController = TextEditingController(
-        text: (player.amount_last_transfer_bid! +
-                max(1000, player.amount_last_transfer_bid! * 0.1))
-            .toString()); // Initialize with current bid + offset
+        text: NumberFormat('#,###')
+            .format(min_bid)); // Initialize with current bid + offset
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm'),
+          title: Text(
+              'Place a bid on ${player.first_name} ${player.last_name.toUpperCase()}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'What\'s the value of the bid you want to place on ${player.first_name} ${player.last_name.toUpperCase()} ?',
+                  'Current maximum bid: ${NumberFormat('#,###').format(player.amount_last_transfer_bid)}'),
+              SizedBox(
+                height: 6.0,
+              ),
+              Text(
+                'min: ${NumberFormat('#,###').format(min_bid)} [${(100 * (min_bid - player.amount_last_transfer_bid!) / player.amount_last_transfer_bid!).toStringAsFixed(2)}% increase]',
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _priceController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Minimum Bid',
+                  labelText: 'Please enter the value of your bid',
                 ),
               ),
+              Text(
+                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).selectedClub.finances_cash)}'),
             ],
           ),
           actions: <Widget>[
@@ -217,7 +245,7 @@ class _PlayerPageState extends State<PlayerPage> {
                 Navigator.of(context).pop(); // Close the dialog
                 try {
                   int? newBid = int.tryParse(_priceController.text);
-                  if (newBid == null || newBid < 0) {
+                  if (newBid == null || newBid < min_bid) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -229,9 +257,14 @@ class _PlayerPageState extends State<PlayerPage> {
                   await supabase.from('transfers_bids').insert({
                     'amount': newBid,
                     'id_player': player.id,
-                    'id_club': Provider.of<SessionProvider>(context)
-                        .selectedClub
-                        .id_club
+                    'id_club':
+                        Provider.of<SessionProvider>(context, listen: false)
+                            .selectedClub
+                            .id_club,
+                    'name_club':
+                        Provider.of<SessionProvider>(context, listen: false)
+                            .selectedClub
+                            .club_name,
                   });
 
                   if (date_sell.isAfter(player.date_sell!)) {
@@ -469,7 +502,7 @@ class _PlayerPageState extends State<PlayerPage> {
                     children: [
                       Text(
                         player.id_club_last_transfer_bid != null
-                            ? 'Current Bid by ${player.name_club_last_transfer_bid}'
+                            ? 'Max bid by ${player.name_club_last_transfer_bid}: '
                             : 'Asking Price: ',
                       ),
                       Container(
@@ -481,7 +514,8 @@ class _PlayerPageState extends State<PlayerPage> {
                         ),
                         padding: EdgeInsets.symmetric(horizontal: 8),
                         child: Text(
-                          player.amount_last_transfer_bid.toString(),
+                          NumberFormat('#,###')
+                              .format(player.amount_last_transfer_bid),
                         ),
                       ),
                       if (player.id_club !=
@@ -495,12 +529,7 @@ class _PlayerPageState extends State<PlayerPage> {
                             color: Colors.green,
                           ),
                           onPressed: () {
-                            _BidPlayer(player
-                                //,
-                                // Provider.of<SessionProvider>(context)
-                                //     .selectedClub
-                                //     .id_club
-                                );
+                            _BidPlayer(player);
                           },
                         ),
                     ],
@@ -520,44 +549,199 @@ class _PlayerPageState extends State<PlayerPage> {
                           final secondsLeft =
                               remainingTime.inSeconds.remainder(60);
 
-                          return RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text:
-                                      '${DateFormat('EEE d HH:mm', 'en_US').format(player.date_sell!)} in: ',
-                                  style: TextStyle(),
-                                ),
-                                if (daysLeft > 0)
-                                  TextSpan(
-                                    text: '${daysLeft}d, ',
-                                    style: const TextStyle(
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.bold,
+                          return Row(
+                            children: [
+                              Icon(Icons.timer_outlined),
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          ' ${DateFormat('EEE d HH:mm', 'en_US').format(player.date_sell!)} in: ',
+                                      style: TextStyle(),
                                     ),
-                                  ),
-                                TextSpan(
-                                  text:
-                                      '${hoursLeft}h${minutesLeft}m${secondsLeft}s',
-                                  style: const TextStyle(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                    if (daysLeft > 0)
+                                      TextSpan(
+                                        text: '${daysLeft}d, ',
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    TextSpan(
+                                      text:
+                                          '${hoursLeft}h${minutesLeft}m${secondsLeft}s',
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           );
                         },
                       ),
                     ],
                   ),
                   // Additional information to be displayed when the tile is expanded
+                  // children: <Widget>[
+                  //   // Add your additional widgets here
+                  //   // For example:
+                  //   Text('Display list of bids'),
+                  //   Padding(
+                  //     padding: EdgeInsets.symmetric(horizontal: 16),
+                  //     child: StreamBuilder<List<Map>>(
+                  //       stream: _transferBidsStream,
+                  //       builder: (context, snapshot) {
+                  //         if (snapshot.connectionState ==
+                  //             ConnectionState.waiting) {
+                  //           return CircularProgressIndicator();
+                  //         } else if (snapshot.hasError) {
+                  //           return Text('Error: ${snapshot.error}');
+                  //         } else {
+                  //           final bids = snapshot.data ?? [];
+                  //           return Column(
+                  //             crossAxisAlignment: CrossAxisAlignment.start,
+                  //             children: bids
+                  //                 .asMap()
+                  //                 .entries
+                  //                 .toList()
+                  //                 .reversed
+                  //                 .map((entry) {
+                  //               final index = entry.key;
+                  //               final bid = entry.value;
+                  //               return ListTile(
+                  //                 title: Text(
+                  //                   '${bid['name_club']}: ${NumberFormat('#,###').format(bid['amount'])}',
+                  //                   style: TextStyle(
+                  //                     fontWeight: FontWeight.bold,
+                  //                     fontSize: 16,
+                  //                   ),
+                  //                 ),
+                  //                 subtitle: Row(
+                  //                   children: [
+                  //                     Icon(Icons.timer_outlined),
+                  //                     Text(
+                  //                       ' ${DateFormat('EEE d HH:mm:ss', 'en_US').format(DateTime.parse(bid['created_at']))}',
+                  //                       style: TextStyle(
+                  //                         fontStyle: FontStyle.italic,
+                  //                         color: Colors.blueGrey,
+                  //                       ),
+                  //                     ),
+                  //                   ],
+                  //                 ),
+                  //                 leading: Container(
+                  //                   width:
+                  //                       40, // Adjust width to fit the index properly
+                  //                   height:
+                  //                       40, // Set the height equal to width for a circular shape
+                  //                   decoration: BoxDecoration(
+                  //                     shape: BoxShape.circle,
+                  //                     color: Colors
+                  //                         .blue, // Choose your desired background color
+                  //                   ),
+                  //                   alignment: Alignment.center,
+                  //                   child: Text(
+                  //                     (index + 1)
+                  //                         .toString(), // Adding 1 to make the index 1-based instead of 0-based
+                  //                     style: TextStyle(
+                  //                       color: Colors.white,
+                  //                       fontWeight: FontWeight.bold,
+                  //                     ),
+                  //                   ),
+                  //                 ),
+                  //                 trailing: Icon(
+                  //                   Icons.arrow_forward_ios,
+                  //                   color: Colors.blue,
+                  //                 ),
+                  //               );
+                  //             }).toList(),
+                  //           );
+                  //         }
+                  //       },
+                  //     ),
+                  //   ),
+                  // ],
+
                   children: <Widget>[
                     // Add your additional widgets here
                     // For example:
+                    Text('Display list of bids'),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text("Additional information"),
+                      child: StreamBuilder<List<Map>>(
+                        stream: _transferBidsStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            final bids = snapshot.data ?? [];
+                            // Extract data for the chart
+                            List<FlSpot> chartData = [];
+                            bids.forEach((bid) {
+                              double amount = bid['amount'].toDouble();
+                              DateTime createdAt =
+                                  DateTime.parse(bid['created_at']);
+                              chartData.add(FlSpot(
+                                  createdAt.millisecondsSinceEpoch.toDouble(),
+                                  amount));
+                            });
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AspectRatio(
+                                  aspectRatio: 1.7,
+                                  child: LineChart(
+                                    LineChartData(
+                                      lineBarsData: [
+                                        LineChartBarData(
+                                          spots: chartData,
+                                          color: Colors.green,
+                                          barWidth: 4,
+                                          isStrokeCapRound: true,
+                                          belowBarData: BarAreaData(show: true),
+                                        ),
+                                      ],
+                                      titlesData: FlTitlesData(
+                                        bottomTitles: AxisTitles(
+                                          axisNameWidget: Text('Time'),
+                                        ),
+                                        leftTitles: AxisTitles(
+                                          axisNameWidget: Text('Amount'),
+                                        ),
+                                      ),
+                                      borderData: FlBorderData(
+                                        border: Border.all(
+                                            color:
+                                                Colors.green.withOpacity(0.5),
+                                            width: 1),
+                                      ),
+                                      minX: chartData.first.x,
+                                      // maxX: chartData.last.x,
+                                      maxX: player
+                                          .date_sell!.millisecondsSinceEpoch
+                                          .toDouble(),
+                                      minY: 0,
+                                      maxY: chartData
+                                              .map((spot) => spot.y)
+                                              .reduce((value, element) =>
+                                                  value > element
+                                                      ? value
+                                                      : element) *
+                                          1.2,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -671,19 +855,20 @@ class _PlayerPageState extends State<PlayerPage> {
             SizedBox(
               width: double.infinity, // Make radar chart fill available width
               height: 240, // Adjust this value as needed
-              child: RadarChart.dark(
-                ticks: const [25, 50, 75, 100],
-                features: const [
-                  'Keeper',
-                  'Defense',
-                  'Passes',
-                  'Playmaking',
-                  'Winger',
-                  'Scoring',
-                  'Freekick',
-                ],
-                data: [features],
-              ),
+              // child: RadarChart.dark(
+              //   ticks: const [25, 50, 75, 100],
+              //   features: const [
+              //     'Keeper',
+              //     'Defense',
+              //     'Passes',
+              //     'Playmaking',
+              //     'Winger',
+              //     'Scoring',
+              //     'Freekick',
+              //   ],
+              //   data: [features],
+              // ),
+              // child: RadarChart
             ),
           ],
         ),

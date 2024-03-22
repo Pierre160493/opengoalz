@@ -32,9 +32,7 @@ class Player {
       required this.date_last_transfer_bid,
       required this.amount_last_transfer_bid,
       required this.id_club_last_transfer_bid,
-      required this.name_club_last_transfer_bid
-      // required this.isMine,
-      });
+      required this.name_club_last_transfer_bid});
 
   /// ID of the club
   final int id;
@@ -87,9 +85,6 @@ class Player {
   final int? id_club_last_transfer_bid;
   final String? name_club_last_transfer_bid;
 
-  /// Whether the player belongs to the current user
-  // final bool isMine;
-
   Player.fromMap({
     required Map<String, dynamic> map,
     // required String myUserId,
@@ -99,18 +94,18 @@ class Player {
         first_name = map['first_name'],
         last_name = map['last_name'],
         date_birth = DateTime.parse(map['date_birth']),
-        age = map['age'],
+        age = (map['age'] as num).toDouble(),
         club_name = map['club_name'],
         username = map['username'],
         id_user = map['id_user'],
-        keeper = map['keeper'],
-        defense = map['defense'],
-        playmaking = map['playmaking'],
-        passes = map['passes'],
-        winger = map['winger'],
-        scoring = map['scoring'],
-        freekick = map['freekick'],
-        avg_stats = map['avg_stats'],
+        keeper = (map['keeper'] as num).toDouble(),
+        defense = (map['defense'] as num).toDouble(),
+        playmaking = (map['playmaking'] as num).toDouble(),
+        passes = (map['passes'] as num).toDouble(),
+        winger = (map['winger'] as num).toDouble(),
+        scoring = (map['scoring'] as num).toDouble(),
+        freekick = (map['freekick'] as num).toDouble(),
+        avg_stats = (map['avg_stats'] as num).toDouble(),
         date_end_injury = map['date_end_injury'] != null
             ? DateTime.parse(map['date_end_injury'])
             : null,
@@ -131,5 +126,4 @@ class Player {
         name_club_last_transfer_bid = map['name_club_last_transfer_bid'] != null
             ? map['name_club_last_transfer_bid']
             : null;
-  // isMine = myUserId == map['id_user'];
 }
