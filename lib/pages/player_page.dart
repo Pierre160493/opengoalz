@@ -27,7 +27,8 @@ class PlayerPage extends StatefulWidget {
   State<PlayerPage> createState() => _PlayerPageState();
 }
 
-class _PlayerPageState extends State<PlayerPage> {
+class _PlayerPageState extends State<PlayerPage>
+    with SingleTickerProviderStateMixin {
   Stream<List<Player>> _playerStream = const Stream.empty();
   Stream<List<Map>> _transferBidsStream = const Stream.empty();
 
@@ -197,293 +198,16 @@ class _PlayerPageState extends State<PlayerPage> {
 
             /// Selling tile
             if (player.date_sell != null)
-              // Container(
-              //   decoration: BoxDecoration(
-              //     borderRadius: BorderRadius.circular(
-              //         24), // Set borderRadius for the outer container
-              //     border: Border.all(color: Colors.blueGrey),
-              //   ),
-              //   child: ExpansionTile(
-              //     // Add your onTap logic here if needed
-              //     // onTap: () {},
-
-              //     leading: Icon(
-              //       icon_transfers,
-              //       size: 30,
-              //       color: Colors.green,
-              //     ),
-              //     title: Row(
-              //       children: [
-              //         Expanded(
-              //           child: Container(
-              //             decoration: BoxDecoration(
-              //               border: Border.all(
-              //                 color: Colors.blueGrey,
-              //               ),
-              //               borderRadius: BorderRadius.circular(10),
-              //             ),
-              //             padding: EdgeInsets.symmetric(horizontal: 8),
-              //             child: Column(
-              //               crossAxisAlignment: CrossAxisAlignment
-              //                   .center, // Align text to the center
-              //               children: [
-              //                 // Icon(Icons.airline_stops),
-              //                 Text(
-              //                   player.id_club_last_transfer_bid != null
-              //                       ? '${player.name_club_last_transfer_bid}'
-              //                       : 'No bids yet',
-              //                 ),
-              //                 Text(
-              //                   NumberFormat('#,###')
-              //                       .format(player.amount_last_transfer_bid),
-              //                 ),
-              //               ],
-              //             ),
-              //           ),
-              //         ),
-              //         if (player.id_club !=
-              //             Provider.of<SessionProvider>(context)
-              //                 .selectedClub
-              //                 .id_club)
-              //           IconButton(
-              //             icon: const Icon(
-              //               Icons.arrow_circle_up_outlined,
-              //               size: 24,
-              //               color: Colors.green,
-              //             ),
-              //             onPressed: () {
-              //               _BidPlayer(player);
-              //             },
-              //           ),
-              //       ],
-              //     ),
-              //     subtitle: Row(
-              //       children: [
-              //         StreamBuilder<int>(
-              //           stream: Stream.periodic(
-              //               const Duration(seconds: 1), (i) => i),
-              //           builder: (context, snapshot) {
-              //             final remainingTime =
-              //                 player.date_sell!.difference(DateTime.now());
-              //             final daysLeft = remainingTime.inDays;
-              //             final hoursLeft = remainingTime.inHours.remainder(24);
-              //             final minutesLeft =
-              //                 remainingTime.inMinutes.remainder(60);
-              //             final secondsLeft =
-              //                 remainingTime.inSeconds.remainder(60);
-
-              //             return Row(
-              //               children: [
-              //                 Icon(Icons.timer_outlined),
-              //                 Column(
-              //                   crossAxisAlignment: CrossAxisAlignment
-              //                       .center, // Align text to the center
-              //                   children: [
-              //                     Text(DateFormat('EEE d HH:mm', 'en_US')
-              //                         .format(player.date_sell!)),
-              //                     Row(children: [
-              //                       if (daysLeft > 0)
-              //                         Text(
-              //                           ' ${daysLeft}d, ',
-              //                           style: const TextStyle(
-              //                             color: Colors.red,
-              //                             fontWeight: FontWeight.bold,
-              //                           ),
-              //                         ),
-              //                       Text(
-              //                         '${hoursLeft}h${minutesLeft}m${secondsLeft}s',
-              //                         style: const TextStyle(
-              //                           color: Colors.red,
-              //                           fontWeight: FontWeight.bold,
-              //                         ),
-              //                       ),
-              //                     ]),
-              //                   ],
-              //                 ),
-              //               ],
-              //             );
-              //           },
-              //         ),
-              //       ],
-              //     ),
-              //     // Additional information to be displayed when the tile is expanded
-              //     children: TabBar(
-              //       tabs: [
-              //         Tab(
-              //           text: 'Bids',
-              //         ),
-              //         Tab(
-              //           text: 'Chart',
-              //         ),
-              //       ],
-              //     ),
-
-              //     // children: <Widget>[
-              //     //   // Add your additional widgets here
-              //     //   // For example:
-              //     //   Text('Display list of bids'),
-              //     //   Padding(
-              //     //     padding: EdgeInsets.symmetric(horizontal: 16),
-              //     //     child: StreamBuilder<List<Map>>(
-              //     //       stream: _transferBidsStream,
-              //     //       builder: (context, snapshot) {
-              //     //         if (snapshot.connectionState ==
-              //     //             ConnectionState.waiting) {
-              //     //           return CircularProgressIndicator();
-              //     //         } else if (snapshot.hasError) {
-              //     //           return Text('Error: ${snapshot.error}');
-              //     //         } else {
-              //     //           final bids = snapshot.data ?? [];
-              //     //           return Column(
-              //     //             crossAxisAlignment: CrossAxisAlignment.start,
-              //     //             children: bids
-              //     //                 .asMap()
-              //     //                 .entries
-              //     //                 .toList()
-              //     //                 .reversed
-              //     //                 .map((entry) {
-              //     //               final index = entry.key;
-              //     //               final bid = entry.value;
-              //     //               return ListTile(
-              //     //                 title: Text(
-              //     //                   '${bid['name_club']}: ${NumberFormat('#,###').format(bid['amount'])}',
-              //     //                   style: TextStyle(
-              //     //                     fontWeight: FontWeight.bold,
-              //     //                     fontSize: 16,
-              //     //                   ),
-              //     //                 ),
-              //     //                 subtitle: Row(
-              //     //                   children: [
-              //     //                     Icon(Icons.timer_outlined),
-              //     //                     Text(
-              //     //                       ' ${DateFormat('EEE d HH:mm:ss', 'en_US').format(DateTime.parse(bid['created_at']))}',
-              //     //                       style: TextStyle(
-              //     //                         fontStyle: FontStyle.italic,
-              //     //                         color: Colors.blueGrey,
-              //     //                       ),
-              //     //                     ),
-              //     //                   ],
-              //     //                 ),
-              //     //                 leading: Container(
-              //     //                   width:
-              //     //                       40, // Adjust width to fit the index properly
-              //     //                   height:
-              //     //                       40, // Set the height equal to width for a circular shape
-              //     //                   decoration: BoxDecoration(
-              //     //                     shape: BoxShape.circle,
-              //     //                     color: Colors
-              //     //                         .blue, // Choose your desired background color
-              //     //                   ),
-              //     //                   alignment: Alignment.center,
-              //     //                   child: Text(
-              //     //                     (index + 1)
-              //     //                         .toString(), // Adding 1 to make the index 1-based instead of 0-based
-              //     //                     style: TextStyle(
-              //     //                       color: Colors.white,
-              //     //                       fontWeight: FontWeight.bold,
-              //     //                     ),
-              //     //                   ),
-              //     //                 ),
-              //     //                 trailing: Icon(
-              //     //                   Icons.arrow_forward_ios,
-              //     //                   color: Colors.blue,
-              //     //                 ),
-              //     //               );
-              //     //             }).toList(),
-              //     //           );
-              //     //         }
-              //     //       },
-              //     //     ),
-              //     //   ),
-              //     // ],
-
-              //     // children: <Widget>[
-              //     //   // Add your additional widgets here
-              //     //   // For example:
-              //     //   Text('Display list of bids'),
-              //     //   Padding(
-              //     //     padding: EdgeInsets.symmetric(horizontal: 16),
-              //     //     child: StreamBuilder<List<Map>>(
-              //     //       stream: _transferBidsStream,
-              //     //       builder: (context, snapshot) {
-              //     //         if (snapshot.connectionState ==
-              //     //             ConnectionState.waiting) {
-              //     //           return CircularProgressIndicator();
-              //     //         } else if (snapshot.hasError) {
-              //     //           return Text('Error: ${snapshot.error}');
-              //     //         } else {
-              //     //           final bids = snapshot.data ?? [];
-              //     //           // Extract data for the chart
-              //     //           List<FlSpot> chartData = [];
-              //     //           bids.forEach((bid) {
-              //     //             double amount = bid['amount'].toDouble();
-              //     //             DateTime createdAt =
-              //     //                 DateTime.parse(bid['created_at']);
-              //     //             chartData.add(FlSpot(
-              //     //                 createdAt.millisecondsSinceEpoch.toDouble(),
-              //     //                 amount));
-              //     //           });
-              //     //           return Column(
-              //     //             crossAxisAlignment: CrossAxisAlignment.start,
-              //     //             children: [
-              //     //               AspectRatio(
-              //     //                 aspectRatio: 1.7,
-              //     //                 child: LineChart(
-              //     //                   LineChartData(
-              //     //                     lineBarsData: [
-              //     //                       LineChartBarData(
-              //     //                         spots: chartData,
-              //     //                         color: Colors.green,
-              //     //                         barWidth: 4,
-              //     //                         isStrokeCapRound: true,
-              //     //                         belowBarData: BarAreaData(show: true),
-              //     //                       ),
-              //     //                     ],
-              //     //                     titlesData: FlTitlesData(
-              //     //                       bottomTitles: AxisTitles(
-              //     //                         axisNameWidget: Text('Time'),
-              //     //                       ),
-              //     //                       leftTitles: AxisTitles(
-              //     //                         axisNameWidget: Text('Amount'),
-              //     //                       ),
-              //     //                     ),
-              //     //                     borderData: FlBorderData(
-              //     //                       border: Border.all(
-              //     //                           color:
-              //     //                               Colors.green.withOpacity(0.5),
-              //     //                           width: 1),
-              //     //                     ),
-              //     //                     minX: chartData.first.x,
-              //     //                     // maxX: chartData.last.x,
-              //     //                     maxX: player
-              //     //                         .date_sell!.millisecondsSinceEpoch
-              //     //                         .toDouble(),
-              //     //                     minY: 0,
-              //     //                     maxY: chartData
-              //     //                             .map((spot) => spot.y)
-              //     //                             .reduce((value, element) =>
-              //     //                                 value > element
-              //     //                                     ? value
-              //     //                                     : element) *
-              //     //                         1.2,
-              //     //                   ),
-              //     //                 ),
-              //     //               ),
-              //     //             ],
-              //     //           );
-              //     //         }
-              //     //       },
-              //     //     ),
-              //     //   ),
-              //     // ],
-              //   ),
-              // ),
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(
+                      24), // Set borderRadius for the outer container
                   border: Border.all(color: Colors.blueGrey),
                 ),
                 child: ExpansionTile(
+                  // Add your onTap logic here if needed
+                  // onTap: () {},
+
                   leading: Icon(
                     icon_transfers,
                     size: 30,
@@ -501,8 +225,10 @@ class _PlayerPageState extends State<PlayerPage> {
                           ),
                           padding: EdgeInsets.symmetric(horizontal: 8),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment
+                                .center, // Align text to the center
                             children: [
+                              // Icon(Icons.airline_stops),
                               Text(
                                 player.id_club_last_transfer_bid != null
                                     ? '${player.name_club_last_transfer_bid}'
@@ -536,9 +262,7 @@ class _PlayerPageState extends State<PlayerPage> {
                     children: [
                       StreamBuilder<int>(
                         stream: Stream.periodic(
-                          const Duration(seconds: 1),
-                          (i) => i,
-                        ),
+                            const Duration(seconds: 1), (i) => i),
                         builder: (context, snapshot) {
                           final remainingTime =
                               player.date_sell!.difference(DateTime.now());
@@ -553,7 +277,8 @@ class _PlayerPageState extends State<PlayerPage> {
                             children: [
                               Icon(Icons.timer_outlined),
                               Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment
+                                    .center, // Align text to the center
                                 children: [
                                   Text(DateFormat('EEE d HH:mm', 'en_US')
                                       .format(player.date_sell!)),
@@ -582,40 +307,143 @@ class _PlayerPageState extends State<PlayerPage> {
                       ),
                     ],
                   ),
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        TabBar(
-                          tabs: [
-                            Tab(
-                              text: 'Bids',
-                            ),
-                            Tab(
-                              text: 'Chart',
-                            ),
-                          ],
-                        ),
-                        // Add your additional widgets here
-                        // For example:
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: StreamBuilder<List<Map>>(
-                            stream: _transferBidsStream,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return CircularProgressIndicator();
-                              } else if (snapshot.hasError) {
-                                return Text('Error: ${snapshot.error}');
-                              } else {
-                                final bids = snapshot.data ?? [];
-                                return Text('test');
-                              }
-                            },
-                          ),
-                        ),
-                      ],
+                  // Additional information to be displayed when the tile is expanded
+
+                  children: <Widget>[
+                    // Add your additional widgets here
+                    // For example:
+                    Text('Display list of bids'),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: StreamBuilder<List<Map>>(
+                        stream: _transferBidsStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            final bids = snapshot.data ?? [];
+                            // Extract data for the chart
+                            List<FlSpot> chartData = [];
+                            bids.forEach((bid) {
+                              double amount = bid['amount'].toDouble();
+                              DateTime createdAt =
+                                  DateTime.parse(bid['created_at']);
+                              chartData.add(FlSpot(
+                                  createdAt.millisecondsSinceEpoch.toDouble(),
+                                  amount));
+                            });
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AspectRatio(
+                                  aspectRatio: 1.7,
+                                  child: LineChart(
+                                    LineChartData(
+                                      lineBarsData: [
+                                        LineChartBarData(
+                                          spots: chartData,
+                                          color: Colors.green,
+                                          barWidth: 4,
+                                          isStrokeCapRound: true,
+                                          belowBarData: BarAreaData(show: true),
+                                        ),
+                                      ],
+                                      titlesData: FlTitlesData(
+                                        bottomTitles: AxisTitles(
+                                          axisNameWidget: Text('Time'),
+                                        ),
+                                        leftTitles: AxisTitles(
+                                          axisNameWidget: Text('Amount'),
+                                        ),
+                                      ),
+                                      borderData: FlBorderData(
+                                        border: Border.all(
+                                            color:
+                                                Colors.green.withOpacity(0.5),
+                                            width: 1),
+                                      ),
+                                      minX: chartData.first.x,
+                                      // maxX: chartData.last.x,
+                                      maxX: player
+                                          .date_sell!.millisecondsSinceEpoch
+                                          .toDouble(),
+                                      minY: 0,
+                                      maxY: chartData
+                                              .map((spot) => spot.y)
+                                              .reduce((value, element) =>
+                                                  value > element
+                                                      ? value
+                                                      : element) *
+                                          1.2,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: bids
+                                      .asMap()
+                                      .entries
+                                      .toList()
+                                      .reversed
+                                      .map((entry) {
+                                    final index = entry.key;
+                                    final bid = entry.value;
+                                    return ListTile(
+                                      title: Text(
+                                        '${bid['name_club']}: ${NumberFormat('#,###').format(bid['amount'])}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      subtitle: Row(
+                                        children: [
+                                          const Icon(Icons.timer_outlined),
+                                          Text(
+                                            ' ${DateFormat('EEE d HH:mm:ss', 'en_US').format(DateTime.parse(bid['created_at']))}',
+                                            style: const TextStyle(
+                                              fontStyle: FontStyle.italic,
+                                              color: Colors.blueGrey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      leading: Container(
+                                        width:
+                                            40, // Adjust width to fit the index properly
+                                        height:
+                                            40, // Set the height equal to width for a circular shape
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors
+                                              .blue, // Choose your desired background color
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          (index + 1)
+                                              .toString(), // Adding 1 to make the index 1-based instead of 0-based
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      trailing: const Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: Colors.blue,
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            );
+                          }
+                        },
+                      ),
                     ),
                   ],
                 ),
