@@ -1,0 +1,3 @@
+flutter run -d windows
+
+flutter pub get
