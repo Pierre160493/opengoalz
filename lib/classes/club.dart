@@ -9,7 +9,8 @@ class Club {
     required this.is_default,
     required this.club_name,
     required this.username,
-    required this.finances_cash,
+    required this.cash_absolute,
+    required this.cash_available,
     required this.player_count,
     required this.fans_total_number,
     required this.isMine,
@@ -33,7 +34,8 @@ class Club {
 
   /// Username of the club manager
   final String? username;
-  final double finances_cash;
+  final int cash_absolute;
+  final int cash_available;
   final int player_count;
   final int? fans_total_number;
 
@@ -50,9 +52,8 @@ class Club {
         is_default = map['is_default'] == true,
         club_name = map['club_name'],
         username = map['username'],
-        finances_cash = map['finances_cash'] is int
-            ? (map['finances_cash'] as int).toDouble()
-            : map['finances_cash'] ?? 0.0,
+        cash_absolute = map['cash_absolute'],
+        cash_available = map['cash_available'],
         player_count = map['player_count'] ?? 0,
         fans_total_number = map['fans_total_number'] ?? 0,
         isMine = myUserId == map['id_user'];

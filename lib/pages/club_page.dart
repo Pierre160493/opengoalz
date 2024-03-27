@@ -302,7 +302,7 @@ class _ClubPageState extends State<ClubPage> {
                                             ),
                                           ),
                                           // Text('${club.league_level}.${club.id_league}'),
-                                          Text('${club.finances_cash}'),
+                                          Text('${club.cash_absolute}'),
                                         ],
                                       ),
                                       // subtitle: Row(
@@ -344,7 +344,7 @@ class _ClubPageState extends State<ClubPage> {
                                             ),
                                           ),
                                           // Text('${club.league_level}.${club.id_league}'),
-                                          Text('${club.finances_cash}'),
+                                          Text('${club.fans_total_number}'),
                                         ],
                                       ),
                                       subtitle: Row(

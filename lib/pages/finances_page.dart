@@ -70,13 +70,13 @@ class _FinancesPageState extends State<FinancesPage> {
                 TextSpan(
                   text: Provider.of<SessionProvider>(context)
                       .selectedClub
-                      .finances_cash
+                      .cash_available
                       .toString(),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Provider.of<SessionProvider>(context)
                                 .selectedClub
-                                .finances_cash >
+                                .cash_absolute >
                             0
                         ? Colors.green
                         : Colors.red,

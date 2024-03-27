@@ -1,0 +1,1 @@
+C:/Users/pgranger/git/OpenGoalZ/SupaBase/opengoalz/.git/hooks/pre-commit.ps1

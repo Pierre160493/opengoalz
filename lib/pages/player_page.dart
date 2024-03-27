@@ -312,7 +312,7 @@ class _PlayerPageState extends State<PlayerPage>
                   children: <Widget>[
                     // Add your additional widgets here
                     // For example:
-                    Text('Display list of bids'),
+                    Text('Bids History'),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: StreamBuilder<List<Map>>(
@@ -351,14 +351,6 @@ class _PlayerPageState extends State<PlayerPage>
                                           belowBarData: BarAreaData(show: true),
                                         ),
                                       ],
-                                      titlesData: FlTitlesData(
-                                        bottomTitles: AxisTitles(
-                                          axisNameWidget: Text('Time'),
-                                        ),
-                                        leftTitles: AxisTitles(
-                                          axisNameWidget: Text('Amount'),
-                                        ),
-                                      ),
                                       borderData: FlBorderData(
                                         border: Border.all(
                                             color:
@@ -366,7 +358,6 @@ class _PlayerPageState extends State<PlayerPage>
                                             width: 1),
                                       ),
                                       minX: chartData.first.x,
-                                      // maxX: chartData.last.x,
                                       maxX: player
                                           .date_sell!.millisecondsSinceEpoch
                                           .toDouble(),
@@ -722,11 +713,6 @@ class _PlayerPageState extends State<PlayerPage>
                       );
                       return;
                     }
-                    DateTime dateSell =
-                        DateTime.now().add(const Duration(days: 7));
-                    await supabase.from('players').update({
-                      'date_sell': dateSell.toIso8601String()
-                    }).match({'id': player.id});
                     await supabase.from('transfers_bids').insert({
                       'amount': minimumPrice,
                       'id_player': player.id,
@@ -738,7 +724,7 @@ class _PlayerPageState extends State<PlayerPage>
                     print(error);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(error.code!),
+                        content: Text(error.message),
                       ),
                     );
                   }
@@ -809,7 +795,7 @@ class _PlayerPageState extends State<PlayerPage>
                 ),
               ),
               Text(
-                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).selectedClub.finances_cash)}'),
+                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).selectedClub.cash_available)}'),
             ],
           ),
           actions: <Widget>[
