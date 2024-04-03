@@ -126,24 +126,8 @@ class _PlayerPageState extends State<PlayerPage>
             Text(
               '${player.first_name[0]}.${player.last_name.toUpperCase()} ',
             ),
-            if (player.date_sell != null)
-              const Icon(
-                icon_transfers,
-                color: Colors.green,
-                size: 30,
-              ),
-            if (player.date_firing != null)
-              const Icon(
-                Icons.exit_to_app,
-                color: Colors.red,
-                size: 30,
-              ),
-            if (player.date_end_injury != null)
-              const Icon(
-                icon_medics,
-                color: Colors.red,
-                size: 30,
-              ),
+            player
+                .getStatusRow() // Get the status of the player (transfer, fired, injured, etc...)
           ],
         ),
       ),
@@ -666,6 +650,8 @@ class _PlayerPageState extends State<PlayerPage>
     final TextEditingController _priceController =
         TextEditingController(text: '0'); // Initialize with default value
 
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     if (player.date_firing != null)
       showPlayerSnackBar(context, player,
           'cannot put to auction because player is being fired !');
@@ -693,19 +679,22 @@ class _PlayerPageState extends State<PlayerPage>
               ],
             ),
             actions: <Widget>[
+              /// Cancel button
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(); // Close the dialog
                 },
                 child: const Text('Cancel'),
               ),
+
+              /// Confirm button
               TextButton(
                 onPressed: () async {
                   Navigator.of(context).pop(); // Close the dialog
                   try {
                     int? minimumPrice = int.tryParse(_priceController.text);
                     if (minimumPrice == null || minimumPrice < 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      scaffoldMessenger.showSnackBar(
                         const SnackBar(
                           content: Text(
                               'Please enter a valid number for minimum price (should be a positive integer)'),
@@ -713,18 +702,34 @@ class _PlayerPageState extends State<PlayerPage>
                       );
                       return;
                     }
+                    print("PG test ici");
+                    print(player.id);
+                    print(Provider.of<SessionProvider>(context, listen: false)
+                        .selectedClub
+                        .id_club);
                     await supabase.from('transfers_bids').insert({
                       'amount': minimumPrice,
                       'id_player': player.id,
+                      'id_club':
+                          Provider.of<SessionProvider>(context, listen: false)
+                              .selectedClub
+                              .id_club,
                     });
                     // showPlayerSnackBar(
                     //     context, player, 'will be put in auction for 7 days !');
-                    _playerStream = _updatePlayerStream();
+                    // _playerStream = _updatePlayerStream();
                   } on PostgrestException catch (error) {
                     print(error);
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.showSnackBar(
                       SnackBar(
                         content: Text(error.message),
+                      ),
+                    );
+                  } catch (error) {
+                    print(error);
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text('An unexpected error occurred.'),
                       ),
                     );
                   }
@@ -864,12 +869,15 @@ class _PlayerPageState extends State<PlayerPage>
           content: Text(
               'Are you sure you want to fire ${player.first_name} ${player.last_name.toUpperCase()} ?'),
           actions: <Widget>[
+            /// Cancel Button
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
               child: const Text('Cancel'),
             ),
+
+            /// Confirm Button
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the dialog
@@ -883,7 +891,6 @@ class _PlayerPageState extends State<PlayerPage>
                   showPlayerSnackBar(context, player,
                       ' has 7 days to pack his stuff or change your mind !');
                   _playerStream = _updatePlayerStream();
-                  print('PG: Seems OK');
                 } on PostgrestException catch (error) {
                   print(error);
                   ScaffoldMessenger.of(context).showSnackBar(

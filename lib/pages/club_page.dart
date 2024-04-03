@@ -89,20 +89,6 @@ class _ClubPageState extends State<ClubPage> {
                                     // const SizedBox(height: 12),
                                     ListTile(
                                       onTap: () {},
-                                      leading: CircleAvatar(
-                                        radius:
-                                            24, // Increase the radius as needed
-                                        child: Text((index + 1)
-                                            .toString()), // Display index with +1 to start from 1 instead of 0
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            24), // Adjust border radius as needed
-                                        side: const BorderSide(
-                                          color:
-                                              Colors.blueGrey, // Border color
-                                        ),
-                                      ),
                                       title: Row(
                                         children: [
                                           Expanded(

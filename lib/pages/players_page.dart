@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/pages/player_page.dart';
-import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/player_card.dart';
 
@@ -30,7 +29,6 @@ class PlayersPage extends StatefulWidget {
 class _PlayersPageState extends State<PlayersPage> {
   late final Stream<List<Player>> _playerStream;
   late int _playersCount = 0; // Number of players
-  String _selectedFilter = 'Age'; // Default filter by age
 
   @override
   void initState() {
@@ -51,16 +49,7 @@ class _PlayersPageState extends State<PlayersPage> {
         .from('view_players')
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.idClub)
-        .order('created_at');
-
-    // Apply filter based on selected criteria
-    if (_selectedFilter == 'Age') {
-      query = query.order('age', ascending: false);
-    } else if (_selectedFilter == 'First Name') {
-      query = query.order('first_name');
-    } else if (_selectedFilter == 'Last Name') {
-      query = query.order('last_name');
-    }
+        .order('age', ascending: false);
 
     return query.map((maps) => maps.map((map) =>
         // Player.fromMap(map: map, myUserId: supabase.auth.currentUser!.id))
@@ -70,8 +59,7 @@ class _PlayersPageState extends State<PlayersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(
+      appBar: AppBar(
         title: Column(
           children: [
             Text(
@@ -100,7 +88,7 @@ class _PlayersPageState extends State<PlayersPage> {
           ),
           IconButton(
             onPressed: () {
-              // Add your action here
+              // _showFilterDialog();
             },
             icon: Icon(Icons.filter_list),
           ),
@@ -128,53 +116,6 @@ class _PlayersPageState extends State<PlayersPage> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const Text('Filter by: '),
-                      DropdownButton<String>(
-                        value: _selectedFilter,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedFilter = newValue!;
-                          });
-                          // Update the stream query based on the new filter
-                          _playerStream = _fetchPlayersStream();
-                        },
-                        items: <String>['Age', 'First Name', 'Last Name']
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    'Number of players: ${players.length}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Expanded(
-                  //   child: ListWheelScrollView.useDelegate(
-                  //     itemExtent: 150, //
-                  //     diameterRatio: 5, //
-                  //     // useMagnifier: true, //
-                  //     magnification: 1.25, //
-                  //     physics: const FixedExtentScrollPhysics(),
-                  //     childDelegate: ListWheelChildBuilderDelegate(
-                  //       builder: (context, index) {
-                  //         if (index < 0 || index >= players.length) return null;
-                  //         final player = players[index];
-                  //         return PlayerCard(player: player);
-                  //       },
-                  //       childCount: players.length,
-                  //     ),
-                  //   ),
-                  // ),
                   Expanded(
                     child: ListView.builder(
                       itemCount: players.length,
@@ -191,7 +132,7 @@ class _PlayersPageState extends State<PlayersPage> {
                                         player.id), // Navigate to player page
                                   );
                           },
-                          child: PlayerCard(player: player),
+                          child: PlayerCard(player: player, number: index + 1),
                         );
                       },
                     ),

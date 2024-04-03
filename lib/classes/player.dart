@@ -1,5 +1,9 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'dart:ffi';
+
+import 'package:flutter/material.dart';
+
 class Player {
   Player(
       {required this.id,
@@ -26,6 +30,7 @@ class Player {
       /// Infos
       required this.date_end_injury,
       required this.date_firing,
+      required this.is_currently_playing,
 
       /// Transfers
       required this.date_sell,
@@ -77,6 +82,7 @@ class Player {
   /// Player is injured
   final DateTime? date_end_injury;
   final DateTime? date_firing;
+  final bool is_currently_playing;
 
   ///
   final DateTime? date_sell;
@@ -112,6 +118,7 @@ class Player {
         date_firing = map['date_firing'] != null
             ? DateTime.parse(map['date_firing'])
             : null,
+        is_currently_playing = map["is_currently_playing"],
         date_sell =
             map['date_sell'] != null ? DateTime.parse(map['date_sell']) : null,
         date_last_transfer_bid = map['date_last_transfer_bid'] != null
@@ -126,4 +133,109 @@ class Player {
         name_club_last_transfer_bid = map['name_club_last_transfer_bid'] != null
             ? map['name_club_last_transfer_bid']
             : null;
+
+  /// Returns the status of the player (on transfer list, being fired, injured, etc...)
+  Widget getStatusRow() {
+    DateTime currentDate = DateTime.now();
+    return Row(
+      children: [
+        if (date_sell != null)
+          Stack(
+            children: [
+              const Icon(
+                Icons.monetization_on,
+                color: Colors.green,
+                size: 30,
+              ),
+              Positioned(
+                top: -12,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    date_sell!
+                        .difference(currentDate)
+                        .inDays
+                        .toString(), // Change the number as needed
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        if (date_firing != null)
+          Stack(
+            children: [
+              const Icon(
+                Icons.exit_to_app,
+                color: Colors.red,
+                size: 30,
+              ),
+              Positioned(
+                top: -12,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    date_firing!
+                        .difference(currentDate)
+                        .inDays
+                        .toString(), // Change the number as needed
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        if (date_end_injury != null)
+          Stack(
+            children: [
+              const Icon(
+                Icons.local_hospital,
+                color: Colors.red,
+                size: 30,
+              ),
+              Positioned(
+                top: -12,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    date_end_injury!
+                        .difference(currentDate)
+                        .inDays
+                        .toString(), // Change the number as needed
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        if (is_currently_playing)
+          const Icon(
+            Icons.directions_run_outlined,
+            color: Colors.green,
+            size: 30,
+          ),
+      ],
+    );
+  }
 }
