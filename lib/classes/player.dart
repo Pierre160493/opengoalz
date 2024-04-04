@@ -1,7 +1,5 @@
 // ignore_for_file: non_constant_identifier_names
 
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 
 class Player {
@@ -101,7 +99,7 @@ class Player {
         last_name = map['last_name'],
         date_birth = DateTime.parse(map['date_birth']),
         age = (map['age'] as num).toDouble(),
-        club_name = map['club_name'],
+        club_name = map['current_club_name'],
         username = map['username'],
         id_user = map['id_user'],
         keeper = (map['keeper'] as num).toDouble(),
@@ -235,6 +233,123 @@ class Player {
             color: Colors.green,
             size: 30,
           ),
+      ],
+    );
+  }
+
+  Widget getCountryWidget() {
+    return Row(
+      children: [
+        Icon(
+          Icons.flag_circle_outlined,
+          size: 24, // Adjust icon size as needed
+          color: Colors.grey, // Adjust icon color as needed
+        ),
+        Text(
+          ' FRANCE',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget getAgeWidget() {
+    return Row(
+      children: [
+        Icon(
+          Icons.cake_outlined,
+          size: 24, // Adjust icon size as needed
+          color: Colors.grey, // Adjust icon color as needed
+        ),
+        Text(
+          ' ${age.truncate()}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(' years, '),
+        Text(
+          ((age - age.truncate()) * 112).floor().toString(),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(' days '),
+      ],
+    );
+  }
+
+  Widget getAvgStatsWidget() {
+    return Row(
+      children: [
+        Icon(
+          Icons.query_stats_outlined,
+          size: 24, // Adjust icon size as needed
+          color: Colors.grey, // Adjust icon color as needed
+        ),
+        Text(
+          ' ${avg_stats.toStringAsFixed(1)}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(' Average Stats')
+      ],
+    );
+  }
+
+  Widget getClubWidget() {
+    return Row(
+      children: [
+        Icon(
+          Icons.real_estate_agent_outlined,
+          size: 24, // Adjust icon size as needed
+          color: Colors.grey, // Adjust icon color as needed
+        ),
+        Text(
+          ' ${club_name}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(' Club')
+      ],
+    );
+  }
+
+  Widget getUserNameWidget() {
+    return Row(
+      children: [
+        Icon(
+          Icons.android_outlined,
+          size: 24, // Adjust icon size as needed
+          color: Colors.grey, // Adjust icon color as needed
+        ),
+        Text(
+          ' ${username}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget getInjuryWidget() {
+    return Row(
+      children: [
+        Icon(Icons.personal_injury_outlined,
+            size: 24, color: Colors.red), // Adjust icon size and color
+        Text(
+          ' ${date_end_injury!.difference(DateTime.now()).inDays.toString()}',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold, // Remove bold font weight
+            // color: Colors.red,
+          ),
+        ),
+        Text(' days left for recovery')
       ],
     );
   }

@@ -12,7 +12,7 @@ class Club {
     required this.cash_absolute,
     required this.cash_available,
     required this.player_count,
-    required this.fans_total_number,
+    required this.number_fans,
     required this.isMine,
   });
 
@@ -37,7 +37,7 @@ class Club {
   final int cash_absolute;
   final int cash_available;
   final int player_count;
-  final int? fans_total_number;
+  final int number_fans;
 
   /// Whether the club is owned by the current user
   final bool isMine;
@@ -55,6 +55,6 @@ class Club {
         cash_absolute = map['cash_absolute'],
         cash_available = map['cash_available'],
         player_count = map['player_count'] ?? 0,
-        fans_total_number = map['fans_total_number'] ?? 0,
+        number_fans = map['number_fans'] ?? 0,
         isMine = myUserId == map['id_user'];
 }

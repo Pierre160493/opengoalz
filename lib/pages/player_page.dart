@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart' as radar;
-import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/player.dart';
 import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/widgets/transfer_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -30,28 +29,17 @@ class PlayerPage extends StatefulWidget {
 class _PlayerPageState extends State<PlayerPage>
     with SingleTickerProviderStateMixin {
   Stream<List<Player>> _playerStream = const Stream.empty();
-  Stream<List<Map>> _transferBidsStream = const Stream.empty();
 
   @override
   void initState() {
     super.initState();
     _playerStream = _fetchPlayersStream(widget.idPlayer);
-    _transferBidsStream = supabase
-        .from('transfers_bids')
-        .stream(primaryKey: ['id'])
-        .eq('id_player', widget.idPlayer)
-        .order('created_at', ascending: true)
-        .map((maps) => maps
-            .map((map) => {
-                  'id': map['id'],
-                  'id_player': map['id_player'],
-                  'created_at': map['created_at'],
-                  'id_transfer': map['id_transfer'],
-                  'amount': map['amount'],
-                  'id_club': map['id_club'],
-                  'name_club': map['name_club'],
-                })
-            .toList());
+  }
+
+  // Method to update the stream and force the StreamBuilder to rebuild
+  void refreshView() {
+    _playerStream = _fetchPlayersStream(widget.idPlayer);
+    setState(() {});
   }
 
   Stream<List<Player>> _fetchPlayersStream(int idPlayer) {
@@ -94,50 +82,118 @@ class _PlayerPageState extends State<PlayerPage>
               child: Text('ERROR: ${players.length} players found'),
             );
           } else {
-            return Scaffold(
-                appBar: _buildAppBar(players[0]),
-                body: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: players.length,
-                        itemBuilder: (context, index) {
-                          final player = players[index];
-                          return _buildPlayerCard(player);
-                        },
-                      ),
-                    )
-                  ],
-                ),
-                floatingActionButton: _buildFloatingActionButton(players[0]));
+            // return Scaffold(
+            //     appBar: _buildAppBar(players[0]),
+            //     body: Column(
+            //       crossAxisAlignment: CrossAxisAlignment.start,
+            //       children: [
+            //         Expanded(
+            //           child: ListView.builder(
+            //             itemCount: players.length,
+            //             itemBuilder: (context, index) {
+            //               final player = players[index];
+            //               return _buildPlayerCard(player);
+            //             },
+            //           ),
+            //         )
+            //       ],
+            //     ),
+            //     floatingActionButton: _buildFloatingActionButton(
+            //         players[0]) //Floating Action Button
+            //     );
+            return DefaultTabController(
+              length: 2, // Define the number of tabs
+              child: Scaffold(
+                  appBar: AppBar(
+                    title: Row(
+                      children: [
+                        Text(
+                          '${players[0].first_name[0]}.${players[0].last_name.toUpperCase()} ',
+                        ),
+                        players[0]
+                            .getStatusRow() // Get the status of the player (transfer, fired, injured, etc...)
+                      ],
+                    ),
+                    bottom: const TabBar(
+                      tabs: [
+                        Tab(text: 'Details'), // First tab
+                        Tab(text: 'History'), // Second tab
+                      ],
+                    ),
+                  ),
+                  body: TabBarView(
+                    children: [
+                      _buildDetailsTab(players[0]), // First tab content
+                      _buildStatsTab(players[0]), // Second tab content
+                    ],
+                  ),
+                  floatingActionButton: _buildFloatingActionButton(
+                      players[0]) //Floating Action Button
+                  ),
+            );
           }
         }
       },
     );
   }
 
-  PreferredSizeWidget _buildAppBar(Player player) {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(kToolbarHeight),
-      child: AppBar(
-        title: Row(
-          children: [
-            Text(
-              '${player.first_name[0]}.${player.last_name.toUpperCase()} ',
+  Widget _buildDetailsTab(Player player) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPlayerCard(player),
+                const SizedBox(
+                    height: 24), // Add spacing between name and radar chart
+                SizedBox(
+                  width:
+                      double.infinity, // Make radar chart fill available width
+                  height: 240, // Adjust this value as needed
+                  child: radar.RadarChart.dark(
+                    ticks: const [25, 50, 75, 100],
+                    features: const [
+                      'Keeper',
+                      'Defense',
+                      'Passes',
+                      'Playmaking',
+                      'Winger',
+                      'Scoring',
+                      'Freekick',
+                    ],
+                    data: [
+                      [
+                        player.keeper,
+                        player.defense,
+                        player.playmaking,
+                        player.passes,
+                        player.winger,
+                        player.scoring,
+                        player.freekick,
+                      ]
+                    ],
+                  ),
+                ),
+              ],
             ),
-            player
-                .getStatusRow() // Get the status of the player (transfer, fired, injured, etc...)
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildPlayerCard(Player player) {
-    final List<String> smileys = ['😊', '😁', '😄', '😃', '😆', '😅'];
-    final String selectedSmiley = smileys[Random().nextInt(smileys.length)];
+  Widget _buildStatsTab(Player player) {
+    return Container(
+      alignment: Alignment.center,
+      child: Text('Stats tab content goes here'),
+    );
+  }
 
+  Widget _buildPlayerCard(Player player) {
     final features = [
       player.keeper,
       player.defense,
@@ -148,406 +204,120 @@ class _PlayerPageState extends State<PlayerPage>
       player.freekick,
     ];
 
-    return Card(
-      elevation: 6,
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Player's name row
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  child: Text(
-                    selectedSmiley,
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                ),
-                Text(
-                  ' ${player.first_name} ${player.last_name.toUpperCase()}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20, // Increase the font size here
-                  ),
-                ),
-                // const Spacer(), // Add Spacer widget to push CircleAvatar to the right
-              ],
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-
-            /// Selling tile
-            if (player.date_sell != null)
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                      24), // Set borderRadius for the outer container
-                  border: Border.all(color: Colors.blueGrey),
-                ),
-                child: ExpansionTile(
-                  // Add your onTap logic here if needed
-                  // onTap: () {},
-
-                  leading: Icon(
-                    icon_transfers,
-                    size: 30,
-                    color: Colors.green,
-                  ),
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.blueGrey,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment
-                                .center, // Align text to the center
-                            children: [
-                              // Icon(Icons.airline_stops),
-                              Text(
-                                player.id_club_last_transfer_bid != null
-                                    ? '${player.name_club_last_transfer_bid}'
-                                    : 'No bids yet',
-                              ),
-                              Text(
-                                NumberFormat('#,###')
-                                    .format(player.amount_last_transfer_bid),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (player.id_club !=
-                          Provider.of<SessionProvider>(context)
-                              .selectedClub
-                              .id_club)
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_circle_up_outlined,
-                            size: 24,
-                            color: Colors.green,
-                          ),
-                          onPressed: () {
-                            _BidPlayer(player);
-                          },
-                        ),
-                    ],
-                  ),
-                  subtitle: Row(
-                    children: [
-                      StreamBuilder<int>(
-                        stream: Stream.periodic(
-                            const Duration(seconds: 1), (i) => i),
-                        builder: (context, snapshot) {
-                          final remainingTime =
-                              player.date_sell!.difference(DateTime.now());
-                          final daysLeft = remainingTime.inDays;
-                          final hoursLeft = remainingTime.inHours.remainder(24);
-                          final minutesLeft =
-                              remainingTime.inMinutes.remainder(60);
-                          final secondsLeft =
-                              remainingTime.inSeconds.remainder(60);
-
-                          return Row(
-                            children: [
-                              Icon(Icons.timer_outlined),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment
-                                    .center, // Align text to the center
-                                children: [
-                                  Text(DateFormat('EEE d HH:mm', 'en_US')
-                                      .format(player.date_sell!)),
-                                  Row(children: [
-                                    if (daysLeft > 0)
-                                      Text(
-                                        ' ${daysLeft}d, ',
-                                        style: const TextStyle(
-                                          color: Colors.red,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    Text(
-                                      '${hoursLeft}h${minutesLeft}m${secondsLeft}s',
-                                      style: const TextStyle(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ]),
-                                ],
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  // Additional information to be displayed when the tile is expanded
-
-                  children: <Widget>[
-                    // Add your additional widgets here
-                    // For example:
-                    Text('Bids History'),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: StreamBuilder<List<Map>>(
-                        stream: _transferBidsStream,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return CircularProgressIndicator();
-                          } else if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else {
-                            final bids = snapshot.data ?? [];
-                            // Extract data for the chart
-                            List<FlSpot> chartData = [];
-                            bids.forEach((bid) {
-                              double amount = bid['amount'].toDouble();
-                              DateTime createdAt =
-                                  DateTime.parse(bid['created_at']);
-                              chartData.add(FlSpot(
-                                  createdAt.millisecondsSinceEpoch.toDouble(),
-                                  amount));
-                            });
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                AspectRatio(
-                                  aspectRatio: 1.7,
-                                  child: LineChart(
-                                    LineChartData(
-                                      lineBarsData: [
-                                        LineChartBarData(
-                                          spots: chartData,
-                                          color: Colors.green,
-                                          barWidth: 4,
-                                          isStrokeCapRound: true,
-                                          belowBarData: BarAreaData(show: true),
-                                        ),
-                                      ],
-                                      borderData: FlBorderData(
-                                        border: Border.all(
-                                            color:
-                                                Colors.green.withOpacity(0.5),
-                                            width: 1),
-                                      ),
-                                      minX: chartData.first.x,
-                                      maxX: player
-                                          .date_sell!.millisecondsSinceEpoch
-                                          .toDouble(),
-                                      minY: 0,
-                                      maxY: chartData
-                                              .map((spot) => spot.y)
-                                              .reduce((value, element) =>
-                                                  value > element
-                                                      ? value
-                                                      : element) *
-                                          1.2,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: bids
-                                      .asMap()
-                                      .entries
-                                      .toList()
-                                      .reversed
-                                      .map((entry) {
-                                    final index = entry.key;
-                                    final bid = entry.value;
-                                    return ListTile(
-                                      title: Text(
-                                        '${bid['name_club']}: ${NumberFormat('#,###').format(bid['amount'])}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      subtitle: Row(
-                                        children: [
-                                          const Icon(Icons.timer_outlined),
-                                          Text(
-                                            ' ${DateFormat('EEE d HH:mm:ss', 'en_US').format(DateTime.parse(bid['created_at']))}',
-                                            style: const TextStyle(
-                                              fontStyle: FontStyle.italic,
-                                              color: Colors.blueGrey,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      leading: Container(
-                                        width:
-                                            40, // Adjust width to fit the index properly
-                                        height:
-                                            40, // Set the height equal to width for a circular shape
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors
-                                              .blue, // Choose your desired background color
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          (index + 1)
-                                              .toString(), // Adding 1 to make the index 1-based instead of 0-based
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      trailing: const Icon(
-                                        Icons.arrow_forward_ios,
-                                        color: Colors.blue,
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ],
+    return Padding(
+      padding: const EdgeInsets.all(6.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Player's name row
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                child: Icon(
+                  Icons.person_pin_outlined,
+                  size: 36,
                 ),
               ),
-            const SizedBox(height: 6),
-            if (player.date_firing != null)
-              Row(
-                children: [
-                  StreamBuilder<int>(
-                    stream:
-                        Stream.periodic(const Duration(seconds: 1), (i) => i),
-                    builder: (context, snapshot) {
-                      final remainingTime =
-                          player.date_firing!.difference(DateTime.now());
-                      final daysLeft = remainingTime.inDays;
-                      final hoursLeft = remainingTime.inHours.remainder(24);
-                      final minutesLeft = remainingTime.inMinutes.remainder(60);
-                      final secondsLeft = remainingTime.inSeconds.remainder(60);
+              Text(
+                ' ${player.first_name} ${player.last_name.toUpperCase()}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20, // Increase the font size here
+                ),
+              ),
+              // const Spacer(), // Add Spacer widget to push CircleAvatar to the right
+            ],
+          ),
+          const SizedBox(
+            height: 12,
+          ),
 
-                      return RichText(
-                        text: TextSpan(
-                          text: 'Will be fired in: ',
-                          style: const TextStyle(),
-                          children: [
-                            if (daysLeft > 0) // Conditionally include days left
-                              TextSpan(
-                                text: '$daysLeft d, ',
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+          /// Selling tile
+          if (player.date_sell != null)
+            PlayerTransferTile(
+                player: player,
+                onBidCompleted: refreshView), // Show the transfer tile
+          const SizedBox(height: 6),
+
+          /// Firing tile
+          if (player.date_firing != null)
+            Row(
+              children: [
+                StreamBuilder<int>(
+                  stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
+                  builder: (context, snapshot) {
+                    final remainingTime =
+                        player.date_firing!.difference(DateTime.now());
+                    final daysLeft = remainingTime.inDays;
+                    final hoursLeft = remainingTime.inHours.remainder(24);
+                    final minutesLeft = remainingTime.inMinutes.remainder(60);
+                    final secondsLeft = remainingTime.inSeconds.remainder(60);
+
+                    return RichText(
+                      text: TextSpan(
+                        text: 'Will be fired in: ',
+                        style: const TextStyle(),
+                        children: [
+                          if (daysLeft > 0) // Conditionally include days left
                             TextSpan(
-                              text:
-                                  '$hoursLeft h, $minutesLeft m, $secondsLeft s',
+                              text: '$daysLeft d, ',
                               style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            const SizedBox(height: 6),
-            if (player.date_end_injury != null)
-              Row(
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      text: 'Still injured for: ',
-                      style: const TextStyle(),
-                      children: [
-                        TextSpan(
-                          text:
-                              ' ${player.date_end_injury!.difference(DateTime.now()).inDays.toString()} days',
-                          style: const TextStyle(
-                            fontWeight:
-                                FontWeight.bold, // Remove bold font weight
-                            color: Colors.red,
+                          TextSpan(
+                            text:
+                                '$hoursLeft h, $minutesLeft m, $secondsLeft s',
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                RichText(
-                  text: TextSpan(
-                    text: 'Age: ',
-                    children: [
-                      TextSpan(
-                        text: player.age.toStringAsFixed(2),
-                        style: const TextStyle(
-                          fontWeight:
-                              FontWeight.bold, // Remove bold font weight
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                RichText(
-                  text: TextSpan(
-                    text: 'Club: ',
-                    children: [
-                      TextSpan(
-                        text: player.club_name,
-                        style: const TextStyle(
-                          fontWeight:
-                              FontWeight.bold, // Remove bold font weight
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+          const SizedBox(height: 6),
+          if (player.date_end_injury != null)
+            player.getInjuryWidget(), // Show the injury tile
+          player.getAgeWidget(),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                ClubPage.route(player.id_club),
+              );
+            },
+            child: player.getClubWidget(), // Display the ClubWidget
+          ),
+          player.getUserNameWidget(),
+          player.getCountryWidget(),
+          player.getAvgStatsWidget(),
+          const SizedBox(
+              height: 24), // Add spacing between name and radar chart
+          SizedBox(
+            width: double.infinity, // Make radar chart fill available width
+            height: 240, // Adjust this value as needed
+            child: radar.RadarChart.dark(
+              ticks: const [25, 50, 75, 100],
+              features: const [
+                'Keeper',
+                'Defense',
+                'Passes',
+                'Playmaking',
+                'Winger',
+                'Scoring',
+                'Freekick',
               ],
+              data: [features],
             ),
-            const SizedBox(
-                height: 24), // Add spacing between name and radar chart
-            SizedBox(
-              width: double.infinity, // Make radar chart fill available width
-              height: 240, // Adjust this value as needed
-              child: radar.RadarChart.dark(
-                ticks: const [25, 50, 75, 100],
-                features: const [
-                  'Keeper',
-                  'Defense',
-                  'Passes',
-                  'Playmaking',
-                  'Winger',
-                  'Scoring',
-                  'Freekick',
-                ],
-                data: [features],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -740,124 +510,6 @@ class _PlayerPageState extends State<PlayerPage>
           );
         },
       );
-  }
-
-  Future<void> _BidPlayer(Player player) async {
-    // Checks
-    if (player.date_sell == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'ERROR: Player ${player.first_name} ${player.last_name.toUpperCase()} doesn\'t seem to be for sale'),
-        ),
-      );
-      return;
-    } else if (DateTime.now().isAfter(player.date_sell!)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Player ${player.first_name} ${player.last_name.toUpperCase()} transfer\'s deadline is reached, bidding is over... '),
-        ),
-      );
-      return;
-    }
-
-    var date_sell = DateTime.now()
-        .add(const Duration(minutes: 5)); // Calculate the new date_sell
-    var min_bid = max(
-        player.amount_last_transfer_bid! +
-            1000, // We either add 1000 or 1% rounded to be clean
-        (player.amount_last_transfer_bid! * 1.02 / 1000).round() * 1000);
-
-    final TextEditingController _priceController = TextEditingController(
-        text: NumberFormat('#,###')
-            .format(min_bid)); // Initialize with current bid + offset
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-              'Place a bid on ${player.first_name} ${player.last_name.toUpperCase()}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                  'Current maximum bid: ${NumberFormat('#,###').format(player.amount_last_transfer_bid)}'),
-              SizedBox(
-                height: 6.0,
-              ),
-              Text(
-                'min: ${NumberFormat('#,###').format(min_bid)} [${(100 * (min_bid - player.amount_last_transfer_bid!) / player.amount_last_transfer_bid!).toStringAsFixed(2)}% increase]',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _priceController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Please enter the value of your bid',
-                ),
-              ),
-              Text(
-                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).selectedClub.cash_available)}'),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close the dialog
-                try {
-                  int? newBid = int.tryParse(_priceController.text);
-                  if (newBid == null || newBid < min_bid) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'Please enter a valid number for minimum price (should be greater or equal to ${_priceController})'),
-                      ),
-                    );
-                    return;
-                  }
-                  await supabase.from('transfers_bids').insert({
-                    'amount': newBid,
-                    'id_player': player.id,
-                    'id_club':
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .selectedClub
-                            .id_club,
-                    'name_club':
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .selectedClub
-                            .club_name,
-                  });
-
-                  if (date_sell.isAfter(player.date_sell!)) {
-                    await supabase.from('players').update({
-                      'date_sell': date_sell.toIso8601String()
-                    }).match({'id': player.id});
-                  }
-                  _playerStream = _updatePlayerStream();
-                } on PostgrestException catch (error) {
-                  print(error);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(error.code!),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Confirm'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _FirePlayer(Player player) async {

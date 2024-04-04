@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
-import 'dart:math';
 
 import '../classes/player.dart';
 
@@ -13,9 +12,6 @@ class PlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> smileys = ['😊', '😁', '😄', '😃', '😆', '😅'];
-    final String selectedSmiley = smileys[Random().nextInt(smileys.length)];
-
     final features = [
       player.keeper,
       player.defense,
@@ -77,62 +73,20 @@ class PlayerCard extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 30,
-                            child: Text(
-                              selectedSmiley,
-                              style: const TextStyle(fontSize: 20),
+                            child: Icon(
+                              Icons.person_pin_outlined,
+                              size: 48,
                             ),
                           ),
                           const SizedBox(
                               width:
                                   8), // Add some space between the avatar and the text
                           Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              RichText(
-                                text: TextSpan(
-                                  style: DefaultTextStyle.of(context).style,
-                                  children: [
-                                    const TextSpan(
-                                      text: 'Age: ',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    TextSpan(
-                                      text: player.age.toStringAsFixed(1),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              RichText(
-                                text: TextSpan(
-                                  style: DefaultTextStyle.of(context).style,
-                                  children: [
-                                    const TextSpan(
-                                      text: 'Country: ',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    TextSpan(
-                                      text: 'FRANCE',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              RichText(
-                                text: TextSpan(
-                                  style: DefaultTextStyle.of(context).style,
-                                  children: [
-                                    const TextSpan(
-                                      text: 'Average stats: ',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    TextSpan(
-                                      text: player.avg_stats.toStringAsFixed(1),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              player.getAgeWidget(),
+                              player.getCountryWidget(),
+                              player.getAvgStatsWidget(),
                             ],
                           ),
                         ],

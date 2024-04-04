@@ -102,7 +102,6 @@ class _RankingPageState extends State<RankingPage> {
                           context,
                           ClubPage.route(ranking.idClub),
                         );
-                        print('Clicked on row $index');
                       },
                       cells: [
                         DataCell(Text(index.toString())),
