@@ -85,6 +85,13 @@ final appTheme = ThemeData.dark().copyWith(
       ),
     ),
   ),
+  textTheme: ThemeData.dark().textTheme.copyWith(
+        titleLarge:
+            TextStyle(fontSize: 16.0), // Change the default font size here
+        titleSmall: TextStyle(fontSize: 16.0),
+        bodyLarge: TextStyle(fontSize: 14.0),
+        bodySmall: TextStyle(fontSize: 8.0),
+      ),
 );
 
 /// Set of extension methods to easily display a snackbar

@@ -146,22 +146,16 @@ class Player {
                 size: 30,
               ),
               Positioned(
-                top: -12,
+                top: 0,
                 right: 0,
-                child: Container(
-                  padding: EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    date_sell!
-                        .difference(currentDate)
-                        .inDays
-                        .toString(), // Change the number as needed
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.bold,
-                    ),
+                child: Text(
+                  date_sell!
+                      .difference(currentDate)
+                      .inDays
+                      .toString(), // Change the number as needed
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -176,22 +170,16 @@ class Player {
                 size: 30,
               ),
               Positioned(
-                top: -12,
+                top: 0,
                 right: 0,
-                child: Container(
-                  padding: EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    date_firing!
-                        .difference(currentDate)
-                        .inDays
-                        .toString(), // Change the number as needed
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.bold,
-                    ),
+                child: Text(
+                  date_firing!
+                      .difference(currentDate)
+                      .inDays
+                      .toString(), // Change the number as needed
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -206,22 +194,16 @@ class Player {
                 size: 30,
               ),
               Positioned(
-                top: -12,
+                top: 0,
                 right: 0,
-                child: Container(
-                  padding: EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    date_end_injury!
-                        .difference(currentDate)
-                        .inDays
-                        .toString(), // Change the number as needed
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.bold,
-                    ),
+                child: Text(
+                  date_end_injury!
+                      .difference(currentDate)
+                      .inDays
+                      .toString(), // Change the number as needed
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
