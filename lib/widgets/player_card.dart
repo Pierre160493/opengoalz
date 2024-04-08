@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:opengoalz/pages/club_page.dart';
-import 'package:opengoalz/widgets/transfer_widget.dart';
 
 import '../classes/player/player.dart';
 
@@ -44,7 +43,6 @@ class _PlayerCardState extends State<PlayerCard>
       widget.player.scoring,
       widget.player.freekick,
     ];
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -108,9 +106,9 @@ class _PlayerCardState extends State<PlayerCard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             widget.player.getAgeWidget(),
-                            widget.player.getCountryWidget(),
+                            // getCountryNameWidget(widget.player.id_country),
                             widget.player.getAvgStatsWidget(),
-                            widget.player.getCountryWidget(),
+                            // getCountryNameWidget(widget.player.id_country),
                           ],
                         ),
                       ],
@@ -141,11 +139,12 @@ class _PlayerCardState extends State<PlayerCard>
                           children: [
                             /// Selling tile
                             if (widget.player.date_sell != null)
-                              PlayerTransferTile(
-                                player: widget.player,
-                                // onBidCompleted:
-                                //     refreshView
-                              ), // Show the transfer tile
+                              Text(widget.player.date_sell.toString()),
+                            // PlayerTransferTile(
+                            //   player: widget.player,
+                            //   // onBidCompleted:
+                            //   //     refreshView
+                            // ), // Show the transfer tile
                             const SizedBox(height: 6),
 
                             /// Firing tile
@@ -203,16 +202,16 @@ class _PlayerCardState extends State<PlayerCard>
                             widget.player.getAgeWidget(),
                             GestureDetector(
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  ClubPage.route(widget.player.id_club),
-                                );
+                                // Navigator.push(
+                                //   context,
+                                //   ClubPage.route(widget.player.id_club),
+                                // );
                               },
                               child: widget.player
-                                  .getClubWidget(), // Display the ClubWidget
+                                  .getClubNameWidget(), // Display the ClubWidget
                             ),
                             widget.player.getUserNameWidget(),
-                            widget.player.getCountryWidget(),
+                            // widget.player.getCountryNameWidget(),
                             widget.player.getAvgStatsWidget(),
                           ],
                         ),

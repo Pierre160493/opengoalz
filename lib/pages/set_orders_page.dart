@@ -41,7 +41,7 @@ class _SetGameOrdersPageState extends State<SetGameOrdersPage> {
         .from('view_players')
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.game.idClub)
-        .map((maps) => maps.map((map) => Player.fromMap(map: map)).toList());
+        .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
 
     super.initState();
   }

@@ -44,10 +44,11 @@ class _PlayerPageState extends State<PlayerPage>
 
   Stream<List<Player>> _fetchPlayersStream(int idPlayer) {
     return supabase
-        .from('view_players')
+        // .from('view_players')
+        .from('players')
         .stream(primaryKey: ['id'])
         .eq('id', idPlayer)
-        .map((maps) => maps.map((map) => Player.fromMap(map: map)).toList());
+        .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
   }
 
   // Method to update the stream and force the StreamBuilder to rebuild
@@ -234,11 +235,11 @@ class _PlayerPageState extends State<PlayerPage>
           ),
 
           /// Selling tile
-          if (player.date_sell != null)
-            PlayerTransferTile(
-              player: player,
-              // onBidCompleted: refreshView
-            ), // Show the transfer tile
+          // if (player.date_sell != null)
+          //   PlayerTransferTile(
+          //     player: player,
+          //     // onBidCompleted: refreshView
+          //   ), // Show the transfer tile
           const SizedBox(height: 6),
 
           /// Firing tile
@@ -289,15 +290,15 @@ class _PlayerPageState extends State<PlayerPage>
           player.getAgeWidget(),
           GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                ClubPage.route(player.id_club),
-              );
+              // Navigator.push(
+              //   context,
+              //   ClubPage.route(player.id_club),
+              // );
             },
-            child: player.getClubWidget(), // Display the ClubWidget
+            child: player.getClubNameWidget(), // Display the ClubWidget
           ),
           player.getUserNameWidget(),
-          player.getCountryWidget(),
+          // player.getCountryNameWidget(),
           player.getAvgStatsWidget(),
           const SizedBox(
               height: 24), // Add spacing between name and radar chart

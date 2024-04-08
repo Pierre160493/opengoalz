@@ -83,7 +83,7 @@ class PlayerCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         player.getAgeWidget(),
-                        player.getCountryWidget(),
+                        // player.getCountryWidget(),
                         player.getAvgStatsWidget(),
                       ],
                     ),

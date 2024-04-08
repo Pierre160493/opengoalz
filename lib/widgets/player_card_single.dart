@@ -111,13 +111,13 @@ class PlayerCardSingle extends StatelessWidget {
                     text: TextSpan(
                       text: 'Age: ',
                       children: [
-                        TextSpan(
-                          text: player.age.toStringAsFixed(2),
-                          style: const TextStyle(
-                            fontWeight:
-                                FontWeight.bold, // Remove bold font weight
-                          ),
-                        ),
+                        // TextSpan(
+                        //   text: player.age.toStringAsFixed(2),
+                        //   style: const TextStyle(
+                        //     fontWeight:
+                        //         FontWeight.bold, // Remove bold font weight
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -133,13 +133,13 @@ class PlayerCardSingle extends StatelessWidget {
                     text: TextSpan(
                       text: 'Club: ',
                       children: [
-                        TextSpan(
-                          text: player.club_name,
-                          style: const TextStyle(
-                            fontWeight:
-                                FontWeight.bold, // Remove bold font weight
-                          ),
-                        ),
+                        // TextSpan(
+                        //   text: player.club_name,
+                        //   style: const TextStyle(
+                        //     fontWeight:
+                        //         FontWeight.bold, // Remove bold font weight
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),

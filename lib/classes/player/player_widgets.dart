@@ -78,35 +78,17 @@ extension PlayerWidgets on Player {
               ),
             ],
           ),
-        if (is_currently_playing)
-          const Icon(
-            Icons.directions_run_outlined,
-            color: Colors.green,
-            size: 30,
-          ),
+        // if (is_currently_playing)
+        //   const Icon(
+        //     Icons.directions_run_outlined,
+        //     color: Colors.green,
+        //     size: 30,
+        //   ),
       ],
     );
   }
 
   static const double icon_size = 24.0;
-
-  Widget getCountryWidget() {
-    return Row(
-      children: [
-        Icon(
-          Icons.flag_circle_outlined,
-          size: icon_size, // Adjust icon size as needed
-          color: Colors.grey, // Adjust icon color as needed
-        ),
-        Text(
-          ' FRANCE',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget getAgeWidget() {
     return Row(
@@ -143,7 +125,7 @@ extension PlayerWidgets on Player {
           color: Colors.grey, // Adjust icon color as needed
         ),
         Text(
-          ' ${avg_stats.toStringAsFixed(1)}',
+          ' ${stats_average.toStringAsFixed(1)}',
           style: TextStyle(
             fontWeight: FontWeight.bold,
           ),
@@ -153,23 +135,52 @@ extension PlayerWidgets on Player {
     );
   }
 
-  Widget getClubWidget() {
-    return Row(
-      children: [
-        Icon(
-          Icons.real_estate_agent_outlined,
-          size: icon_size, // Adjust icon size as needed
-          color: Colors.grey, // Adjust icon color as needed
+  Widget getClubNameWidget() {
+    print(id_club);
+    if (id_club == null) {
+      return Text(
+        'Free Player',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
         ),
-        Text(
-          ' ${club_name}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(' Club')
-      ],
-    );
+      );
+    } else {
+      return StreamBuilder<Club>(
+        stream: supabase
+            .from('view_clubs')
+            .stream(primaryKey: ['id'])
+            .eq('id_club', id_club!)
+            .map((maps) => maps
+                .map((map) => Club.fromMap(
+                    map: map, myUserId: supabase.auth.currentUser!.id))
+                .first),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            final club = snapshot.data!;
+            return Row(
+              children: [
+                Icon(
+                  Icons.real_estate_agent_outlined,
+                  size: icon_size, // Adjust icon size as needed
+                  color: Colors.grey, // Adjust icon color as needed
+                ),
+                Text(
+                  ' ${club.club_name}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(' Club')
+              ],
+            );
+          }
+        },
+      );
+    }
   }
 
   Widget getUserNameWidget() {
@@ -180,12 +191,12 @@ extension PlayerWidgets on Player {
           size: icon_size, // Adjust icon size as needed
           color: Colors.grey, // Adjust icon color as needed
         ),
-        Text(
-          ' ${username}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        // Text(
+        //   ' ${username}',
+        //   style: TextStyle(
+        //     fontWeight: FontWeight.bold,
+        //   ),
+        // ),
       ],
     );
   }
@@ -204,6 +215,60 @@ extension PlayerWidgets on Player {
         ),
         Text(' days left for recovery')
       ],
+    );
+  }
+}
+
+Widget getCountryNameWidget(int? id_country) {
+  if (id_country == null) {
+    // Should'nt be nullable
+    return Text(
+      'Apatride',
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  } else {
+    return StreamBuilder<List<Map>>(
+      stream: supabase
+          .from('countries')
+          .stream(primaryKey: ['id'])
+          .eq('id', id_country)
+          .map((maps) => maps
+              .map((map) => {
+                    'id': map['id'],
+                    'name': map['name'],
+                  })
+              .toList()),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          final countries = snapshot.data!;
+          if (countries.isEmpty) {
+            return Text('Country not found');
+          } else if (countries.length > 1) {
+            return Text('Multiple countries found');
+          }
+          return Row(
+            children: [
+              Icon(
+                Icons.real_estate_agent_outlined,
+                size: 16.0, // Adjust icon size as needed
+                color: Colors.grey, // Adjust icon color as needed
+              ),
+              Text(
+                ' ${countries.first['name']}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 }
