@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/widgets/transfer_widget.dart';
 
-import '../classes/player.dart';
+import '../classes/player/player.dart';
 
 class PlayerCard extends StatefulWidget {
   final Player player;
@@ -87,36 +88,36 @@ class _PlayerCardState extends State<PlayerCard>
                 ),
               ],
             ),
-            // if (!_developed)
-            Row(
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 48,
-                        child: Icon(
-                          Icons.person_pin_outlined,
-                          size: 90,
+            if (!_developed)
+              Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 48,
+                          child: Icon(
+                            Icons.person_pin_outlined,
+                            size: 90,
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ), // Add some space between the avatar and the text
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          widget.player.getAgeWidget(),
-                          widget.player.getCountryWidget(),
-                          widget.player.getAvgStatsWidget(),
-                          widget.player.getCountryWidget(),
-                        ],
-                      ),
-                    ],
+                        SizedBox(
+                          width: 8,
+                        ), // Add some space between the avatar and the text
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            widget.player.getAgeWidget(),
+                            widget.player.getCountryWidget(),
+                            widget.player.getAvgStatsWidget(),
+                            widget.player.getCountryWidget(),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             const SizedBox(height: 6.0),
             if (_developed)
               SizedBox(
@@ -139,12 +140,13 @@ class _PlayerCardState extends State<PlayerCard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             /// Selling tile
-                            // if (widget.player.date_sell != null)
-                            //   PlayerTransferTile(
-                            //       player: widget.player,
-                            //       onBidCompleted:
-                            //           refreshView), // Show the transfer tile
-                            // const SizedBox(height: 6),
+                            if (widget.player.date_sell != null)
+                              PlayerTransferTile(
+                                player: widget.player,
+                                // onBidCompleted:
+                                //     refreshView
+                              ), // Show the transfer tile
+                            const SizedBox(height: 6),
 
                             /// Firing tile
                             if (widget.player.date_firing != null)

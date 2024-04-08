@@ -5,7 +5,7 @@ import 'package:opengoalz/pages/player_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/player_card.dart';
 
-import '../classes/player.dart';
+import '../classes/player/player.dart';
 import '../constants.dart';
 
 class PlayersPage extends StatefulWidget {

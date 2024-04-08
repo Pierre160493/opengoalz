@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 
-import '../classes/player.dart';
+import '../classes/player/player.dart';
 
 class PlayerCard extends StatelessWidget {
   final Player player;

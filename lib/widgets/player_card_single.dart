@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'dart:math';
 
-import 'package:opengoalz/classes/player.dart';
+import 'package:opengoalz/classes/player/player.dart';
 
 class PlayerCardSingle extends StatelessWidget {
   final Player player;

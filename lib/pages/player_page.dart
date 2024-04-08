@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart' as radar;
-import 'package:opengoalz/classes/player.dart';
+import 'package:opengoalz/classes/player/player.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/widgets/transfer_widget.dart';
@@ -236,8 +236,9 @@ class _PlayerPageState extends State<PlayerPage>
           /// Selling tile
           if (player.date_sell != null)
             PlayerTransferTile(
-                player: player,
-                onBidCompleted: refreshView), // Show the transfer tile
+              player: player,
+              // onBidCompleted: refreshView
+            ), // Show the transfer tile
           const SizedBox(height: 6),
 
           /// Firing tile

@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/player.dart';
+import 'package:opengoalz/classes/player/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:provider/provider.dart';
@@ -12,12 +12,12 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 class PlayerTransferTile extends StatelessWidget {
   final Player player;
-  final Function() onBidCompleted; // Define callback function
+  // final Function() onBidCompleted; // Define callback function
 
   const PlayerTransferTile({
     Key? key,
     required this.player,
-    required this.onBidCompleted, // Receive callback function
+    // required this.onBidCompleted, // Receive callback function
   }) : super(key: key);
 
   Stream<List<Map>> _getTransferBidsStream() {
@@ -378,7 +378,7 @@ class PlayerTransferTile extends StatelessWidget {
                   // );
                 }
                 // After bidding is completed, call the callback function
-                onBidCompleted(); // Trigger refresh
+                // onBidCompleted(); // Trigger refresh
               },
               child: const Text('Confirm'),
             ),

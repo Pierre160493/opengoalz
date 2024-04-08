@@ -8,7 +8,7 @@ import 'package:opengoalz/pages/players_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:provider/provider.dart';
 
-import '../classes/player.dart';
+import '../classes/player/player.dart';
 import '../constants.dart';
 
 class GameResultPage extends StatefulWidget {
