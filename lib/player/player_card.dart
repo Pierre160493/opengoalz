@@ -129,7 +129,7 @@ class _PlayerCardState extends State<PlayerCard>
                         Tab(text: 'Details'),
                         Tab(text: 'Stats'),
                         Tab(text: 'Games'),
-                        Tab(text: 'History'),
+                        Tab(text: 'History')
                       ],
                     ),
                     body: TabBarView(
@@ -139,12 +139,11 @@ class _PlayerCardState extends State<PlayerCard>
                           children: [
                             /// Selling tile
                             if (widget.player.date_sell != null)
-                              Text(widget.player.date_sell.toString()),
-                            PlayerTransferTile(
-                              player: widget.player,
-                              // onBidCompleted:
-                              //     refreshView
-                            ), // Show the transfer tile
+                              PlayerTransferTile(
+                                player: widget.player,
+                                // onBidCompleted:
+                                //     refreshView
+                              ), // Show the transfer tile
                             const SizedBox(height: 6),
 
                             /// Firing tile

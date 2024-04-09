@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:rxdart/rxdart.dart'; // Import the rxdart package
-import 'package:opengoalz/pages/player_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/player/player_card.dart';
 import 'class/player.dart';
@@ -30,6 +30,7 @@ class PlayersPage extends StatefulWidget {
 class _PlayersPageState extends State<PlayersPage> {
   late Stream<List<Player>> _playerStream;
   late Stream<List<Club>> _clubStream;
+  late Stream<List<TransferBid>> _transferBids;
 
   @override
   void initState() {
@@ -65,6 +66,28 @@ class _PlayersPageState extends State<PlayersPage> {
                 final clubData =
                     clubs.firstWhere((club) => club.id_club == player.id_club);
                 player.club = clubData;
+              }
+              return players;
+            }));
+
+    // Stream to fetch transfer bids for each player
+    _transferBids = _playerStream.switchMap((players) {
+      final playerIds = players.map((player) => player.id).toSet().toList();
+      return supabase
+          .from('transfers_bids')
+          .stream(primaryKey: ['id'])
+          .inFilter('id_player', playerIds.cast<Object>())
+          .order('count_bid', ascending: true)
+          .map((maps) => maps.map((map) => TransferBid.fromMap(map)).toList());
+    });
+
+    // Combine player and transfer bids streams
+    _playerStream =
+        _playerStream.switchMap((players) => _transferBids.map((transferBids) {
+              for (var player in players) {
+                player.transferBids.clear();
+                player.transferBids.addAll(
+                    transferBids.where((bid) => bid.idPlayer == player.id));
               }
               return players;
             }));

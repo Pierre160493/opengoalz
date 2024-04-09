@@ -3,12 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/club_view.dart';
+import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
 
 part 'player_widget_helper.dart';
 
 class Player {
   Club? club;
+  List<TransferBid> transferBids = [];
 
   Player({
     required this.id,
