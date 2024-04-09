@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
@@ -9,6 +8,7 @@ import 'package:opengoalz/pages/fans_page.dart';
 import 'package:opengoalz/pages/finances_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/home_page.dart';
+import 'package:opengoalz/player/class/player.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';
 import 'package:provider/provider.dart';
@@ -67,8 +67,9 @@ class AppDrawer extends StatelessWidget {
               icon_players,
               // 'Players (${selectedClub.player_count})',
               'Players ()',
-              PlayersPage(
-                  idClub: selectedClub.id_club)), // Add the Players page
+              PlayersPage(inputCriteria: {
+                'Clubs': [selectedClub.id_club]
+              })), // Add the Players page
           buildDrawerOption(
             context,
             icon_transfers,

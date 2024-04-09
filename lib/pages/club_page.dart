@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/player/class/player.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';
 import 'package:provider/provider.dart';
@@ -187,10 +188,10 @@ class _ClubPageState extends State<ClubPage> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => PlayersPage(
-                                              idClub: club.id_club,
-                                            ),
-                                          ),
+                                              builder: (context) =>
+                                                  PlayersPage(inputCriteria: {
+                                                    'Clubs': [club.id_club]
+                                                  })),
                                         );
                                       },
                                       shape: RoundedRectangleBorder(

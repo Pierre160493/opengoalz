@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/player/class/player.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -149,8 +150,10 @@ class _HomePageState extends State<HomePage> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => PlayersPage(
-                                            idClub: club.id_club,
-                                          ),
+                                              // idClub: club.id_club,
+                                              inputCriteria: {
+                                                'Clubs': [club.id_club]
+                                              }),
                                         ),
                                       );
                                     },

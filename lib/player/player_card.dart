@@ -6,7 +6,7 @@ import 'class/player.dart';
 
 class PlayerCard extends StatefulWidget {
   final Player player;
-  final int? number;
+  final int number;
 
   const PlayerCard({Key? key, required this.player, required this.number})
       : super(key: key);
@@ -51,7 +51,7 @@ class _PlayerCardState extends State<PlayerCard>
           children: [
             Row(
               children: [
-                if (widget.number != null)
+                if (widget.number > 0)
                   Text(
                     '${widget.number})',
                     style: TextStyle(
@@ -66,9 +66,11 @@ class _PlayerCardState extends State<PlayerCard>
                 Flexible(
                   child: Text(
                     '${widget.player.first_name[0]}.${widget.player.last_name.toUpperCase()} ',
-                    overflow: TextOverflow
-                        .ellipsis, // Handles overflow by displaying "..."
-                    maxLines: 1, // Limits to one line
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 widget.player.getStatusRow(),
@@ -108,6 +110,9 @@ class _PlayerCardState extends State<PlayerCard>
                             widget.player.getAgeWidget(),
                             getCountryNameWidget(widget.player.id_country),
                             widget.player.getAvgStatsWidget(),
+                            if (widget.player.club != null)
+                              Text(widget.player.club!.club_name!),
+                            Text('test')
                             // getCountryNameWidget(widget.player.id_country),
                           ],
                         ),

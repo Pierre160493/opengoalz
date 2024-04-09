@@ -1,25 +1,25 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:rxdart/rxdart.dart'; // Import the rxdart package
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
-import 'package:rxdart/rxdart.dart'; // Import the rxdart package
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/player/player_card.dart';
 import 'class/player.dart';
 import '../constants.dart';
 
 class PlayersPage extends StatefulWidget {
-  final int idClub;
+  final Map<String, List<Object>> inputCriteria;
   final bool
       isReturningId; // Should the page return the id of the player clicked ?
 
   const PlayersPage(
-      {Key? key, required this.idClub, this.isReturningId = false})
+      {Key? key, required this.inputCriteria, this.isReturningId = false})
       : super(key: key);
 
-  static Route<void> route(int idClub) {
+  static Route<void> route(Map<String, List<int>> inputCriteria) {
     return MaterialPageRoute(
-      builder: (context) => PlayersPage(idClub: idClub),
+      builder: (context) => PlayersPage(inputCriteria: inputCriteria),
     );
   }
 
@@ -37,13 +37,25 @@ class _PlayersPageState extends State<PlayersPage> {
     super.initState();
 
     // Stream to fetch players
-    _playerStream = supabase
-        .from('players')
-        .stream(primaryKey: ['id'])
-        // .inFilter('id_club', [widget.idClub])
-        .inFilter('id_club', [widget.idClub])
-        .order('date_birth', ascending: true)
-        .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
+    if (widget.inputCriteria.containsKey('Clubs')) {
+      _playerStream = supabase
+          .from('players')
+          .stream(primaryKey: ['id'])
+          .inFilter('id_club', widget.inputCriteria['Clubs']!)
+          .order('date_birth', ascending: true)
+          .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
+    } else if (widget.inputCriteria.containsKey('Players')) {
+      _playerStream = supabase
+          .from('players')
+          .stream(primaryKey: ['id'])
+          .inFilter('id', widget.inputCriteria['Players']!)
+          .order('date_birth', ascending: true)
+          .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
+    } else if (widget.inputCriteria.containsKey('Countries')) {
+      throw ArgumentError('Not implemented yet');
+    } else {
+      throw ArgumentError('Invalid input type');
+    }
 
     // Stream to fetch clubs from the list of clubs in the players list
     _clubStream = _playerStream.switchMap((players) {
@@ -107,7 +119,8 @@ class _PlayersPageState extends State<PlayersPage> {
               child: Text('ERROR: ${snapshot.error}'),
             );
           } else {
-            final players = snapshot.data ?? [];
+            // final players = snapshot.data ?? [];
+            final List<Player> players = (snapshot.data ?? []);
             if (players.isEmpty) {
               return const Center(
                 child: Text('ERROR: No players found'),
@@ -117,13 +130,16 @@ class _PlayersPageState extends State<PlayersPage> {
                   appBar: AppBar(
                     title: Column(
                       children: [
-                        Text(
-                          '${players.length} Players',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                        if (players.length == 1)
+                          Text(players.last.last_name)
+                        else
+                          Text(
+                            '${players.length} Players',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
                         Text(
                           'Club Name',
                           style: TextStyle(
@@ -149,7 +165,9 @@ class _PlayersPageState extends State<PlayersPage> {
                       ),
                     ],
                   ),
-                  drawer: widget.isReturningId ? null : const AppDrawer(),
+                  drawer: (widget.isReturningId || players.length == 1)
+                      ? null
+                      : const AppDrawer(),
                   body: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -157,22 +175,34 @@ class _PlayersPageState extends State<PlayersPage> {
                         child: ListView.builder(
                           itemCount: players.length,
                           itemBuilder: (context, index) {
-                            final player = players[index];
+                            final Player player = players[index];
                             return InkWell(
                               onTap: () {
-                                // widget.isReturningId
-                                //     ? Navigator.of(context).pop(player
-                                //         .id) // Return the id of the player
-                                //     : Navigator.push(
-                                //         context,
-                                //         PlayerPage.route(player
-                                //             .id), // Navigate to player page
-                                //       );
+                                if (widget.isReturningId) {
+                                  Navigator.of(context).pop(
+                                      player.id); // Return the id of the player
+                                } else if (players.length > 1) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PlayersPage(
+                                        inputCriteria: {
+                                          'Players': [player.id]
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  // Handle logic for single player directly
+                                }
                               },
                               child: Column(
                                 children: [
                                   // Text('${index + 1}'),
-                                  PlayerCard(player: player, number: index + 1),
+                                  PlayerCard(
+                                      player: player,
+                                      number:
+                                          players.length == 1 ? 0 : index + 1),
                                 ],
                               ),
                             );

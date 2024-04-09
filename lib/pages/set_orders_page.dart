@@ -304,7 +304,9 @@ class _SetGameOrdersPageState extends State<SetGameOrdersPage> {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) {
               return PlayersPage(
-                idClub: widget.game.idClub,
+                inputCriteria: {
+                  'Clubs': [widget.game.idClub]
+                },
                 isReturningId: true,
               );
             },
