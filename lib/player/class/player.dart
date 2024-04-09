@@ -2,12 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 
-part 'player_widgets.dart';
+part 'player_widget_helper.dart';
 
 class Player {
-  String? clubName;
+  Club? club;
 
   Player({
     required this.id,

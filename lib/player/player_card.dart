@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
-import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/widgets/transfer_widget.dart';
 
-import '../classes/player/player.dart';
+import 'class/player.dart';
 
 class PlayerCard extends StatefulWidget {
   final Player player;
@@ -106,7 +106,7 @@ class _PlayerCardState extends State<PlayerCard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             widget.player.getAgeWidget(),
-                            // getCountryNameWidget(widget.player.id_country),
+                            getCountryNameWidget(widget.player.id_country),
                             widget.player.getAvgStatsWidget(),
                             // getCountryNameWidget(widget.player.id_country),
                           ],
@@ -120,7 +120,7 @@ class _PlayerCardState extends State<PlayerCard>
             if (_developed)
               SizedBox(
                 width: double.infinity,
-                height: 360, // Adjust the height as needed
+                height: 400, // Adjust the height as needed
                 child: DefaultTabController(
                   length: 4,
                   child: Scaffold(
@@ -140,11 +140,11 @@ class _PlayerCardState extends State<PlayerCard>
                             /// Selling tile
                             if (widget.player.date_sell != null)
                               Text(widget.player.date_sell.toString()),
-                            // PlayerTransferTile(
-                            //   player: widget.player,
-                            //   // onBidCompleted:
-                            //   //     refreshView
-                            // ), // Show the transfer tile
+                            PlayerTransferTile(
+                              player: widget.player,
+                              // onBidCompleted:
+                              //     refreshView
+                            ), // Show the transfer tile
                             const SizedBox(height: 6),
 
                             /// Firing tile

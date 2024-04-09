@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/game.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/pages/players_page.dart';
+import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:provider/provider.dart';
 
-import '../classes/player/player.dart';
+import '../player/class/player.dart';
 import '../constants.dart';
 
 class SetGameOrdersPage extends StatefulWidget {

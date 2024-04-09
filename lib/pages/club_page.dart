@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/pages/players_page.dart';
+import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';
 import 'package:provider/provider.dart';
 
@@ -23,7 +24,7 @@ class ClubPage extends StatefulWidget {
 }
 
 class _ClubPageState extends State<ClubPage> {
-  Stream<List<Club>> _clubStream = const Stream.empty();
+  Stream<List<ClubView>> _clubStream = const Stream.empty();
 
   @override
   void initState() {
@@ -31,19 +32,19 @@ class _ClubPageState extends State<ClubPage> {
     _clubStream = _fetchPlayersStream(widget.idClub);
   }
 
-  Stream<List<Club>> _fetchPlayersStream(int idClub) {
+  Stream<List<ClubView>> _fetchPlayersStream(int idClub) {
     return supabase
         .from('view_clubs')
         .stream(primaryKey: ['id'])
         .eq('id_club', idClub)
         .map((maps) => maps
-            .map((map) =>
-                Club.fromMap(map: map, myUserId: supabase.auth.currentUser!.id))
+            .map((map) => ClubView.fromMap(
+                map: map, myUserId: supabase.auth.currentUser!.id))
             .toList());
   }
 
   // Method to update the stream and force the StreamBuilder to rebuild
-  Stream<List<Club>> _updateClubStream() {
+  Stream<List<ClubView>> _updateClubStream() {
     _clubStream = _fetchPlayersStream(widget.idClub);
     setState(() {});
     return _clubStream;
@@ -51,7 +52,7 @@ class _ClubPageState extends State<ClubPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Club>>(
+    return StreamBuilder<List<ClubView>>(
       stream: _clubStream,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
@@ -160,9 +161,9 @@ class _ClubPageState extends State<ClubPage> {
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          Text(
-                                            '${club.username ?? 'No username'}',
-                                          ),
+                                          // Text(
+                                          //   '${club.username ?? 'No username'}',
+                                          // ),
                                         ],
                                       ),
                                       subtitle: Row(
@@ -205,7 +206,8 @@ class _ClubPageState extends State<ClubPage> {
                                         size: 30,
                                       ), // Icon to indicate players
                                       title: Text(
-                                        'Number of players: ${club.player_count}',
+                                        // 'Number of players: ${club.player_count}',
+                                        'Number of players:',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -406,7 +408,7 @@ class _ClubPageState extends State<ClubPage> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(Club club) {
+  PreferredSizeWidget _buildAppBar(ClubView club) {
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: AppBar(

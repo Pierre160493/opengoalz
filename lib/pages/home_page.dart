@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/pages/players_page.dart';
+import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +24,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late Stream<List<Club>> _clubStream;
+  late Stream<List<ClubView>> _clubStream;
   @override
   void initState() {
     super.initState();
@@ -41,7 +42,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Club>>(
+    return StreamBuilder<List<ClubView>>(
       stream: _clubStream,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
@@ -60,10 +61,10 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 16),
-                      Text(
-                        'Hello ${Provider.of<SessionProvider>(context).selectedClub.username ?? 'Unknown Manager'} !',
-                        style: const TextStyle(fontSize: 24),
-                      ),
+                      // Text(
+                      //   'Hello ${Provider.of<SessionProvider>(context).selectedClub.username ?? 'Unknown Manager'} !',
+                      //   style: const TextStyle(fontSize: 24),
+                      // ),
                       const SizedBox(height: 24),
                       const Align(
                         alignment: Alignment.centerLeft,
@@ -163,7 +164,8 @@ class _HomePageState extends State<HomePage> {
                                     leading: const Icon(Icons
                                         .people), // Icon to indicate players
                                     title: Text(
-                                      'Number of players: ${club.player_count}',
+                                      // 'Number of players: ${club.player_count}',
+                                      'Number of players:',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),

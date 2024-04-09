@@ -4,8 +4,8 @@ import 'package:opengoalz/classes/club.dart';
 import 'package:rxdart/rxdart.dart'; // Import the rxdart package
 import 'package:opengoalz/pages/player_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/widgets/player_card.dart';
-import '../classes/player/player.dart';
+import 'package:opengoalz/player/player_card.dart';
+import 'class/player.dart';
 import '../constants.dart';
 
 class PlayersPage extends StatefulWidget {
@@ -29,7 +29,7 @@ class PlayersPage extends StatefulWidget {
 
 class _PlayersPageState extends State<PlayersPage> {
   late Stream<List<Player>> _playerStream;
-  late Stream<List<Map>> _clubStream;
+  late Stream<List<Club>> _clubStream;
 
   @override
   void initState() {
@@ -39,26 +39,32 @@ class _PlayersPageState extends State<PlayersPage> {
     _playerStream = supabase
         .from('players')
         .stream(primaryKey: ['id'])
-        .eq('id_club', widget.idClub)
+        // .inFilter('id_club', [widget.idClub])
+        .inFilter('id_club', [widget.idClub])
         .order('date_birth', ascending: true)
         .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
 
-    // Stream to fetch clubs
-    _clubStream =
-        supabase.from('clubs').stream(primaryKey: ['id']).map((maps) => maps
-            .map((map) => {
-                  'id_club': map['id'],
-                  'name_club': map['name_club'],
-                })
-            .toList());
-
+    // Stream to fetch clubs from the list of clubs in the players list
+    _clubStream = _playerStream.switchMap((players) {
+      final clubIds = players.map((player) => player.id_club).toSet().toList();
+      return supabase
+          .from('clubs')
+          .stream(primaryKey: ['id'])
+          .inFilter('id', clubIds.cast<Object>())
+          .map((maps) => maps
+              .map((map) => Club.fromMap(
+                    map: map,
+                    myUserId: supabase.auth.currentUser!.id,
+                  ))
+              .toList());
+    });
     // Combine player and club streams
     _playerStream =
         _playerStream.switchMap((players) => _clubStream.map((clubs) {
               for (var player in players) {
-                final clubData = clubs
-                    .firstWhere((club) => club['id_club'] == player.id_club);
-                player.clubName = clubData['name_club'];
+                final clubData =
+                    clubs.firstWhere((club) => club.id_club == player.id_club);
+                player.club = clubData;
               }
               return players;
             }));
@@ -131,21 +137,18 @@ class _PlayersPageState extends State<PlayersPage> {
                             final player = players[index];
                             return InkWell(
                               onTap: () {
-                                widget.isReturningId
-                                    ? Navigator.of(context).pop(player
-                                        .id) // Return the id of the player
-                                    : Navigator.push(
-                                        context,
-                                        PlayerPage.route(player
-                                            .id), // Navigate to player page
-                                      );
+                                // widget.isReturningId
+                                //     ? Navigator.of(context).pop(player
+                                //         .id) // Return the id of the player
+                                //     : Navigator.push(
+                                //         context,
+                                //         PlayerPage.route(player
+                                //             .id), // Navigate to player page
+                                //       );
                               },
                               child: Column(
                                 children: [
-                                  Text('${player.first_name}'),
-                                  Text('${player.last_name}'),
-                                  Text(
-                                      '${player.clubName ?? 'Unknown Club'}'), // Display club name
+                                  // Text('${index + 1}'),
                                   PlayerCard(player: player, number: index + 1),
                                 ],
                               ),

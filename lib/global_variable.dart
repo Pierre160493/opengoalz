@@ -1,22 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/home_page.dart';
 import 'package:provider/provider.dart';
 import '../classes/club.dart';
 
 class SessionProvider extends ChangeNotifier {
-  late Club
+  late ClubView
       selectedClub; // Regular variable for storing a single instance of Club
-  late final StreamController<List<Club>> _clubStreamController;
+  late final StreamController<List<ClubView>> _clubStreamController;
 
   SessionProvider() {
-    _clubStreamController = StreamController<List<Club>>.broadcast();
+    _clubStreamController = StreamController<List<ClubView>>.broadcast();
   }
 
-  Stream<List<Club>> get clubStream => _clubStreamController.stream;
+  Stream<List<ClubView>> get clubStream => _clubStreamController.stream;
 
-  void setselectedClub(Club club) {
+  void setselectedClub(ClubView club) {
     selectedClub = club;
     notifyListeners();
   }
@@ -28,7 +29,7 @@ class SessionProvider extends ChangeNotifier {
         .eq('id_user', userId)
         .order('created_at')
         .map((maps) => maps
-            .map((map) => Club.fromMap(map: map, myUserId: userId))
+            .map((map) => ClubView.fromMap(map: map, myUserId: userId))
             .toList())
         .listen((clubs) {
           _clubStreamController.add(clubs);
@@ -47,10 +48,10 @@ void navigateToHomePage(BuildContext context) {
   final sessionProvider = Provider.of<SessionProvider>(context, listen: false);
   sessionProvider.updateClubStream(
       supabase.auth.currentUser!.id); // Update the club stream
-  Club? selectedClub;
+  ClubView? selectedClub;
 
   sessionProvider.clubStream.listen((clubs) {
-    for (Club club in clubs) {
+    for (ClubView club in clubs) {
       selectedClub ??= club;
       if (club.is_default) {
         selectedClub = club;

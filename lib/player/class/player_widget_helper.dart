@@ -1,6 +1,6 @@
 part of 'player.dart';
 
-extension PlayerWidgets on Player {
+extension PlayerWidgetsHelper on Player {
   /// Returns the status of the player (on transfer list, being fired, injured, etc...)
   Widget getStatusRow() {
     DateTime currentDate = DateTime.now();
@@ -145,13 +145,13 @@ extension PlayerWidgets on Player {
         ),
       );
     } else {
-      return StreamBuilder<Club>(
+      return StreamBuilder<ClubView>(
         stream: supabase
             .from('view_clubs')
             .stream(primaryKey: ['id'])
             .eq('id_club', id_club!)
             .map((maps) => maps
-                .map((map) => Club.fromMap(
+                .map((map) => ClubView.fromMap(
                     map: map, myUserId: supabase.auth.currentUser!.id))
                 .first),
         builder: (context, snapshot) {

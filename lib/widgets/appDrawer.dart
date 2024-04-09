@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/chat_page.dart';
@@ -8,7 +9,7 @@ import 'package:opengoalz/pages/fans_page.dart';
 import 'package:opengoalz/pages/finances_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/home_page.dart';
-import 'package:opengoalz/pages/players_page.dart';
+import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';
 import 'package:provider/provider.dart';
 
@@ -17,7 +18,7 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Club selectedClub = Provider.of<SessionProvider>(context).selectedClub;
+    ClubView selectedClub = Provider.of<SessionProvider>(context).selectedClub;
 
     return Drawer(
       child: ListView(
@@ -64,7 +65,8 @@ class AppDrawer extends StatelessWidget {
           buildDrawerOption(
               context,
               icon_players,
-              'Players (${selectedClub.player_count})',
+              // 'Players (${selectedClub.player_count})',
+              'Players ()',
               PlayersPage(
                   idClub: selectedClub.id_club)), // Add the Players page
           buildDrawerOption(

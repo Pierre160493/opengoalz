@@ -57,10 +57,10 @@ class _FansPageState extends State<FansPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 16),
-          Text(
-            'Hello ${Provider.of<SessionProvider>(context).selectedClub.username} !',
-            style: const TextStyle(fontSize: 24),
-          ),
+          // Text(
+          //   'Hello ${Provider.of<SessionProvider>(context).selectedClub.username} !',
+          //   style: const TextStyle(fontSize: 24),
+          // ),
           const SizedBox(height: 16),
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(

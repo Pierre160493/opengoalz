@@ -1,7 +1,7 @@
-//ignore_for_file: non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names
 
-class Club {
-  Club({
+class ClubView {
+  ClubView({
     required this.id_club,
     required this.created_at,
     required this.id_league,
@@ -42,17 +42,15 @@ class Club {
   /// Whether the club is owned by the current user
   final bool isMine;
 
-  Club.fromMap({
+  ClubView.fromMap({
     required Map<String, dynamic> map,
     required String myUserId,
-  })  : //
-        // id_club = map['id_club'],
-        id_club = map['id'],
+  })  : id_club = map['id_club'],
         created_at = DateTime.parse(map['created_at']),
         id_league = map['id_league'],
         id_user = map['id_user'],
         is_default = map['is_default'] == true,
-        club_name = map['name_club'],
+        club_name = map['club_name'],
         username = map['username'],
         cash_absolute = map['cash_absolute'],
         cash_available = map['cash_available'],
