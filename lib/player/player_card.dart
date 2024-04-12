@@ -143,11 +143,11 @@ class _PlayerCardState extends State<PlayerCard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             /// Selling tile
-                            if (widget.player.date_sell != null)
+                            if (widget.player.date_sell
+                                    ?.isAfter(DateTime.now()) ??
+                                false)
                               PlayerTransferTile(
                                 player: widget.player,
-                                // onBidCompleted:
-                                //     refreshView
                               ), // Show the transfer tile
                             const SizedBox(height: 6),
 

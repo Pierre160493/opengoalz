@@ -40,6 +40,7 @@ const icon_games = Icons.event_outlined;
 const icon_rankings = Icons.emoji_events_outlined;
 const icon_training = Icons.query_stats;
 const icon_chat = Icons.wechat_outlined;
+const icon_club = Icons.real_estate_agent_outlined;
 
 /// Basic theme to change the look and feel of the app
 final appTheme = ThemeData.dark().copyWith(

@@ -136,49 +136,46 @@ extension PlayerWidgetsHelper on Player {
   }
 
   Widget getClubNameWidget() {
-    print(id_club);
     if (id_club == null) {
-      return Text(
-        'Free Player',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
+      return Row(
+        children: [
+          Icon(
+            Icons.fireplace_outlined,
+            size: icon_size, // Adjust icon size as needed
+            color: Colors.grey, // Adjust icon color as needed
+          ),
+          Text(
+            'Free Player',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       );
     } else {
-      return StreamBuilder<ClubView>(
-        stream: supabase
-            .from('view_clubs')
-            .stream(primaryKey: ['id'])
-            .eq('id_club', id_club!)
-            .map((maps) => maps
-                .map((map) => ClubView.fromMap(
-                    map: map, myUserId: supabase.auth.currentUser!.id))
-                .first),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            final club = snapshot.data!;
-            return Row(
-              children: [
-                Icon(
-                  Icons.real_estate_agent_outlined,
-                  size: icon_size, // Adjust icon size as needed
-                  color: Colors.grey, // Adjust icon color as needed
-                ),
-                Text(
-                  ' ${club.club_name}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(' Club')
-              ],
-            );
-          }
-        },
+      return Row(
+        children: [
+          Icon(
+            icon_club,
+            size: icon_size, // Adjust icon size as needed
+            color: Colors.grey, // Adjust icon color as needed
+          ),
+          if (club == null)
+            Text(
+              ' Club of this player wasn\'t found',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          else
+            Text(
+              ' ${club!.club_name}',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          Text(' Club')
+        ],
       );
     }
   }

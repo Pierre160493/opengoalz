@@ -30,7 +30,7 @@ class Club {
   final bool is_default;
 
   /// Name of the club
-  final String? club_name;
+  final String club_name;
 
   /// Username of the club manager
   final String? username;
@@ -52,7 +52,7 @@ class Club {
         id_league = map['id_league'],
         id_user = map['id_user'],
         is_default = map['is_default'] == true,
-        club_name = map['name_club'],
+        club_name = map['name_club'] ?? 'No Club Name',
         username = map['username'],
         cash_absolute = map['cash_absolute'],
         cash_available = map['cash_available'],

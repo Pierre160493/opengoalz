@@ -1,6 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';

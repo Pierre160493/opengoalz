@@ -62,10 +62,10 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 16),
-                      // Text(
-                      //   'Hello ${Provider.of<SessionProvider>(context).selectedClub.username ?? 'Unknown Manager'} !',
-                      //   style: const TextStyle(fontSize: 24),
-                      // ),
+                      Text(
+                        'Hello ${Provider.of<SessionProvider>(context).selectedClub.username ?? 'Unknown Manager'} !',
+                        style: const TextStyle(fontSize: 24),
+                      ),
                       const SizedBox(height: 24),
                       const Align(
                         alignment: Alignment.centerLeft,
@@ -167,8 +167,7 @@ class _HomePageState extends State<HomePage> {
                                     leading: const Icon(Icons
                                         .people), // Icon to indicate players
                                     title: Text(
-                                      // 'Number of players: ${club.player_count}',
-                                      'Number of players:',
+                                      'Number of players: ${club.player_count}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
