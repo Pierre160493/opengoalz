@@ -108,12 +108,10 @@ class _PlayerCardState extends State<PlayerCard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             widget.player.getAgeWidget(),
-                            getCountryNameWidget(widget.player.id_country),
+                            // getCountryNameWidget(widget.player.id_country),
                             widget.player.getAvgStatsWidget(),
                             if (widget.player.club != null)
-                              Text(widget.player.club!.club_name!),
-                            Text('test')
-                            // getCountryNameWidget(widget.player.id_country),
+                              Text(widget.player.club!.club_name),
                           ],
                         ),
                       ],
@@ -132,6 +130,7 @@ class _PlayerCardState extends State<PlayerCard>
                     appBar: TabBar(
                       tabs: [
                         Tab(text: 'Details'),
+                        // Tab(text: 'Photo'),
                         Tab(text: 'Stats'),
                         Tab(text: 'Games'),
                         Tab(text: 'History')
@@ -139,6 +138,7 @@ class _PlayerCardState extends State<PlayerCard>
                     ),
                     body: TabBarView(
                       children: [
+                        /// Details tab
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -219,6 +219,17 @@ class _PlayerCardState extends State<PlayerCard>
                             widget.player.getAvgStatsWidget(),
                           ],
                         ),
+
+                        /// Photo tab
+                        // CircleAvatar(
+                        //   radius: 48,
+                        //   child: Icon(
+                        //     Icons.person_pin_outlined,
+                        //     size: 360,
+                        //   ),
+                        // ),
+
+                        /// Stats tab
                         SizedBox(
                           child: RadarChart.dark(
                             ticks: const [25, 50, 75, 100],
@@ -234,7 +245,11 @@ class _PlayerCardState extends State<PlayerCard>
                             data: [features],
                           ),
                         ),
+
+                        /// Games tab
                         Placeholder(),
+
+                        /// History tab
                         Placeholder(),
                       ],
                     ),

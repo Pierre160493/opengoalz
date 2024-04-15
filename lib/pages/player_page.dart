@@ -228,17 +228,6 @@ class _PlayerPageState extends State<PlayerPage>
               // const Spacer(), // Add Spacer widget to push CircleAvatar to the right
             ],
           ),
-          const SizedBox(
-            height: 12,
-          ),
-
-          /// Selling tile
-          // if (player.date_sell != null)
-          //   PlayerTransferTile(
-          //     player: player,
-          //     // onBidCompleted: refreshView
-          //   ), // Show the transfer tile
-          const SizedBox(height: 6),
 
           /// Firing tile
           if (player.date_firing != null)
