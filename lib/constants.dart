@@ -6,7 +6,6 @@ final supabase = Supabase.instance.client;
 
 /// App Name
 const appName = 'OpenGoalZ';
-// const appName = 'OGZ';
 
 /// App Bar Text
 // const appBarTxt = '$appName: The Open Source Football Manager Game';

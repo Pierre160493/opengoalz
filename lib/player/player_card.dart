@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
+import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/widgets/transfer_widget.dart';
 
 import 'class/player.dart';
@@ -88,44 +89,15 @@ class _PlayerCardState extends State<PlayerCard>
                 ),
               ],
             ),
-            if (!_developed)
-              Row(
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 48,
-                          child: Icon(
-                            Icons.person_pin_outlined,
-                            size: 90,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 8,
-                        ), // Add some space between the avatar and the text
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            widget.player.getAgeWidget(),
-                            getCountryNameWidget(widget.player.id_country),
-                            widget.player.getAvgStatsWidget(),
-                            if (widget.player.club != null)
-                              Text(widget.player.club!.club_name!),
-                            Text('test')
-                            // getCountryNameWidget(widget.player.id_country),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            if (!_developed) widget.player.getPlayerMainInformation(context),
             const SizedBox(height: 6.0),
             if (_developed)
               SizedBox(
                 width: double.infinity,
-                height: 400, // Adjust the height as needed
+                // height: 400, // Adjust the height as needed
+                height: MediaQuery.of(context).size.height -
+                    kToolbarHeight -
+                    30, // Adjust the height as needed
                 child: DefaultTabController(
                   length: 4,
                   child: Scaffold(
@@ -139,99 +111,97 @@ class _PlayerCardState extends State<PlayerCard>
                     ),
                     body: TabBarView(
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            /// Selling tile
-                            if (widget.player.date_sell
-                                    ?.isAfter(DateTime.now()) ??
-                                false)
-                              PlayerTransferTile(
-                                player: widget.player,
-                              ), // Show the transfer tile
-                            const SizedBox(height: 6),
+                        SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 6.0),
+                              widget.player.getPlayerMainInformation(context),
+                              const SizedBox(height: 6.0),
 
-                            /// Firing tile
-                            if (widget.player.date_firing != null)
+                              /// Selling tile
+                              if (widget.player.date_sell
+                                      ?.isAfter(DateTime.now()) ??
+                                  false)
+                                PlayerTransferTile(
+                                  player: widget.player,
+                                ), // Show the transfer tile
+                              const SizedBox(height: 6),
+
+                              /// Firing tile
+                              if (widget.player.date_firing != null)
+                                widget.player
+                                    .getFiringRow(), // Show the firing row
+                              const SizedBox(height: 6),
+                              if (widget.player.date_end_injury != null)
+                                widget.player
+                                    .getInjuryWidget(), // Show the injury tile
+                              // widget.player.getUserNameWidget(),
+                            ],
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                               Row(
                                 children: [
-                                  StreamBuilder<int>(
-                                    stream: Stream.periodic(
-                                        const Duration(seconds: 1), (i) => i),
-                                    builder: (context, snapshot) {
-                                      final remainingTime = widget
-                                          .player.date_firing!
-                                          .difference(DateTime.now());
-                                      final daysLeft = remainingTime.inDays;
-                                      final hoursLeft =
-                                          remainingTime.inHours.remainder(24);
-                                      final minutesLeft =
-                                          remainingTime.inMinutes.remainder(60);
-                                      final secondsLeft =
-                                          remainingTime.inSeconds.remainder(60);
-
-                                      return RichText(
-                                        text: TextSpan(
-                                          text: 'Will be fired in: ',
-                                          style: const TextStyle(),
-                                          children: [
-                                            if (daysLeft >
-                                                0) // Conditionally include days left
-                                              TextSpan(
-                                                text: '$daysLeft d, ',
-                                                style: const TextStyle(
-                                                  color: Colors.red,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            TextSpan(
-                                              text:
-                                                  '$hoursLeft h, $minutesLeft m, $secondsLeft s',
-                                              style: const TextStyle(
-                                                color: Colors.red,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
+                                  Text('Defense '),
+                                  SizedBox(
+                                    width:
+                                        200, // Adjust the width of the bar as needed
+                                    height: 20, // Height of the bar
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                          10), // Rounded corners for the bar
+                                      child: LinearProgressIndicator(
+                                        value: widget.player.defense /
+                                            100, // Assuming widget.player.defense ranges from 0 to 100
+                                        backgroundColor: Colors.grey[
+                                            300], // Background color of the bar
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(Colors
+                                                .blue), // Color of the filled portion of the bar
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
-                            const SizedBox(height: 6),
-                            if (widget.player.date_end_injury != null)
-                              widget.player
-                                  .getInjuryWidget(), // Show the injury tile
-                            widget.player.getAgeWidget(),
-                            GestureDetector(
-                              onTap: () {
-                                // Navigator.push(
-                                //   context,
-                                //   ClubPage.route(widget.player.id_club),
-                                // );
-                              },
-                              child: widget.player
-                                  .getClubNameWidget(), // Display the ClubWidget
-                            ),
-                            widget.player.getUserNameWidget(),
-                            // widget.player.getCountryNameWidget(),
-                            widget.player.getAvgStatsWidget(),
-                          ],
-                        ),
-                        SizedBox(
-                          child: RadarChart.dark(
-                            ticks: const [25, 50, 75, 100],
-                            features: const [
-                              'GK',
-                              'DF',
-                              'PA',
-                              'PL',
-                              'WI',
-                              'SC',
-                              'FK',
+                              SizedBox(
+                                width: double.infinity,
+                                height: 240, // Adjust the height as needed
+                                child: RadarChart.dark(
+                                  ticks: const [25, 50, 75, 100],
+                                  features: const [
+                                    'GK',
+                                    'DF',
+                                    'PA',
+                                    'PL',
+                                    'WI',
+                                    'SC',
+                                    'FK',
+                                  ],
+                                  data: [features],
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 240, // Adjust the height as needed
+                                child: RadarChart.dark(
+                                  ticks: const [25, 50, 75, 100],
+                                  features: const [
+                                    'GK',
+                                    'DF',
+                                    'PA',
+                                    'PL',
+                                    'WI',
+                                    'SC',
+                                    'FK',
+                                  ],
+                                  data: [features],
+                                ),
+                              ),
                             ],
-                            data: [features],
                           ),
                         ),
                         Placeholder(),

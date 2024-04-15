@@ -1,11 +1,10 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:opengoalz/classes/club.dart';
-import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/pages/club_page.dart';
 
 part 'player_widget_helper.dart';
 
