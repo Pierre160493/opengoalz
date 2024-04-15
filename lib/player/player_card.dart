@@ -104,6 +104,7 @@ class _PlayerCardState extends State<PlayerCard>
                     appBar: TabBar(
                       tabs: [
                         Tab(text: 'Details'),
+                        // Tab(text: 'Photo'),
                         Tab(text: 'Stats'),
                         Tab(text: 'Games'),
                         Tab(text: 'History')
@@ -204,7 +205,11 @@ class _PlayerCardState extends State<PlayerCard>
                             ],
                           ),
                         ),
+
+                        /// Games tab
                         Placeholder(),
+
+                        /// History tab
                         Placeholder(),
                       ],
                     ),
