@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/game.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/player/class/player2.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/widgets/appBar.dart';
 import 'package:provider/provider.dart';
@@ -37,8 +38,14 @@ class _GameResultPageState extends State<GameResultPage> {
         .eq('id_game', widget.game.id)
         .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList());
 
+    // _playersStream = supabase
+    //     .from('view_players')
+    //     .stream(primaryKey: ['id'])
+    //     .eq('id_club', widget.game.idClub)
+    //     .map((maps) => maps.map((map) => Player2.fromMap(map)).toList());
+
     _playersStream = supabase
-        .from('view_players')
+        .from('players')
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.game.idClub)
         .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
@@ -76,7 +83,7 @@ class _GameResultPageState extends State<GameResultPage> {
                     );
                   } else if (playersSnapshot.hasError) {
                     return Center(
-                      child: Text('ERROR: ${playersSnapshot.error}'),
+                      child: Text('ERROR333: ${playersSnapshot.error}'),
                     );
                   } else {
                     final players = playersSnapshot.data ?? [];

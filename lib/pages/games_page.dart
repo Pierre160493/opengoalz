@@ -65,51 +65,67 @@ class _HomePageState extends State<GamesPage> {
                 child: Text('No games found'),
               );
             } else {
-              final gamesNotPlayed =
+              final gamesIncoming =
                   games.where((game) => !game.isPlayed).toList();
               final gamesPlayed = games.where((game) => game.isPlayed).toList();
+
+              gamesIncoming.sort((a, b) => a.dateStart.compareTo(b.dateStart));
               gamesPlayed.sort((a, b) => b.dateStart.compareTo(a.dateStart));
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Next Games: ${gamesNotPlayed.length}'),
-                        const SizedBox(height: 8),
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: gamesNotPlayed.length,
-                            itemBuilder: (context, index) {
-                              final game = gamesNotPlayed[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context)
-                                      .push(GamePage.route(game));
-                                },
-                                child: _buildGameListItem(game),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text('Games Played: ${gamesPlayed.length}'),
-                        const SizedBox(height: 8),
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: gamesPlayed.length,
-                            itemBuilder: (context, index) {
-                              final game = gamesPlayed[index];
-                              return _buildGameListItem(game);
-                            },
-                          ),
-                        ),
+              return DefaultTabController(
+                length: 2, // Number of tabs
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TabBar(
+                      tabs: [
+                        // Tab(text: 'Current ()'),
+                        Tab(text: 'Incoming (${gamesIncoming.length})'),
+                        Tab(text: 'Played (${gamesPlayed.length})'),
                       ],
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: ListView.builder(
+                                  itemCount: gamesIncoming.length,
+                                  itemBuilder: (context, index) {
+                                    final game = gamesIncoming[index];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context)
+                                            .push(GamePage.route(game));
+                                      },
+                                      child: _buildGameListItem(game),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: ListView.builder(
+                                  itemCount: gamesPlayed.length,
+                                  itemBuilder: (context, index) {
+                                    final game = gamesPlayed[index];
+                                    return _buildGameListItem(game);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               );
             }
           }
