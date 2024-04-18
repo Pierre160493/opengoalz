@@ -43,8 +43,8 @@ class _HomePageState extends State<GamesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
-        pageName: 'Games',
+      appBar: CustomAppBar(
+        pageName: 'Games for club id= ${widget.idClub}',
       ),
       drawer: const AppDrawer(),
       body: StreamBuilder<List<Game>>(
@@ -115,7 +115,13 @@ class _HomePageState extends State<GamesPage> {
                                   itemCount: gamesPlayed.length,
                                   itemBuilder: (context, index) {
                                     final game = gamesPlayed[index];
-                                    return _buildGameListItem(game);
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context)
+                                            .push(GamePage.route(game));
+                                      },
+                                      child: _buildGameListItem(game),
+                                    );
                                   },
                                 ),
                               ),
@@ -152,8 +158,7 @@ class _HomePageState extends State<GamesPage> {
                         TextSpan(
                           text: game.nameClubLeft,
                           style: TextStyle(
-                            fontWeight: game.idUserClubLeft ==
-                                    supabase.auth.currentUser!.id
+                            fontWeight: game.idClubLeft == widget.idClub
                                 ? FontWeight.bold
                                 : FontWeight.normal,
                             fontSize: 16,
@@ -162,20 +167,17 @@ class _HomePageState extends State<GamesPage> {
                         TextSpan(
                           text: game.isPlayed
                               ? '   ${game.goalsLeft} - ${game.goalsRight}   '
-                              : ' vs ',
+                              : '  VS  ',
                           style: TextStyle(
                             color: (game.isPlayed == false ||
                                     game.goalsLeft == game.goalsRight)
                                 ? Colors.white
                                 : (game.isPlayed &&
-                                        ((game.idUserClubLeft ==
-                                                    supabase
-                                                        .auth.currentUser!.id &&
+                                        ((game.idClubLeft == widget.idClub &&
                                                 game.goalsLeft! >
                                                     game.goalsRight!) ||
-                                            (game.idUserClubRight ==
-                                                    supabase
-                                                        .auth.currentUser!.id &&
+                                            (game.idClubRight ==
+                                                    widget.idClub &&
                                                 game.goalsLeft! <
                                                     game.goalsRight!)))
                                     ? Colors.green
@@ -189,8 +191,7 @@ class _HomePageState extends State<GamesPage> {
                         TextSpan(
                           text: game.nameClubRight,
                           style: TextStyle(
-                              fontWeight: game.idUserClubRight ==
-                                      supabase.auth.currentUser!.id
+                              fontWeight: game.idClubRight == widget.idClub
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                               fontSize: 16),
@@ -250,11 +251,16 @@ class _HomePageState extends State<GamesPage> {
                 ],
               ),
             ),
-            Text(
-              'W${game.weekNumber}',
-              style: const TextStyle(
-                fontSize: 14,
-              ),
+            Row(
+              children: [
+                const Icon(Icons.calendar_month_outlined),
+                Text(
+                  ' Week Day ${game.weekNumber}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

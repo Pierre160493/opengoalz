@@ -64,7 +64,7 @@ class _FinancesPageState extends State<FinancesPage> {
           const SizedBox(height: 16),
           RichText(
             text: TextSpan(
-              text: 'Available cash: ',
+              text: 'Cash: ',
               style: const TextStyle(fontSize: 18),
               children: <TextSpan>[
                 TextSpan(
@@ -77,6 +77,29 @@ class _FinancesPageState extends State<FinancesPage> {
                     color: Provider.of<SessionProvider>(context)
                                 .selectedClub
                                 .cash_absolute >
+                            0
+                        ? Colors.green
+                        : Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          RichText(
+            text: TextSpan(
+              text: 'Available cash: ',
+              style: const TextStyle(fontSize: 18),
+              children: <TextSpan>[
+                TextSpan(
+                  text: Provider.of<SessionProvider>(context)
+                      .selectedClub
+                      .cash_available
+                      .toString(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Provider.of<SessionProvider>(context)
+                                .selectedClub
+                                .cash_available >
                             0
                         ? Colors.green
                         : Colors.red,
