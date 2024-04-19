@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:provider/provider.dart';
 
@@ -45,10 +44,10 @@ class _FansPageState extends State<FansPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-          pageName:
+      appBar: AppBar(
+          title: Text(
               Provider.of<SessionProvider>(context).selectedClub.club_name ??
-                  'No club name'),
+                  'No club name')),
       // CustomAppBar(clubStream: _clubStream),
       // drawer: AppDrawer(clubStream: _clubStream),
       drawer: const AppDrawer(),

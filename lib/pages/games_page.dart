@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/game_result_page.dart';
 import 'package:opengoalz/pages/set_orders_page.dart';
-import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 
 import '../classes/game.dart';
@@ -43,8 +42,8 @@ class _HomePageState extends State<GamesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        pageName: 'Games for club id= ${widget.idClub}',
+      appBar: AppBar(
+        title: Text('Games for club id= ${widget.idClub}'),
       ),
       drawer: const AppDrawer(),
       body: StreamBuilder<List<Game>>(

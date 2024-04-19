@@ -57,22 +57,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         // Using Row widget to display widgets in a row
-        title: const Row(
-          children: [
-            // Text widget for the text on the left
-            Text('Sign In !'),
-            // Expanded widget to take up the remaining space
-            Expanded(
-              // Center the child horizontally
-              child: Center(
-                child: Text(
-                  appBarTxt,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ],
-        ),
+        title: Center(child: Text('Welcome to ${appName} !')),
       ),
       body: ListView(
         padding: formPadding,

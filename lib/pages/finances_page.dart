@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:provider/provider.dart';
 
@@ -46,11 +45,9 @@ class _FinancesPageState extends State<FinancesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-          pageName:
-              'Finances for: ${Provider.of<SessionProvider>(context).selectedClub.club_name ?? 'No club name'}'),
-      // CustomAppBar(clubStream: _clubStream),
-      // drawer: AppDrawer(clubStream: _clubStream),
+      appBar: AppBar(
+          title: Text(
+              'Finances for: ${Provider.of<SessionProvider>(context).selectedClub.club_name ?? 'No club name'}')),
       drawer: const AppDrawer(),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,

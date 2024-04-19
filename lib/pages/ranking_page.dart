@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/ranking.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/club_page.dart';
-import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:provider/provider.dart';
 
@@ -52,8 +51,8 @@ class _RankingPageState extends State<RankingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
-        pageName: 'Rankings Page',
+      appBar: AppBar(
+        title: const Text('Rankings Page'),
       ),
       drawer: const AppDrawer(),
       body: StreamBuilder<List<Ranking>>(
@@ -96,7 +95,7 @@ class _RankingPageState extends State<RankingPage> {
                             .selectedClub
                             .id_club) color = Colors.green;
                     return DataRow(
-                      color: MaterialStateProperty.all(color),
+                      color: WidgetStateProperty.all(color),
                       onSelectChanged: (_) {
                         Navigator.push(
                           context,

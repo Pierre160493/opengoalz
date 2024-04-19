@@ -54,22 +54,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       appBar: AppBar(
         // Using Row widget to display widgets in a row
-        title: const Row(
-          children: [
-            // Text widget for the text on the left
-            Text('Register'),
-            // Expanded widget to take up the remaining space
-            Expanded(
-              // Center the child horizontally
-              child: Center(
-                child: Text(
-                  appBarTxt,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ],
-        ),
+        title: Text('Please register to get your team !'),
       ),
       body: Form(
         key: _formKey,

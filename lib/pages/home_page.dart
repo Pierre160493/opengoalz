@@ -3,13 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/player/class/player.dart';
+import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/player/players_page.dart';
-import 'package:opengoalz/widgets/appBar.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:provider/provider.dart';
-
-import '../classes/club.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -49,11 +46,69 @@ class _HomePageState extends State<HomePage> {
         if (snapshot.hasData) {
           final clubs = snapshot.data!;
           return Scaffold(
-            appBar: CustomAppBar(
-                pageName: Provider.of<SessionProvider>(context)
-                        .selectedClub
-                        .club_name ??
-                    'No club name'),
+            appBar: AppBar(
+              title: Column(
+                children: [
+                  Text('Home Page'),
+                  Text(
+                    Provider.of<SessionProvider>(context)
+                            .selectedClub
+                            .club_name ??
+                        'Unknown Club',
+                    style: TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    // Add your action here
+                  },
+                  icon: Icon(Icons.settings),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    // Show confirmation dialog
+                    bool logoutConfirmed = await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Confirm Logout"),
+                          content: Text("Are you sure you want to log out?"),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                // Dismiss the dialog and return false to indicate cancellation
+                                Navigator.of(context).pop(false);
+                              },
+                              child: Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                // Dismiss the dialog and return true to indicate confirmation
+                                Navigator.of(context).pop(true);
+                              },
+                              child: Text("Logout"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    // If logout is confirmed, proceed with logout
+                    if (logoutConfirmed == true) {
+                      await supabase.auth.signOut();
+                      Navigator.of(context).pushAndRemoveUntil(
+                          LoginPage.route(), (route) => false);
+                    }
+                  },
+                  icon: Icon(Icons.logout),
+                ),
+              ],
+            ),
             drawer: const AppDrawer(),
             body: clubs.isEmpty
                 ? const Center(child: Text('No clubs found'))

@@ -5,7 +5,6 @@ import 'package:opengoalz/classes/game.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/player/players_page.dart';
-import 'package:opengoalz/widgets/appBar.dart';
 import 'package:provider/provider.dart';
 
 import '../player/class/player.dart';
@@ -87,10 +86,9 @@ class _SetGameOrdersPageState extends State<SetGameOrdersPage> {
                   } else {
                     final players = playersSnapshot.data ?? [];
                     return Scaffold(
-                      appBar: CustomAppBar(
-                        pageName:
-                            '${widget.game.nameClubLeft} vs ${widget.game.nameClubRight}', // Accessing game data here
-                      ),
+                      appBar: AppBar(
+                          title: Text(
+                              '${widget.game.nameClubLeft} vs ${widget.game.nameClubRight}')),
                       // drawer: const AppDrawer(),
                       body: Padding(
                         padding: const EdgeInsets.all(0.0),

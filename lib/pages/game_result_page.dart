@@ -6,7 +6,6 @@ import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/player/class/player2.dart';
 import 'package:opengoalz/player/players_page.dart';
-import 'package:opengoalz/widgets/appBar.dart';
 import 'package:provider/provider.dart';
 
 import '../player/class/player.dart';
@@ -89,9 +88,8 @@ class _GameResultPageState extends State<GameResultPage> {
                     final players = playersSnapshot.data ?? [];
                     print('PG: ${teamComp.length}');
                     return Scaffold(
-                      appBar: CustomAppBar(
-                        pageName:
-                            'Set order for game ${widget.game.id}', // Accessing game data here
+                      appBar: AppBar(
+                        title: Text('Set order for game ${widget.game.id}'),
                       ),
                       // drawer: const AppDrawer(),
                       body:

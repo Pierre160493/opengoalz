@@ -46,7 +46,7 @@ final appTheme = ThemeData.dark().copyWith(
   primaryColorDark: Colors.green[800],
   appBarTheme: const AppBarTheme(
     elevation: 1,
-    backgroundColor: Colors.black,
+    backgroundColor: Colors.green,
     iconTheme: IconThemeData(color: Colors.white),
     titleTextStyle: TextStyle(
       color: Colors.white,
