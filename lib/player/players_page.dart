@@ -127,6 +127,7 @@ class _PlayersPageState extends State<PlayersPage> {
               );
             } else {
               return Scaffold(
+                  // backgroundColor: Colors.grey[700],
                   appBar: AppBar(
                     title: Column(
                       children: [
