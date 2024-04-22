@@ -32,9 +32,9 @@ class Player {
     required this.date_sell,
     // required this.special_stats,
     required this.date_arrival,
-    // required this.stamina,
-    // required this.form,
-    // required this.endurance,
+    required this.stamina,
+    required this.form,
+    required this.experience,
   });
 
   final int id;
@@ -56,9 +56,9 @@ class Player {
   final DateTime? date_sell;
   // final List<double>? special_stats;
   final DateTime date_arrival;
-  // final double stamina;
-  // final double form;
-  // final double endurance;
+  final double stamina;
+  final double form;
+  final double experience;
 
   Player.fromMap(Map<String, dynamic> map)
       : id = map['id'],
@@ -75,11 +75,9 @@ class Player {
         scoring = (map['scoring'] as num).toDouble(),
         freekick = (map['freekick'] as num).toDouble(),
         winger = (map['winger'] as num).toDouble(),
-
-        // stamina = map['stamina'],
-        // form = map['form'],
-        // endurance = map['endurance'],
-
+        stamina = (map['stamina'] as num).toDouble(),
+        form = (map['form'] as num).toDouble(),
+        experience = (map['experience'] as num).toDouble(),
         date_end_injury = map['date_end_injury'] != null
             ? DateTime.parse(map['date_end_injury'])
             : null,

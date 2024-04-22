@@ -81,6 +81,9 @@ class _PlayerCardState extends State<PlayerCard>
                 ),
                 widget.player.getStatusRow(),
 
+                /// Spacer widget to push the following widgets to the right
+                // Spacer(),
+
                 /// IconButton to expand/collapse the player card
                 IconButton(
                   icon: Icon(
@@ -102,76 +105,8 @@ class _PlayerCardState extends State<PlayerCard>
                     Provider.of<SessionProvider>(context, listen: false)
                         .selectedClub
                         .id_club)
-                  PopupMenuButton<String>(
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<String>>[
-                      if (widget.number >
-                          0) // Show the "Open Page" option only if multiple players currently displayed
-                        const PopupMenuItem<String>(
-                          value: 'Open Page',
-                          child: ListTile(
-                            leading: Icon(Icons.open_in_new),
-                            title: Text('Open Player\'s Page'),
-                          ),
-                        ),
-                      if (widget.player.date_sell == null)
-                        if (widget.player.date_firing == null) ...[
-                          const PopupMenuItem<String>(
-                            value: 'Sell',
-                            child: ListTile(
-                              leading: Icon(icon_transfers),
-                              title: Text('Sell'),
-                            ),
-                          ),
-                          const PopupMenuItem<String>(
-                            value: 'Fire',
-                            child: ListTile(
-                              leading: Icon(Icons.exit_to_app),
-                              title: Text('Fire'),
-                            ),
-                          )
-                        ] else
-                          const PopupMenuItem<String>(
-                            value: 'Unfire',
-                            child: ListTile(
-                              leading: Icon(Icons.cancel),
-                              title: Text('Unfire'),
-                            ),
-                          ),
-                      // Add more PopupMenuItems for additional actions
-                    ],
-                    onSelected: (String value) {
-                      // Handle selected action here
-                      switch (value) {
-                        case 'Open Page':
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlayersPage(
-                                inputCriteria: {
-                                  'Players': [widget.player.id]
-                                },
-                              ),
-                            ),
-                          );
-                          break;
-                        case 'Sell':
-                          _SellPlayer(widget.player); // Sell Player
-                          break;
-                        case 'Fire':
-                          _FirePlayer(widget.player); // Fire Player
-                          break;
-                        case 'Unfire':
-                          _UnFirePlayer(widget.player); // Unfire Player
-                          break;
-                        // Add cases for additional actions if needed
-                      }
-                    },
-                    child: Icon(
-                      Icons.pending_actions_outlined,
-                      color: Colors.purple[300],
-                    ),
-                  )
+                  playerPopUpMenuItem(widget.player),
+                const SizedBox(width: 6.0),
               ],
             ),
             if (!_developed) widget.player.getPlayerMainInformation(context),
@@ -197,6 +132,7 @@ class _PlayerCardState extends State<PlayerCard>
                     ),
                     body: TabBarView(
                       children: [
+                        /// Details tab
                         SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,33 +162,18 @@ class _PlayerCardState extends State<PlayerCard>
                             ],
                           ),
                         ),
+
+                        /// Stats Tab
                         SingleChildScrollView(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Row(
-                                children: [
-                                  Text('Defense '),
-                                  SizedBox(
-                                    width:
-                                        200, // Adjust the width of the bar as needed
-                                    height: 20, // Height of the bar
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(
-                                          10), // Rounded corners for the bar
-                                      child: LinearProgressIndicator(
-                                        value: widget.player.defense /
-                                            100, // Assuming widget.player.defense ranges from 0 to 100
-                                        backgroundColor: Colors.grey[
-                                            300], // Background color of the bar
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(Colors
-                                                .blue), // Color of the filled portion of the bar
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              const SizedBox(height: 6.0),
+                              widget.player.getStaminaWidget(),
+                              const SizedBox(height: 6.0),
+                              widget.player.getFormWidget(),
+                              const SizedBox(height: 6.0),
+                              widget.player.getExperienceWidget(),
                               SizedBox(
                                 width: double.infinity,
                                 height: 240, // Adjust the height as needed
@@ -307,6 +228,78 @@ class _PlayerCardState extends State<PlayerCard>
     );
   }
 
+  Widget playerPopUpMenuItem(Player player) {
+    return PopupMenuButton<String>(
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        if (widget.number >
+            0) // Show the "Open Page" option only if multiple players currently displayed
+          const PopupMenuItem<String>(
+            value: 'Open Page',
+            child: ListTile(
+              leading: Icon(Icons.open_in_new),
+              title: Text('Open Player\'s Page'),
+            ),
+          ),
+        if (widget.player.date_sell == null)
+          if (widget.player.date_firing == null) ...[
+            const PopupMenuItem<String>(
+              value: 'Sell',
+              child: ListTile(
+                leading: Icon(icon_transfers),
+                title: Text('Sell'),
+              ),
+            ),
+            const PopupMenuItem<String>(
+              value: 'Fire',
+              child: ListTile(
+                leading: Icon(Icons.exit_to_app),
+                title: Text('Fire'),
+              ),
+            )
+          ] else
+            const PopupMenuItem<String>(
+              value: 'Unfire',
+              child: ListTile(
+                leading: Icon(Icons.cancel),
+                title: Text('Unfire'),
+              ),
+            ),
+        // Add more PopupMenuItems for additional actions
+      ],
+      onSelected: (String value) {
+        // Handle selected action here
+        switch (value) {
+          case 'Open Page':
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PlayersPage(
+                  inputCriteria: {
+                    'Players': [widget.player.id]
+                  },
+                ),
+              ),
+            );
+            break;
+          case 'Sell':
+            _SellPlayer(widget.player); // Sell Player
+            break;
+          case 'Fire':
+            _FirePlayer(widget.player); // Fire Player
+            break;
+          case 'Unfire':
+            _UnFirePlayer(widget.player); // Unfire Player
+            break;
+          // Add cases for additional actions if needed
+        }
+      },
+      child: Icon(
+        Icons.pending_actions_outlined,
+        color: Colors.purple[300],
+      ),
+    );
+  }
+
   Future<void> _SellPlayer(Player player) async {
     final TextEditingController _priceController =
         TextEditingController(text: '0'); // Initialize with default value
@@ -317,13 +310,13 @@ class _PlayerCardState extends State<PlayerCard>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm'),
+          title: const Text('Put to transfer list'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Are you sure you want to sell ${player.first_name} ${player.last_name.toUpperCase()} ?',
+                'Enter the starting price for ${player.first_name} ${player.last_name.toUpperCase()}',
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -367,6 +360,12 @@ class _PlayerCardState extends State<PlayerCard>
                             .selectedClub
                             .id_club,
                   });
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          '${player.first_name} ${player.last_name.toUpperCase()} has been put to transfer list'),
+                    ),
+                  );
                 } on PostgrestException catch (error) {
                   print(error);
                   scaffoldMessenger.showSnackBar(
@@ -392,6 +391,7 @@ class _PlayerCardState extends State<PlayerCard>
   }
 
   Future<void> _FirePlayer(Player player) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -419,6 +419,12 @@ class _PlayerCardState extends State<PlayerCard>
                   await supabase.from('players').update({
                     'date_firing': dateFiring.toIso8601String()
                   }).match({'id': player.id});
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          '${player.first_name} ${player.last_name.toUpperCase()} has 7 days to pack his stuff and leave !'),
+                    ),
+                  );
                 } on PostgrestException catch (error) {
                   print(error);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -437,10 +443,17 @@ class _PlayerCardState extends State<PlayerCard>
   }
 
   Future<void> _UnFirePlayer(Player player) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       await supabase.from('players').update({
         'date_firing': null // Set date_firing to null to "Unfire" the player
       }).match({'id': player.id});
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(
+              '${player.first_name} ${player.last_name.toUpperCase()} is happy to stay in your club !'),
+        ),
+      );
     } on PostgrestException catch (error) {
       print(error);
       ScaffoldMessenger.of(context).showSnackBar(

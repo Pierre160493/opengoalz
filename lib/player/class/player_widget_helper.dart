@@ -295,6 +295,75 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
+  Widget getStaminaWidget() {
+    return Row(
+      children: [
+        Text('Stamina'),
+        SizedBox(
+          width: 200, // Adjust the width of the bar as needed
+          height: 20, // Height of the bar
+          child: ClipRRect(
+            borderRadius:
+                BorderRadius.circular(10), // Rounded corners for the bar
+            child: LinearProgressIndicator(
+              value: stamina /
+                  100, // Assuming widget.player.defense ranges from 0 to 100
+              backgroundColor: Colors.grey[300], // Background color of the bar
+              valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.blue), // Color of the filled portion of the bar
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget getFormWidget() {
+    return Row(
+      children: [
+        Text('Form'),
+        SizedBox(
+          width: 200, // Adjust the width of the bar as needed
+          height: 20, // Height of the bar
+          child: ClipRRect(
+            borderRadius:
+                BorderRadius.circular(10), // Rounded corners for the bar
+            child: LinearProgressIndicator(
+              value: form /
+                  100, // Assuming widget.player.defense ranges from 0 to 100
+              backgroundColor: Colors.grey[300], // Background color of the bar
+              valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.blue), // Color of the filled portion of the bar
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget getExperienceWidget() {
+    return Row(
+      children: [
+        Text('Experience'),
+        SizedBox(
+          width: 200, // Adjust the width of the bar as needed
+          height: 20, // Height of the bar
+          child: ClipRRect(
+            borderRadius:
+                BorderRadius.circular(10), // Rounded corners for the bar
+            child: LinearProgressIndicator(
+              value: experience /
+                  100, // Assuming widget.player.defense ranges from 0 to 100
+              backgroundColor: Colors.grey[300], // Background color of the bar
+              valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.blue), // Color of the filled portion of the bar
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget getCountryNameWidget(int? id_country) {
     if (id_country == null) {
       // Should'nt be nullable

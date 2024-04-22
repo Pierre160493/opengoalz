@@ -129,36 +129,36 @@ class PlayerTransferTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AspectRatio(
-                  aspectRatio: 1.7,
-                  child: LineChart(
-                    LineChartData(
-                      lineBarsData: [
-                        LineChartBarData(
-                          spots: chartData,
-                          color: Colors.green,
-                          barWidth: 4,
-                          isStrokeCapRound: true,
-                          belowBarData: BarAreaData(show: true),
-                        ),
-                      ],
-                      borderData: FlBorderData(
-                        border: Border.all(
-                          color: Colors.green.withOpacity(0.5),
-                          width: 1,
-                        ),
-                      ),
-                      minX: chartData.first.x,
-                      maxX: player.date_sell!.millisecondsSinceEpoch.toDouble(),
-                      minY: 0,
-                      maxY: chartData.map((spot) => spot.y).reduce(
-                              (value, element) =>
-                                  value > element ? value : element) *
-                          1.2,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 16),
+                // AspectRatio(
+                //   aspectRatio: 1.7,
+                //   child: LineChart(
+                //     LineChartData(
+                //       lineBarsData: [
+                //         LineChartBarData(
+                //           spots: chartData,
+                //           color: Colors.green,
+                //           barWidth: 4,
+                //           isStrokeCapRound: true,
+                //           belowBarData: BarAreaData(show: true),
+                //         ),
+                //       ],
+                //       borderData: FlBorderData(
+                //         border: Border.all(
+                //           color: Colors.green.withOpacity(0.5),
+                //           width: 1,
+                //         ),
+                //       ),
+                //       minX: chartData.first.x,
+                //       maxX: player.date_sell!.millisecondsSinceEpoch.toDouble(),
+                //       minY: 0,
+                //       maxY: chartData.map((spot) => spot.y).reduce(
+                //               (value, element) =>
+                //                   value > element ? value : element) *
+                //           1.2,
+                //     ),
+                //   ),
+                // ),
+                // SizedBox(height: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: bids.asMap().entries.map((entry) {
