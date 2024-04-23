@@ -203,7 +203,9 @@ class _PlayersPageState extends State<PlayersPage> {
                                   PlayerCard(
                                       player: player,
                                       number:
-                                          players.length == 1 ? 0 : index + 1),
+                                          players.length == 1 ? 0 : index + 1,
+                                      isExpanded:
+                                          players.length == 1 ? true : false),
                                 ],
                               ),
                             );

@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/player/players_page.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'player_widget_helper.dart';
+part 'player_widget_actions.dart';
 
 class Player {
   Club? club;
