@@ -95,7 +95,7 @@ class _RankingPageState extends State<RankingPage> {
                             .selectedClub
                             .id_club) color = Colors.green;
                     return DataRow(
-                      color: WidgetStateProperty.all(color),
+                      color: MaterialStateProperty.all(color),
                       onSelectChanged: (_) {
                         Navigator.push(
                           context,
@@ -124,50 +124,6 @@ class _RankingPageState extends State<RankingPage> {
                   }).toList(),
                 ),
               );
-              // return Card(
-              //   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              //   child: ListView(
-              //     shrinkWrap: true,
-              //     children: rankings.take(8).map((ranking) {
-              //       final index = rankings.indexOf(ranking) + 1;
-              //       return ListTile(
-              //         onTap: () {
-              //           // Handle row click here, you can navigate to a new page or perform any other action
-              //           print('Clicked on row $index');
-              //         },
-              //         title: Row(
-              //           children: [
-              //             SizedBox(
-              //               width: 20,
-              //               child: Text(index.toString()),
-              //             ),
-              //             SizedBox(width: 20),
-              //             Expanded(
-              //               child: Text(
-              //                 ranking.nameClub,
-              //                 overflow: TextOverflow.ellipsis,
-              //               ),
-              //             ),
-              //             SizedBox(width: 20),
-              //             Text(ranking.nPoints.toString()),
-              //             SizedBox(width: 20),
-              //             Text(ranking.totalGoalAverage.toString()),
-              //             SizedBox(width: 20),
-              //             Text(ranking.nVictories.toString()),
-              //             SizedBox(width: 20),
-              //             Text(ranking.nDraws.toString()),
-              //             SizedBox(width: 20),
-              //             Text(ranking.nDefeats.toString()),
-              //             SizedBox(width: 20),
-              //             Text(ranking.goalsScored.toString()),
-              //             SizedBox(width: 20),
-              //             Text(ranking.goalsTaken.toString()),
-              //           ],
-              //         ),
-              //       );
-              //     }).toList(),
-              //   ),
-              // );
             }
           }
         },

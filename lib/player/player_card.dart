@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
+import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/widgets/transfer_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'class/player.dart';
 
 class PlayerCard extends StatefulWidget {
@@ -27,6 +26,7 @@ class PlayerCard extends StatefulWidget {
 class _PlayerCardState extends State<PlayerCard>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late Stream<List<Map>> _historyStream;
   bool _developed = false;
 
   @override
@@ -34,6 +34,21 @@ class _PlayerCardState extends State<PlayerCard>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _developed = widget.isExpanded;
+
+    _historyStream = supabase
+        .from('players_history')
+        .stream(primaryKey: ['id'])
+        .eq('id_player', widget.player.id)
+        .order('created_at', ascending: false)
+        .map((maps) => maps
+            .map((map) => {
+                  'id': map['id'],
+                  'created_at': map['created_at'],
+                  'id_player': map['id_player'],
+                  'description': map['description'],
+                  'id_club': map['id_club'],
+                })
+            .toList());
   }
 
   @override
@@ -220,7 +235,97 @@ class _PlayerCardState extends State<PlayerCard>
                         Placeholder(),
 
                         /// History tab
-                        Placeholder(),
+                        // Placeholder(),
+
+                        StreamBuilder<List<Map>>(
+                          stream: _historyStream,
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              // Extract history data from snapshot
+                              final historyData = snapshot.data!;
+                              return SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: historyData.length,
+                                      itemBuilder: (context, index) {
+                                        final item = historyData[index];
+                                        final DateTime dateEvent =
+                                            DateTime.parse(item['created_at']);
+                                        final double ageEvent = dateEvent
+                                                .difference(
+                                                    widget.player.date_birth)
+                                                .inDays /
+                                            112.0;
+                                        return ListTile(
+                                          title: Text(
+                                            item['description'],
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          subtitle: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.cake_outlined,
+                                                color: Colors.green,
+                                              ),
+                                              Text(
+                                                ' ${ageEvent.truncate()}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(' years, '),
+                                              Text(
+                                                ((ageEvent -
+                                                            ageEvent
+                                                                .truncate()) *
+                                                        112)
+                                                    .floor()
+                                                    .toString(),
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(' days '),
+                                              Icon(Icons.access_time_outlined,
+                                                  color: Colors.green),
+                                              Text(
+                                                '${DateFormat(' yyyy-MM-dd HH:mm').format(dateEvent)}',
+                                                style: TextStyle(
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          leading: Icon(
+                                            Icons.history_edu_outlined,
+                                            color: Colors.blueGrey,
+                                            size: 36,
+                                          ),
+                                          trailing: Icon(
+                                            Icons.arrow_forward_ios,
+                                            color: Colors.grey[400],
+                                          ),
+                                          onTap: () {
+                                            // Add any action you want to perform when the tile is tapped
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            }
+                            // By default, show a loading indicator
+                            return CircularProgressIndicator();
+                          },
+                        ),
                       ],
                     ),
                   ),

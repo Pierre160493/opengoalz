@@ -3,12 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/player/class/player.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';
 import 'package:provider/provider.dart';
-
-import '../classes/club.dart';
 
 class ClubPage extends StatefulWidget {
   final int idClub;
@@ -95,7 +92,7 @@ class _ClubPageState extends State<ClubPage> {
                                         children: [
                                           Expanded(
                                             child: Text(
-                                              club.club_name ??
+                                              club.name_club ??
                                                   'ERROR: No club name',
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
@@ -104,24 +101,26 @@ class _ClubPageState extends State<ClubPage> {
                                               ),
                                             ),
                                           ),
-                                          if (club.id_club ==
-                                              Provider.of<SessionProvider>(
-                                                      context)
-                                                  .selectedClub
-                                                  .id_club)
-                                            const Icon(
-                                              Icons.check_circle,
-                                              color: Colors.green,
-                                              size:
-                                                  30, // Increase the icon size as needed
-                                            )
-                                          else
-                                            const Icon(
-                                              Icons.cancel,
-                                              color: Colors.red,
-                                              size:
-                                                  30, // Increase the icon size as needed
-                                            )
+                                          const SizedBox(width: 6.0),
+                                          club.getLastResults(),
+                                          // if (club.id_club ==
+                                          //     Provider.of<SessionProvider>(
+                                          //             context)
+                                          //         .selectedClub
+                                          //         .id_club)
+                                          //   const Icon(
+                                          //     Icons.check_circle,
+                                          //     color: Colors.green,
+                                          //     size:
+                                          //         30, // Increase the icon size as needed
+                                          //   )
+                                          // else
+                                          //   const Icon(
+                                          //     Icons.cancel,
+                                          //     color: Colors.red,
+                                          //     size:
+                                          //         30, // Increase the icon size as needed
+                                          //   )
                                         ],
                                       ),
                                       subtitle: Row(
@@ -162,9 +161,9 @@ class _ClubPageState extends State<ClubPage> {
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          // Text(
-                                          //   '${club.username ?? 'No username'}',
-                                          // ),
+                                          Text(
+                                            '${club.username ?? 'No username'}',
+                                          ),
                                         ],
                                       ),
                                       subtitle: Row(
@@ -207,8 +206,7 @@ class _ClubPageState extends State<ClubPage> {
                                         size: 30,
                                       ), // Icon to indicate players
                                       title: Text(
-                                        // 'Number of players: ${club.player_count}',
-                                        'Number of players:',
+                                        'Number of players: ${club.player_count}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -416,7 +414,7 @@ class _ClubPageState extends State<ClubPage> {
         title: Row(
           children: [
             Text(
-              '${club.club_name} ',
+              '${club.name_club} ',
             ),
           ],
         ),

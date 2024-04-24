@@ -47,7 +47,7 @@ class _FinancesPageState extends State<FinancesPage> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-              'Finances for: ${Provider.of<SessionProvider>(context).selectedClub.club_name ?? 'No club name'}')),
+              'Finances for: ${Provider.of<SessionProvider>(context).selectedClub.name_club ?? 'No club name'}')),
       drawer: const AppDrawer(),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,

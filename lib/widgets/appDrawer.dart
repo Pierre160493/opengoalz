@@ -8,7 +8,6 @@ import 'package:opengoalz/pages/fans_page.dart';
 import 'package:opengoalz/pages/finances_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/home_page.dart';
-import 'package:opengoalz/player/class/player.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';
 import 'package:provider/provider.dart';
@@ -35,14 +34,17 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
-          buildDrawerTitle('Club: ${selectedClub.club_name ?? 'No club Name'}'),
+          buildDrawerTitle('Club: ${selectedClub.name_club ?? 'No club Name'}'),
           buildDrawerOption(
               context,
               icon_finance,
               'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.cash_absolute)} €',
               FinancesPage(
                   idClub: selectedClub.id_club)), // Add the finances page
-          buildDrawerOption(context, icon_fans, 'Fans',
+          buildDrawerOption(
+              context,
+              icon_fans,
+              'Fans (${selectedClub.number_fans})',
               FansPage(idClub: selectedClub.id_club)), // Add the fans page
           buildDrawerOption(
             context,
@@ -66,7 +68,7 @@ class AppDrawer extends StatelessWidget {
               context,
               icon_players,
               // 'Players (${selectedClub.player_count})',
-              'Players ()',
+              'Players (${selectedClub.player_count})',
               PlayersPage(inputCriteria: {
                 'Clubs': [selectedClub.id_club]
               })), // Add the Players page

@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     Provider.of<SessionProvider>(context)
                             .selectedClub
-                            .club_name ??
+                            .name_club ??
                         'Unknown Club',
                     style: TextStyle(
                       fontSize: 14,
@@ -164,17 +164,6 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     title: Row(
                                       children: [
-                                        Expanded(
-                                          child: Text(
-                                            club.club_name ??
-                                                'ERROR: No club name',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize:
-                                                  24, // Increase the font size as needed
-                                            ),
-                                          ),
-                                        ),
                                         if (club.id_club ==
                                             Provider.of<SessionProvider>(
                                                     context)
@@ -192,7 +181,21 @@ class _HomePageState extends State<HomePage> {
                                             color: Colors.red,
                                             size:
                                                 30, // Increase the icon size as needed
-                                          )
+                                          ),
+                                        const SizedBox(width: 6.0),
+                                        Expanded(
+                                          child: Text(
+                                            club.name_club ??
+                                                'ERROR: No club name',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize:
+                                                  24, // Increase the font size as needed
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6.0),
+                                        club.getLastResults(),
                                       ],
                                     ),
                                     subtitle: Text(

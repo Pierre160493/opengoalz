@@ -46,7 +46,7 @@ class _FansPageState extends State<FansPage> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-              Provider.of<SessionProvider>(context).selectedClub.club_name ??
+              Provider.of<SessionProvider>(context).selectedClub.name_club ??
                   'No club name')),
       // CustomAppBar(clubStream: _clubStream),
       // drawer: AppDrawer(clubStream: _clubStream),
