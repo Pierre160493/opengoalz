@@ -158,11 +158,102 @@ class _PlayersPageState extends State<PlayersPage> {
                         },
                         icon: Icon(Icons.search),
                       ),
-                      IconButton(
-                        onPressed: () {
-                          // _showFilterDialog();
+                      PopupMenuButton<String>(
+                        // icon: Icons.filter_alt_outlined,
+                        itemBuilder: (BuildContext context) =>
+                            <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                              // value: 'sort_by_title',
+                              child: Row(
+                            children: [
+                              Icon(
+                                Icons.sort,
+                                color: Colors.green,
+                                size: 36,
+                              ),
+                              Text(' Sort Players By',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  )),
+                            ],
+                          )),
+                          const PopupMenuDivider(),
+                          PopupMenuItem<String>(
+                            value: 'age_asc',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.cake_outlined,
+                                  color: Colors.green,
+                                ),
+                                Text(' Age '),
+                                Icon(Icons.arrow_outward_outlined),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'age_desc',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.cake_outlined,
+                                  color: Colors.green,
+                                ),
+                                Text(' Age '),
+                                Icon(Icons.arrow_downward),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'last_name',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.sort_by_alpha_outlined,
+                                  color: Colors.green,
+                                ),
+                                Text(' Last Name'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'first_name',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.sort_by_alpha_outlined,
+                                  color: Colors.green,
+                                ),
+                                Text(' First Name'),
+                              ],
+                            ),
+                          ),
+                          // Add other sorting options here
+                        ],
+                        onSelected: (String value) {
+                          // Handle the selected option
+                          if (value == 'age_asc') {
+                            setState(() {
+                              players.sort((a, b) =>
+                                  b.date_birth.compareTo(a.date_birth));
+                            });
+                          } else if (value == 'age_desc') {
+                            setState(() {
+                              players.sort((a, b) =>
+                                  a.date_birth.compareTo(b.date_birth));
+                            });
+                          } else if (value == 'last_name') {
+                            setState(() {
+                              players.sort(
+                                  (a, b) => a.last_name.compareTo(b.last_name));
+                            });
+                          } else if (value == 'first_name') {
+                            setState(() {
+                              players.sort((a, b) =>
+                                  a.first_name.compareTo(b.first_name));
+                            });
+                          } // Add other options as needed
                         },
-                        icon: Icon(Icons.filter_list),
                       ),
                     ],
                   ),
