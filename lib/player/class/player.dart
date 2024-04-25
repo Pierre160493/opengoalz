@@ -1,6 +1,9 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
@@ -11,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'player_widget_helper.dart';
+part 'player_widget_transfer.dart';
 part 'player_widget_actions.dart';
 
 class Player {

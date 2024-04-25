@@ -89,33 +89,43 @@ extension PlayerWidgetsHelper on Player {
   }
 
   Widget getPlayerMainInformation(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 48,
-                child: Icon(
-                  Icons.person_pin_outlined,
-                  size: 90,
-                ),
-              ),
-              SizedBox(
-                width: 8,
-              ), // Add some space between the avatar and the text
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
+          children: [
+            Expanded(
+              child: Row(
                 children: [
-                  getAgeWidget(),
-                  getCountryNameWidget(id_country),
-                  getAvgStatsWidget(),
-                  getClubNameWidget(context),
+                  CircleAvatar(
+                    radius: 48,
+                    child: Icon(
+                      Icons.person_pin_outlined,
+                      size: 90,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 6,
+                  ), // Add some space between the avatar and the text
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      getAgeWidget(),
+                      getCountryNameWidget(id_country),
+                      getAvgStatsWidget(),
+                      getClubNameWidget(context),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+        SizedBox(height: 6.0),
+        // if (date_sell?.isAfter(DateTime.now()) ?? false)
+        if (transferBids.length > 0 && date_sell!.isAfter(DateTime.now()))
+          playerTransferWidget(context),
+        if (date_end_injury != null) getInjuryWidget(),
+        if (date_firing != null) getFiringRow(),
       ],
     );
   }
@@ -123,6 +133,7 @@ extension PlayerWidgetsHelper on Player {
   Widget getFiringRow() {
     return Row(
       children: [
+        Icon(Icons.exit_to_app, color: Colors.green),
         StreamBuilder<int>(
           stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
           builder: (context, snapshot) {
@@ -134,7 +145,7 @@ extension PlayerWidgetsHelper on Player {
 
             return RichText(
               text: TextSpan(
-                text: 'Will be fired in: ',
+                text: ' Will be fired in: ',
                 style: const TextStyle(),
                 children: [
                   if (daysLeft > 0) // Conditionally include days left
@@ -169,7 +180,7 @@ extension PlayerWidgetsHelper on Player {
         Icon(
           Icons.cake_outlined,
           size: icon_size, // Adjust icon size as needed
-          color: Colors.grey, // Adjust icon color as needed
+          color: Colors.green, // Adjust icon color as needed
         ),
         Text(
           ' ${age.truncate()}',
@@ -195,7 +206,7 @@ extension PlayerWidgetsHelper on Player {
         Icon(
           Icons.query_stats_outlined,
           size: icon_size, // Adjust icon size as needed
-          color: Colors.grey, // Adjust icon color as needed
+          color: Colors.green, // Adjust icon color as needed
         ),
         Text(
           ' ${stats_average.toStringAsFixed(1)}',
@@ -215,7 +226,7 @@ extension PlayerWidgetsHelper on Player {
           Icon(
             Icons.fireplace_outlined,
             size: icon_size, // Adjust icon size as needed
-            color: Colors.grey, // Adjust icon color as needed
+            color: Colors.green, // Adjust icon color as needed
           ),
           Text(
             'Free Player',
@@ -231,7 +242,7 @@ extension PlayerWidgetsHelper on Player {
           Icon(
             icon_club,
             size: icon_size, // Adjust icon size as needed
-            color: Colors.grey, // Adjust icon color as needed
+            color: Colors.green, // Adjust icon color as needed
           ),
           if (club == null)
             Text(
@@ -266,7 +277,7 @@ extension PlayerWidgetsHelper on Player {
         Icon(
           Icons.android_outlined,
           size: icon_size, // Adjust icon size as needed
-          color: Colors.grey, // Adjust icon color as needed
+          color: Colors.green, // Adjust icon color as needed
         ),
         // Text(
         //   ' ${username}',
@@ -426,7 +437,7 @@ extension PlayerWidgetsHelper on Player {
                 Icon(
                   Icons.flag_circle_outlined,
                   size: icon_size, // Adjust icon size as needed
-                  color: Colors.grey, // Adjust icon color as needed
+                  color: Colors.green, // Adjust icon color as needed
                 ),
                 SizedBox(width: 4.0), // Spacing between icon and text
                 Text(
