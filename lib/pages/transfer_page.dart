@@ -12,11 +12,12 @@ import 'package:rxdart/rxdart.dart';
 import '../constants.dart';
 
 class TransferPage extends StatefulWidget {
-  const TransferPage({Key? key}) : super(key: key);
+  final int idClub;
+  const TransferPage({Key? key, required this.idClub}) : super(key: key);
 
-  static Route<void> route() {
+  static Route<void> route(int idClub) {
     return MaterialPageRoute<void>(
-      builder: (context) => TransferPage(),
+      builder: (context) => TransferPage(idClub: idClub),
     );
   }
 
@@ -27,8 +28,6 @@ class TransferPage extends StatefulWidget {
 class _TransferPageState extends State<TransferPage> {
   late Stream<List<int>> _IdPlayersTransferStream;
   late Stream<List<Player>> _playerStream;
-  late Stream<List<Club>> _clubStream;
-  late Stream<List<TransferBid>> _transferBids;
 
   @override
   void initState() {
@@ -37,11 +36,12 @@ class _TransferPageState extends State<TransferPage> {
     _IdPlayersTransferStream = supabase
         .from('transfers_bids')
         .stream(primaryKey: ['id'])
-        .eq('id_club', 1)
+        .eq('id_club', widget.idClub)
         .map((maps) =>
             maps.map((map) => map['id_player'] as int).toSet().toList());
 
     _playerStream = _IdPlayersTransferStream.asyncExpand((playerIds) {
+      print('testPierreG');
       return supabase
           .from('players')
           .stream(primaryKey: ['id'])
@@ -49,53 +49,6 @@ class _TransferPageState extends State<TransferPage> {
           .order('date_birth', ascending: true)
           .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
     }).asBroadcastStream();
-
-    // // Stream to fetch clubs from the list of clubs in the players list
-    // _clubStream = _playerStream.switchMap((players) {
-    //   final clubIds = players.map((player) => player.id_club).toSet().toList();
-    //   return supabase
-    //       .from('clubs')
-    //       .stream(primaryKey: ['id'])
-    //       .inFilter('id', clubIds.cast<Object>())
-    //       .map((maps) => maps
-    //           .map((map) => Club.fromMap(
-    //                 map: map,
-    //                 myUserId: supabase.auth.currentUser!.id,
-    //               ))
-    //           .toList());
-    // });
-    // // Combine player and club streams
-    // _playerStream =
-    //     _playerStream.switchMap((players) => _clubStream.map((clubs) {
-    //           for (var player in players) {
-    //             final clubData =
-    //                 clubs.firstWhere((club) => club.id_club == player.id_club);
-    //             player.club = clubData;
-    //           }
-    //           return players;
-    //         }));
-
-    // // Stream to fetch transfer bids for each player
-    // _transferBids = _playerStream.switchMap((players) {
-    //   final playerIds = players.map((player) => player.id).toSet().toList();
-    //   return supabase
-    //       .from('transfers_bids')
-    //       .stream(primaryKey: ['id'])
-    //       .inFilter('id_player', playerIds.cast<Object>())
-    //       .order('count_bid', ascending: true)
-    //       .map((maps) => maps.map((map) => TransferBid.fromMap(map)).toList());
-    // });
-
-    // // Combine player and transfer bids streams
-    // _playerStream =
-    //     _playerStream.switchMap((players) => _transferBids.map((transferBids) {
-    //           for (var player in players) {
-    //             player.transferBids.clear();
-    //             player.transferBids.addAll(
-    //                 transferBids.where((bid) => bid.idPlayer == player.id));
-    //           }
-    //           return players;
-    //         }));
   }
 
   @override
