@@ -74,7 +74,7 @@ class AppDrawer extends StatelessWidget {
                 'Clubs': [selectedClub.id_club]
               })), // Add the Players page
           buildDrawerOption(context, icon_transfers, 'Transfers',
-              TransferPage()), // Add the Transfers page
+              TransferPage(idClub: selectedClub.id_club)), // Add the Transfers page
           buildDrawerOption(context, icon_games, 'Games',
               GamesPage(idClub: selectedClub.id_club)), // Add the Games page
           buildDrawerOption(

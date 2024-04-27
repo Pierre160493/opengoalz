@@ -160,15 +160,6 @@ class _PlayerCardState extends State<PlayerCard>
                               widget.player.getPlayerMainInformation(context),
                               const SizedBox(height: 6.0),
 
-                              /// Selling tile
-                              if (widget.player.date_sell
-                                      ?.isAfter(DateTime.now()) ??
-                                  false)
-                                PlayerTransferTile(
-                                  player: widget.player,
-                                ), // Show the transfer tile
-                              const SizedBox(height: 6),
-
                               /// Firing tile
                               if (widget.player.date_firing != null)
                                 widget.player
