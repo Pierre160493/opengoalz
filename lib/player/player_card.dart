@@ -159,16 +159,6 @@ class _PlayerCardState extends State<PlayerCard>
                               const SizedBox(height: 6.0),
                               widget.player.getPlayerMainInformation(context),
                               const SizedBox(height: 6.0),
-
-                              /// Firing tile
-                              if (widget.player.date_firing != null)
-                                widget.player
-                                    .getFiringRow(), // Show the firing row
-                              const SizedBox(height: 6),
-                              if (widget.player.date_end_injury != null)
-                                widget.player
-                                    .getInjuryWidget(), // Show the injury tile
-                              // widget.player.getUserNameWidget(),
                             ],
                           ),
                         ),
@@ -179,11 +169,14 @@ class _PlayerCardState extends State<PlayerCard>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const SizedBox(height: 6.0),
-                              widget.player.getStaminaWidget(),
+                              widget.player.getStatLinearWidget(
+                                  'Stamina', widget.player.stamina),
                               const SizedBox(height: 6.0),
-                              widget.player.getFormWidget(),
+                              widget.player.getStatLinearWidget(
+                                  'Form', widget.player.form),
                               const SizedBox(height: 6.0),
-                              widget.player.getExperienceWidget(),
+                              widget.player.getStatLinearWidget(
+                                  'Experience', widget.player.experience),
                               SizedBox(
                                 width: double.infinity,
                                 height: 240, // Adjust the height as needed

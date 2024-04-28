@@ -1,3 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
+
+part 'game_widget_helper.dart';
+
 class Game {
   Game({
     required this.id,
@@ -38,9 +43,9 @@ class Game {
   final DateTime dateStart;
   final int weekNumber;
   final int idClubLeft;
-  final String? nameClubLeft;
+  final String nameClubLeft;
   final int idClubRight;
-  final String? nameClubRight;
+  final String nameClubRight;
   final int? idStadium;
   final bool isPlayed;
   final bool isCup;

@@ -129,26 +129,12 @@ class _PlayersPageState extends State<PlayersPage> {
               return Scaffold(
                   // backgroundColor: Colors.grey[700],
                   appBar: AppBar(
-                    title: Column(
-                      children: [
-                        if (players.length == 1)
-                          Text(players.last.last_name)
-                        else
-                          Text(
+                    title: players.length == 1
+                        ? Text(
+                            '${players.last.first_name} ${players.last.last_name.toUpperCase()}')
+                        : Text(
                             '${players.length} Players',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
                           ),
-                        Text(
-                          'Club Name',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
                     backgroundColor: Colors.green,
                     elevation: 0,
                     actions: [

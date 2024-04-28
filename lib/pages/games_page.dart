@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/game_result_page.dart';
 import 'package:opengoalz/pages/set_orders_page.dart';
@@ -43,7 +44,7 @@ class _HomePageState extends State<GamesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Games for club id= ${widget.idClub}'),
+        title: Text('Games Page'),
       ),
       drawer: const AppDrawer(),
       body: StreamBuilder<List<Game>>(
@@ -64,21 +65,32 @@ class _HomePageState extends State<GamesPage> {
                 child: Text('No games found'),
               );
             } else {
-              final gamesIncoming =
-                  games.where((game) => !game.isPlayed).toList();
-              final gamesPlayed = games.where((game) => game.isPlayed).toList();
+              final List<Game> gamesCurrent = [];
+              final List<Game> gamesIncoming = [];
+              final List<Game> gamesPlayed = [];
 
-              gamesIncoming.sort((a, b) => a.dateStart.compareTo(b.dateStart));
-              gamesPlayed.sort((a, b) => b.dateStart.compareTo(a.dateStart));
+              DateTime now = DateTime.now();
+              for (Game game in games) {
+                if (game.dateStart.isAfter(now) &&
+                    game.dateStart
+                        .isBefore(now.add(const Duration(hours: 3)))) {
+                  gamesCurrent.add(game);
+                } else if (game.isPlayed) {
+                  gamesPlayed.add(game);
+                } else {
+                  gamesIncoming.add(game);
+                }
+              }
 
               return DefaultTabController(
-                length: 2, // Number of tabs
+                length: gamesCurrent.length == 0 ? 2 : 3, // Number of tabs
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TabBar(
                       tabs: [
-                        // Tab(text: 'Current ()'),
+                        if (gamesCurrent.length > 0)
+                          Tab(text: 'Current (${gamesCurrent.length})'),
                         Tab(text: 'Incoming (${gamesIncoming.length})'),
                         Tab(text: 'Played (${gamesPlayed.length})'),
                       ],
@@ -86,46 +98,10 @@ class _HomePageState extends State<GamesPage> {
                     Expanded(
                       child: TabBarView(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: ListView.builder(
-                                  itemCount: gamesIncoming.length,
-                                  itemBuilder: (context, index) {
-                                    final game = gamesIncoming[index];
-                                    return GestureDetector(
-                                      onTap: () {
-                                        Navigator.of(context)
-                                            .push(GamePage.route(game));
-                                      },
-                                      child: _buildGameListItem(game),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: ListView.builder(
-                                  itemCount: gamesPlayed.length,
-                                  itemBuilder: (context, index) {
-                                    final game = gamesPlayed[index];
-                                    return GestureDetector(
-                                      onTap: () {
-                                        Navigator.of(context)
-                                            .push(GamePage.route(game));
-                                      },
-                                      child: _buildGameListItem(game),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
+                          if (gamesCurrent.length > 0)
+                            _buildGameList(gamesCurrent),
+                          _buildGameList(gamesIncoming),
+                          _buildGameList(gamesPlayed)
                         ],
                       ),
                     ),
@@ -139,82 +115,71 @@ class _HomePageState extends State<GamesPage> {
     );
   }
 
-  Widget _buildGameListItem(Game game) {
+  Widget _buildGameList(List<Game> games) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: games.length,
+            itemBuilder: (context, index) {
+              final game = games[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(GamePage.route(game));
+                },
+                child: _buildGameDescription(game),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGameDescription(Game game) {
     return Card(
       elevation: 5,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: ListTile(
         title: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: game.nameClubLeft,
-                          style: TextStyle(
-                            fontWeight: game.idClubLeft == widget.idClub
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            fontSize: 16,
-                          ),
-                        ),
-                        TextSpan(
-                          text: game.isPlayed
-                              ? '   ${game.goalsLeft} - ${game.goalsRight}   '
-                              : '  VS  ',
-                          style: TextStyle(
-                            color: (game.isPlayed == false ||
-                                    game.goalsLeft == game.goalsRight)
-                                ? Colors.white
-                                : (game.isPlayed &&
-                                        ((game.idClubLeft == widget.idClub &&
-                                                game.goalsLeft! >
-                                                    game.goalsRight!) ||
-                                            (game.idClubRight ==
-                                                    widget.idClub &&
-                                                game.goalsLeft! <
-                                                    game.goalsRight!)))
-                                    ? Colors.green
-                                    : Colors.red,
-                            fontSize: 14,
-                            fontWeight: game.isPlayed
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        TextSpan(
-                          text: game.nameClubRight,
-                          style: TextStyle(
-                              fontWeight: game.idClubRight == widget.idClub
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ElevatedButton(
+            Icon(Icons.sports_soccer),
+            SizedBox(width: 6),
+            ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => game.isPlayed
-                          ? GameResultPage(game: game)
-                          : SetGameOrdersPage(game: game)),
+                  ClubPage.route(game.idClubLeft),
                 );
               },
-              child: game.isPlayed
-                  ? const Text('View details')
-                  : const Text('Set Orders'),
-            )
+              icon: game.isPlayed
+                  ? const Icon(Icons.error_outline_outlined)
+                  : const Icon(Icons.error_outline_outlined),
+              label: game.getLeftClubName(),
+            ),
+            game.getLeftClubName(),
+            SizedBox(width: 3),
+            game.isPlayed ? game.getScoreRow() : Text('VS'),
+            SizedBox(width: 6),
+            game.getRightClubName(),
+
+            /// If the game is not played yet, show the button to set orders
+            // if (!game.isPlayed)
+            //   ElevatedButton(
+            //     onPressed: () {
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //             builder: (context) => game.isPlayed
+            //                 ? GameResultPage(game: game)
+            //                 : SetGameOrdersPage(game: game)),
+            //       );
+            //     },
+            //     child: game.isPlayed
+            //         ? const Text('View details')
+            //         : const Text('Set Orders'),
+            //   )
           ],
         ),
         subtitle: Row(

@@ -306,6 +306,32 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
+  Widget getStatLinearWidget(String label, double value) {
+    return Row(
+      children: [
+        Container(
+          width: 100, // Fixed width for the label
+          child: Text(label),
+        ),
+        SizedBox(
+          width: 120,
+          height: 20, // Height of the bar
+          child: ClipRRect(
+            borderRadius:
+                BorderRadius.circular(10), // Rounded corners for the bar
+            child: LinearProgressIndicator(
+              value: value / 100, // Assuming value ranges from 0 to 100
+              backgroundColor: Colors.grey[300], // Background color of the bar
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Colors.green, // Color of the filled portion of the bar
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget getStaminaWidget() {
     return Row(
       children: [
@@ -321,7 +347,7 @@ extension PlayerWidgetsHelper on Player {
                   100, // Assuming widget.player.defense ranges from 0 to 100
               backgroundColor: Colors.grey[300], // Background color of the bar
               valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.blue), // Color of the filled portion of the bar
+                  Colors.green), // Color of the filled portion of the bar
             ),
           ),
         ),
@@ -344,7 +370,7 @@ extension PlayerWidgetsHelper on Player {
                   100, // Assuming widget.player.defense ranges from 0 to 100
               backgroundColor: Colors.grey[300], // Background color of the bar
               valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.blue), // Color of the filled portion of the bar
+                  Colors.green), // Color of the filled portion of the bar
             ),
           ),
         ),
@@ -367,7 +393,7 @@ extension PlayerWidgetsHelper on Player {
                   100, // Assuming widget.player.defense ranges from 0 to 100
               backgroundColor: Colors.grey[300], // Background color of the bar
               valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.blue), // Color of the filled portion of the bar
+                  Colors.green), // Color of the filled portion of the bar
             ),
           ),
         ),
