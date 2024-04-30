@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
-import 'package:opengoalz/pages/game_result_page.dart';
-import 'package:opengoalz/pages/set_orders_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 
 import '../classes/game.dart';
@@ -144,8 +141,6 @@ class _HomePageState extends State<GamesPage> {
       child: ListTile(
         title: Row(
           children: [
-            Icon(Icons.sports_soccer),
-            SizedBox(width: 6),
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -153,16 +148,26 @@ class _HomePageState extends State<GamesPage> {
                   ClubPage.route(game.idClubLeft),
                 );
               },
-              icon: game.isPlayed
-                  ? const Icon(Icons.error_outline_outlined)
-                  : const Icon(Icons.error_outline_outlined),
+              icon: widget.idClub == game.idClubLeft
+                  ? const Icon(Icons.home_outlined)
+                  : const Icon(Icons.sports_soccer),
               label: game.getLeftClubName(),
             ),
-            game.getLeftClubName(),
             SizedBox(width: 3),
             game.isPlayed ? game.getScoreRow() : Text('VS'),
-            SizedBox(width: 6),
-            game.getRightClubName(),
+            SizedBox(width: 3),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  ClubPage.route(game.idClubRight),
+                );
+              },
+              icon: widget.idClub == game.idClubRight
+                  ? const Icon(Icons.home_outlined)
+                  : const Icon(Icons.sports_soccer),
+              label: game.getRightClubName(),
+            ),
 
             /// If the game is not played yet, show the button to set orders
             // if (!game.isPlayed)
@@ -185,47 +190,9 @@ class _HomePageState extends State<GamesPage> {
         subtitle: Row(
           children: [
             Expanded(
-              child: Row(
-                children: [
-                  const Icon(
-                      Icons.access_time_outlined), // Add your desired icon here
-                  const SizedBox(
-                      width:
-                          4), // Add some spacing between the icon and the text
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'Date: ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        TextSpan(
-                          text:
-                              DateFormat('d MMMM HH:mm').format(game.dateStart),
-                          style: const TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              child: game.getDateRow(),
             ),
-            Row(
-              children: [
-                const Icon(Icons.calendar_month_outlined),
-                Text(
-                  ' Week Day ${game.weekNumber}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
+            game.getWeekDay(),
           ],
         ),
       ),

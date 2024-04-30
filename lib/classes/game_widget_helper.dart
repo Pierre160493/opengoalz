@@ -1,6 +1,65 @@
 part of 'game.dart';
 
 extension GameWidgetsHelper on Game {
+  Widget getGameDetail(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      ClubPage.route(idClubLeft),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      Icon(Icons.sports_soccer),
+                      SizedBox(width: 8),
+                      getLeftClubName(),
+                    ],
+                  ),
+                ),
+                isPlayed ? getScoreRow() : Text('VS'),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      ClubPage.route(idClubRight),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      getRightClubName(),
+                      SizedBox(width: 8),
+                      Icon(Icons.sports_soccer),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                getDateRow(),
+                Spacer(),
+                getWeekDay(),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget getLeftClubName() {
     return Text(nameClubLeft,
         style: TextStyle(
@@ -22,7 +81,7 @@ extension GameWidgetsHelper on Game {
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white24, // You can adjust the background color here
+        color: Colors.blueGrey, // You can adjust the background color here
       ),
       child: Row(
         children: [
@@ -57,44 +116,87 @@ extension GameWidgetsHelper on Game {
   Widget getDateRow() {
     return Row(
       children: [
-        Icon(Icons.exit_to_app, color: Colors.green),
-        StreamBuilder<int>(
-          stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
-          builder: (context, snapshot) {
-            final remainingTime = dateStart.difference(DateTime.now());
-            final daysLeft = remainingTime.inDays;
-            final hoursLeft = remainingTime.inHours.remainder(24);
-            final minutesLeft = remainingTime.inMinutes.remainder(60);
-            final secondsLeft = remainingTime.inSeconds.remainder(60);
-
-            return RichText(
-              text: TextSpan(
-                text: ' Will be fired in: ',
-                style: const TextStyle(),
-                children: [
-                  if (daysLeft > 0) // Conditionally include days left
-                    TextSpan(
-                      text: '$daysLeft d, ',
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  TextSpan(
-                    text: '$hoursLeft h, $minutesLeft m, $secondsLeft s',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+        const Icon(Icons.access_time_outlined), // Add your desired icon here
+        const SizedBox(
+            width: 4), // Add some spacing between the icon and the text
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: 'Date: ',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
-            );
-          },
+              TextSpan(
+                text: DateFormat('d MMMM HH:mm').format(dateStart),
+                style: const TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
+
+  Widget getWeekDay() {
+    return Row(
+      children: [
+        const Icon(Icons.calendar_month_outlined),
+        Text(
+          ' Week Day ${weekNumber}',
+          style: const TextStyle(
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Widget getDateRow() {
+  //   return Row(
+  //     children: [
+  //       Icon(Icons.exit_to_app, color: Colors.green),
+  //       StreamBuilder<int>(
+  //         stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
+  //         builder: (context, snapshot) {
+  //           final remainingTime = dateStart.difference(DateTime.now());
+  //           final daysLeft = remainingTime.inDays;
+  //           final hoursLeft = remainingTime.inHours.remainder(24);
+  //           final minutesLeft = remainingTime.inMinutes.remainder(60);
+  //           final secondsLeft = remainingTime.inSeconds.remainder(60);
+
+  //           return RichText(
+  //             text: TextSpan(
+  //               text: ' Will be fired in: ',
+  //               style: const TextStyle(),
+  //               children: [
+  //                 if (daysLeft > 0) // Conditionally include days left
+  //                   TextSpan(
+  //                     text: '$daysLeft d, ',
+  //                     style: const TextStyle(
+  //                       color: Colors.red,
+  //                       fontWeight: FontWeight.bold,
+  //                     ),
+  //                   ),
+  //                 TextSpan(
+  //                   text: '$hoursLeft h, $minutesLeft m, $secondsLeft s',
+  //                   style: const TextStyle(
+  //                     color: Colors.red,
+  //                     fontWeight: FontWeight.bold,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           );
+  //         },
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget getStatLinearWidget(String label, double value) {
     return Row(
