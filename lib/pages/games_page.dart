@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 
@@ -125,77 +124,13 @@ class _HomePageState extends State<GamesPage> {
                 onTap: () {
                   Navigator.of(context).push(GamePage.route(game));
                 },
-                child: _buildGameDescription(game),
+                // child: _buildGameDescription(game),
+                child: game.getGameDetail(context),
               );
             },
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildGameDescription(Game game) {
-    return Card(
-      elevation: 5,
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: ListTile(
-        title: Row(
-          children: [
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  ClubPage.route(game.idClubLeft),
-                );
-              },
-              icon: widget.idClub == game.idClubLeft
-                  ? const Icon(Icons.home_outlined)
-                  : const Icon(Icons.sports_soccer),
-              label: game.getLeftClubName(),
-            ),
-            SizedBox(width: 3),
-            game.isPlayed ? game.getScoreRow() : Text('VS'),
-            SizedBox(width: 3),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  ClubPage.route(game.idClubRight),
-                );
-              },
-              icon: widget.idClub == game.idClubRight
-                  ? const Icon(Icons.home_outlined)
-                  : const Icon(Icons.sports_soccer),
-              label: game.getRightClubName(),
-            ),
-
-            /// If the game is not played yet, show the button to set orders
-            // if (!game.isPlayed)
-            //   ElevatedButton(
-            //     onPressed: () {
-            //       Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //             builder: (context) => game.isPlayed
-            //                 ? GameResultPage(game: game)
-            //                 : SetGameOrdersPage(game: game)),
-            //       );
-            //     },
-            //     child: game.isPlayed
-            //         ? const Text('View details')
-            //         : const Text('Set Orders'),
-            //   )
-          ],
-        ),
-        subtitle: Row(
-          children: [
-            Expanded(
-              child: game.getDateRow(),
-            ),
-            game.getWeekDay(),
-          ],
-        ),
-      ),
     );
   }
 }

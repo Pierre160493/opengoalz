@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart'; // Import the rxdart package
+import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';

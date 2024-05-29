@@ -9,50 +9,72 @@ extension GameWidgetsHelper on Game {
       ),
       child: Padding(
         padding: EdgeInsets.all(12),
-        child: Column(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      ClubPage.route(idClubLeft),
-                    );
-                  },
-                  child: Row(
+            Icon(
+                // Icons.military_tech,
+                // Icons.sports_score,
+                Icons.emoji_events_outlined,
+                size: 48,
+                color: Colors.green),
+            SizedBox(width: 12.0),
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.sports_soccer),
-                      SizedBox(width: 8),
-                      getLeftClubName(),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            ClubPage.route(idClubLeft),
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            Icon(Icons.sports_soccer),
+                            SizedBox(width: 6),
+                            getLeftClubName(),
+                          ],
+                        ),
+                      ),
+                      // isPlayed ? getScoreRow() : Text('VS'),
+                      isPlayed
+                          ? getScoreRow()
+                          : Icon(
+                              Icons.compare_arrows,
+                              size: 30,
+                              color: Colors.green,
+                            ),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            ClubPage.route(idClubRight),
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            getRightClubName(),
+                            SizedBox(width: 6),
+                            Icon(Icons.sports_soccer),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                isPlayed ? getScoreRow() : Text('VS'),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      ClubPage.route(idClubRight),
-                    );
-                  },
-                  child: Row(
+                  SizedBox(height: 3),
+                  Row(
                     children: [
-                      getRightClubName(),
-                      SizedBox(width: 8),
-                      Icon(Icons.sports_soccer),
+                      getDateRow(),
+                      Spacer(),
+                      getWeekDay(),
                     ],
                   ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                getDateRow(),
-                Spacer(),
-                getWeekDay(),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -81,7 +103,7 @@ extension GameWidgetsHelper on Game {
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.blueGrey, // You can adjust the background color here
+        color: Colors.white70, // You can adjust the background color here
       ),
       child: Row(
         children: [
@@ -92,11 +114,18 @@ extension GameWidgetsHelper on Game {
                   ? Colors.green
                   : (goalsLeft! < goalsRight!)
                       ? Colors.red
-                      : Colors.white,
+                      : Colors.black,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(' : '),
+          Text(
+            ' : ',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+            ),
+          ),
           Text(
             goalsRight.toString(),
             style: TextStyle(
@@ -104,7 +133,8 @@ extension GameWidgetsHelper on Game {
                   ? Colors.red
                   : (goalsLeft! < goalsRight!)
                       ? Colors.green
-                      : Colors.white,
+                      : Colors.black,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
