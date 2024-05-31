@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/club_page.dart';
 
@@ -45,29 +44,35 @@ class GamePage extends StatelessWidget {
           ],
         ),
       ),
-      body: DefaultTabController(
-          length: 3, // Number of tabs
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TabBar(
-                tabs: [
-                  Tab(text: 'Details'),
-                  Tab(text: 'Report'),
-                  Tab(text: 'Teams'),
+      body: Center(
+        child: Container(
+          constraints:
+              BoxConstraints(maxWidth: 600), // Set your desired maximum width
+          child: DefaultTabController(
+              length: 3, // Number of tabs
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TabBar(
+                    tabs: [
+                      Tab(text: 'Details'),
+                      Tab(text: 'Report'),
+                      Tab(text: 'Teams'),
+                    ],
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        game.getGameDetail(context),
+                        _getGameReport(),
+                        game.getDateRow(),
+                      ],
+                    ),
+                  ),
                 ],
-              ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    game.getGameDetail(context),
-                    _getGameReport(),
-                    game.getDateRow(),
-                  ],
-                ),
-              ),
-            ],
-          )),
+              )),
+        ),
+      ),
     );
   }
 
