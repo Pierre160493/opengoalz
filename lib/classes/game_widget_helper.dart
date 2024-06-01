@@ -1,6 +1,6 @@
-part of 'game.dart';
+part of 'gameView.dart';
 
-extension GameWidgetsHelper on Game {
+extension GameWidgetsHelper on GameView {
   Widget getGameDetail(BuildContext context) {
     return Card(
       elevation: 4,

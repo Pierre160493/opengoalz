@@ -3,7 +3,6 @@ import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/widgets/transfer_widget.dart';
 import 'package:provider/provider.dart';
 import 'class/player.dart';
 

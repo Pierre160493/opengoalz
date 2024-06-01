@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/game.dart';
+import 'package:opengoalz/classes/gameView.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/player/class/player2.dart';
@@ -12,10 +12,10 @@ import '../player/class/player.dart';
 import '../constants.dart';
 
 class GameResultPage extends StatefulWidget {
-  final Game game;
+  final GameView game;
   const GameResultPage({Key? key, required this.game}) : super(key: key);
 
-  static Route<void> route(Game game) {
+  static Route<void> route(GameView game) {
     return MaterialPageRoute(
       builder: (context) => GameResultPage(game: game),
     );

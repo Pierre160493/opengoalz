@@ -5,8 +5,8 @@ import 'package:opengoalz/pages/club_page.dart';
 
 part 'game_widget_helper.dart';
 
-class Game {
-  Game({
+class GameView {
+  GameView({
     required this.id,
     required this.idClub,
     required this.dateStart,
@@ -74,7 +74,7 @@ class Game {
   final int? idPlayerCSLeft;
   final int? idPlayerRSLeft;
 
-  Game.fromMap({required Map<String, dynamic> map})
+  GameView.fromMap({required Map<String, dynamic> map})
       : id = map['id'],
         idClub = map['id_club'],
         dateStart = DateTime.parse(map['date_start']),

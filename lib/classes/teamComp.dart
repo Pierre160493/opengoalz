@@ -1,82 +1,81 @@
+import 'package:opengoalz/player/class/player.dart';
+
 class TeamComp {
   TeamComp({
     required this.id,
-    required this.createdAt,
     required this.idGame,
     required this.idClub,
-    required this.idGoalKeeper,
-    required this.idLeftBackWinger,
-    required this.idLeftCentralBack,
-    required this.idCentralBack,
-    required this.idRightCentralBack,
-    required this.idRightBackWinger,
-    required this.idLeftWinger,
-    required this.idLeftMidFielder,
-    required this.idCentralMidFielder,
-    required this.idRightMidFielder,
-    required this.idRightWinger,
-    required this.idLeftStriker,
-    required this.idCentralStriker,
-    required this.idRightStriker,
-    required this.idSub1,
-    required this.idSub2,
-    required this.idSub3,
-    required this.idSub4,
-    required this.idSub5,
-    required this.idSub6,
+    this.goalKeeper,
+    this.leftBackWinger,
+    this.leftCentralBack,
+    this.centralBack,
+    this.rightCentralBack,
+    this.rightBackWinger,
+    this.leftWinger,
+    this.leftMidFielder,
+    this.centralMidFielder,
+    this.rightMidFielder,
+    this.rightWinger,
+    this.leftStriker,
+    this.centralStriker,
+    this.rightStriker,
+    this.sub1,
+    this.sub2,
+    this.sub3,
+    this.sub4,
+    this.sub5,
+    this.sub6,
   });
 
   final int id;
-  final DateTime createdAt;
   final int idGame;
   final int idClub;
-  final int? idGoalKeeper;
-  final int? idLeftBackWinger;
-  final int? idLeftCentralBack;
-  final int? idCentralBack;
-  final int? idRightCentralBack;
-  final int? idRightBackWinger;
-  final int? idLeftWinger;
-  final int? idLeftMidFielder;
-  final int? idCentralMidFielder;
-  final int? idRightMidFielder;
-  final int? idRightWinger;
-  final int? idLeftStriker;
-  final int? idCentralStriker;
-  final int? idRightStriker;
-  final int? idSub1;
-  final int? idSub2;
-  final int? idSub3;
-  final int? idSub4;
-  final int? idSub5;
-  final int? idSub6;
+  final Player? goalKeeper;
+  final Player? leftBackWinger;
+  final Player? leftCentralBack;
+  final Player? centralBack;
+  final Player? rightCentralBack;
+  final Player? rightBackWinger;
+  final Player? leftWinger;
+  final Player? leftMidFielder;
+  final Player? centralMidFielder;
+  final Player? rightMidFielder;
+  final Player? rightWinger;
+  final Player? leftStriker;
+  final Player? centralStriker;
+  final Player? rightStriker;
+  final Player? sub1;
+  final Player? sub2;
+  final Player? sub3;
+  final Player? sub4;
+  final Player? sub5;
+  final Player? sub6;
 
-  factory TeamComp.fromMap(Map<String, dynamic> map) {
+  factory TeamComp.fromMap(Map<String, dynamic> map, Map<int, Player> players) {
     return TeamComp(
       id: map['id'],
-      createdAt: DateTime.parse(map['created_at']),
       idGame: map['id_game'],
       idClub: map['id_club'],
-      idGoalKeeper: map['idgoalkeeper'],
-      idLeftBackWinger: map['idleftbackwinger'],
-      idLeftCentralBack: map['idleftcentralback'],
-      idCentralBack: map['idcentralback'],
-      idRightCentralBack: map['idrightcentralback'],
-      idRightBackWinger: map['idrightbackwinger'],
-      idLeftWinger: map['idleftwinger'],
-      idLeftMidFielder: map['idleftmidfielder'],
-      idCentralMidFielder: map['idcentralmidfielder'],
-      idRightMidFielder: map['idrightmidfielder'],
-      idRightWinger: map['idrightwinger'],
-      idLeftStriker: map['idleftstriker'],
-      idCentralStriker: map['idcentralstriker'],
-      idRightStriker: map['idrightstriker'],
-      idSub1: map['idsub1'],
-      idSub2: map['idsub2'],
-      idSub3: map['idsub3'],
-      idSub4: map['idsub4'],
-      idSub5: map['idsub5'],
-      idSub6: map['idsub6'],
+      goalKeeper: players[map['idgoalkeeper']],
+      leftBackWinger: players[map['idleftbackwinger']],
+      leftCentralBack: players[map['idleftcentralback']],
+      centralBack: players[map['idcentralback']],
+      rightCentralBack: players[map['idrightcentralback']],
+      rightBackWinger: players[map['idrightbackwinger']],
+      leftWinger: players[map['idleftwinger']],
+      leftMidFielder: players[map['idleftmidfielder']],
+      centralMidFielder: players[map['idcentralmidfielder']],
+      rightMidFielder: players[map['idrightmidfielder']],
+      rightWinger: players[map['idrightwinger']],
+      leftStriker: players[map['idleftstriker']],
+      centralStriker: players[map['idcentralstriker']],
+      rightStriker: players[map['idrightstriker']],
+      sub1: players[map['idsub1']],
+      sub2: players[map['idsub2']],
+      sub3: players[map['idsub3']],
+      sub4: players[map['idsub4']],
+      sub5: players[map['idsub5']],
+      sub6: players[map['idsub6']],
     );
   }
 }

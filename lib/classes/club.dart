@@ -1,6 +1,10 @@
 //ignore_for_file: non_constant_identifier_names
 
+import 'package:opengoalz/classes/teamComp.dart';
+
 class Club {
+  TeamComp? teamcomp; //team composition
+
   Club({
     required this.id_club,
     required this.created_at,

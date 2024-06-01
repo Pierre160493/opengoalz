@@ -39,7 +39,6 @@ class Player {
     required this.date_end_injury,
     required this.date_firing,
     required this.date_sell,
-    // required this.special_stats,
     required this.date_arrival,
     required this.stamina,
     required this.form,
@@ -63,7 +62,6 @@ class Player {
   final DateTime? date_end_injury;
   final DateTime? date_firing;
   final DateTime? date_sell;
-  // final List<double>? special_stats;
   final DateTime date_arrival;
   final double stamina;
   final double form;
@@ -95,9 +93,6 @@ class Player {
             : null,
         date_sell =
             map['date_sell'] != null ? DateTime.parse(map['date_sell']) : null,
-        // special_stats = (map['special_stats'] as List<dynamic>?)
-        //     ?.map<double>((e) => e as double)
-        //     .toList(),
         date_arrival = DateTime.parse(map['date_arrival']);
 
   double get age {

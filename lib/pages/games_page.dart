@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 
-import '../classes/game.dart';
+import '../classes/gameView.dart';
 import '../constants.dart';
 
 class GamesPage extends StatefulWidget {
@@ -22,7 +22,7 @@ class GamesPage extends StatefulWidget {
 }
 
 class _HomePageState extends State<GamesPage> {
-  late final Stream<List<Game>> _gameStream;
+  late final Stream<List<GameView>> _gameStream;
 
   @override
   void initState() {
@@ -31,7 +31,7 @@ class _HomePageState extends State<GamesPage> {
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.idClub)
         .order('date_start', ascending: true)
-        .map((maps) => maps.map((map) => Game.fromMap(map: map)).toList());
+        .map((maps) => maps.map((map) => GameView.fromMap(map: map)).toList());
 
     super.initState();
   }
@@ -43,7 +43,7 @@ class _HomePageState extends State<GamesPage> {
         title: Text('Games Page'),
       ),
       drawer: const AppDrawer(),
-      body: StreamBuilder<List<Game>>(
+      body: StreamBuilder<List<GameView>>(
         stream: _gameStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -61,12 +61,12 @@ class _HomePageState extends State<GamesPage> {
                 child: Text('No games found'),
               );
             } else {
-              final List<Game> gamesCurrent = [];
-              final List<Game> gamesIncoming = [];
-              final List<Game> gamesPlayed = [];
+              final List<GameView> gamesCurrent = [];
+              final List<GameView> gamesIncoming = [];
+              final List<GameView> gamesPlayed = [];
 
               DateTime now = DateTime.now();
-              for (Game game in games) {
+              for (GameView game in games) {
                 if (game.dateStart.isAfter(now) &&
                     game.dateStart
                         .isBefore(now.add(const Duration(hours: 3)))) {
@@ -111,7 +111,7 @@ class _HomePageState extends State<GamesPage> {
     );
   }
 
-  Widget _buildGameList(List<Game> games) {
+  Widget _buildGameList(List<GameView> games) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -122,7 +122,7 @@ class _HomePageState extends State<GamesPage> {
               final game = games[index];
               return GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(GamePage.route(game));
+                  Navigator.of(context).push(GamePage.route(game.id));
                 },
                 // child: _buildGameDescription(game),
                 child: game.getGameDetail(context),
