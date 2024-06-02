@@ -1,9 +1,11 @@
 //ignore_for_file: non_constant_identifier_names
 
 import 'package:opengoalz/classes/teamComp.dart';
+import 'package:opengoalz/player/class/player.dart';
 
 class Club {
   TeamComp? teamcomp; //team composition
+  List<Player> players = []; // List of players of the club
 
   Club({
     required this.id_club,
