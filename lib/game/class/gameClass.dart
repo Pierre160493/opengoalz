@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
-import 'package:opengoalz/classes/event.dart';
+import 'package:opengoalz/classes/events/event.dart';
+
+part 'gameClass_widget_helper.dart';
 
 class GameClass {
-  List<GameEvent>? events = []; //list of events in the game
+  List<GameEvent> events = []; //list of events in the game
   Club? leftClub; //left club
   Club? rightClub; //left club
 

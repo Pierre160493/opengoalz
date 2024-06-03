@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
-import 'package:opengoalz/classes/event.dart';
-import 'package:opengoalz/classes/gameClass.dart';
+import 'package:opengoalz/classes/events/event.dart';
+import 'package:opengoalz/game/class/gameClass.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/player/class/player.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -38,52 +37,32 @@ class _HomePageState extends State<GamePage> {
         .stream(primaryKey: ['id'])
         .eq('id', widget.idGame)
         .map((maps) => maps.map((map) => GameClass.fromMap(map)).first)
-        // Fetch and assign the left club
+        // Fetch and assign the clubs of the game
         .switchMap((game) {
-          return supabase
-              .from('clubs')
-              .stream(primaryKey: ['id'])
-              .eq('id', game.idClubLeft)
-              .map((maps) => maps
+          final clubsStream = supabase.from('clubs').stream(primaryKey: [
+            'id'
+          ]).inFilter('id_club', [game.idClubLeft, game.idClubRight]).map(
+              (maps) => maps
                   .map((map) => Club.fromMap(
                       map: map, myUserId: supabase.auth.currentUser!.id))
-                  .first)
-              .map((club) {
-                game.leftClub = club;
-                return game;
-              });
-        })
-        // Fetch and assign the right club
-        .switchMap((game) {
-          return supabase
-              .from('clubs')
-              .stream(primaryKey: ['id'])
-              .eq('id', game.idClubRight)
-              .map((maps) => maps
-                  .map((map) => Club.fromMap(
-                      map: map, myUserId: supabase.auth.currentUser!.id))
-                  .first)
-              .map((club) {
-                game.rightClub = club;
-                return game;
-              });
-        })
-        // Combine with players stream for left and right clubs
-        .switchMap((game) {
-          final allPlayersStream = supabase
-              .from('players')
-              .stream(primaryKey: ['id']).inFilter('id_club', [
-            game.idClubLeft,
-            game.idClubRight
-          ]).map((maps) => maps.map((map) => Player.fromMap(map)).toList());
-
-          return allPlayersStream.map((players) {
-            game.leftClub!.players = players
-                .where((player) => player.id_club == game.idClubLeft)
-                .toList();
-            game.rightClub!.players = players
-                .where((player) => player.id_club == game.idClubRight)
-                .toList();
+                  .toList());
+          return clubsStream.map((clubs) {
+            if (clubs.length != 2) {
+                  throw Exception(
+                      'DATABASE ERROR: ${clubs.length} clubs found instead of 2 for the game with id: ${game.id}');
+                }
+            game.leftClub =
+                clubs.where((club) => club.id_club == game.idClubLeft).first;
+            game.rightClub =
+                clubs.where((club) => club.id_club == game.idClubRight).first;
+                if (game.leftClub == null) {
+                  throw Exception(
+                      'DATABASE ERROR: The left club (with id: ${game.idClubLeft}) was not found for the game with id: ${game.id}');
+                }
+                if (game.rightClub == null) {
+                  throw Exception(
+                      'DATABASE ERROR: The right club (with id: ${game.idClubRight}) was not found for the game with id: ${game.id}');
+                }
             return game;
           });
         })
@@ -93,8 +72,7 @@ class _HomePageState extends State<GamePage> {
               .from('games_team_comp')
               .stream(primaryKey: ['id'])
               .eq('id_game', game.id)
-              .map((maps) =>
-                  maps.map((map) => TeamComp.fromMap(map, {})).toList())
+              .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
               .map((teamComps) {
                 if (teamComps.length != 2) {
                   throw Exception(
@@ -102,68 +80,46 @@ class _HomePageState extends State<GamePage> {
                 }
                 for (var teamComp in teamComps) {
                   if (teamComp.idClub == game.idClubLeft) {
-                    game.leftClub!.teamcomp = teamComp;
+                    game.leftClub.teamcomp = teamComp;
                   } else if (teamComp.idClub == game.idClubRight) {
-                    game.rightClub!.teamcomp = teamComp;
+                    game.rightClub.teamcomp = teamComp;
                   }
                 }
                 return game;
-              })
-              .handleError((error) {
-                // Handle error appropriately
-                print('Error: $error');
-                return game; // Optionally, you can return the game without team compositions
               });
+        })
+        .switchMap((game) {
+          final allPlayersStream = supabase
+              .from('players')
+              .stream(primaryKey: ['id']).inFilter('id', [
+            game.leftClub.teamcomp!.to_list_int,
+            game.rightClub.teamcomp!.to_list_int,
+          ]).map((maps) => maps.map((map) => Player.fromMap(map)).toList());
+
+          return allPlayersStream.map((players) {
+            print('Number of players: ' + players.length.toString());
+            game.leftClub.teamcomp!.init_players(players
+                .where((player) => player.id_club == game.idClubLeft)
+                .toList());
+            game.rightClub.teamcomp!.init_players(players
+                .where((player) => player.id_club == game.idClubRight)
+                .toList());
+            return game;
+          });
+        })
+        .switchMap((game) {
+          final _eventStream = supabase
+              .from('game_events')
+              .stream(primaryKey: ['id'])
+              .eq('id_game', widget.idGame)
+              .map(
+                  (maps) => maps.map((map) => GameEvent.fromMap(map)).toList());
+
+          return _eventStream.map((events) {
+            game.events = events;
+            return game;
+          });
         });
-
-    // // Stream to fetch clubs related to the game
-    // _playerStream = _gameStream.switchMap((game) {
-    //   return supabase.from('players').stream(primaryKey: ['id']).inFilter(
-    //       'id_club', [
-    //     game.idClubLeft,
-    //     game.idClubRight
-    //   ]).map((maps) => maps.map((map) => Player.fromMap(map)).toList());
-    // });
-    // // Combine club and player streams
-    // _clubStream = CombineLatestStream.combine2(
-    //   _clubStream,
-    //   _playerStream,
-    //   (List<Club> clubs, List<Player> players) {
-    //     for (var player in players) {
-    //       final club =
-    //           clubs.firstWhere((club) => club.id_club == player.id_club);
-    //       club.players.add(player);
-    //     }
-    //     return clubs;
-    //   },
-    // );
-
-    // // Stream to fetch team comps related to the game
-    // _teamCompStream = _gameStream.switchMap((game) {
-    //   final gameId = game.id;
-    //   return supabase
-    //       .from('games_team_comp')
-    //       .stream(primaryKey: ['id'])
-    //       .eq('id_game', gameId)
-    //       .map((maps) => maps.map((map) => TeamComp.fromMap(map, {})).toList());
-    // });
-
-    // // Stream to fetch game events related to the game
-    // _eventStream = _gameStream.switchMap((game) {
-    //   final gameId = game.id;
-    //   return supabase
-    //       .from('game_events')
-    //       .stream(primaryKey: ['id'])
-    //       .eq('id_game', gameId)
-    //       .map((maps) => maps.map((map) => GameEvent.fromMap(map)).toList());
-    // });
-    // // Combine game and event streams
-    // _gameStream = _gameStream.switchMap((game) {
-    //   return _eventStream.map((events) {
-    //     game.events = events;
-    //     return game;
-    //   });
-    // });
   }
 
   @override
@@ -185,34 +141,8 @@ class _HomePageState extends State<GamePage> {
 
             return Scaffold(
               appBar: AppBar(
-                title: Row(
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          ClubPage.route(game.idClubLeft),
-                        );
-                      },
-                      // child: game.getLeftClubName(),
-                      child: Text('testLeft'),
-                    ),
-                    SizedBox(width: 6),
-                    // game.isPlayed ? game.getScoreRow() : Text('VS'),
-                    SizedBox(width: 6),
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          ClubPage.route(game.idClubRight),
-                        );
-                      },
-                      // child: game.getRightClubName(),
-                      child: Text('testRight'),
-                    ),
-                  ],
-                ),
-              ),
+                  title:
+                      game.getGameRow(context)), //Row presentation of the game
               body: Center(
                 child: Container(
                   constraints: BoxConstraints(
@@ -232,6 +162,8 @@ class _HomePageState extends State<GamePage> {
                           Expanded(
                             child: TabBarView(
                               children: [
+                                game.getGameRow(context),
+                                game.getGameReport(context),
                                 // game.getGameDetail(context),
                                 // _getGameReport(game.events, context),
                                 // _getTeamsComp(events, context),
@@ -239,24 +171,22 @@ class _HomePageState extends State<GamePage> {
                                   children: [
                                     Text('idGame: ' + game.id.toString()),
                                     Text('leftClub: ' +
-                                        game.leftClub!.club_name.toString() +
-                                        game.leftClub!.players.length
+                                        game.leftClub.club_name.toString() +
+                                        game.leftClub.players.length
                                             .toString()),
                                     Text('rightClub: ' +
-                                        game.rightClub!.club_name.toString() +
-                                        game.rightClub!.players.length
+                                        game.rightClub.club_name.toString() +
+                                        game.rightClub.players.length
                                             .toString()),
                                     Text('Game:' +
-                                        game.leftClub!.teamcomp!.id.toString()),
+                                        game.leftClub.teamcomp!.id.toString()),
                                     Text('Game:' +
-                                        game.leftClub!.teamcomp!.idClub
+                                        game.leftClub.teamcomp!.idClub
                                             .toString()),
-                                    Text(game.leftClub!.teamcomp!.goalKeeper!
+                                    Text(game.leftClub.teamcomp!.goalKeeper!
                                         .toString()),
                                   ],
                                 ),
-                                Text('test'),
-                                Text('test'),
                               ],
                             ),
                           ),

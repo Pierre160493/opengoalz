@@ -1,6 +1,8 @@
 //ignore_for_file: non_constant_identifier_names
 
+import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/teamComp.dart';
+import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/player/class/player.dart';
 
 class Club {
@@ -65,4 +67,31 @@ class Club {
         player_count = map['player_count'] ?? 0,
         number_fans = map['number_fans'] ?? 0,
         isMine = myUserId == map['id_user'];
+
+  Widget getClubNameClickable(BuildContext context) {
+    return Row(
+      children: [
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              ClubPage.route(id_club),
+            );
+          },
+          child: Row(
+            children: [
+              Icon(Icons.home),
+              SizedBox(
+                width: 12,
+              ),
+              Text(
+                club_name,
+                style: TextStyle(fontSize: 24), // Increase the font size to 20
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
