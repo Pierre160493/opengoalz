@@ -4,7 +4,6 @@ import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/home_page.dart';
 import 'package:provider/provider.dart';
-import '../classes/club.dart';
 
 class SessionProvider extends ChangeNotifier {
   late ClubView

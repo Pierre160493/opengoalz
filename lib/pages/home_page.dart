@@ -3,9 +3,14 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/pages/game_page.dart';
+import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/login_page.dart';
+import 'package:opengoalz/pages/ranking_page.dart';
+import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -110,247 +115,118 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             drawer: const AppDrawer(),
-            body: clubs.isEmpty
-                ? const Center(child: Text('No clubs found'))
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 16),
-                      Text(
-                        'Hello ${Provider.of<SessionProvider>(context).selectedClub.username ?? 'Unknown Manager'} !',
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                      const SizedBox(height: 24),
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Here is the list of your clubs:',
-                          style: TextStyle(fontSize: 18),
+            body: MaxWidthContainer(
+              child: clubs.isEmpty
+                  ? const Center(child: Text('No clubs found'))
+                  : Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        Text(
+                          'Hello ${Provider.of<SessionProvider>(context).selectedClub.username ?? 'Unknown Manager'} !',
+                          style: const TextStyle(fontSize: 24),
                         ),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: clubs.length,
-                          itemBuilder: (context, index) {
-                            final club = clubs[index];
-                            return Card(
-                              elevation: 12, // Adjust the elevation as needed
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    24), // Adjust border radius as needed
-                              ),
-                              child: Column(
-                                children: [
-                                  // const SizedBox(height: 12),
-                                  ListTile(
-                                    onTap: () {
-                                      Provider.of<SessionProvider>(context,
-                                              listen: false)
-                                          .setselectedClub(club);
-                                    },
-                                    leading: CircleAvatar(
-                                      radius:
-                                          24, // Increase the radius as needed
-                                      child: Text((index + 1)
-                                          .toString()), // Display index with +1 to start from 1 instead of 0
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          24), // Adjust border radius as needed
-                                      side: const BorderSide(
-                                        color: Colors.blueGrey, // Border color
+                        const SizedBox(height: 24),
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Here is the list of your clubs:',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: clubs.length,
+                            itemBuilder: (context, index) {
+                              final club = clubs[index];
+                              return Card(
+                                elevation: 12, // Adjust the elevation as needed
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      24), // Adjust border radius as needed
+                                  side: BorderSide(
+                                    color: Colors
+                                        .blueGrey, // Adjust the color as needed
+                                    width: 2, // Adjust the width as needed
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    // const SizedBox(height: 12),
+                                    ListTile(
+                                      onTap: () {
+                                        Provider.of<SessionProvider>(context,
+                                                listen: false)
+                                            .setselectedClub(club);
+                                      },
+                                      leading: CircleAvatar(
+                                        radius:
+                                            24, // Increase the radius as needed
+                                        child: Text((index + 1)
+                                            .toString()), // Display index with +1 to start from 1 instead of 0
                                       ),
-                                    ),
-                                    title: Row(
-                                      children: [
-                                        if (club.id_club ==
-                                            Provider.of<SessionProvider>(
-                                                    context)
-                                                .selectedClub
-                                                .id_club)
-                                          const Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                            size:
-                                                30, // Increase the icon size as needed
-                                          )
-                                        else
-                                          const Icon(
-                                            Icons.cancel,
-                                            color: Colors.red,
-                                            size:
-                                                30, // Increase the icon size as needed
-                                          ),
-                                        const SizedBox(width: 6.0),
-                                        Expanded(
-                                          child: Text(
-                                            club.name_club ??
-                                                'ERROR: No club name',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize:
-                                                  24, // Increase the font size as needed
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            24), // Adjust border radius as needed
+                                        side: const BorderSide(
+                                          color:
+                                              Colors.blueGrey, // Border color
+                                        ),
+                                      ),
+                                      title: Row(
+                                        children: [
+                                          if (club.id_club ==
+                                              Provider.of<SessionProvider>(
+                                                      context)
+                                                  .selectedClub
+                                                  .id_club)
+                                            const Icon(
+                                              Icons.check_circle,
+                                              color: Colors.green,
+                                              size:
+                                                  30, // Increase the icon size as needed
+                                            )
+                                          else
+                                            const Icon(
+                                              Icons.cancel,
+                                              color: Colors.red,
+                                              size:
+                                                  30, // Increase the icon size as needed
+                                            ),
+                                          const SizedBox(width: 6.0),
+                                          Expanded(
+                                            child: Text(
+                                              club.name_club ??
+                                                  'ERROR: No club name',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize:
+                                                    24, // Increase the font size as needed
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 6.0),
-                                        club.getLastResults(),
-                                      ],
-                                    ),
-                                    subtitle: Text(
-                                        'Creation Date: ${DateFormat.yMMMMd('en_US').format(club.created_at)}'),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  ListTile(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => PlayersPage(
-                                              // idClub: club.id_club,
-                                              inputCriteria: {
-                                                'Clubs': [club.id_club]
-                                              }),
-                                        ),
-                                      );
-                                    },
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          24), // Adjust border radius as needed
-                                      side: const BorderSide(
-                                        color: Colors.blueGrey, // Border color
+                                          const SizedBox(width: 6.0),
+                                          club.getLastResults(),
+                                        ],
                                       ),
+                                      subtitle: Text(
+                                          'Creation Date: ${DateFormat.yMMMMd('en_US').format(club.created_at)}'),
                                     ),
-                                    leading: const Icon(Icons
-                                        .people), // Icon to indicate players
-                                    title: Text(
-                                      'Number of players: ${club.player_count}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                    const SizedBox(height: 3),
 
-                              // child: ListTile(
-                              //   onTap: () {
-                              //     Provider.of<SessionProvider>(context,
-                              //             listen: false)
-                              //         .setselectedClub(club);
-                              //   },
-                              //   leading: CircleAvatar(
-                              //     child: Text((index + 1)
-                              //         .toString()), // Display index with +1 to start from 1 instead of 0
-                              //   ),
-                              //   title: Row(
-                              //     children: [
-                              //       Expanded(
-                              //         child: Text(
-                              //           club.club_name ?? 'ERROR: No club name',
-                              //           style: const TextStyle(
-                              //               fontWeight: FontWeight.bold),
-                              //         ),
-                              //       ),
-                              //       if (club.id_club ==
-                              //           Provider.of<SessionProvider>(context)
-                              //               .selectedClub
-                              //               .id_club)
-                              //         const Icon(Icons.check_circle,
-                              //             color: Colors
-                              //                 .green) // Display green tick icon if index matches nClubInList
-                              //       else
-                              //         const Icon(Icons.cancel,
-                              //             color: Colors
-                              //                 .red), // Display red cross icon if index does not match nClubInList
-                              //     ],
-                              //   ),
-                              //   subtitle: Column(
-                              //     crossAxisAlignment: CrossAxisAlignment.start,
-                              //     children: [
-                              //       const SizedBox(height: 8),
-                              //       Text(
-                              //         'Creation Date: ${DateFormat.yMMMMd('en_US').format(club.created_at)}',
-                              //       ),
-                              //       const SizedBox(height: 4),
-                              //       Text(
-                              //         'Cash: ${club.finances_cash}',
-                              //       ),
-                              //       const SizedBox(height: 4),
-                              //       ListTile(
-                              //         onTap: () {
-                              //           Navigator.push(
-                              //             context,
-                              //             MaterialPageRoute(
-                              //               builder: (context) => PlayersPage(
-                              //                 idClub: club.id_club,
-                              //               ),
-                              //             ),
-                              //           );
-                              //         },
-                              //         // contentPadding: const EdgeInsets.all(
-                              //         //     3), // Adjust padding as needed
-                              //         shape: RoundedRectangleBorder(
-                              //           borderRadius: BorderRadius.circular(
-                              //               24), // Adjust border radius as needed
-                              //           side: const BorderSide(
-                              //             color:
-                              //                 Colors.blueGrey, // Border color
-                              //           ),
-                              //         ),
-                              //         leading: const Icon(Icons
-                              //             .people), // Icon to indicate players
-                              //         title: Text(
-                              //           'Number of players: ${club.player_count}',
-                              //           style: const TextStyle(
-                              //             fontWeight: FontWeight.bold,
-                              //           ),
-                              //         ),
-                              //       ),
-                              //       const SizedBox(height: 3),
-                              //       ListTile(
-                              //         onTap: () {
-                              //           Navigator.push(
-                              //             context,
-                              //             MaterialPageRoute(
-                              //               builder: (context) => PlayersPage(
-                              //                 idClub: club.id_club,
-                              //               ),
-                              //             ),
-                              //           );
-                              //         },
-                              //         // contentPadding: const EdgeInsets.all(
-                              //         //     3), // Adjust padding as needed
-                              //         shape: RoundedRectangleBorder(
-                              //           borderRadius: BorderRadius.circular(
-                              //               24), // Adjust border radius as needed
-                              //           side: const BorderSide(
-                              //             color:
-                              //                 Colors.blueGrey, // Border color
-                              //           ),
-                              //         ),
-                              //         leading: const Icon(Icons
-                              //             .people), // Icon to indicate players
-                              //         title: Text(
-                              //           'Number of players: ${club.player_count}',
-                              //           style: const TextStyle(
-                              //             fontWeight: FontWeight.bold,
-                              //           ),
-                              //         ),
-                              //       ),
-                              //       Text(
-                              //         'Fan club size: ${club.fans_total_number}',
-                              //       ),
-                              //     ],
-                              //   ),
-                              // ),
-                            );
-                          },
+                                    SizedBox(
+                                      height: 6,
+                                    )
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                        _quickAccessWidget(context,
+                            Provider.of<SessionProvider>(context).selectedClub),
+                      ],
+                    ),
+            ),
           );
         } else if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
@@ -359,5 +235,163 @@ class _HomePageState extends State<HomePage> {
         }
       },
     );
+  }
+
+  Widget _quickAccessWidget(BuildContext context, ClubView club) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+      /// Players box
+      InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PlayersPage(
+                  // idClub: club.id_club,
+                  inputCriteria: {
+                    'Clubs': [club.id_club]
+                  }),
+            ),
+          );
+        },
+        child: Container(
+          width: 120, // Fixed width for each tile
+          height: 120, // Fixed height for each tile
+          decoration: BoxDecoration(
+            borderRadius:
+                BorderRadius.circular(6), // Adjust border radius as needed
+            border: Border.all(
+              color: Colors.blueGrey, // Border color
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Players [${club.player_count}]'),
+              CircleAvatar(
+                radius: 32,
+                child: Icon(
+                  icon_players,
+                  size: 32,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
+      /// Transfers box
+      InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TransferPage(
+                idClub: club.id_club,
+              ),
+            ),
+          );
+        },
+        child: Container(
+          width: 120, // Fixed width for each tile
+          height: 120, // Fixed height for each tile
+          decoration: BoxDecoration(
+            borderRadius:
+                BorderRadius.circular(6), // Adjust border radius as needed
+            border: Border.all(
+              color: Colors.blueGrey, // Border color
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Transfers'),
+              CircleAvatar(
+                radius: 32,
+                child: Icon(
+                  icon_transfers,
+                  size: 32,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
+      /// Games box
+      InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GamesPage(
+                idClub: club.id_club,
+              ),
+            ),
+          );
+        },
+        child: Container(
+          width: 120, // Fixed width for each tile
+          height: 120, // Fixed height for each tile
+          decoration: BoxDecoration(
+            borderRadius:
+                BorderRadius.circular(6), // Adjust border radius as needed
+            border: Border.all(
+              color: Colors.blueGrey, // Border color
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Games'),
+              CircleAvatar(
+                radius: 32,
+                child: Icon(
+                  icon_games,
+                  size: 32,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
+      /// Ranking box
+      InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RankingPage(
+                idLeague: club.id_league,
+              ),
+            ),
+          );
+        },
+        child: Container(
+          width: 120, // Fixed width for each tile
+          height: 120, // Fixed height for each tile
+          decoration: BoxDecoration(
+            borderRadius:
+                BorderRadius.circular(6), // Adjust border radius as needed
+            border: Border.all(
+              color: Colors.blueGrey, // Border color
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Rankings'),
+              CircleAvatar(
+                radius: 32,
+                child: Icon(
+                  icon_games,
+                  size: 32,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ]);
   }
 }
