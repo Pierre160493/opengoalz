@@ -6,8 +6,8 @@ part 'gameClass_widget_helper.dart';
 
 class GameClass {
   List<GameEvent> events = []; //list of events in the game
-  Club? leftClub; //left club
-  Club? rightClub; //left club
+  late Club leftClub; //left club
+  late Club rightClub; //left club
 
   GameClass({
     required this.id,
