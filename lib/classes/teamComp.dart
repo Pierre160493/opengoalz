@@ -96,6 +96,7 @@ class TeamComp {
         throw Exception(
             'No player found with id {${player['id']}} for the club with id {{$idClub}} for the game {{$idGame}}');
       }
+      print(player);
     }
     print('fin de la boucle');
   }

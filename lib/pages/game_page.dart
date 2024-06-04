@@ -183,7 +183,7 @@ class _HomePageState extends State<GamePage> {
                           Expanded(
                             child: TabBarView(
                               children: [
-                                game.getGameRow(context),
+                                game.getGameRow(context, isSpaceEvenly: true),
                                 game.getGameReport(context),
                                 // game.getGameDetail(context),
                                 // _getGameReport(game.events, context),

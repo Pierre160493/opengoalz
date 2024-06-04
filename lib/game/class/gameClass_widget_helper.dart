@@ -1,36 +1,85 @@
 part of 'gameClass.dart';
 
 extension GameClassWidgetHelper on GameClass {
-  Widget getGameRow(BuildContext context) {
+  Widget getGameRow(BuildContext context, {bool isSpaceEvenly = false}) {
     return Row(
+      mainAxisAlignment: isSpaceEvenly
+          ? MainAxisAlignment.spaceBetween
+          : MainAxisAlignment.start,
       children: [
         leftClub.getClubNameClickable(context),
         SizedBox(width: 6),
         isPlayed ? getScoreRow() : Text('VS'),
         SizedBox(width: 6),
-        rightClub.getClubNameClickable(context),
+        rightClub.getClubNameClickable(context, isRightClub: true),
       ],
     );
   }
 
   Widget getScoreRow() {
-    int leftClubScore = 0;
-    int rightClubScore = 0;
+    List<GameEvent> scoreEvents =
+        events.where((event) => event.idEventType == 1).toList();
+    int leftClubScore =
+        scoreEvents.where((event) => event.id_club == idClubLeft).length;
+    int rightClubScore =
+        scoreEvents.where((event) => event.id_club == idClubRight).length;
 
-    for (var event in events) {
-      if (event.idEventType == 1) {
-        if (event.id_club == idClubLeft) {
-          leftClubScore++;
-        } else if (event.id_club == idClubRight) {
-          rightClubScore++;
-        }
-      }
+    Color leftColor = Colors.white;
+    Color rightColor = Colors.white;
+    if (leftClubScore > rightClubScore) {
+      leftColor = Colors.green;
+      rightColor = Colors.red;
+    } else if (leftClubScore < rightClubScore) {
+      leftColor = Colors.red;
+      rightColor = Colors.green;
     }
 
-    return Row(
+    Row row = Row(
       children: [
-        Text('$leftClubScore - $rightClubScore'),
+        SizedBox(
+          width: 6,
+        ),
+        Icon(
+          Icons.handshake,
+// Icons.compare_arrows,
+          size: 30,
+          color: Colors.blueGrey,
+        ),
+        SizedBox(
+          width: 6,
+        )
       ],
+    );
+
+    if (isPlayed == false) return row;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        children: [
+          Text(
+            leftClubScore.toString(),
+            style: TextStyle(
+              fontSize: 24.0,
+              color: leftColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          row,
+          Text(
+            rightClubScore.toString(),
+            style: TextStyle(
+              fontSize: 24.0,
+              color: rightColor,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -45,7 +94,10 @@ extension GameClassWidgetHelper on GameClass {
         SizedBox(
           height: 12,
         ),
-        getGameRow(context),
+        getGameRow(context, isSpaceEvenly: true),
+        SizedBox(
+          height: 12,
+        ),
         Expanded(
           child: ListView.builder(
             itemCount: events.length,

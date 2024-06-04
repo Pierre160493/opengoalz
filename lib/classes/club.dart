@@ -2,8 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/teamComp.dart';
+import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/player/class/player.dart';
+import 'package:provider/provider.dart';
 
 class Club {
   TeamComp? teamcomp; //team composition
@@ -68,8 +71,23 @@ class Club {
         number_fans = map['number_fans'] ?? 0,
         isMine = myUserId == map['id_user'];
 
-  Widget getClubNameClickable(BuildContext context) {
+  Widget getClubNameClickable(BuildContext context,
+      {bool isRightClub = false}) {
+    Text text = Text(
+      club_name,
+      style: TextStyle(fontSize: 20),
+      overflow: TextOverflow.fade, // or TextOverflow.ellipsis
+      maxLines: 1,
+      softWrap: false,
+    );
+    Icon icon = Icon(
+        Provider.of<SessionProvider>(context).selectedClub.id_club == id_club
+            ? icon_home
+            : Icons.sports_soccer_outlined);
+
     return Row(
+      mainAxisAlignment:
+          isRightClub ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         InkWell(
           onTap: () {
@@ -80,14 +98,9 @@ class Club {
           },
           child: Row(
             children: [
-              Icon(Icons.home),
-              SizedBox(
-                width: 12,
-              ),
-              Text(
-                club_name,
-                style: TextStyle(fontSize: 24), // Increase the font size to 20
-              ),
+              if (isRightClub) icon else text,
+              SizedBox(width: 6),
+              if (isRightClub) text else icon,
             ],
           ),
         ),
