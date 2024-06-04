@@ -25,22 +25,26 @@ extension GameWidgetsHelper on GameView {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            ClubPage.route(idClubLeft),
-                          );
-                        },
-                        child: Container(
-                          width: 200,
-                          child: Row(
-                            children: [
-                              Icon(Icons.sports_soccer),
-                              SizedBox(width: 6),
-                              getLeftClubName(),
-                            ],
-                          ),
+                      Container(
+                        width: 200,
+                        child: Row(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  ClubPage.route(idClubLeft),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(Icons.sports_soccer),
+                                  SizedBox(width: 6),
+                                  getLeftClubName(),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       // isPlayed ? getScoreRow() : Text('VS'),
@@ -51,23 +55,27 @@ extension GameWidgetsHelper on GameView {
                               size: 30,
                               color: Colors.green,
                             ),
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            ClubPage.route(idClubRight),
-                          );
-                        },
-                        child: Container(
-                          width: 200,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              getRightClubName(),
-                              SizedBox(width: 6),
-                              Icon(Icons.sports_soccer),
-                            ],
-                          ),
+                      Container(
+                        width: 200,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  ClubPage.route(idClubRight),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  getRightClubName(),
+                                  SizedBox(width: 6),
+                                  Icon(Icons.sports_soccer),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
