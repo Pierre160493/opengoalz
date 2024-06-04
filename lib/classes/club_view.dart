@@ -103,8 +103,18 @@ class ClubView {
     }
 
     // Returning a Row widget containing all the icons
-    return Row(
-      children: icons,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12), // Adjust the radius as needed
+        color: Colors.black, // Adjust the color as needed
+        border: Border.all(
+          width: 1,
+          color: Colors.blueGrey,
+        ),
+      ),
+      child: Row(
+        children: icons,
+      ),
     );
   }
 }

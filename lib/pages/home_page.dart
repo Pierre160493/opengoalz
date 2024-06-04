@@ -120,7 +120,7 @@ class _HomePageState extends State<HomePage> {
                   ? const Center(child: Text('No clubs found'))
                   : Column(
                       children: [
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         Text(
                           'Hello ${Provider.of<SessionProvider>(context).selectedClub.username ?? 'Unknown Manager'} !',
                           style: const TextStyle(fontSize: 24),
@@ -138,92 +138,196 @@ class _HomePageState extends State<HomePage> {
                             itemCount: clubs.length,
                             itemBuilder: (context, index) {
                               final club = clubs[index];
-                              return Card(
-                                elevation: 12, // Adjust the elevation as needed
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      24), // Adjust border radius as needed
-                                  side: BorderSide(
-                                    color: Colors
-                                        .blueGrey, // Adjust the color as needed
-                                    width: 2, // Adjust the width as needed
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    // const SizedBox(height: 12),
-                                    ListTile(
-                                      onTap: () {
-                                        Provider.of<SessionProvider>(context,
-                                                listen: false)
-                                            .setselectedClub(club);
-                                      },
-                                      leading: CircleAvatar(
-                                        radius:
-                                            24, // Increase the radius as needed
-                                        child: Text((index + 1)
-                                            .toString()), // Display index with +1 to start from 1 instead of 0
+                              return Column(
+                                children: [
+                                  Container(
+                                    // margin: const EdgeInsets.only(bottom: 12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(24),
+                                      border: Border.all(
+                                        color: Colors
+                                            .blueGrey, // Change the color to whatever you want
+                                        width:
+                                            2, // Change the width of the border to whatever you want
                                       ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            24), // Adjust border radius as needed
-                                        side: const BorderSide(
-                                          color:
-                                              Colors.blueGrey, // Border color
-                                        ),
-                                      ),
-                                      title: Row(
-                                        children: [
-                                          if (club.id_club ==
-                                              Provider.of<SessionProvider>(
-                                                      context)
-                                                  .selectedClub
-                                                  .id_club)
-                                            const Icon(
-                                              Icons.check_circle,
-                                              color: Colors.green,
-                                              size:
-                                                  30, // Increase the icon size as needed
-                                            )
-                                          else
-                                            const Icon(
-                                              Icons.cancel,
-                                              color: Colors.red,
-                                              size:
-                                                  30, // Increase the icon size as needed
-                                            ),
-                                          const SizedBox(width: 6.0),
-                                          Expanded(
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        ListTile(
+                                          onTap: () {
+                                            Provider.of<SessionProvider>(
+                                                    context,
+                                                    listen: false)
+                                                .setselectedClub(club);
+                                          },
+                                          leading: CircleAvatar(
+                                            backgroundColor: club.id_club ==
+                                                    Provider.of<SessionProvider>(
+                                                            context)
+                                                        .selectedClub
+                                                        .id_club
+                                                ? Colors.green
+                                                : Colors.blueGrey,
+                                            radius:
+                                                24, // Increase the radius as needed
                                             child: Text(
-                                              club.name_club ??
-                                                  'ERROR: No club name',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
+                                              (index + 1).toString(),
+                                              style: TextStyle(
                                                 fontSize:
-                                                    24, // Increase the font size as needed
+                                                    24, // Replace 20 with your desired font size
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(width: 6.0),
-                                          club.getLastResults(),
-                                        ],
-                                      ),
-                                      subtitle: Text(
-                                          'Creation Date: ${DateFormat.yMMMMd('en_US').format(club.created_at)}'),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                24), // Adjust border radius as needed
+                                            side: const BorderSide(
+                                              color: Colors
+                                                  .blueGrey, // Border color
+                                            ),
+                                          ),
+                                          title: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  club.name_club ??
+                                                      'ERROR: No club name',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize:
+                                                        24, // Increase the font size as needed
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6.0),
+                                              club.getLastResults(),
+                                            ],
+                                          ),
+                                          subtitle: Text(
+                                              'Creation Date: ${DateFormat.yMMMMd('en_US').format(club.created_at)}'),
+                                        ),
+                                        if (club.id_club ==
+                                            Provider.of<SessionProvider>(
+                                                    context)
+                                                .selectedClub
+                                                .id_club)
+                                          Column(
+                                            children: [
+                                              const SizedBox(
+                                                height: 6,
+                                              ),
+                                              _quickAccessWidget(
+                                                  context,
+                                                  Provider.of<SessionProvider>(
+                                                          context)
+                                                      .selectedClub),
+                                              const SizedBox(height: 6),
+                                            ],
+                                          ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 3),
-
-                                    SizedBox(
-                                      height: 6,
-                                    )
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(
+                                    height: 6,
+                                  )
+                                ],
                               );
                             },
                           ),
                         ),
-                        _quickAccessWidget(context,
-                            Provider.of<SessionProvider>(context).selectedClub),
+
+                        // Expanded(
+                        //   child: ListView.builder(
+                        //     itemCount: clubs.length,
+                        //     itemBuilder: (context, index) {
+                        //       final club = clubs[index];
+                        //       return Card(
+                        //         elevation: 12, // Adjust the elevation as needed
+                        //         shape: RoundedRectangleBorder(
+                        //           borderRadius: BorderRadius.circular(
+                        //               24), // Adjust border radius as needed
+                        //           side: BorderSide(
+                        //             color: Colors
+                        //                 .blueGrey, // Adjust the color as needed
+                        //             width: 2, // Adjust the width as needed
+                        //           ),
+                        //         ),
+                        //         child: Container(
+                        //           color: Colors.green,
+                        //           child: Column(
+                        //             children: [
+                        //               // const SizedBox(height: 12),
+                        //               ListTile(
+                        //                 onTap: () {
+                        //                   Provider.of<SessionProvider>(context,
+                        //                           listen: false)
+                        //                       .setselectedClub(club);
+                        //                 },
+                        //                 leading: CircleAvatar(
+                        //                   radius:
+                        //                       24, // Increase the radius as needed
+                        //                   child: Text((index + 1)
+                        //                       .toString()), // Display index with +1 to start from 1 instead of 0
+                        //                 ),
+                        //                 shape: RoundedRectangleBorder(
+                        //                   borderRadius: BorderRadius.circular(
+                        //                       24), // Adjust border radius as needed
+                        //                   side: const BorderSide(
+                        //                     color:
+                        //                         Colors.blueGrey, // Border color
+                        //                   ),
+                        //                 ),
+                        //                 title: Row(
+                        //                   children: [
+                        //                     if (club.id_club ==
+                        //                         Provider.of<SessionProvider>(
+                        //                                 context)
+                        //                             .selectedClub
+                        //                             .id_club)
+                        //                       const Icon(
+                        //                         Icons.check_circle,
+                        //                         color: Colors.green,
+                        //                         size:
+                        //                             30, // Increase the icon size as needed
+                        //                       )
+                        //                     else
+                        //                       const Icon(
+                        //                         Icons.cancel,
+                        //                         color: Colors.red,
+                        //                         size:
+                        //                             30, // Increase the icon size as needed
+                        //                       ),
+                        //                     const SizedBox(width: 6.0),
+                        //                     Expanded(
+                        //                       child: Text(
+                        //                         club.name_club ??
+                        //                             'ERROR: No club name',
+                        //                         style: const TextStyle(
+                        //                           fontWeight: FontWeight.bold,
+                        //                           fontSize:
+                        //                               24, // Increase the font size as needed
+                        //                         ),
+                        //                       ),
+                        //                     ),
+                        //                     const SizedBox(width: 6.0),
+                        //                     club.getLastResults(),
+                        //                   ],
+                        //                 ),
+                        //                 subtitle: Text(
+                        //                     'Creation Date: ${DateFormat.yMMMMd('en_US').format(club.created_at)}'),
+                        //               ),
+                        //               const SizedBox(height: 3),
+
+                        //               SizedBox(
+                        //                 height: 6,
+                        //               )
+                        //             ],
+                        //           ),
+                        //         ),
+                        //       );
+                        //     },
+                        //   ),
+                        // ),
                       ],
                     ),
             ),
@@ -384,7 +488,7 @@ class _HomePageState extends State<HomePage> {
               CircleAvatar(
                 radius: 32,
                 child: Icon(
-                  icon_games,
+                  icon_rankings,
                   size: 32,
                 ),
               ),
