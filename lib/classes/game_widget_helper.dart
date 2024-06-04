@@ -16,7 +16,7 @@ extension GameWidgetsHelper on GameView {
                 // Icons.military_tech,
                 // Icons.sports_score,
                 Icons.emoji_events_outlined,
-                size: 48,
+                size: 60,
                 color: Colors.green),
             SizedBox(width: 12.0),
             Expanded(
@@ -32,12 +32,15 @@ extension GameWidgetsHelper on GameView {
                             ClubPage.route(idClubLeft),
                           );
                         },
-                        child: Row(
-                          children: [
-                            Icon(Icons.sports_soccer),
-                            SizedBox(width: 6),
-                            getLeftClubName(),
-                          ],
+                        child: Container(
+                          width: 200,
+                          child: Row(
+                            children: [
+                              Icon(Icons.sports_soccer),
+                              SizedBox(width: 6),
+                              getLeftClubName(),
+                            ],
+                          ),
                         ),
                       ),
                       // isPlayed ? getScoreRow() : Text('VS'),
@@ -55,12 +58,16 @@ extension GameWidgetsHelper on GameView {
                             ClubPage.route(idClubRight),
                           );
                         },
-                        child: Row(
-                          children: [
-                            getRightClubName(),
-                            SizedBox(width: 6),
-                            Icon(Icons.sports_soccer),
-                          ],
+                        child: Container(
+                          width: 200,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              getRightClubName(),
+                              SizedBox(width: 6),
+                              Icon(Icons.sports_soccer),
+                            ],
+                          ),
                         ),
                       ),
                     ],

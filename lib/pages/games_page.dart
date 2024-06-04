@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/max_width_widget.dart';
 
 import '../classes/gameView.dart';
 import '../constants.dart';
@@ -43,70 +44,72 @@ class _HomePageState extends State<GamesPage> {
         title: Text('Games Page'),
       ),
       drawer: const AppDrawer(),
-      body: StreamBuilder<List<GameView>>(
-        stream: _gameStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          } else {
-            final games = snapshot.data ?? [];
-            if (games.isEmpty) {
+      body: MaxWidthContainer(
+        child: StreamBuilder<List<GameView>>(
+          stream: _gameStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
-                child: Text('No games found'),
+                child: CircularProgressIndicator(),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text('Error: ${snapshot.error}'),
               );
             } else {
-              final List<GameView> gamesCurrent = [];
-              final List<GameView> gamesIncoming = [];
-              final List<GameView> gamesPlayed = [];
+              final games = snapshot.data ?? [];
+              if (games.isEmpty) {
+                return const Center(
+                  child: Text('No games found'),
+                );
+              } else {
+                final List<GameView> gamesCurrent = [];
+                final List<GameView> gamesIncoming = [];
+                final List<GameView> gamesPlayed = [];
 
-              DateTime now = DateTime.now();
-              for (GameView game in games) {
-                if (game.dateStart.isAfter(now) &&
-                    game.dateStart
-                        .isBefore(now.add(const Duration(hours: 3)))) {
-                  gamesCurrent.add(game);
-                } else if (game.isPlayed) {
-                  gamesPlayed.add(game);
-                } else {
-                  gamesIncoming.add(game);
+                DateTime now = DateTime.now();
+                for (GameView game in games) {
+                  if (game.dateStart.isAfter(now) &&
+                      game.dateStart
+                          .isBefore(now.add(const Duration(hours: 3)))) {
+                    gamesCurrent.add(game);
+                  } else if (game.isPlayed) {
+                    gamesPlayed.add(game);
+                  } else {
+                    gamesIncoming.add(game);
+                  }
                 }
-              }
 
-              return DefaultTabController(
-                length: gamesCurrent.length == 0 ? 2 : 3, // Number of tabs
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TabBar(
-                      tabs: [
-                        if (gamesCurrent.length > 0)
-                          Tab(text: 'Current (${gamesCurrent.length})'),
-                        Tab(text: 'Incoming (${gamesIncoming.length})'),
-                        Tab(text: 'Played (${gamesPlayed.length})'),
-                      ],
-                    ),
-                    Expanded(
-                      child: TabBarView(
-                        children: [
+                return DefaultTabController(
+                  length: gamesCurrent.length == 0 ? 2 : 3, // Number of tabs
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TabBar(
+                        tabs: [
                           if (gamesCurrent.length > 0)
-                            _buildGameList(gamesCurrent),
-                          _buildGameList(gamesIncoming),
-                          _buildGameList(gamesPlayed)
+                            Tab(text: 'Current (${gamesCurrent.length})'),
+                          Tab(text: 'Incoming (${gamesIncoming.length})'),
+                          Tab(text: 'Played (${gamesPlayed.length})'),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              );
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            if (gamesCurrent.length > 0)
+                              _buildGameList(gamesCurrent),
+                            _buildGameList(gamesIncoming),
+                            _buildGameList(gamesPlayed)
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
             }
-          }
-        },
+          },
+        ),
       ),
     );
   }
@@ -120,7 +123,7 @@ class _HomePageState extends State<GamesPage> {
             itemCount: games.length,
             itemBuilder: (context, index) {
               final game = games[index];
-              return GestureDetector(
+              return InkWell(
                 onTap: () {
                   Navigator.of(context).push(GamePage.route(game.id));
                 },
@@ -128,6 +131,7 @@ class _HomePageState extends State<GamesPage> {
                 child: game.getGameDetail(context),
               );
             },
+            // leading: Text('test')
           ),
         ),
       ],
