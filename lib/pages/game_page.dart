@@ -90,7 +90,7 @@ class _HomePageState extends State<GamePage> {
                       'DATABASE ERROR: ${teamComps.length} teamcomps found instead of 2 for game with id: ${game.id}');
                 }
                 print('testPierre');
-                for (var teamComp in teamComps) {
+                for (TeamComp teamComp in teamComps) {
                   if (teamComp.idClub == game.idClubLeft) {
                     game.leftClub.teamcomp = teamComp;
                   } else if (teamComp.idClub == game.idClubRight) {
@@ -185,29 +185,53 @@ class _HomePageState extends State<GamePage> {
                               children: [
                                 game.getGameRow(context, isSpaceEvenly: true),
                                 game.getGameReport(context),
-                                // game.getGameDetail(context),
-                                // _getGameReport(game.events, context),
-                                // _getTeamsComp(events, context),
-                                Column(
-                                  children: [
-                                    Text('idGame: ' + game.id.toString()),
-                                    Text('leftClub: ' +
-                                        game.leftClub.club_name.toString() +
-                                        game.leftClub.players.length
-                                            .toString()),
-                                    Text('rightClub: ' +
-                                        game.rightClub.club_name.toString() +
-                                        game.rightClub.players.length
-                                            .toString()),
-                                    Text('Game:' +
-                                        game.leftClub.teamcomp!.id.toString()),
-                                    Text('Game:' +
-                                        game.leftClub.teamcomp!.idClub
-                                            .toString()),
-                                    // Text(game.leftClub.teamcomp!.goalKeeper!
-                                    //     .toString()),
-                                  ],
-                                ),
+                                DefaultTabController(
+                                  length: 2,
+                                  child: Column(
+                                    children: [
+                                      TabBar(
+                                        tabs: [
+                                          Tab(
+                                            text: game.leftClub.club_name,
+                                          ),
+                                          Tab(
+                                            text: game.rightClub.club_name,
+                                          ),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: TabBarView(
+                                          children: [
+                                            Text('Left Club'),
+                                            Text('Right Club')
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+
+                                // game.getTeamsComp(context)
+                                // Column(
+                                //   children: [
+                                //     Text('idGame: ' + game.id.toString()),
+                                //     Text('leftClub: ' +
+                                //         game.leftClub.club_name.toString() +
+                                //         game.leftClub.players.length
+                                //             .toString()),
+                                //     Text('rightClub: ' +
+                                //         game.rightClub.club_name.toString() +
+                                //         game.rightClub.players.length
+                                //             .toString()),
+                                //     Text('Game:' +
+                                //         game.leftClub.teamcomp!.id.toString()),
+                                //     Text('Game:' +
+                                //         game.leftClub.teamcomp!.idClub
+                                //             .toString()),
+                                //     // Text(game.leftClub.teamcomp!.goalKeeper!
+                                //     //     .toString()),
+                                //   ],
+                                // ),
                               ],
                             ),
                           ),
@@ -220,230 +244,265 @@ class _HomePageState extends State<GamePage> {
         });
   }
 
-  // Widget _getGameReport(List<GameEvent> events, BuildContext context) {
-  //   int leftClubScore = 0;
-  //   int rightClubScore = 0;
-
-  //   if (events.length == 0) return Text('No events found');
-
-  //   return Column(
-  //     children: [
-  //       SizedBox(
-  //         height: 12,
-  //       ),
-  //       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-  //         SizedBox(),
-  //         InkWell(
-  //           onTap: () {
-  //             Navigator.push(
-  //               context,
-  //               ClubPage.route(game.idClubLeft),
-  //             );
-  //           },
-  //           child: Row(
+  // Widget _getTeamsComp(BuildContext context) {
+  //   return Container(
+  //     padding: const EdgeInsets.all(16.0),
+  //     child: SingleChildScrollView(
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.stretch,
+  //         children: [
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
   //             children: [
-  //               Icon(Icons.home),
-  //               SizedBox(
-  //                 width: 12,
-  //               ),
-  //               Text(
-  //                 game.nameClubLeft,
-  //                 style:
-  //                     TextStyle(fontSize: 24), // Increase the font size to 20
-  //               ),
+  //               buildPlayerCard(game.tea),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('CentralStriker'),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('RightStriker'),
   //             ],
   //           ),
-  //         ),
-  //         Icon(
-  //           Icons.compare_arrows,
-  //           size: 30,
-  //           color: Colors.green,
-  //         ),
-  //         InkWell(
-  //           onTap: () {
-  //             Navigator.push(
-  //               context,
-  //               ClubPage.route(game.idClubRight),
-  //             );
-  //           },
-  //           child: Row(
+  //           const SizedBox(height: 6.0), // Add spacing between rows
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
   //             children: [
-  //               Text(
-  //                 game.nameClubRight,
-  //                 style:
-  //                     TextStyle(fontSize: 24), // Increase the font size to 20
-  //               ),
-  //               SizedBox(
-  //                 width: 12,
-  //               ),
-  //               Icon(Icons.home),
+  //               buildPlayerCard('LeftWinger'),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('LeftMidFielder'),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('CentralMidFielder'),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('RightMidFielder'),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('RightWinger'),
   //             ],
   //           ),
-  //         ),
-  //         // SizedBox(),
-  //       ]),
-  //       Expanded(
-  //         child: ListView.builder(
-  //           itemCount: events.length,
-  //           itemBuilder: (context, index) {
-  //             final event = events[index];
-
-  //             if (index == 0) {
-  //               leftClubScore = 0;
-  //               rightClubScore = 0;
-  //             }
-
-  //             // Update scores based on event type (assuming event type 1 is a goal)
-  //             if (event.idEventType == 1) {
-  //               if (event.id_club == game.idClubLeft) {
-  //                 leftClubScore++;
-  //               } else if (event.id_club == game.idClubRight) {
-  //                 rightClubScore++;
-  //               }
-  //             }
-
-  //             return ListTile(
-  //               leading: Container(
-  //                 width: 100, // Fixed width to ensure alignment
-  //                 child: Row(
-  //                   mainAxisSize: MainAxisSize.min,
-  //                   children: [
-  //                     Container(
-  //                       width: 36,
-  //                       height: 36,
-  //                       decoration: BoxDecoration(
-  //                         shape: BoxShape.circle,
-  //                         color: Colors.blueGrey,
-  //                       ),
-  //                       child: Center(
-  //                         child: Text(
-  //                           '${event.gameMinute.toString()}\'',
-  //                           style: TextStyle(
-  //                             color: Colors.white,
-  //                             fontWeight: FontWeight.bold,
-  //                             fontSize: 16.0,
-  //                           ),
-  //                         ),
-  //                       ),
-  //                     ),
-  //                     SizedBox(width: 10),
-  //                     if (event.idEventType == 1) // Conditionally display score
-  //                       Padding(
-  //                         padding: const EdgeInsets.only(left: 8.0),
-  //                         child: Column(
-  //                           mainAxisAlignment: MainAxisAlignment.center,
-  //                           children: [
-  //                             Text(
-  //                               '$leftClubScore - $rightClubScore',
-  //                               style: TextStyle(
-  //                                 fontSize: 16.0,
-  //                                 fontWeight: FontWeight.bold,
-  //                               ),
-  //                             ),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                   ],
-  //                 ),
-  //               ),
-  //               title: Row(
-  //                 children: [
-  //                   event.id_club == game.idClubRight
-  //                       ? Spacer()
-  //                       : SizedBox(width: 6),
-  //                   event.getDescription(context),
-  //                 ],
-  //               ),
-  //             );
-  //           },
-  //         ),
+  //           const SizedBox(height: 6.0), // Add spacing between rows
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: [
+  //               buildPlayerCard('LeftWingDefender'),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('LeftCentralDefender'),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('CentralDefender'),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('RightCentralDefender'),
+  //               const SizedBox(width: 6.0),
+  //               buildPlayerCard('RightWingDefender'),
+  //             ],
+  //           ),
+  //           const SizedBox(height: 6.0), // Add spacing between rows
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: [
+  //               buildPlayerCard('GoalKeeper'),
+  //             ],
+  //           ),
+  //           // const SizedBox(
+  //           //     height: 16.0), // Add spacing between rows
+  //           // Row(
+  //           //   mainAxisAlignment: MainAxisAlignment.center,
+  //           //   children: [
+  //           //     buildPlayerCard('Substitute 1', teamComp[index].idSub1),
+  //           //     buildPlayerCard('Substitute 2', teamComp[index].idSub2),
+  //           //     buildPlayerCard('Substitute 3', teamComp[index].idSub3),
+  //           //     buildPlayerCard('Substitute 4', teamComp[index].idSub4),
+  //           //     buildPlayerCard('Substitute 5', teamComp[index].idSub5),
+  //           //     buildPlayerCard('Substitute 6', teamComp[index].idSub6),
+  //           //   ],
+  //           // ),
+  //         ],
   //       ),
-  //     ],
+  //     ),
   //   );
   // }
 
-  // Widget _getTeamsComp(List<GameEvent> events, BuildContext context) {
-  //   int leftClubScore = 0;
-  //   int rightClubScore = 0;
-  //   return ListView.builder(
-  //     itemCount: events.length,
-  //     itemBuilder: (context, index) {
-  //       final event = events[index];
+  // Widget buildPlayerCard(Map<String, dynamic> player) {
+  //   int? idPlayer;
+  //   String strPositionInDB, strPositionInUI;
 
-  //       // Update scores based on event type (assuming event type 1 is a goal)
-  //       if (event.idEventType == 1) {
-  //         if (event.id_club == widget.game.idClubLeft) {
-  //           leftClubScore++;
-  //         } else if (event.id_club == widget.game.idClubRight) {
-  //           rightClubScore++;
-  //         }
-  //       }
+  //   switch (position) {
+  //     case 'GoalKeeper':
+  //       idPlayer = teamComp.idGoalKeeper;
+  //       strPositionInDB = 'idgoalkeeper';
+  //       strPositionInUI = 'GoalKeeper';
+  //       strPositionInUI = 'GK';
+  //       break;
+  //     case 'LeftWingDefender':
+  //       idPlayer = teamComp.idLeftBackWinger;
+  //       strPositionInDB = 'idleftbackwinger';
+  //       strPositionInUI = 'Left Back';
+  //       strPositionInUI = 'LB';
+  //       break;
+  //     case 'LeftCentralDefender':
+  //       idPlayer = teamComp.idLeftCentralBack;
+  //       strPositionInDB = 'idleftcentralback';
+  //       strPositionInUI = 'Central Def';
+  //       strPositionInUI = 'LCB';
+  //       break;
+  //     case 'CentralDefender':
+  //       idPlayer = teamComp.idCentralBack;
+  //       strPositionInDB = 'idcentralback';
+  //       strPositionInUI = 'Central Def';
+  //       strPositionInUI = 'CB';
+  //       break;
+  //     case 'RightCentralDefender':
+  //       idPlayer = teamComp.idRightCentralBack;
+  //       strPositionInDB = 'idrightcentralback';
+  //       strPositionInUI = 'Central Def';
+  //       strPositionInUI = 'RCB';
+  //       break;
+  //     case 'RightWingDefender':
+  //       idPlayer = teamComp.idRightBackWinger;
+  //       strPositionInDB = 'idrightbackwinger';
+  //       strPositionInUI = 'Right Back';
+  //       strPositionInUI = 'RB';
+  //       break;
+  //     case 'LeftWinger':
+  //       idPlayer = teamComp.idLeftWinger;
+  //       strPositionInDB = 'idleftwinger';
+  //       strPositionInUI = 'Left Winger';
+  //       strPositionInUI = 'LW';
+  //       break;
+  //     case 'LeftMidFielder':
+  //       idPlayer = teamComp.idLeftMidFielder;
+  //       strPositionInDB = 'idleftmidfielder';
+  //       strPositionInUI = 'MidFielder';
+  //       strPositionInUI = 'LCM';
+  //       break;
+  //     case 'CentralMidFielder':
+  //       idPlayer = teamComp.idCentralMidFielder;
+  //       strPositionInDB = 'idcentralmidfielder';
+  //       strPositionInUI = 'MidFielder';
+  //       strPositionInUI = 'CM';
+  //       break;
+  //     case 'RightMidFielder':
+  //       idPlayer = teamComp.idRightMidFielder;
+  //       strPositionInDB = 'idrightmidfielder';
+  //       strPositionInUI = 'MidFielder';
+  //       strPositionInUI = 'RCM';
+  //       break;
+  //     case 'RightWinger':
+  //       idPlayer = teamComp.idRightWinger;
+  //       strPositionInDB = 'idrightwinger';
+  //       strPositionInUI = 'Right Winger';
+  //       strPositionInUI = 'RW';
+  //       break;
+  //     case 'LeftStriker':
+  //       idPlayer = teamComp.idLeftStriker;
+  //       strPositionInDB = 'idleftstriker';
+  //       strPositionInUI = 'Striker';
+  //       strPositionInUI = 'LS';
+  //       break;
+  //     case 'CentralStriker':
+  //       idPlayer = teamComp.idCentralStriker;
+  //       strPositionInDB = 'idcentralstriker';
+  //       strPositionInUI = 'Striker';
+  //       strPositionInUI = 'S';
+  //       break;
+  //     case 'RightStriker':
+  //       idPlayer = teamComp.idRightStriker;
+  //       strPositionInDB = 'idrightstriker';
+  //       strPositionInUI = 'Striker';
+  //       strPositionInUI = 'RS';
+  //       break;
+  //     default:
+  //       throw ArgumentError('Invalid position: $position');
+  //   }
 
-  //       return ListTile(
-  //         leading: Container(
-  //           width: 100, // Fixed width to ensure alignment
-  //           child: Row(
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               Container(
-  //                 width: 36,
-  //                 height: 36,
-  //                 decoration: BoxDecoration(
-  //                   shape: BoxShape.circle,
-  //                   color: Colors.blueGrey,
-  //                 ),
-  //                 child: Center(
-  //                   child: Text(
-  //                     '${event.gameMinute.toString()}\'',
-  //                     style: TextStyle(
-  //                       color: Colors.white,
-  //                       fontWeight: FontWeight.bold,
-  //                       fontSize: 16.0,
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ),
-  //               SizedBox(width: 10),
-  //               if (event.idEventType == 1) // Conditionally display score
-  //                 Padding(
-  //                   padding: const EdgeInsets.only(left: 8.0),
-  //                   child: Column(
-  //                     mainAxisAlignment: MainAxisAlignment.center,
-  //                     children: [
-  //                       Text(
-  //                         '$leftClubScore - $rightClubScore',
-  //                         style: TextStyle(
-  //                           fontSize: 16.0,
-  //                           fontWeight: FontWeight.bold,
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ),
-  //             ],
-  //           ),
-  //         ),
-  //         title: Row(
-  //           children: [
-  //             event.id_club == widget.game.idClubRight
-  //                 ? Spacer()
-  //                 : SizedBox(width: 6),
-  //             // Icon(Icons.home_filled, color: Colors.blueGrey),
-  //             event.id_club == widget.game.idClubLeft
-  //                 ? widget.game.getLeftClubName()
-  //                 : widget.game.getRightClubName(),
-  //           ],
-  //         ),
-  //         subtitle: Row(
-  //           children: [
-  //             event.id_club == widget.game.idClubRight
-  //                 ? Spacer()
-  //                 : SizedBox(width: 6),
-  //             event.getDescription(context),
-  //           ],
+  //   final Player? player = idPlayer != null
+  //       ? players.firstWhere(
+  //           (player) => player.id == idPlayer,
+  //         )
+  //       : null;
+
+  //   return GestureDetector(
+  //     onTap: () async {
+  //       final returnedId = await Navigator.push(
+  //         context,
+  //         PageRouteBuilder(
+  //           pageBuilder: (context, animation, secondaryAnimation) {
+  //             return PlayersPage(
+  //               inputCriteria: {
+  //                 'Clubs': [widget.game.idClub]
+  //               },
+  //               isReturningId: true,
+  //             );
+  //           },
+  //           transitionsBuilder:
+  //               (context, animation, secondaryAnimation, child) {
+  //             return SlideTransition(
+  //               position: Tween<Offset>(
+  //                 begin: const Offset(1.0, 0.0),
+  //                 end: Offset.zero,
+  //               ).animate(animation),
+  //               child: child,
+  //             );
+  //           },
   //         ),
   //       );
+
+  //       if (returnedId != null) {
+  //         // Use the returnedId here as needed
+  //         print('Returned player ID: $returnedId for game: ${teamComp.id}');
+
+  //         await supabase
+  //             .from('games_team_comp')
+  //             .update({strPositionInDB: returnedId}).match({'id': teamComp.id});
+  //       }
   //     },
+  //     child: Container(
+  //       color: player != null ? Colors.green : Colors.blueGrey,
+  //       child: Column(
+  //         children: [
+  //           Text(strPositionInUI),
+  //           Card(
+  //             elevation: 3.0,
+  //             child: Container(
+  //               width: 48.0,
+  //               height: 60.0,
+  //               alignment: Alignment.center,
+  //               child: player != null
+  //                   ? Column(
+  //                       children: [
+  //                         GestureDetector(
+  //                           onTap: () async {
+  //                             print('Delete player');
+  //                             await supabase
+  //                                 .from('games_team_comp')
+  //                                 .update({strPositionInDB: null}).match(
+  //                                     {'id': teamComp.id});
+  //                           },
+  //                           child: const Row(
+  //                             mainAxisAlignment: MainAxisAlignment.end,
+  //                             children: [
+  //                               Icon(
+  //                                 Icons
+  //                                     .restore_from_trash, // Your additional icon
+  //                                 size: 6,
+  //                                 color: Colors.red,
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                         const Icon(Icons.person,
+  //                             size: 12, color: Colors.white),
+  //                         Text(
+  //                           '${player.first_name[0].toUpperCase()}.${player.last_name}',
+  //                           style: const TextStyle(fontSize: 12.0),
+  //                         ),
+  //                       ],
+  //                     )
+  //                   : const Icon(Icons.add,
+  //                       size: 12,
+  //                       color: Colors
+  //                           .white), // Placeholder icon when player is null
+  //               // child: Text(idPlayer != null ? idPlayer.toString() : 'NONE'),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
   //   );
   // }
 }
