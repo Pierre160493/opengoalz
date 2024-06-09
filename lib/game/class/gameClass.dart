@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
+import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/player/players_page.dart';
 
 part 'gameClass_widget_helper.dart';
+part 'gameClass_widget_teamcomp.dart';
 
 class GameClass {
   List<GameEvent> events = []; //list of events in the game

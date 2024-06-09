@@ -11,63 +11,107 @@ class TeamComp {
   final int id;
   final int idGame;
   final int idClub;
-  List<Map<String, dynamic>> players;
+  final List<Map<String, dynamic>> players;
+
+  static final List<Map<String, dynamic>> defaultPlayers = [
+    {
+      'name': 'Goal Keeper',
+      'database': 'idgoalkeeper',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Left Back Winger',
+      'database': 'idleftbackwinger',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Left Central Back',
+      'database': 'idleftcentralback',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Central Back',
+      'database': 'idcentralback',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Right Central Back',
+      'database': 'idrightcentralback',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Right Back Winger',
+      'database': 'idrightbackwinger',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Left Winger',
+      'database': 'idleftwinger',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Left Midfielder',
+      'database': 'idleftmidfielder',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Central Midfielder',
+      'database': 'idcentralmidfielder',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Right Midfielder',
+      'database': 'idrightmidfielder',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Right Winger',
+      'database': 'idrightwinger',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Left Striker',
+      'database': 'idleftstriker',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Central Striker',
+      'database': 'idcentralstriker',
+      'id': null,
+      'player': null
+    },
+    {
+      'name': 'Right Striker',
+      'database': 'idrightstriker',
+      'id': null,
+      'player': null
+    },
+    {'name': 'Sub 1', 'database': 'idsub1', 'id': null, 'player': null},
+    {'name': 'Sub 2', 'database': 'idsub2', 'id': null, 'player': null},
+    {'name': 'Sub 3', 'database': 'idsub3', 'id': null, 'player': null},
+    {'name': 'Sub 4', 'database': 'idsub4', 'id': null, 'player': null},
+    {'name': 'Sub 5', 'database': 'idsub5', 'id': null, 'player': null},
+    {'name': 'Sub 6', 'database': 'idsub6', 'id': null, 'player': null},
+  ];
 
   factory TeamComp.fromMap(Map<String, dynamic> map) {
-    List<Map<String, dynamic>> players = [
-      {'name': 'Goal Keeper', 'id': map['idgoalkeeper'], 'player': null},
-      {
-        'name': 'Left Back Winger',
-        'id': map['idleftbackwinger'],
-        'player': null
-      },
-      {
-        'name': 'Left Central Back',
-        'id': map['idleftcentralback'],
-        'player': null
-      },
-      {'name': 'Central Back', 'id': map['idcentralback'], 'player': null},
-      {
-        'name': 'Right Central Back',
-        'id': map['idrightcentralback'],
-        'player': null
-      },
-      {
-        'name': 'Right Back Winger',
-        'id': map['idrightbackwinger'],
-        'player': null
-      },
-      {'name': 'Left Winger', 'id': map['idleftwinger'], 'player': null},
-      {
-        'name': 'Left Midfielder',
-        'id': map['idleftmidfielder'],
-        'player': null
-      },
-      {
-        'name': 'Central Midfielder',
-        'id': map['idcentralmidfielder'],
-        'player': null
-      },
-      {
-        'name': 'Right Midfielder',
-        'id': map['idrightmidfielder'],
-        'player': null
-      },
-      {'name': 'Right Winger', 'id': map['idrightwinger'], 'player': null},
-      {'name': 'Left Striker', 'id': map['idleftstriker'], 'player': null},
-      {
-        'name': 'Central Striker',
-        'id': map['idcentralstriker'],
-        'player': null
-      },
-      {'name': 'Right Striker', 'id': map['idrightstriker'], 'player': null},
-      {'name': 'Sub 1', 'id': map['idsub1'], 'player': null},
-      {'name': 'Sub 2', 'id': map['idsub2'], 'player': null},
-      {'name': 'Sub 3', 'id': map['idsub3'], 'player': null},
-      {'name': 'Sub 4', 'id': map['idsub4'], 'player': null},
-      {'name': 'Sub 5', 'id': map['idsub5'], 'player': null},
-      {'name': 'Sub 6', 'id': map['idsub6'], 'player': null},
-    ];
+    List<Map<String, dynamic>> players = TeamComp.defaultPlayers;
+
+    for (Map<String, dynamic> player in players) {
+      player['id'] = map[player['database']];
+    }
 
     return TeamComp(
       id: map['id'],
@@ -85,19 +129,22 @@ class TeamComp {
     return ids;
   }
 
-  init_players(List<Player> list_players) {
+  void init_players(List<Player?> list_players) {
     for (Map<String, dynamic> player
         in players.where((player) => player['id'] != null).toList()) {
-      print('testPierre_init_players!!!');
-      print(player);
-      player['player'] = list_players.firstWhere((lp) => lp.id == player['id']);
-      print('testPierre_init_players2!!!');
+      player['player'] = list_players.firstWhere((lp) => lp!.id == player['id'],
+          orElse: () => null as Player?);
       if (player['player'] == null) {
         throw Exception(
             'No player found with id {${player['id']}} for the club with id {{$idClub}} for the game {{$idGame}}');
       }
-      print(player);
     }
-    print('fin de la boucle');
+  }
+
+  Map<String, dynamic>? getPlayerMapByName(String name) {
+    return players.firstWhere(
+      (player) => player['name'] == name,
+      orElse: () => {},
+    );
   }
 }
