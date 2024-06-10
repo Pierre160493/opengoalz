@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/player/players_page.dart';
+import 'package:provider/provider.dart';
 
 part 'gameClass_widget_helper.dart';
 part 'gameClass_widget_teamcomp.dart';

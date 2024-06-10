@@ -33,6 +33,13 @@ extension GameClassWidgetTeamcomps on GameClass {
         child:
             Text('ERROR: No team composition available for ${club.club_name}'),
       );
+    } else if (isPlayed == false &&
+        Provider.of<SessionProvider>(context).selectedClub.id_club !=
+            club.id_club) {
+      return Center(
+        child: Text(
+            'Only the manager of ${club.club_name} can see the teamcomp before the game is played'),
+      );
     }
 
     return Container(
@@ -170,34 +177,52 @@ extension GameClassWidgetTeamcomps on GameClass {
 
     return GestureDetector(
       onTap: () async {
-        final returnedId = await Navigator.push(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) {
-              return PlayersPage(
-                inputCriteria: {
-                  'Clubs': [club.id_club]
-                },
-                isReturningId: true,
-              );
-            },
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(1.0, 0.0),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              );
-            },
-          ),
-        );
+        /// If the game is already played, only open the player page
+        if (isPlayed) {
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return PlayersPage(
+                  inputCriteria: {
+                    'Player': [player['player'].id]
+                  },
+                );
+              },
+            ),
+          );
 
-        if (returnedId != null) {
-          await supabase
-              .from('games_team_comp')
-              .update({player['database']: returnedId});
+          /// Otherwise we give the possibility to change the player
+        } else {
+          final returnedId = await Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return PlayersPage(
+                  inputCriteria: {
+                    'Clubs': [club.id_club]
+                  },
+                  isReturningId: true,
+                );
+              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
+              },
+            ),
+          );
+
+          if (returnedId != null) {
+            await supabase
+                .from('games_team_comp')
+                .update({player['database']: returnedId});
+          }
         }
       },
       child: Container(
