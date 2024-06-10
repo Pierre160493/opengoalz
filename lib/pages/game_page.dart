@@ -89,7 +89,6 @@ class _HomePageState extends State<GamePage> {
                   throw Exception(
                       'DATABASE ERROR: ${teamComps.length} teamcomps found instead of 2 for game with id: ${game.id}');
                 }
-                print('testPierre');
                 for (TeamComp teamComp in teamComps) {
                   if (teamComp.idClub == game.idClubLeft) {
                     game.leftClub.teamcomp = teamComp;
@@ -102,6 +101,18 @@ class _HomePageState extends State<GamePage> {
                 }
                 return game;
               });
+        })
+        .switchMap((game) {
+          final _eventStream = supabase
+              .from('game_events')
+              .stream(primaryKey: ['id'])
+              .eq('id_game', widget.idGame)
+              .map(
+                  (maps) => maps.map((map) => GameEvent.fromMap(map)).toList());
+          return _eventStream.map((events) {
+            game.events = events;
+            return game;
+          });
         })
         .switchMap((game) {
           final playersStream = supabase
@@ -118,26 +129,26 @@ class _HomePageState extends State<GamePage> {
           ]).map((maps) => maps.map((map) => Player.fromMap(map)).toList());
 
           return playersStream.map((players) {
-            // print('Number of players: ' + players.length.toString());
+            /// End initializiation of teamcomps with players
             game.leftClub.teamcomp!.init_players(players
-                // .where((player) => player.id_club == game.idClubLeft)
-                // .toList()
-                );
-            // game.rightClub.teamcomp!.init_players(players
-            //     .where((player) => player.id_club == game.idClubRight)
-            //     .toList());
-            return game;
-          });
-        })
-        .switchMap((game) {
-          final _eventStream = supabase
-              .from('game_events')
-              .stream(primaryKey: ['id'])
-              .eq('id_game', widget.idGame)
-              .map(
-                  (maps) => maps.map((map) => GameEvent.fromMap(map)).toList());
-          return _eventStream.map((events) {
-            game.events = events;
+                .where((player) => player.id_club == game.idClubLeft)
+                .toList());
+            game.rightClub.teamcomp!.init_players(players
+                .where((player) => player.id_club == game.idClubRight)
+                .toList());
+
+            /// Complete events with the players
+            print('testPierre');
+            print(players.toString());
+            print('testPierre');
+            for (GameEvent event in game.events
+                .where((GameEvent event) => event.id_player != null)) {
+              event.player = players
+                  .firstWhere((Player player) => player.id == event.id_player);
+              if (event.player == null) {
+                print('No player found for event: $event');
+              }
+            }
             return game;
           });
         });

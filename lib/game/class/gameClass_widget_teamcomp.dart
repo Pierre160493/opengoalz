@@ -19,7 +19,10 @@ extension GameClassWidgetTeamcomps on GameClass {
           ),
           Expanded(
             child: TabBarView(
-              children: [_getTeamComp(context, leftClub), Text('Right Club')],
+              children: [
+                _getTeamComp(context, leftClub),
+                _getTeamComp(context, rightClub)
+              ],
             ),
           ),
         ],
@@ -61,56 +64,72 @@ extension GameClassWidgetTeamcomps on GameClass {
                     club.teamcomp!.getPlayerMapByName('Right Striker')),
               ],
             ),
-            // const SizedBox(height: 6.0), // Add spacing between rows
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     buildPlayerCard('LeftWinger'),
-            //     const SizedBox(width: 6.0),
-            //     buildPlayerCard('LeftMidFielder'),
-            //     const SizedBox(width: 6.0),
-            //     buildPlayerCard('CentralMidFielder'),
-            //     const SizedBox(width: 6.0),
-            //     buildPlayerCard('RightMidFielder'),
-            //     const SizedBox(width: 6.0),
-            //     buildPlayerCard('RightWinger'),
-            //   ],
-            // ),
-            // const SizedBox(height: 6.0), // Add spacing between rows
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     buildPlayerCard('LeftWingDefender'),
-            //     const SizedBox(width: 6.0),
-            //     buildPlayerCard('LeftCentralDefender'),
-            //     const SizedBox(width: 6.0),
-            //     buildPlayerCard('CentralDefender'),
-            //     const SizedBox(width: 6.0),
-            //     buildPlayerCard('RightCentralDefender'),
-            //     const SizedBox(width: 6.0),
-            //     buildPlayerCard('RightWingDefender'),
-            //   ],
-            // ),
-            // const SizedBox(height: 6.0), // Add spacing between rows
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     buildPlayerCard('GoalKeeper'),
-            //   ],
-            // ),
-            // const SizedBox(
-            //     height: 16.0), // Add spacing between rows
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     buildPlayerCard('Substitute 1', teamComp[index].idSub1),
-            //     buildPlayerCard('Substitute 2', teamComp[index].idSub2),
-            //     buildPlayerCard('Substitute 3', teamComp[index].idSub3),
-            //     buildPlayerCard('Substitute 4', teamComp[index].idSub4),
-            //     buildPlayerCard('Substitute 5', teamComp[index].idSub5),
-            //     buildPlayerCard('Substitute 6', teamComp[index].idSub6),
-            //   ],
-            // ),
+            const SizedBox(height: 6.0), // Add spacing between rows
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Left Winger')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Left Midfielder')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Central Midfielder')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Right Midfielder')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Right Winger')),
+              ],
+            ),
+            const SizedBox(height: 6.0), // Add spacing between rows
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Left Back Winger')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Left Central Back')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Central Back')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Right Central Back')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Right Back Winger')),
+              ],
+            ),
+            const SizedBox(height: 6.0), // Add spacing between rows
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                buildPlayerCard(context, club,
+                    club.teamcomp!.getPlayerMapByName('Goal Keeper')),
+              ],
+            ),
+            const SizedBox(height: 16.0), // Add spacing between rows
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                buildPlayerCard(
+                    context, club, club.teamcomp!.getPlayerMapByName('Sub 1')),
+                buildPlayerCard(
+                    context, club, club.teamcomp!.getPlayerMapByName('Sub 2')),
+                buildPlayerCard(
+                    context, club, club.teamcomp!.getPlayerMapByName('Sub 3')),
+                buildPlayerCard(
+                    context, club, club.teamcomp!.getPlayerMapByName('Sub 4')),
+                buildPlayerCard(
+                    context, club, club.teamcomp!.getPlayerMapByName('Sub 5')),
+                buildPlayerCard(
+                    context, club, club.teamcomp!.getPlayerMapByName('Sub 6')),
+              ],
+            ),
           ],
         ),
       ),
@@ -119,78 +138,30 @@ extension GameClassWidgetTeamcomps on GameClass {
 
   Widget buildPlayerCard(
       BuildContext context, Club club, Map<String, dynamic>? player) {
-    print(player);
-    String strPositionInUI;
-
     if (player == null || player.isEmpty) {
       return Container(
           color: Colors.blueGrey,
           child: Center(child: Text('ERROR: player doesn\'t exist')));
     }
 
-    switch (player['name']) {
-      case 'GoalKeeper':
-        strPositionInUI = 'GK';
-        break;
-      case 'LeftWingDefender':
-        strPositionInUI = 'LB';
-        break;
-      case 'LeftCentralDefender':
-        strPositionInUI = 'LCB';
-        break;
-      case 'CentralDefender':
-        strPositionInUI = 'CB';
-        break;
-      case 'RightCentralDefender':
-        strPositionInUI = 'RCB';
-        break;
-      case 'RightWingDefender':
-        strPositionInUI = 'RB';
-        break;
-      case 'LeftWinger':
-        strPositionInUI = 'LW';
-        break;
-      case 'LeftMidFielder':
-        strPositionInUI = 'LCM';
-        break;
-      case 'CentralMidFielder':
-        strPositionInUI = 'CM';
-        break;
-      case 'RightMidFielder':
-        strPositionInUI = 'RCM';
-        break;
-      case 'RightWinger':
-        strPositionInUI = 'RW';
-        break;
-      case 'Left Striker':
-        strPositionInUI = 'LS';
-        break;
-      case 'Central Striker':
-        strPositionInUI = 'S';
-        break;
-      case 'Right Striker':
-        strPositionInUI = 'RS';
-        break;
-      default:
-        throw ArgumentError('Invalid position: ${player['name']}');
-    }
-
     return GestureDetector(
       onTap: () async {
         /// If the game is already played, only open the player page
         if (isPlayed) {
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) {
-                return PlayersPage(
-                  inputCriteria: {
-                    'Player': [player['player'].id]
-                  },
-                );
-              },
-            ),
-          );
+          if (player['id'] != null) {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) {
+                  return PlayersPage(
+                    inputCriteria: {
+                      'Player': [player['player'].id]
+                    },
+                  );
+                },
+              ),
+            );
+          }
 
           /// Otherwise we give the possibility to change the player
         } else {
@@ -218,10 +189,13 @@ extension GameClassWidgetTeamcomps on GameClass {
             ),
           );
 
+          /// Then we update the games_team_comp table with the new player
           if (returnedId != null) {
             await supabase
                 .from('games_team_comp')
-                .update({player['database']: returnedId});
+                .update({player['database']: returnedId})
+                .eq('id_game', id)
+                .eq('id_club', club.id_club);
           }
         }
       },
@@ -229,7 +203,6 @@ extension GameClassWidgetTeamcomps on GameClass {
         color: player['player'] != null ? Colors.green : Colors.blueGrey,
         child: Column(
           children: [
-            Text(strPositionInUI),
             Card(
               elevation: 3.0,
               child: Container(

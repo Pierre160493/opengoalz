@@ -9,7 +9,7 @@ class GameEvent {
   final DateTime createdAt;
   final int id_game;
   final int? idEventType;
-  final int id_player;
+  final int? id_player;
   final int id_club;
   final int gameMinute;
   final DateTime dateEvent;
