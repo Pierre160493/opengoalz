@@ -140,14 +140,12 @@ extension PlayerWidgetsActions on Player {
                     ),
                   );
                 } on PostgrestException catch (error) {
-                  print(error);
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text(error.message),
                     ),
                   );
                 } catch (error) {
-                  print(error);
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('An unexpected error occurred.'),
@@ -199,10 +197,9 @@ extension PlayerWidgetsActions on Player {
                     ),
                   );
                 } on PostgrestException catch (error) {
-                  print(error);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(error.code!),
+                      content: Text(error.message),
                     ),
                   );
                 }

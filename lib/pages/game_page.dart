@@ -138,9 +138,6 @@ class _HomePageState extends State<GamePage> {
                 .toList());
 
             /// Complete events with the players
-            print('testPierre');
-            print(players.toString());
-            print('testPierre');
             for (GameEvent event in game.events
                 .where((GameEvent event) => event.id_player != null)) {
               event.player = players
