@@ -5,6 +5,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'gameClass_widget_helper.dart';
 part 'gameClass_widget_teamcomp.dart';

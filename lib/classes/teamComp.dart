@@ -154,6 +154,13 @@ class TeamComp {
       'id': null,
       'player': null
     },
+    {
+      'name': 'Sub 7',
+      'type': 'Sub',
+      'database': 'idsub7',
+      'id': null,
+      'player': null
+    },
   ];
 
   factory TeamComp.fromMap(Map<String, dynamic> map) {

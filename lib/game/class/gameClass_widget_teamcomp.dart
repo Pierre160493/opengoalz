@@ -128,6 +128,8 @@ extension GameClassWidgetTeamcomps on GameClass {
                     context, club, club.teamcomp!.getPlayerMapByName('Sub 5')),
                 buildPlayerCard(
                     context, club, club.teamcomp!.getPlayerMapByName('Sub 6')),
+                buildPlayerCard(
+                    context, club, club.teamcomp!.getPlayerMapByName('Sub 7')),
               ],
             ),
           ],
@@ -138,6 +140,7 @@ extension GameClassWidgetTeamcomps on GameClass {
 
   Widget buildPlayerCard(
       BuildContext context, Club club, Map<String, dynamic>? player) {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     if (player == null || player.isEmpty) {
       return Container(
           color: Colors.blueGrey,
@@ -191,11 +194,25 @@ extension GameClassWidgetTeamcomps on GameClass {
 
           /// Then we update the games_team_comp table with the new player
           if (returnedId != null) {
-            await supabase
-                .from('games_team_comp')
-                .update({player['database']: returnedId})
-                .eq('id_game', id)
-                .eq('id_club', club.id_club);
+            try {
+              await supabase
+                  .from('games_team_comp')
+                  .update({player['database']: returnedId})
+                  .eq('id_game', id)
+                  .eq('id_club', club.id_club);
+            } on PostgrestException catch (error) {
+              scaffoldMessenger.showSnackBar(
+                SnackBar(
+                  content: Text(error.message),
+                ),
+              );
+            } catch (error) {
+              scaffoldMessenger.showSnackBar(
+                SnackBar(
+                  content: Text('An unexpected error occurred.'),
+                ),
+              );
+            }
           }
         }
       },
