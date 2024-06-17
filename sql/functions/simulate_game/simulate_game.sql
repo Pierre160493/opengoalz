@@ -8,13 +8,26 @@ DECLARE
     loc_rec_game RECORD; -- Record of the game
     loc_array_players_id_left int8[21]; -- Array of players id for 21 slots of players
     loc_array_players_id_right int8[21]; -- Array of players id for 21 slots of players
-    loc_array_substitutes_left int8[7] := '{{NULL,NULL,NULL,NULL,NULL,NULL,NULL},{NULL,NULL,NULL,NULL,NULL,NULL,NULL}}'; -- Array for storing substitutes
-    loc_array_substitutes_right int8[7] := '{{NULL,NULL,NULL,NULL,NULL,NULL,NULL},{NULL,NULL,NULL,NULL,NULL,NULL,NULL}}'; -- Array for storing substitutes
-    loc_matrix_player_stats_left float8[21][6]; -- Matrix to hold player stats
-    loc_matrix_player_stats_right float8[21][6]; -- Matrix to hold player stats
-    loc_array_team_weights_left float8[7] := '{{0,0,0,0,0,0,0},{0,0,0,0,0,0,0}}'; -- Array for team weights
-    loc_array_team_weights_right float8[7] := '{{0,0,0,0,0,0,0},{0,0,0,0,0,0,0}}'; -- Array for team weights
-    result TEXT;
+    loc_array_substitutes_left int8[7] := ARRAY[NULL,NULL,NULL,NULL,NULL,NULL,NULL]; -- Array for storing substitutes
+    loc_array_substitutes_right int8[7] := ARRAY[NULL,NULL,NULL,NULL,NULL,NULL,NULL]; -- Array for storing substitutes
+    loc_matrix_player_stats_left float8[21][7]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick}]
+    loc_matrix_player_stats_right float8[21][7]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick}]
+    loc_array_team_weights_left float8[7]; -- Array for team weights
+    loc_array_team_weights_right float8[7]; -- Array for team weights
+    loc_rec_tmp_event RECORD; -- Record for current event
+    loc_period_game int; -- The period of the game (e.g., first half, second half, extra time)
+    loc_minute_period_start int; -- The minute where the period starts
+    loc_minute_period_end int; -- The minute where the period ends
+    loc_minute_period_extra_time int; -- The extra time for the period
+    loc_minute_game int; -- The minute of the game
+    loc_date_start_period timestamp; -- The date and time of the period
+    loc_team_left_score int := 0; -- The score of the left team
+    loc_team_right_score int := 0; -- The score of the right team
+    loc_goal_opportunity float8; -- Probability of a goal opportunity
+    loc_team_left_goal_opportunity float8; -- Probability of a goal opportunity for the left team
+    loc_id_event int8; -- The ID of the EVENT
+    I int8;
+    result TEXT; -- The result of the game
 BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -39,12 +52,22 @@ BEGIN
     PERFORM check_teamcomp_errors(inp_id_game := inp_id_game, inp_id_club := loc_rec_game.id_club_right);
     
     ------ Fetch players id of the club for this game
-    loc_array_players_id_left := ARRAY[simulate_game_fetch_players_id(inp_id_game := loc_rec_game.id, inp_id_club := loc_rec_game.id_club_left)];
-    loc_array_players_id_right := ARRAY[simulate_game_fetch_players_id(inp_id_game := loc_rec_game.id, inp_id_club := loc_rec_game.id_club_right)];
+    loc_array_players_id_left := simulate_game_fetch_players_id(inp_id_game := loc_rec_game.id, inp_id_club := loc_rec_game.id_club_left);
+    loc_array_players_id_right := simulate_game_fetch_players_id(inp_id_game := loc_rec_game.id, inp_id_club := loc_rec_game.id_club_right);
+--FOR I IN 1..21 LOOP
+--RAISE NOTICE 'loc_array_players_id_right[%]= %', I, loc_array_players_id_right[I];
+--END LOOP;
+--RAISE NOTICE 'testPierreG';
 
     ------ Fetch player stats matrix
     loc_matrix_player_stats_left := simulate_game_fetch_player_stats(loc_array_players_id_left);
     loc_matrix_player_stats_right := simulate_game_fetch_player_stats(loc_array_players_id_right);
+
+--FOR I IN 1..21 LOOP
+--    FOR J IN 1..7 LOOP
+--RAISE NOTICE 'loc_matrix_player_stats_left[%][%]= %', I, J, loc_matrix_player_stats_left[I][J];
+--    END LOOP;
+--END LOOP;
 
     ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
     loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
@@ -57,7 +80,7 @@ BEGIN
     FOR loc_period_game IN 1..4 LOOP
         ---- Set the minute where the period ends
         IF loc_period_game = 1 THEN
-            loc_date_start_period := rec_game.date_start; -- Start date of the first period is the start date of the game
+            loc_date_start_period := loc_rec_game.date_start; -- Start date of the first period is the start date of the game
             loc_minute_period_start := 0; -- Start minute of the first period
             loc_minute_period_end := 45; -- Start minute of the first period
             loc_minute_period_extra_time := 2 + ROUND(random() * 3); -- Extra time for the period
@@ -68,7 +91,7 @@ BEGIN
             loc_minute_period_extra_time := 3 + ROUND(random() * 5); -- Extra time for the period
         ELSEIF loc_period_game = 3 THEN
             -- Check if the game is over already (e.g., if the game is not a cup game or if the scores are different)
-            IF rec_game.is_cup = FALSE OR loc_team_left_score <> loc_team_right_score THEN
+            IF loc_rec_game.is_cup = FALSE OR loc_team_left_score <> loc_team_right_score THEN
                 EXIT; -- If the game is over, then exit the loop
             END IF;
             loc_date_start_period := loc_date_start_period + (45 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the first prolongation is the start date of the second half plus 45 minutes + extra time
@@ -85,6 +108,10 @@ BEGIN
         ------ Get the team composition for the game
         loc_goal_opportunity = 0.1; -- Probability of a goal opportunity
         -- Probability of left team opportunity
+        
+        RAISE NOTICE 'testPierreG!: %', loc_array_team_weights_left[4];
+        RAISE NOTICE 'testPierreG!: %', loc_array_team_weights_right[4];
+        
         loc_team_left_goal_opportunity = LEAST(GREATEST((loc_array_team_weights_left[4] / loc_array_team_weights_right[4])-0.5, 0.2), 0.8);
             
         ------ Calculate the events of the game with one event every minute
@@ -92,23 +119,49 @@ BEGIN
            
             IF random() < loc_goal_opportunity THEN -- Simulate an opportunity
                 
-
                 if random() < loc_team_left_goal_opportunity THEN -- Simulate an opportunity for the left team
-
+                    SELECT INTO loc_id_event simulate_game_goal_opportunity(
+inp_id_game := inp_id_game, --Id of the game
+inp_id_club_attack := loc_rec_game.id_club_left, -- Id of the attacking club
+inp_id_club_defense := loc_rec_game.id_club_right, -- Id of the defending club
+inp_array_team_weights_attack := loc_array_team_weights_left, -- Array of the attack team weights (1:leftDefense, 2:centralDefense, 3:rightDefense, 4:midField, 5:leftAttack, 6:centralAttack, 7:rightAttack)
+inp_array_team_weights_defense := loc_array_team_weights_right, -- Array of the defense team weights (1:leftDefense, 2:centralDefense, 3:rightDefense, 4:midField, 5:leftAttack, 6:centralAttack, 7:rightAttack)
+inp_array_player_ids_attack := loc_array_players_id_left, -- Array of the player IDs of the attack team (1:goalkeeper, 2:leftbackwinger, 3:leftcentralback, 4:centralback, 5:rightcentralback, 6:rightbackwinger, 7:leftwinger, 8:leftmidfielder, 9:centralmidfielder, 10:rightmidfielder, 11:rightwinger, 12:leftstriker, 13:centralstriker, 14:rightstriker)
+inp_array_player_ids_defense := loc_array_players_id_right, -- Array of the player IDs of the defense team (1:goalkeeper, 2:leftbackwinger, 3:leftcentralback, 4:centralback, 5:rightcentralback, 6:rightbackwinger, 7:leftwinger, 8:leftmidfielder, 9:centralmidfielder, 10:rightmidfielder, 11:rightwinger, 12:leftstriker, 13:centralstriker, 14:rightstriker)
+inp_matrix_player_stats_attack := loc_matrix_player_stats_left, -- Matrix of the attack team player stats (14 players, 6 stats)
+inp_matrix_player_stats_defense := loc_matrix_player_stats_right -- Matrix of the defense team player stats (14 players, 6 stats)
+);
                 ELSE -- Simulate an opportunity for the right team
-
+                    SELECT INTO loc_id_event simulate_game_goal_opportunity(
+inp_id_game := inp_id_game, -- Id of the game
+inp_id_club_attack := loc_rec_game.id_club_right, -- Id of the attacking club
+inp_id_club_defense := loc_rec_game.id_club_left, -- Id of the defending club
+inp_array_team_weights_attack := loc_array_team_weights_right, -- Array of the attack team weights (1:leftDefense, 2:centralDefense, 3:rightDefense, 4:midField, 5:leftAttack, 6:centralAttack, 7:rightAttack)
+inp_array_team_weights_defense := loc_array_team_weights_left, -- Array of the defense team weights (1:leftDefense, 2:centralDefense, 3:rightDefense, 4:midField, 5:leftAttack, 6:centralAttack, 7:rightAttack)
+inp_array_player_ids_attack := loc_array_players_id_right, -- Array of the player IDs of the attack team (1:goalkeeper, 2:leftbackwinger, 3:leftcentralback, 4:centralback, 5:rightcentralback, 6:rightbackwinger, 7:leftwinger, 8:leftmidfielder, 9:centralmidfielder, 10:rightmidfielder, 11:rightwinger, 12:leftstriker, 13:centralstriker, 14:rightstriker)
+inp_array_player_ids_defense := loc_array_players_id_left, -- Array of the player IDs of the defense team (1:goalkeeper, 2:leftbackwinger, 3:leftcentralback, 4:centralback, 5:rightcentralback, 6:rightbackwinger, 7:leftwinger, 8:leftmidfielder, 9:centralmidfielder, 10:rightmidfielder, 11:rightwinger, 12:leftstriker, 13:centralstriker, 14:rightstriker)
+inp_matrix_player_stats_attack := loc_matrix_player_stats_right, -- Matrix of the attack team player stats (14 players, 6 stats)
+inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the defense team player stats (14 players, 6 stats)
+);                    
                 END IF;
 
-                INSERT INTO game_events(id_game, id_club, id_player, id_event_type, game_period, game_minute, date_event)
-                    VALUES (
-                        inp_id_game, -- The id of the game
-                        inp_id_club_attack, -- The id of the club that made the event
-                        loc_id_player, -- The id of the player who scored the goal
-                        loc_id_event_type, -- The id of the event type (e.g., goal, shot on target, foul, substitution, etc.)
-                        loc_period_game, -- The period of the game (e.g., first half, second half, extra time)
-                        loc_minute_game, -- The minute of the event
-                        loc_date_start_period + (INTERVAL '1 minute' * loc_minute_game) -- The date and time of the event
-                    );
+                UPDATE game_events SET
+                    game_period = loc_period_game, -- The period of the game (e.g., first half, second half, extra time)
+                    game_minute = loc_minute_game, -- The minute of the event
+                    date_event = loc_date_start_period + (INTERVAL '1 minute' * loc_minute_game) -- The date and time of the event
+                    WHERE id = loc_id_event;
+
+                -- Fetch the event
+                SELECT * INTO loc_rec_tmp_event FROM game_events WHERE id = loc_id_event;
+
+                -- Update the score
+                IF loc_rec_tmp_event.id_event_type = 1 THEN -- Goal
+                    IF loc_rec_tmp_event.id_club = loc_rec_game.id_club_left THEN
+                        loc_team_left_score := loc_team_left_score + 1;
+                    ELSE
+                        loc_team_right_score := loc_team_right_score + 1;
+                    END IF;
+                END IF;
 
             END IF;
 
@@ -147,7 +200,7 @@ BEGIN
     END LOOP;
     ------ If the game went to extra time and the scores are still equal, then simulate a penalty shootout
     IF loc_period_game = 4 THEN
-        IF rec_game.is_cup = TRUE AND loc_team_left_score = loc_team_right_score THEN
+        IF loc_rec_game.is_cup = TRUE AND loc_team_left_score = loc_team_right_score THEN
             -- Simulate a penalty shootout
             i := 1; -- Initialize the loop counter
             loc_team_left_score := 0; -- Reset the score of the first team
