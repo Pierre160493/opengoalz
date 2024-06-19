@@ -20,6 +20,7 @@ class GameView {
     required this.isCup,
     required this.goalsLeft,
     required this.goalsRight,
+    required this.result,
     required this.idUserClubLeft,
     required this.usernameClubLeft,
     required this.idUserClubRight,
@@ -53,6 +54,7 @@ class GameView {
   final bool isCup;
   final int? goalsLeft;
   final int? goalsRight;
+  final String? result;
   final String? idUserClubLeft;
   final String? usernameClubLeft;
   final String? idUserClubRight;
@@ -92,6 +94,7 @@ class GameView {
         idStadium = map['id_stadium'],
         isPlayed = map['is_played'] ?? false,
         isCup = map['is_cup'] ?? false,
+        result = map['result'],
         idPlayerGKLeft = map['id_player_GK_left'],
         idPlayerLBLeft = map['id_player_LB_left'],
         idPlayerLCBLeft = map['id_player_LCB_left'],

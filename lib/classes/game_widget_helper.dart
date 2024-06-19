@@ -38,7 +38,9 @@ extension GameWidgetsHelper on GameView {
                               },
                               child: Row(
                                 children: [
-                                  Icon(Icons.sports_soccer),
+                                  Icon(idClub == idClubLeft
+                                      ? Icons.home
+                                      : Icons.sports_soccer),
                                   SizedBox(width: 6),
                                   getLeftClubName(),
                                 ],
@@ -71,7 +73,9 @@ extension GameWidgetsHelper on GameView {
                                 children: [
                                   getRightClubName(),
                                   SizedBox(width: 6),
-                                  Icon(Icons.sports_soccer),
+                                  Icon(idClub == idClubRight
+                                      ? Icons.home
+                                      : Icons.sports_soccer),
                                 ],
                               ),
                             ),
@@ -118,18 +122,18 @@ extension GameWidgetsHelper on GameView {
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white70, // You can adjust the background color here
+        color: result == 'V'
+            ? Colors.green
+            : result == 'L'
+                ? Colors.red
+                : Colors.white70, // You can adjust the background color here
       ),
       child: Row(
         children: [
           Text(
             goalsLeft.toString(),
             style: TextStyle(
-              color: (goalsLeft! > goalsRight!)
-                  ? Colors.green
-                  : (goalsLeft! < goalsRight!)
-                      ? Colors.red
-                      : Colors.black,
+              color: Colors.black,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -144,17 +148,48 @@ extension GameWidgetsHelper on GameView {
           Text(
             goalsRight.toString(),
             style: TextStyle(
-              color: (goalsLeft! > goalsRight!)
-                  ? Colors.red
-                  : (goalsLeft! < goalsRight!)
-                      ? Colors.green
-                      : Colors.black,
+              color: Colors.black,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
         ],
       ),
+      // Row(
+      //   children: [
+      //     Text(
+      //       goalsLeft.toString(),
+      //       style: TextStyle(
+      //         color: (goalsLeft! > goalsRight!)
+      //             ? Colors.green
+      //             : (goalsLeft! < goalsRight!)
+      //                 ? Colors.red
+      //                 : Colors.black,
+      //         fontSize: 18,
+      //         fontWeight: FontWeight.bold,
+      //       ),
+      //     ),
+      //     Text(
+      //       ' : ',
+      //       style: TextStyle(
+      //         color: Colors.black,
+      //         fontSize: 18,
+      //       ),
+      //     ),
+      //     Text(
+      //       goalsRight.toString(),
+      //       style: TextStyle(
+      //         color: (goalsLeft! > goalsRight!)
+      //             ? Colors.red
+      //             : (goalsLeft! < goalsRight!)
+      //                 ? Colors.green
+      //                 : Colors.black,
+      //         fontSize: 18,
+      //         fontWeight: FontWeight.bold,
+      //       ),
+      //     ),
+      //   ],
+      // ),
     );
   }
 
