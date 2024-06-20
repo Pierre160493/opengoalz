@@ -106,7 +106,7 @@ BEGIN
         END IF;
     
         ------ Get the team composition for the game
-        loc_goal_opportunity = 0.1; -- Probability of a goal opportunity
+        loc_goal_opportunity = 0.05; -- Probability of a goal opportunity
         -- Probability of left team opportunity
         
         RAISE NOTICE 'testPierreG!: %', loc_array_team_weights_left[4];
@@ -221,12 +221,9 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
     -- Step 5: Update game result
-    -- UPDATE games
-    -- SET is_played = TRUE,
-    --     -- Assuming we have columns to store the result
-    --     result = result
-    -- WHERE id = inp_id_game;
-    
+    UPDATE games SET is_played = TRUE
+    WHERE id = inp_id_game;
+
 END;
 $function$
 ;
