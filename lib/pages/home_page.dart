@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/pages/ranking_page.dart';

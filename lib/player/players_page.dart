@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
@@ -246,50 +247,52 @@ class _PlayersPageState extends State<PlayersPage> {
                   drawer: (widget.isReturningId || players.length == 1)
                       ? null
                       : const AppDrawer(),
-                  body: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: players.length,
-                          itemBuilder: (context, index) {
-                            final Player player = players[index];
-                            return InkWell(
-                              onTap: () {
-                                if (widget.isReturningId) {
-                                  Navigator.of(context).pop(
-                                      player.id); // Return the id of the player
-                                } else if (players.length > 1) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PlayersPage(
-                                        inputCriteria: {
-                                          'Players': [player.id]
-                                        },
+                  body: MaxWidthContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: players.length,
+                            itemBuilder: (context, index) {
+                              final Player player = players[index];
+                              return InkWell(
+                                onTap: () {
+                                  if (widget.isReturningId) {
+                                    Navigator.of(context).pop(player
+                                        .id); // Return the id of the player
+                                  } else if (players.length > 1) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PlayersPage(
+                                          inputCriteria: {
+                                            'Players': [player.id]
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                } else {
-                                  // Handle logic for single player directly
-                                }
-                              },
-                              child: Column(
-                                children: [
-                                  // Text('${index + 1}'),
-                                  PlayerCard(
-                                      player: player,
-                                      number:
-                                          players.length == 1 ? 0 : index + 1,
-                                      isExpanded:
-                                          players.length == 1 ? true : false),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                    ],
+                                    );
+                                  } else {
+                                    // Handle logic for single player directly
+                                  }
+                                },
+                                child: Column(
+                                  children: [
+                                    // Text('${index + 1}'),
+                                    PlayerCard(
+                                        player: player,
+                                        number:
+                                            players.length == 1 ? 0 : index + 1,
+                                        isExpanded:
+                                            players.length == 1 ? true : false),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      ],
+                    ),
                   ));
             }
           }

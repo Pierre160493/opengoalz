@@ -6,6 +6,7 @@ import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/player/class/player.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 
 import '../constants.dart';
@@ -96,69 +97,71 @@ class _TransferPageState extends State<TransferPage>
                     // ),
                   ),
                   drawer: AppDrawer(),
-                  body: Column(
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          text: 'Cash: ',
-                          style: const TextStyle(fontSize: 18),
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: Provider.of<SessionProvider>(context)
-                                  .selectedClub
-                                  .cash_available
-                                  .toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Provider.of<SessionProvider>(context)
-                                            .selectedClub
-                                            .cash_absolute >
-                                        0
-                                    ? Colors.green
-                                    : Colors.red,
+                  body: MaxWidthContainer(
+                    child: Column(
+                      children: [
+                        RichText(
+                          text: TextSpan(
+                            text: 'Cash: ',
+                            style: const TextStyle(fontSize: 18),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: Provider.of<SessionProvider>(context)
+                                    .selectedClub
+                                    .cash_available
+                                    .toString(),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Provider.of<SessionProvider>(context)
+                                              .selectedClub
+                                              .cash_absolute >
+                                          0
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
                               ),
-                            ),
+                            ],
+                          ),
+                        ),
+                        RichText(
+                          text: TextSpan(
+                            text: 'Available cash: ',
+                            style: const TextStyle(fontSize: 18),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: Provider.of<SessionProvider>(context)
+                                    .selectedClub
+                                    .cash_available
+                                    .toString(),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Provider.of<SessionProvider>(context)
+                                              .selectedClub
+                                              .cash_available >
+                                          0
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        TabBar(
+                          controller: _tabController,
+                          tabs: [
+                            Tab(text: 'Sell (${playersSell.length})'),
+                            Tab(text: 'Buy (${playersBuy.length})'),
                           ],
                         ),
-                      ),
-                      RichText(
-                        text: TextSpan(
-                          text: 'Available cash: ',
-                          style: const TextStyle(fontSize: 18),
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: Provider.of<SessionProvider>(context)
-                                  .selectedClub
-                                  .cash_available
-                                  .toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Provider.of<SessionProvider>(context)
-                                            .selectedClub
-                                            .cash_available >
-                                        0
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
-                            ),
-                          ],
+                        Expanded(
+                          child:
+                              TabBarView(controller: _tabController, children: [
+                            _playersTransferWidget(playersSell),
+                            _playersTransferWidget(playersBuy),
+                          ]),
                         ),
-                      ),
-                      TabBar(
-                        controller: _tabController,
-                        tabs: [
-                          Tab(text: 'Sell (${playersSell.length})'),
-                          Tab(text: 'Buy (${playersBuy.length})'),
-                        ],
-                      ),
-                      Expanded(
-                        child:
-                            TabBarView(controller: _tabController, children: [
-                          _playersTransferWidget(playersSell),
-                          _playersTransferWidget(playersBuy),
-                        ]),
-                      ),
-                    ],
+                      ],
+                    ),
                   ));
             }
           }
