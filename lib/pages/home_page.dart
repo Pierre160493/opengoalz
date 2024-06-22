@@ -341,6 +341,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _quickAccessWidget(BuildContext context, ClubView club) {
+    double containerWidth = 80;
+    double containerImgRadius = 24;
     return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
       /// Players box
       InkWell(
@@ -357,8 +359,8 @@ class _HomePageState extends State<HomePage> {
           );
         },
         child: Container(
-          width: 120, // Fixed width for each tile
-          height: 120, // Fixed height for each tile
+          width: containerWidth, // Fixed width for each tile
+          height: containerWidth, // Fixed height for each tile
           decoration: BoxDecoration(
             borderRadius:
                 BorderRadius.circular(6), // Adjust border radius as needed
@@ -371,10 +373,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text('Players [${club.player_count}]'),
               CircleAvatar(
-                radius: 32,
+                radius: containerImgRadius,
                 child: Icon(
                   icon_players,
-                  size: 32,
+                  size: containerImgRadius,
                 ),
               ),
             ],
@@ -395,8 +397,8 @@ class _HomePageState extends State<HomePage> {
           );
         },
         child: Container(
-          width: 120, // Fixed width for each tile
-          height: 120, // Fixed height for each tile
+          width: containerWidth, // Fixed width for each tile
+          height: containerWidth, // Fixed height for each tile
           decoration: BoxDecoration(
             borderRadius:
                 BorderRadius.circular(6), // Adjust border radius as needed
@@ -409,10 +411,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text('Transfers'),
               CircleAvatar(
-                radius: 32,
+                radius: containerImgRadius,
                 child: Icon(
                   icon_transfers,
-                  size: 32,
+                  size: containerImgRadius,
                 ),
               ),
             ],
@@ -433,8 +435,8 @@ class _HomePageState extends State<HomePage> {
           );
         },
         child: Container(
-          width: 120, // Fixed width for each tile
-          height: 120, // Fixed height for each tile
+          width: containerWidth, // Fixed width for each tile
+          height: containerWidth, // Fixed height for each tile
           decoration: BoxDecoration(
             borderRadius:
                 BorderRadius.circular(6), // Adjust border radius as needed
@@ -447,10 +449,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text('Games'),
               CircleAvatar(
-                radius: 32,
+                radius: containerImgRadius,
                 child: Icon(
                   icon_games,
-                  size: 32,
+                  size: containerImgRadius,
                 ),
               ),
             ],
@@ -471,8 +473,8 @@ class _HomePageState extends State<HomePage> {
           );
         },
         child: Container(
-          width: 120, // Fixed width for each tile
-          height: 120, // Fixed height for each tile
+          width: containerWidth, // Fixed width for each tile
+          height: containerWidth, // Fixed height for each tile
           decoration: BoxDecoration(
             borderRadius:
                 BorderRadius.circular(6), // Adjust border radius as needed
@@ -485,10 +487,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text('Rankings'),
               CircleAvatar(
-                radius: 32,
+                radius: containerImgRadius,
                 child: Icon(
                   icon_rankings,
-                  size: 32,
+                  size: containerImgRadius,
                 ),
               ),
             ],
