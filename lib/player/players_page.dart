@@ -60,7 +60,7 @@ class _PlayersPageState extends State<PlayersPage> {
 
     // Stream to fetch clubs from the list of clubs in the players list
     _clubStream = _playerStream.switchMap((players) {
-      final clubIds = players.map((player) => player.id_club).toSet().toList();
+      final clubIds = players.map((player) => player.idClub).toSet().toList();
       return supabase
           .from('clubs')
           .stream(primaryKey: ['id'])
@@ -77,7 +77,7 @@ class _PlayersPageState extends State<PlayersPage> {
         _playerStream.switchMap((players) => _clubStream.map((clubs) {
               for (var player in players) {
                 final clubData =
-                    clubs.firstWhere((club) => club.id_club == player.id_club);
+                    clubs.firstWhere((club) => club.id_club == player.idClub);
                 player.club = clubData;
               }
               return players;
@@ -132,7 +132,7 @@ class _PlayersPageState extends State<PlayersPage> {
                   appBar: AppBar(
                     title: players.length == 1
                         ? Text(
-                            '${players.last.first_name} ${players.last.last_name.toUpperCase()}')
+                            '${players.last.firstName} ${players.last.lastName.toUpperCase()}')
                         : Text(
                             '${players.length} Players',
                           ),
@@ -221,23 +221,23 @@ class _PlayersPageState extends State<PlayersPage> {
                           // Handle the selected option
                           if (value == 'age_asc') {
                             setState(() {
-                              players.sort((a, b) =>
-                                  b.date_birth.compareTo(a.date_birth));
+                              players.sort(
+                                  (a, b) => b.dateBirth.compareTo(a.dateBirth));
                             });
                           } else if (value == 'age_desc') {
                             setState(() {
-                              players.sort((a, b) =>
-                                  a.date_birth.compareTo(b.date_birth));
+                              players.sort(
+                                  (a, b) => a.dateBirth.compareTo(b.dateBirth));
                             });
                           } else if (value == 'last_name') {
                             setState(() {
                               players.sort(
-                                  (a, b) => a.last_name.compareTo(b.last_name));
+                                  (a, b) => a.lastName.compareTo(b.lastName));
                             });
                           } else if (value == 'first_name') {
                             setState(() {
-                              players.sort((a, b) =>
-                                  a.first_name.compareTo(b.first_name));
+                              players.sort(
+                                  (a, b) => a.firstName.compareTo(b.firstName));
                             });
                           } // Add other options as needed
                         },

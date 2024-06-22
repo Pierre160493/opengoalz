@@ -252,7 +252,7 @@ extension GameClassWidgetTeamcomps on GameClass {
                           const Icon(Icons.person,
                               size: 12, color: Colors.white),
                           Text(
-                            '${player['player'].first_name[0].toUpperCase()}.${player['player'].last_name}',
+                            '${player['player'].firstName[0].toUpperCase()}.${player['player'].lastName}',
                             style: const TextStyle(fontSize: 12.0),
                           ),
                         ],

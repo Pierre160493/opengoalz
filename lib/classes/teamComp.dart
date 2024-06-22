@@ -176,7 +176,7 @@ class TeamComp {
     );
   }
 
-  List<int?> to_list_int() {
+  List<int?> toListOfInt() {
     List<int?> ids = [];
     for (Map<String, dynamic> player in players) {
       ids.add(player['id']);
@@ -184,7 +184,7 @@ class TeamComp {
     return ids;
   }
 
-  void init_players(List<Player?> list_players) {
+  void initPlayers(List<Player?> list_players) {
     for (Map<String, dynamic> player
         in players.where((player) => player['id'] != null).toList()) {
       player['player'] =

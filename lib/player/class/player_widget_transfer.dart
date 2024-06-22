@@ -45,7 +45,7 @@ extension PlayerWidgetTransfer on Player {
                 ),
               ),
             ),
-            if (id_club !=
+            if (idClub !=
                 Provider.of<SessionProvider>(context).selectedClub.id_club)
               IconButton(
                 icon: Icon(
@@ -64,7 +64,7 @@ extension PlayerWidgetTransfer on Player {
             StreamBuilder<int>(
               stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
               builder: (context, snapshot) {
-                final remainingTime = date_sell!.difference(DateTime.now());
+                final remainingTime = dateSell!.difference(DateTime.now());
                 final daysLeft = remainingTime.inDays;
                 final hoursLeft = remainingTime.inHours.remainder(24);
                 final minutesLeft = remainingTime.inMinutes.remainder(60);
@@ -77,7 +77,7 @@ extension PlayerWidgetTransfer on Player {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          DateFormat('EEE d HH:mm', 'en_US').format(date_sell!),
+                          DateFormat('EEE d HH:mm', 'en_US').format(dateSell!),
                         ),
                         Row(
                           children: [
@@ -200,19 +200,19 @@ extension PlayerWidgetTransfer on Player {
   }
 
   Future<void> _BidPlayer(BuildContext context) async {
-    if (date_sell == null) {
+    if (dateSell == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'ERROR: Player ${first_name} ${last_name.toUpperCase()} doesn\'t seem to be for sale'),
+              'ERROR: Player ${firstName} ${lastName.toUpperCase()} doesn\'t seem to be for sale'),
         ),
       );
       return;
-    } else if (DateTime.now().isAfter(date_sell!)) {
+    } else if (DateTime.now().isAfter(dateSell!)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Player ${first_name} ${last_name.toUpperCase()} transfer\'s deadline is reached, bidding is over... '),
+              'Player ${firstName} ${lastName.toUpperCase()} transfer\'s deadline is reached, bidding is over... '),
         ),
       );
       return;
@@ -228,8 +228,7 @@ extension PlayerWidgetTransfer on Player {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title:
-              Text('Place a bid on ${first_name} ${last_name.toUpperCase()}'),
+          title: Text('Place a bid on ${firstName} ${lastName.toUpperCase()}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,7 +282,7 @@ extension PlayerWidgetTransfer on Player {
                             .name_club,
                   });
 
-                  if (new_date_sell.isAfter(date_sell!)) {
+                  if (new_date_sell.isAfter(dateSell!)) {
                     await supabase.from('players').update({
                       'date_sell': new_date_sell.toIso8601String()
                     }).match({'id': id});

@@ -90,7 +90,7 @@ class _PlayerCardState extends State<PlayerCard>
                 const SizedBox(width: 6.0),
                 Flexible(
                   child: Text(
-                    '${widget.player.first_name[0]}.${widget.player.last_name.toUpperCase()} ',
+                    '${widget.player.firstName[0]}.${widget.player.lastName.toUpperCase()} ',
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: TextStyle(
@@ -120,7 +120,7 @@ class _PlayerCardState extends State<PlayerCard>
                 ),
 
                 /// PopMenuButton if the player belongs to current user's club
-                if (widget.player.id_club ==
+                if (widget.player.idClub ==
                     Provider.of<SessionProvider>(context, listen: false)
                         .selectedClub
                         .id_club)
@@ -238,7 +238,7 @@ class _PlayerCardState extends State<PlayerCard>
                                             DateTime.parse(item['created_at']);
                                         final double ageEvent = dateEvent
                                                 .difference(
-                                                    widget.player.date_birth)
+                                                    widget.player.dateBirth)
                                                 .inDays /
                                             112.0;
                                         return ListTile(

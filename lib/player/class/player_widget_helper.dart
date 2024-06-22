@@ -6,7 +6,7 @@ extension PlayerWidgetsHelper on Player {
     DateTime currentDate = DateTime.now();
     return Row(
       children: [
-        if (date_sell != null)
+        if (dateSell != null)
           Stack(
             children: [
               const Icon(
@@ -18,7 +18,7 @@ extension PlayerWidgetsHelper on Player {
                 top: 0,
                 right: 0,
                 child: Text(
-                  date_sell!
+                  dateSell!
                       .difference(currentDate)
                       .inDays
                       .toString(), // Change the number as needed
@@ -30,7 +30,7 @@ extension PlayerWidgetsHelper on Player {
               ),
             ],
           ),
-        if (date_firing != null)
+        if (dateFiring != null)
           Stack(
             children: [
               const Icon(
@@ -42,7 +42,7 @@ extension PlayerWidgetsHelper on Player {
                 top: 0,
                 right: 0,
                 child: Text(
-                  date_firing!
+                  dateFiring!
                       .difference(currentDate)
                       .inDays
                       .toString(), // Change the number as needed
@@ -54,7 +54,7 @@ extension PlayerWidgetsHelper on Player {
               ),
             ],
           ),
-        if (date_end_injury != null)
+        if (dateEndInjury != null)
           Stack(
             children: [
               const Icon(
@@ -66,7 +66,7 @@ extension PlayerWidgetsHelper on Player {
                 top: 0,
                 right: 0,
                 child: Text(
-                  date_end_injury!
+                  dateEndInjury!
                       .difference(currentDate)
                       .inDays
                       .toString(), // Change the number as needed
@@ -110,7 +110,7 @@ extension PlayerWidgetsHelper on Player {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       getAgeWidget(),
-                      getCountryNameWidget(id_country),
+                      getCountryNameWidget(idCountry),
                       getAvgStatsWidget(),
                       getClubNameWidget(context),
                     ],
@@ -122,10 +122,10 @@ extension PlayerWidgetsHelper on Player {
         ),
         SizedBox(height: 6.0),
         // if (date_sell?.isAfter(DateTime.now()) ?? false)
-        if (transferBids.length > 0 && date_sell!.isAfter(DateTime.now()))
+        if (transferBids.length > 0 && dateSell!.isAfter(DateTime.now()))
           playerTransferWidget(context),
-        if (date_end_injury != null) getInjuryWidget(),
-        if (date_firing != null) getFiringRow(),
+        if (dateEndInjury != null) getInjuryWidget(),
+        if (dateFiring != null) getFiringRow(),
       ],
     );
   }
@@ -137,7 +137,7 @@ extension PlayerWidgetsHelper on Player {
         StreamBuilder<int>(
           stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
           builder: (context, snapshot) {
-            final remainingTime = date_firing!.difference(DateTime.now());
+            final remainingTime = dateFiring!.difference(DateTime.now());
             final daysLeft = remainingTime.inDays;
             final hoursLeft = remainingTime.inHours.remainder(24);
             final minutesLeft = remainingTime.inMinutes.remainder(60);
@@ -220,7 +220,7 @@ extension PlayerWidgetsHelper on Player {
   }
 
   Widget getClubNameWidget(BuildContext context) {
-    if (id_club == null) {
+    if (idClub == null) {
       return Row(
         children: [
           Icon(
@@ -256,7 +256,7 @@ extension PlayerWidgetsHelper on Player {
               onTap: () {
                 Navigator.push(
                   context,
-                  ClubPage.route(id_club!),
+                  ClubPage.route(idClub!),
                 );
               },
               child: Text(
@@ -295,7 +295,7 @@ extension PlayerWidgetsHelper on Player {
         Icon(Icons.personal_injury_outlined,
             size: icon_size, color: Colors.red), // Adjust icon size and color
         Text(
-          ' ${date_end_injury!.difference(DateTime.now()).inDays.toString()}',
+          ' ${dateEndInjury!.difference(DateTime.now()).inDays.toString()}',
           style: const TextStyle(
             fontWeight: FontWeight.bold, // Remove bold font weight
             // color: Colors.red,

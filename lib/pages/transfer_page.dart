@@ -74,10 +74,10 @@ class _TransferPageState extends State<TransferPage>
               );
             } else {
               final List<Player> playersSell = players.where((player) {
-                return player.id_club == widget.idClub;
+                return player.idClub == widget.idClub;
               }).toList();
               final List<Player> playersBuy = players.where((player) {
-                return player.id_club != widget.idClub;
+                return player.idClub != widget.idClub;
               }).toList();
               return Scaffold(
                   appBar: AppBar(
@@ -201,7 +201,7 @@ class _TransferPageState extends State<TransferPage>
                         children: [
                           Flexible(
                             child: Text(
-                              '${player.first_name[0]}.${player.last_name.toUpperCase()} ',
+                              '${player.firstName[0]}.${player.lastName.toUpperCase()} ',
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                               style: TextStyle(

@@ -20,9 +20,9 @@ extension GameClassWidgetHelper on GameClass {
     List<GameEvent> scoreEvents =
         events.where((event) => event.idEventType == 1).toList();
     int leftClubScore =
-        scoreEvents.where((event) => event.id_club == idClubLeft).length;
+        scoreEvents.where((event) => event.idClub == idClubLeft).length;
     int rightClubScore =
-        scoreEvents.where((event) => event.id_club == idClubRight).length;
+        scoreEvents.where((event) => event.idClub == idClubRight).length;
 
     Color leftColor = Colors.white;
     Color rightColor = Colors.white;
@@ -83,6 +83,29 @@ extension GameClassWidgetHelper on GameClass {
     );
   }
 
+  Widget getGameDetails(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 12,
+        ),
+        getGameRow(context, isSpaceEvenly: true),
+        SizedBox(
+          height: 12,
+        ),
+        Row(
+          children: [
+            Text('Date: '),
+            Text(
+              DateFormat('dd/MM/yyyy').format(dateStart),
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget getGameReport(BuildContext context) {
     int leftClubScore = 0;
     int rightClubScore = 0;
@@ -111,9 +134,9 @@ extension GameClassWidgetHelper on GameClass {
 
               // Update scores based on event type (assuming event type 1 is a goal)
               if (event.idEventType == 1) {
-                if (event.id_club == idClubLeft) {
+                if (event.idClub == idClubLeft) {
                   leftClubScore++;
-                } else if (event.id_club == idClubRight) {
+                } else if (event.idClub == idClubRight) {
                   rightClubScore++;
                 }
               }
@@ -164,9 +187,7 @@ extension GameClassWidgetHelper on GameClass {
                 ),
                 title: Row(
                   children: [
-                    event.id_club == idClubRight
-                        ? Spacer()
-                        : SizedBox(width: 6),
+                    event.idClub == idClubRight ? Spacer() : SizedBox(width: 6),
                     event.getDescription(context),
                   ],
                 ),

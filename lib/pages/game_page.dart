@@ -25,21 +25,16 @@ class GamePage extends StatefulWidget {
 
 class _HomePageState extends State<GamePage> {
   late Stream<GameClass> _gameStream;
-  // late Stream<List<GameEvent>> _eventStream;
 
   @override
   void initState() {
     super.initState();
 
-    // Stream to fetch the game
     _gameStream = supabase
         .from('games')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idGame)
         .map((maps) => maps.map((map) => GameClass.fromMap(map)).first)
-
-        /// Fetch and assign the clubs of the game
-        // Left Club
         .switchMap((game) {
           final leftClubStream = supabase
               .from('clubs')
@@ -58,7 +53,6 @@ class _HomePageState extends State<GamePage> {
             return game;
           });
         })
-        // Right Club
         .switchMap((game) {
           final rightClubStream = supabase
               .from('clubs')
@@ -71,13 +65,12 @@ class _HomePageState extends State<GamePage> {
           return rightClubStream.map((clubs) {
             if (clubs.length != 1) {
               throw Exception(
-                  'DATABASE ERROR: ${clubs.length} club(s) found instead of 1 for the right club (with id: ${game.idClubLeft}) for the game with id: ${game.id}');
+                  'DATABASE ERROR: ${clubs.length} club(s) found instead of 1 for the right club (with id: ${game.idClubRight}) for the game with id: ${game.id}');
             }
             game.rightClub = clubs.first;
             return game;
           });
         })
-        // Fetch and assign team compositions
         .switchMap((game) {
           return supabase
               .from('games_team_comp')
@@ -119,31 +112,31 @@ class _HomePageState extends State<GamePage> {
               .from('players')
               .stream(primaryKey: ['id']).inFilter('id', [
             ...game.leftClub.teamcomp!
-                .to_list_int()
+                .toListOfInt()
                 .where((id) => id != null)
                 .cast<int>(),
             ...game.rightClub.teamcomp!
-                .to_list_int()
+                .toListOfInt()
                 .where((id) => id != null)
                 .cast<int>()
           ]).map((maps) => maps.map((map) => Player.fromMap(map)).toList());
 
           return playersStream.map((players) {
-            /// End initializiation of teamcomps with players
-            game.leftClub.teamcomp!.init_players(players
-                .where((player) => player.id_club == game.idClubLeft)
+            game.leftClub.teamcomp!.initPlayers(players
+                .where((player) => player.idClub == game.idClubLeft)
                 .toList());
-            game.rightClub.teamcomp!.init_players(players
-                .where((player) => player.id_club == game.idClubRight)
+            game.rightClub.teamcomp!.initPlayers(players
+                .where((player) => player.idClub == game.idClubRight)
                 .toList());
 
-            /// Complete events with the players
-            for (GameEvent event in game.events
-                .where((GameEvent event) => event.id_player != null)) {
-              event.player = players
-                  .firstWhere((Player player) => player.id == event.id_player);
-              if (event.player == null) {
-                print('No player found for event: $event');
+            for (GameEvent event in game.events) {
+              if (event.idPlayer != null) {
+                try {
+                  event.player = players
+                      .firstWhere((player) => player.id == event.idPlayer);
+                } catch (e) {
+                  print('No player found for event: $event');
+                }
               }
             }
             return game;
@@ -164,9 +157,12 @@ class _HomePageState extends State<GamePage> {
             return Center(
               child: Text('ERROR: ${snapshot.error}'),
             );
+          } else if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(
+              child: Text('No data available'),
+            );
           } else {
-            // final players = snapshot.data ?? [];
-            final GameClass game = (snapshot.data ?? []) as GameClass;
+            final GameClass game = snapshot.data!;
 
             return Scaffold(
               appBar: AppBar(
@@ -191,7 +187,7 @@ class _HomePageState extends State<GamePage> {
                           Expanded(
                             child: TabBarView(
                               children: [
-                                game.getGameRow(context, isSpaceEvenly: true),
+                                game.getGameDetails(context),
                                 game.getGameReport(context),
                                 game.getTeamcompsTab(context)
                               ],

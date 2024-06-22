@@ -59,7 +59,7 @@ class PlayerTransferTile extends StatelessWidget {
                 ),
               ),
             ),
-            if (player.id_club !=
+            if (player.idClub !=
                 Provider.of<SessionProvider>(context).selectedClub.id_club)
               IconButton(
                 icon: Icon(
@@ -79,7 +79,7 @@ class PlayerTransferTile extends StatelessWidget {
               stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
               builder: (context, snapshot) {
                 final remainingTime =
-                    player.date_sell!.difference(DateTime.now());
+                    player.dateSell!.difference(DateTime.now());
                 final daysLeft = remainingTime.inDays;
                 final hoursLeft = remainingTime.inHours.remainder(24);
                 final minutesLeft = remainingTime.inMinutes.remainder(60);
@@ -93,7 +93,7 @@ class PlayerTransferTile extends StatelessWidget {
                       children: [
                         Text(
                           DateFormat('EEE d HH:mm', 'en_US')
-                              .format(player.date_sell!),
+                              .format(player.dateSell!),
                         ),
                         Row(
                           children: [
@@ -216,19 +216,19 @@ class PlayerTransferTile extends StatelessWidget {
   }
 
   Future<void> _BidPlayer(BuildContext context, Player player) async {
-    if (player.date_sell == null) {
+    if (player.dateSell == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'ERROR: Player ${player.first_name} ${player.last_name.toUpperCase()} doesn\'t seem to be for sale'),
+              'ERROR: Player ${player.firstName} ${player.lastName.toUpperCase()} doesn\'t seem to be for sale'),
         ),
       );
       return;
-    } else if (DateTime.now().isAfter(player.date_sell!)) {
+    } else if (DateTime.now().isAfter(player.dateSell!)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Player ${player.first_name} ${player.last_name.toUpperCase()} transfer\'s deadline is reached, bidding is over... '),
+              'Player ${player.firstName} ${player.lastName.toUpperCase()} transfer\'s deadline is reached, bidding is over... '),
         ),
       );
       return;
@@ -245,7 +245,7 @@ class PlayerTransferTile extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-              'Place a bid on ${player.first_name} ${player.last_name.toUpperCase()}'),
+              'Place a bid on ${player.firstName} ${player.lastName.toUpperCase()}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,7 +299,7 @@ class PlayerTransferTile extends StatelessWidget {
                             .name_club,
                   });
 
-                  if (date_sell.isAfter(player.date_sell!)) {
+                  if (date_sell.isAfter(player.dateSell!)) {
                     await supabase.from('players').update({
                       'date_sell': date_sell.toIso8601String()
                     }).match({'id': player.id});

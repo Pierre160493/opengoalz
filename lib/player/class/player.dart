@@ -24,11 +24,11 @@ class Player {
   Player({
     required this.id,
     required this.created_at,
-    required this.id_club,
-    required this.first_name,
-    required this.last_name,
-    required this.date_birth,
-    required this.id_country,
+    required this.idClub,
+    required this.firstName,
+    required this.lastName,
+    required this.dateBirth,
+    required this.idCountry,
     required this.keeper,
     required this.defense,
     required this.playmaking,
@@ -36,10 +36,10 @@ class Player {
     required this.scoring,
     required this.freekick,
     required this.winger,
-    required this.date_end_injury,
-    required this.date_firing,
-    required this.date_sell,
-    required this.date_arrival,
+    required this.dateEndInjury,
+    required this.dateFiring,
+    required this.dateSell,
+    required this.dateArrival,
     required this.stamina,
     required this.form,
     required this.experience,
@@ -47,11 +47,11 @@ class Player {
 
   final int id;
   final DateTime created_at;
-  final int? id_club;
-  final String first_name;
-  final String last_name;
-  final DateTime date_birth;
-  final int? id_country; //Shouldn't be nullable
+  final int? idClub;
+  final String firstName;
+  final String lastName;
+  final DateTime dateBirth;
+  final int? idCountry; //Shouldn't be nullable
   final double keeper;
   final double defense;
   final double playmaking;
@@ -59,10 +59,10 @@ class Player {
   final double scoring;
   final double freekick;
   final double winger;
-  final DateTime? date_end_injury;
-  final DateTime? date_firing;
-  final DateTime? date_sell;
-  final DateTime date_arrival;
+  final DateTime? dateEndInjury;
+  final DateTime? dateFiring;
+  final DateTime? dateSell;
+  final DateTime dateArrival;
   final double stamina;
   final double form;
   final double experience;
@@ -70,11 +70,11 @@ class Player {
   Player.fromMap(Map<String, dynamic> map)
       : id = map['id'],
         created_at = DateTime.parse(map['created_at']),
-        id_club = map['id_club'],
-        first_name = map['first_name'],
-        last_name = map['last_name'],
-        date_birth = DateTime.parse(map['date_birth']),
-        id_country = map['id_country'],
+        idClub = map['id_club'],
+        firstName = map['first_name'],
+        lastName = map['last_name'],
+        dateBirth = DateTime.parse(map['date_birth']),
+        idCountry = map['id_country'],
         keeper = (map['keeper'] as num).toDouble(),
         defense = (map['defense'] as num).toDouble(),
         playmaking = (map['playmaking'] as num).toDouble(),
@@ -85,18 +85,18 @@ class Player {
         stamina = (map['stamina'] as num).toDouble(),
         form = (map['form'] as num).toDouble(),
         experience = (map['experience'] as num).toDouble(),
-        date_end_injury = map['date_end_injury'] != null
+        dateEndInjury = map['date_end_injury'] != null
             ? DateTime.parse(map['date_end_injury'])
             : null,
-        date_firing = map['date_firing'] != null
+        dateFiring = map['date_firing'] != null
             ? DateTime.parse(map['date_firing'])
             : null,
-        date_sell =
+        dateSell =
             map['date_sell'] != null ? DateTime.parse(map['date_sell']) : null,
-        date_arrival = DateTime.parse(map['date_arrival']);
+        dateArrival = DateTime.parse(map['date_arrival']);
 
   double get age {
-    return DateTime.now().difference(date_birth).inDays / 112.0;
+    return DateTime.now().difference(dateBirth).inDays / 112.0;
   }
 
   double get stats_average {

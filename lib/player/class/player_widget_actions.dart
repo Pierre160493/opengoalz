@@ -13,8 +13,8 @@ extension PlayerWidgetsActions on Player {
               title: Text('Open Player\'s Page'),
             ),
           ),
-        if (date_sell == null)
-          if (date_firing == null) ...[
+        if (dateSell == null)
+          if (dateFiring == null) ...[
             const PopupMenuItem<String>(
               value: 'Sell',
               child: ListTile(
@@ -89,7 +89,7 @@ extension PlayerWidgetsActions on Player {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Enter the starting price for ${first_name} ${last_name.toUpperCase()}',
+                'Enter the starting price for ${firstName} ${lastName.toUpperCase()}',
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -136,7 +136,7 @@ extension PlayerWidgetsActions on Player {
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text(
-                          '${first_name} ${last_name.toUpperCase()} has been put to transfer list'),
+                          '${firstName} ${lastName.toUpperCase()} has been put to transfer list'),
                     ),
                   );
                 } on PostgrestException catch (error) {
@@ -169,7 +169,7 @@ extension PlayerWidgetsActions on Player {
         return AlertDialog(
           title: const Text('Confirm'),
           content: Text(
-              'Are you sure you want to fire ${first_name} ${last_name.toUpperCase()} ?'),
+              'Are you sure you want to fire ${firstName} ${lastName.toUpperCase()} ?'),
           actions: <Widget>[
             /// Cancel Button
             TextButton(
@@ -193,7 +193,7 @@ extension PlayerWidgetsActions on Player {
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text(
-                          '${first_name} ${last_name.toUpperCase()} has 7 days to pack his stuff and leave !'),
+                          '${firstName} ${lastName.toUpperCase()} has 7 days to pack his stuff and leave !'),
                     ),
                   );
                 } on PostgrestException catch (error) {
@@ -221,7 +221,7 @@ extension PlayerWidgetsActions on Player {
       scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text(
-              '${first_name} ${last_name.toUpperCase()} is happy to stay in your club !'),
+              '${firstName} ${lastName.toUpperCase()} is happy to stay in your club !'),
         ),
       );
     } on PostgrestException catch (error) {

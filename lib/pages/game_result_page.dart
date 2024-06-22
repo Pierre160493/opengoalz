@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/gameView.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/player/class/player2.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:provider/provider.dart';
 
@@ -388,7 +387,7 @@ class _GameResultPageState extends State<GameResultPage> {
                           const Icon(Icons.person,
                               size: 12, color: Colors.white),
                           Text(
-                            '${player.first_name[0].toUpperCase()}.${player.last_name}',
+                            '${player.firstName[0].toUpperCase()}.${player.lastName}',
                             style: const TextStyle(fontSize: 12.0),
                           ),
                         ],

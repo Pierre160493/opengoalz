@@ -4,63 +4,72 @@ import 'package:opengoalz/player/players_page.dart';
 
 class GameEvent {
   Player? player;
+  Player? playerSecond;
+  Player? playerOpponent;
 
   final int id;
   final DateTime createdAt;
-  final int id_game;
+  final int idGame;
   final int? idEventType;
-  final int? id_player;
-  final int id_club;
-  final int gameMinute;
-  final DateTime dateEvent;
-  final int gamePeriod;
+  final int? idPlayer;
+  final int idClub;
+  final int? gameMinute;
+  final DateTime? dateEvent;
+  final int? gamePeriod;
+  final int? idPlayerSecond;
+  final int? idPlayerOpponent;
 
   GameEvent({
     required this.id,
     required this.createdAt,
-    required this.id_game,
+    required this.idGame,
     this.idEventType,
-    required this.id_player,
-    required this.id_club,
-    required this.gameMinute,
-    required this.dateEvent,
-    required this.gamePeriod,
+    this.idPlayer,
+    required this.idClub,
+    this.gameMinute,
+    this.dateEvent,
+    this.gamePeriod,
+    this.idPlayerSecond,
+    this.idPlayerOpponent,
   });
 
-  // Factory constructor to create a GameEvent instance from a map
   factory GameEvent.fromMap(Map<String, dynamic> map) {
     return GameEvent(
       id: map['id'],
       createdAt: DateTime.parse(map['created_at']),
-      id_game: map['id_game'],
+      idGame: map['id_game'],
       idEventType: map['id_event_type'],
-      id_player: map['id_player'],
-      id_club: map['id_club'],
+      idPlayer: map['id_player'],
+      idClub: map['id_club'],
       gameMinute: map['game_minute'],
-      dateEvent: DateTime.parse(map['date_event']),
+      dateEvent:
+          map['date_event'] != null ? DateTime.parse(map['date_event']) : null,
       gamePeriod: map['game_period'],
+      idPlayerSecond: map['id_player_second'],
+      idPlayerOpponent: map['id_player_opponent'],
     );
   }
 
-  // Method to convert a GameEvent instance to a map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'created_at': createdAt.toIso8601String(),
-      'id_game': id_game,
+      'id_game': idGame,
       'id_event_type': idEventType,
-      'id_player': id_player,
-      'id_club': id_club,
+      'id_player': idPlayer,
+      'id_club': idClub,
       'game_minute': gameMinute,
-      'date_event': dateEvent.toIso8601String(),
+      'date_event': dateEvent?.toIso8601String(),
       'game_period': gamePeriod,
+      'id_player_second': idPlayerSecond,
+      'id_player_opponent': idPlayerOpponent,
     };
   }
 
   Widget getDescription(BuildContext context) {
     String playerName = player == null
         ? 'Unknown player'
-        : '${player!.first_name} ${player!.last_name.toUpperCase()}';
+        : '${player!.firstName} ${player!.lastName.toUpperCase()}';
 
     Widget playerInkWell = InkWell(
       onTap: () {
