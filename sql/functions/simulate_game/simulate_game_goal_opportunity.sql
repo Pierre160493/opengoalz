@@ -1,16 +1,15 @@
--- DROP FUNCTION public.simulate_game_goal_opportunity(int8, int8, int8, _int8, _int8, _int8, _int8, _float8, _float8);
+-- DROP FUNCTION public.simulate_game_goal_opportunity(int8, int8, int8, _float8, _float8, _int8, _int8, _float8, _float8);
 
 CREATE OR REPLACE FUNCTION public.simulate_game_goal_opportunity(
     inp_id_game bigint,
     inp_id_club_attack bigint,
     inp_id_club_defense bigint,
-    inp_array_team_weights_attack double precision[7],
-    inp_array_team_weights_defense double precision[7],
-    inp_array_player_ids_attack bigint[21],
-    inp_array_player_ids_defense bigint[21],
-    inp_matrix_player_stats_attack double precision[21][7],
-    inp_matrix_player_stats_defense double precision[21][7]
-    )
+    inp_array_team_weights_attack double precision[],
+    inp_array_team_weights_defense double precision[],
+    inp_array_player_ids_attack bigint[],
+    inp_array_player_ids_defense bigint[],
+    inp_matrix_player_stats_attack double precision[],
+    inp_matrix_player_stats_defense double precision[])
  RETURNS bigint
  LANGUAGE plpgsql
 AS $function$
@@ -39,7 +38,7 @@ DECLARE
     loc_weight_defense float8 := 0; -- The weight of the defense
     loc_sum_weights_attack float8 := 0;
     loc_sum float8 := 0;
-    loc_array_multiplier float8[14]; -- Array to hold the multipliers of the players
+    loc_array_weights float8[14]; -- Array to hold the multipliers of the players
     loc_id_player_attack INT8; -- The ID of the player who made the event
     loc_id_player_passer INT8; -- The ID of the player who made the pass
     loc_id_player_defense INT8; -- The ID of the player who defended
@@ -67,24 +66,36 @@ BEGIN
 
             -- Fetch the attacker of the event
             FOR J IN 1..14 LOOP
-                loc_array_multiplier[J] := loc_array_attack_multiplier[J] * loc_matrix_side_multiplier[J][I] * inp_matrix_player_stats_attack[J][loc_pos_striking]; -- Calculate the multiplier to fetch players for the event
+                loc_array_weights[J] := loc_array_attack_multiplier[J] * loc_matrix_side_multiplier[J][I] * inp_matrix_player_stats_attack[J][loc_pos_striking]; -- Calculate the multiplier to fetch players for the event
             END LOOP;
-            loc_id_player_attack = simulate_game_fetch_player_for_event(loc_array_multiplier); -- Fetch the player who made the event
+            loc_id_player_attack = simulate_game_fetch_random_player_id_based_on_weight_array(
+                inp_array_player_ids := inp_array_player_ids_attack[1:14],
+                inp_array_weights := loc_array_weights,
+                inp_null_possible := true); -- Fetch the player who scored for this event
+            
             
             -- Fetch the player who made the pass if an attacker was found
             IF loc_id_player_attack IS NOT NULL THEN
                 FOR J IN 1..14 LOOP
-                    loc_array_multiplier[J] = loc_array_attack_multiplier[J] * loc_matrix_side_multiplier[J][I] * inp_matrix_player_stats_attack[J][loc_pos_passing]; -- Calculate the multiplier to fetch players for the event
+                    loc_array_weights[J] = loc_array_attack_multiplier[J] * loc_matrix_side_multiplier[J][I] * inp_matrix_player_stats_attack[J][loc_pos_passing]; -- Calculate the multiplier to fetch players for the EVENT
+                    IF inp_array_player_ids_attack[J] = loc_id_player_attack THEN
+                        loc_array_weights[J] = 0; -- Set the attacker to 0 cause he cant be passer
+                    END IF;
                 END LOOP;
-                loc_array_multiplier[loc_id_player_attack] = 0; -- Set the attacker to 0 cause he cant be passer
-                loc_id_player_passer = simulate_game_fetch_player_for_event(loc_array_multiplier); -- Fetch the player who made the event
+                loc_id_player_passer = simulate_game_fetch_random_player_id_based_on_weight_array(
+                    inp_array_player_ids := inp_array_player_ids_attack[1:14],
+                    inp_array_weights := loc_array_weights,
+                    inp_null_possible := true); -- Fetch the player who passed the ball to the striker for this event
             END IF;
 
             -- Fetch the defender of the event
             FOR J IN 1..14 LOOP
-                loc_array_multiplier[J] = loc_array_defense_multiplier[J] * loc_matrix_side_multiplier[J][I] * (1 / (inp_matrix_player_stats_defense[J][loc_pos_defense] + 1)); -- Calculate the multiplier to fetch players for the event
+                loc_array_weights[J] = loc_array_defense_multiplier[J] * loc_matrix_side_multiplier[J][I] * (1 / (inp_matrix_player_stats_defense[J][loc_pos_defense] + 1)); -- Calculate the multiplier to fetch players for the event
             END LOOP;
-            loc_id_player_defense = simulate_game_fetch_player_for_event(loc_array_multiplier); -- Fetch the player who made the event
+            loc_id_player_defense = simulate_game_fetch_random_player_id_based_on_weight_array(
+                inp_array_player_ids := inp_array_player_ids_defense[1:14],
+                inp_array_weights := loc_array_weights,
+                inp_null_possible := true); -- Fetch the opponent player responsible for the goal (only for description)
 
              -- Weight of the attack
             -- loc_weight_attack := inp_array_team_weights_attack[4+I] + inp_matrix_player_stats_attack[loc_id_player_attack][6]
