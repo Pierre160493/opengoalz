@@ -12,6 +12,7 @@ import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/player/players_page.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:country_flags/country_flags.dart';
 
 part 'player_widget_helper.dart';
 part 'player_widget_transfer.dart';
