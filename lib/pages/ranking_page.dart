@@ -75,174 +75,261 @@ class _RankingPageState extends State<RankingPage> {
                 title: Text('Rankings Page for league ${league.id.toString()}'),
               ),
               drawer: const AppDrawer(),
-              body: Column(
-                children: [
-                  Text(
-                    'Rankings for league ${league.id.toString()}',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  Text('Speed: ${league.multiverseSpeed.toString()}'),
-                  Text('Season: ${league.seasonNumber.toString()}'),
-                  MaxWidthContainer(
-                    child: StreamBuilder<List<Ranking>>(
-                      stream: _rankingStream,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
+              body: MaxWidthContainer(
+                child: Column(
+                  children: [
+                    /// Ranking for league
+                    Text(
+                      'Rankings for league ${league.id.toString()}',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+
+                    /// Multiverse Speed row
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.speed,
+                          color: Colors.blueGrey,
+                          size: 30,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Speed: ${league.multiverseSpeed.toString()}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    /// Season row
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          color: Colors.blueGrey,
+                          size: 30,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Season: ${league.seasonNumber.toString()}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    /// Level row
+                    /// Level row
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                          size: 30,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Level: ${league.level.toString()}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    /// Add a button to navigate to the upper league if it exists
+                    if (league.idUpperLeague != null)
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RankingPage(
+                                idLeague: league.idUpperLeague!,
+                              ),
+                            ),
                           );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text('ERROR: ${snapshot.error}'),
-                          );
-                        } else {
-                          final rankings = snapshot.data ?? [];
-                          if (rankings.isEmpty) {
+                        },
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.arrow_upward, // Changed the icon
+                            color: Colors.blueGrey, // Changed the icon color
+                            size: 32, // Increased the icon size
+                          ),
+                          title: Text(
+                            'Upper League',
+                            style: TextStyle(
+                              color: Colors.blueGrey, // Changed the text color
+                              fontWeight: FontWeight.bold, // Made the text bold
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    /// Add a button to navigate to the previous league if it exists
+
+                    /// Rankings tables
+                    MaxWidthContainer(
+                      child: StreamBuilder<List<Ranking>>(
+                        stream: _rankingStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return const Center(
-                              child: Text('ERROR: No rankings found'),
+                              child: CircularProgressIndicator(),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Text('ERROR: ${snapshot.error}'),
                             );
                           } else {
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 16),
-                              child: DataTable(
-                                columns: const [
-                                  DataColumn(label: Text('Pos')),
-                                  DataColumn(label: Text('Name')),
-                                  DataColumn(label: Text('Points')),
-                                  DataColumn(label: Text('Goal Diff')),
-                                  // DataColumn(label: Text('W')),
-                                  // DataColumn(label: Text('T')),
-                                  // DataColumn(label: Text('L')),
-                                  // DataColumn(label: Text('+')),
-                                  // DataColumn(label: Text('-')),
-                                ],
-                                rows: rankings.take(6).map((ranking) {
-                                  final index = rankings.indexOf(ranking) + 1;
-                                  var color =
-                                      index.isOdd ? Colors.blueGrey : null;
-                                  if (ranking.idClub ==
-                                      Provider.of<SessionProvider>(context)
-                                          .selectedClub
-                                          .id_club) color = Colors.green;
-                                  return DataRow(
-                                    color: WidgetStateProperty.all(color),
-                                    onSelectChanged: (_) {
-                                      Navigator.push(
-                                        context,
-                                        ClubPage.route(ranking.idClub),
-                                      );
-                                    },
-                                    cells: [
-                                      DataCell(Text(index.toString())),
-                                      DataCell(
-                                        Container(
-                                          constraints: BoxConstraints(
-                                            maxWidth:
-                                                120, // Set the maximum width here
-                                          ),
-                                          child: Flexible(
-                                            child: Text(ranking.nameClub,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                    // fontWeight: FontWeight.bold,
-                                                    fontSize: 12)),
+                            final rankings = snapshot.data ?? [];
+                            if (rankings.isEmpty) {
+                              return const Center(
+                                child: Text('ERROR: No rankings found'),
+                              );
+                            } else {
+                              return Card(
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 16),
+                                child: DataTable(
+                                  columns: const [
+                                    DataColumn(label: Text('Pos')),
+                                    DataColumn(label: Text('Name')),
+                                    DataColumn(label: Text('Points')),
+                                    DataColumn(label: Text('Goal Diff')),
+                                  ],
+                                  rows: rankings.take(6).map((ranking) {
+                                    final index = rankings.indexOf(ranking) + 1;
+                                    var color =
+                                        index.isOdd ? Colors.blueGrey : null;
+                                    if (ranking.idClub ==
+                                        Provider.of<SessionProvider>(context)
+                                            .selectedClub
+                                            .id_club) color = Colors.green;
+                                    return DataRow(
+                                      color: WidgetStateProperty.all(color),
+                                      onSelectChanged: (_) {
+                                        Navigator.push(
+                                          context,
+                                          ClubPage.route(ranking.idClub),
+                                        );
+                                      },
+                                      cells: [
+                                        DataCell(Text(index.toString())),
+                                        DataCell(
+                                          Container(
+                                            constraints: BoxConstraints(
+                                              maxWidth:
+                                                  120, // Set the maximum width here
+                                            ),
+                                            child: Flexible(
+                                              child: Text(ranking.nameClub,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      // fontWeight: FontWeight.bold,
+                                                      fontSize: 12)),
+                                            ),
                                           ),
                                         ),
-                                      ),
 
-                                      DataCell(Row(
-                                        children: [
-                                          Text(
-                                            ranking.nPoints.toString(),
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18),
-                                          ),
-                                          Text(' '),
-                                          Container(
-                                            padding: EdgeInsets.all(4),
-                                            color: Colors
-                                                .black, // Set the background color here
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  ranking.nVictories.toString(),
-                                                  style: TextStyle(
-                                                    color: Colors.green,
-                                                  ),
-                                                ),
-                                                Text(' / '),
-                                                Text(
-                                                  ranking.nDraws.toString(),
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                                Text(' / '),
-                                                Text(
-                                                  ranking.nDefeats.toString(),
-                                                  style: TextStyle(
-                                                    color: Colors.red,
-                                                  ),
-                                                ),
-                                              ],
+                                        DataCell(Row(
+                                          children: [
+                                            Text(
+                                              ranking.nPoints.toString(),
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18),
                                             ),
-                                          ),
-                                        ],
-                                      )),
-                                      // DataCell(Text(ranking.totalGoalAverage.toString())),
-                                      DataCell(Row(
-                                        children: [
-                                          Text(
-                                            ranking.totalGoalAverage.toString(),
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18),
-                                          ),
-                                          Text(' '),
-                                          Container(
-                                            padding: EdgeInsets.all(4),
-                                            color: Colors
-                                                .black, // Set the background color here
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  ranking.goalsScored
-                                                      .toString(),
-                                                  style: TextStyle(
-                                                    color: Colors.green,
+                                            Text(' '),
+                                            Container(
+                                              padding: EdgeInsets.all(4),
+                                              color: Colors
+                                                  .black, // Set the background color here
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    ranking.nVictories
+                                                        .toString(),
+                                                    style: TextStyle(
+                                                      color: Colors.green,
+                                                    ),
                                                   ),
-                                                ),
-                                                Text(' / '),
-                                                Text(
-                                                  ranking.goalsTaken.toString(),
-                                                  style: TextStyle(
-                                                    color: Colors.red,
+                                                  Text(' / '),
+                                                  Text(
+                                                    ranking.nDraws.toString(),
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
+                                                  Text(' / '),
+                                                  Text(
+                                                    ranking.nDefeats.toString(),
+                                                    style: TextStyle(
+                                                      color: Colors.red,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      )),
-                                      // DataCell(Text(ranking.nVictories.toString())),
-                                      // DataCell(Text(ranking.nDraws.toString())),
-                                      // DataCell(Text(ranking.nDefeats.toString())),
-                                      // DataCell(Text(ranking.goalsScored.toString())),
-                                      // DataCell(Text(ranking.goalsTaken.toString())),
-                                    ],
-                                  );
-                                }).toList(),
-                              ),
-                            );
+                                          ],
+                                        )),
+                                        // DataCell(Text(ranking.totalGoalAverage.toString())),
+                                        DataCell(Row(
+                                          children: [
+                                            Text(
+                                              ranking.totalGoalAverage
+                                                  .toString(),
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18),
+                                            ),
+                                            Text(' '),
+                                            Container(
+                                              padding: EdgeInsets.all(4),
+                                              color: Colors
+                                                  .black, // Set the background color here
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    ranking.goalsScored
+                                                        .toString(),
+                                                    style: TextStyle(
+                                                      color: Colors.green,
+                                                    ),
+                                                  ),
+                                                  Text(' / '),
+                                                  Text(
+                                                    ranking.goalsTaken
+                                                        .toString(),
+                                                    style: TextStyle(
+                                                      color: Colors.red,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        )),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              );
+                            }
                           }
-                        }
-                      },
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           }
