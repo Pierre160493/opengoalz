@@ -73,7 +73,7 @@ class _HomePageState extends State<GamePage> {
         })
         .switchMap((game) {
           return supabase
-              .from('games_team_comp')
+              .from('games_teamcomp')
               .stream(primaryKey: ['id'])
               .eq('id_game', game.id)
               .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
