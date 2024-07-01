@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/league.dart';
 import 'package:opengoalz/classes/ranking.dart';
+import 'package:opengoalz/game/class/gameClass.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -29,6 +30,7 @@ class LeaguePage extends StatefulWidget {
 
 class _RankingPageState extends State<LeaguePage> {
   Stream<League> _leagueStream = Stream.empty();
+  // late Stream<GameClass> _gameStream;
   late final Stream<List<Ranking>> _rankingStream;
 
   @override
@@ -80,6 +82,7 @@ class _RankingPageState extends State<LeaguePage> {
                       TabBar(
                         tabs: [
                           Tab(text: 'Rankings'),
+                          Tab(text: 'Games'),
                           Tab(text: 'Stats'),
                           Tab(text: 'Chat'),
                         ],
@@ -88,7 +91,8 @@ class _RankingPageState extends State<LeaguePage> {
                           child: TabBarView(
                         children: [
                           _RankingPage(league, context),
-                          Text('test2'),
+                          Text('Games Tab'),
+                          Text('Stats Tab'),
                           Text('League Chat'),
                         ],
                       )),
@@ -140,8 +144,7 @@ class _RankingPageState extends State<LeaguePage> {
                     },
                     child: Row(
                       children: [
-                        Icon(Icons.arrow_back),
-                        Icon(Icons.history_edu),
+                        Icon(Icons.keyboard_double_arrow_left),
                         Text('Previous Season'),
                       ],
                     ),

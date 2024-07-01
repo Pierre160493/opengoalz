@@ -1,6 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/classes/events/event.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:opengoalz/game/class/gameClass.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -23,16 +27,75 @@ class GamesPage extends StatefulWidget {
 }
 
 class _HomePageState extends State<GamesPage> {
-  late final Stream<List<GameView>> _gameStream;
+  late final Stream<List<GameClass>> _gamesStream;
+  late final Stream<List<GameClass>> _gamesStreamLeft;
+  late final Stream<List<GameClass>> _gamesStreamRight;
 
   @override
   void initState() {
-    _gameStream = supabase
-        .from('view_games')
+    _gamesStreamLeft = supabase
+        .from('games')
         .stream(primaryKey: ['id'])
-        .eq('id_club', widget.idClub)
-        .order('date_start', ascending: true)
-        .map((maps) => maps.map((map) => GameView.fromMap(map: map)).toList());
+        .eq('id_club_left', widget.idClub)
+        .map((maps) => maps.map((map) => GameClass.fromMap(map)).toList());
+
+    _gamesStreamRight = supabase
+        .from('games')
+        .stream(primaryKey: ['id'])
+        .eq('id_club_right', widget.idClub)
+        .map((maps) => maps.map((map) => GameClass.fromMap(map)).toList());
+
+    // Merge the two streams and fetch additional data for each game
+    _gamesStream = Rx.merge([_gamesStreamLeft, _gamesStreamRight])
+        .flatMap((games) => Stream.fromIterable(games))
+        .switchMap((game) {
+      final leftClubStream = supabase
+          .from('clubs')
+          .stream(primaryKey: ['id'])
+          .eq('id', game.idClubLeft)
+          .map((maps) => maps
+              .map((map) => Club.fromMap(
+                  map: map, myUserId: supabase.auth.currentUser!.id))
+              .toList());
+
+      final rightClubStream = supabase
+          .from('clubs')
+          .stream(primaryKey: ['id'])
+          .eq('id', game.idClubRight)
+          .map((maps) => maps
+              .map((map) => Club.fromMap(
+                  map: map, myUserId: supabase.auth.currentUser!.id))
+              .toList());
+
+      final eventStream = supabase
+          .from('game_events')
+          .stream(primaryKey: ['id'])
+          .eq('id_game', game.id)
+          .map((maps) => maps.map((map) => GameEvent.fromMap(map)).toList());
+
+      return Rx.combineLatest3(leftClubStream, rightClubStream, eventStream,
+          (leftClubs, rightClubs, events) {
+        if (leftClubs.length != 1) {
+          throw Exception(
+              'DATABASE ERROR: ${leftClubs.length} club(s) found instead of 1 for the left club (with id: ${game.idClubLeft}) for the game with id: ${game.id}');
+        }
+        if (rightClubs.length != 1) {
+          throw Exception(
+              'DATABASE ERROR: ${rightClubs.length} club(s) found instead of 1 for the right club (with id: ${game.idClubRight}) for the game with id: ${game.id}');
+        }
+        game.leftClub = leftClubs.first;
+        game.rightClub = rightClubs.first;
+        game.events = events;
+        return [game];
+      });
+    });
+
+    // _gameStream = supabase
+    //     .from('view_games')
+    //     .stream(primaryKey: ['id'])
+    //     .eq('id_club', widget.idClub)
+    //     .order('date_start', ascending: true)
+    //     .map((maps) => maps.map((map) => GameView.fromMap(map: map)).toList());
 
     super.initState();
   }
@@ -45,8 +108,8 @@ class _HomePageState extends State<GamesPage> {
       ),
       drawer: const AppDrawer(),
       body: MaxWidthContainer(
-        child: StreamBuilder<List<GameView>>(
-          stream: _gameStream,
+        child: StreamBuilder<List<GameClass>>(
+          stream: _gamesStream,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
@@ -63,12 +126,12 @@ class _HomePageState extends State<GamesPage> {
                   child: Text('No games found'),
                 );
               } else {
-                final List<GameView> gamesCurrent = [];
-                final List<GameView> gamesIncoming = [];
-                final List<GameView> gamesPlayed = [];
+                final List<GameClass> gamesCurrent = [];
+                final List<GameClass> gamesIncoming = [];
+                final List<GameClass> gamesPlayed = [];
 
                 DateTime now = DateTime.now();
-                for (GameView game in games) {
+                for (GameClass game in games) {
                   if (game.dateStart.isAfter(now) &&
                       game.dateStart
                           .isBefore(now.add(const Duration(hours: 3)))) {
@@ -97,9 +160,12 @@ class _HomePageState extends State<GamesPage> {
                         child: TabBarView(
                           children: [
                             if (gamesCurrent.length > 0)
-                              _buildGameList(gamesCurrent),
-                            _buildGameList(gamesIncoming),
-                            _buildGameList(gamesPlayed)
+                              //   _buildGameList(gamesCurrent),
+                              // _buildGameList(gamesIncoming),
+                              // _buildGameList(gamesPlayed)
+                              Text('test'),
+                            Text('test'),
+                            Text('test'),
                           ],
                         ),
                       ),
@@ -114,27 +180,27 @@ class _HomePageState extends State<GamesPage> {
     );
   }
 
-  Widget _buildGameList(List<GameView> games) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: games.length,
-            itemBuilder: (context, index) {
-              final game = games[index];
-              return InkWell(
-                onTap: () {
-                  Navigator.of(context).push(GamePage.route(game.id));
-                },
-                // child: _buildGameDescription(game),
-                child: game.getGameDetail(context),
-              );
-            },
-            // leading: Text('test')
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _buildGameList(List<GameClass> games) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Expanded(
+  //         child: ListView.builder(
+  //           itemCount: games.length,
+  //           itemBuilder: (context, index) {
+  //             final game = games[index];
+  //             return InkWell(
+  //               onTap: () {
+  //                 Navigator.of(context).push(GamePage.route(game.id));
+  //               },
+  //               // child: _buildGameDescription(game),
+  //               child: game.getGameDetail(context),
+  //             );
+  //           },
+  //           // leading: Text('test')
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 }
