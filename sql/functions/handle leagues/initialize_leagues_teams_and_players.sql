@@ -23,8 +23,8 @@ BEGIN
             WHERE unnest != 'Antarctica') LOOP
 
             -- Insert the first league for the continent
-            INSERT INTO leagues (multiverse_speed, season_number, continent, level, id_upper_league, id_previous_league)
-            VALUES (multiverse.speed, multiverse.season_number, continent, 1, NULL, NULL)
+            INSERT INTO leagues (multiverse_speed, season_number, continent, level, number, id_upper_league)
+            VALUES (multiverse.speed, multiverse.season_number, continent, 1, 1, NULL)
             RETURNING id INTO loc_id_league;
 
             -- Create 8 new clubs for the league
@@ -44,30 +44,44 @@ BEGIN
                 -- Create i leagues for the current level
                 FOR J IN 1..ARRAY_LENGTH(loc_array_id_upper_league, 1) LOOP
 
-                    -- Create 2 new clubs for each upper league id
-                    FOR K IN 1..2 LOOP
+                    -- Insert a new league and store its id
+                    INSERT INTO leagues (multiverse_speed, season_number, continent, level, number, id_upper_league)
+                    VALUES (multiverse.speed, multiverse.season_number, continent, I, ((2 * (J - 1)) + 1), loc_array_id_upper_league[J])
+                    RETURNING id INTO loc_id_league;
 
-                        -- Insert a new league and store its id
-                        INSERT INTO leagues (multiverse_speed, season_number, continent, level, id_upper_league, id_previous_league)
-                        VALUES (multiverse.speed, multiverse.season_number, continent, I, loc_array_id_upper_league[J], NULL)
-                        RETURNING id INTO loc_id_league;
+                    -- Store the id of the last league created in this level as the lower league for the next level
+                    loc_array_id_lower_league[(2 * (J - 1)) + 1] := loc_id_league;
 
-                        -- Create 8 new clubs for this league
-                        FOR L IN 1..6 LOOP
-                            PERFORM create_club( -- Function to create new club
-                                inp_multiverse_speed := multiverse.speed, -- Id of the multiverse
-                                inp_id_league := loc_id_league, -- Id of the league
-                                inp_continent := continent); -- Continent of the club
-                        END LOOP;
-
-                        -- Store the id of the last league created in this level as the lower league for the next level
-                        loc_array_id_lower_league[(2 * (J - 1)) + K] := loc_id_league;
-
+                    -- Create the 6 new clubs for this league
+                    FOR K IN 1..6 LOOP
+                        PERFORM create_club( -- Function to create new club
+                            inp_multiverse_speed := multiverse.speed, -- Id of the multiverse
+                            inp_id_league := loc_id_league, -- Id of the league
+                            inp_continent := continent); -- Continent of the club
                     END LOOP;
+
+                    -- Insert the other league and store its id
+                    INSERT INTO leagues (id, multiverse_speed, season_number, continent, level, number, id_upper_league)
+                    VALUES (- loc_id_league, multiverse.speed, multiverse.season_number, continent, I, ((2 * (J - 1)) + 2), loc_array_id_upper_league[J])
+                    RETURNING id INTO loc_id_league;
+
+                    -- Store the id of the last league created in this level as the lower league for the next level
+                    loc_array_id_lower_league[(2 * (J - 1)) + 2] := loc_id_league;
+
+                    -- Create the 6 new clubs for this league
+                    FOR K IN 1..6 LOOP
+                        PERFORM create_club( -- Function to create new club
+                            inp_multiverse_speed := multiverse.speed, -- Id of the multiverse
+                            inp_id_league := loc_id_league, -- Id of the league
+                            inp_continent := continent); -- Continent of the club
+                    END LOOP;
+
                 END LOOP;
 
                 -- Store the new lower leagues as the upper leagues for the next level
                 loc_array_id_upper_league := loc_array_id_lower_league;
+
+                -- Reset the array
                 loc_array_id_lower_league := ARRAY[]::integer[];
 
             END LOOP;

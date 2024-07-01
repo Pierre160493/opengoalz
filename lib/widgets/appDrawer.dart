@@ -10,7 +10,7 @@ import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/home_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/player/players_page.dart';
-import 'package:opengoalz/pages/ranking_page.dart';
+import 'package:opengoalz/pages/league_page.dart';
 import 'package:provider/provider.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -73,15 +73,19 @@ class AppDrawer extends StatelessWidget {
               PlayersPage(inputCriteria: {
                 'Clubs': [selectedClub.id_club]
               })), // Add the Players page
-          buildDrawerOption(context, icon_transfers, 'Transfers',
-              TransferPage(idClub: selectedClub.id_club)), // Add the Transfers page
+          buildDrawerOption(
+              context,
+              icon_transfers,
+              'Transfers',
+              TransferPage(
+                  idClub: selectedClub.id_club)), // Add the Transfers page
           buildDrawerOption(context, icon_games, 'Games',
               GamesPage(idClub: selectedClub.id_club)), // Add the Games page
           buildDrawerOption(
               context,
               icon_rankings,
               'Rankings',
-              RankingPage(
+              LeaguePage(
                   idLeague: selectedClub.id_league)), // Add the Rankings page
           buildDrawerOption(
             context,

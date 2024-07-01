@@ -4,7 +4,7 @@ import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/player/players_page.dart';
-import 'package:opengoalz/pages/ranking_page.dart';
+import 'package:opengoalz/pages/league_page.dart';
 import 'package:provider/provider.dart';
 
 class ClubPage extends StatefulWidget {
@@ -220,7 +220,7 @@ class _ClubPageState extends State<ClubPage> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => RankingPage(
+                                            builder: (context) => LeaguePage(
                                               idLeague: club.id_league,
                                             ),
                                           ),
