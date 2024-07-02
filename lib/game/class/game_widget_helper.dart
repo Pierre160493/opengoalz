@@ -1,6 +1,6 @@
-part of 'gameClass.dart';
+part of 'game.dart';
 
-extension GameClassWidgetHelper on GameClass {
+extension GameClassWidgetHelper on Game {
   Widget getGameRow(BuildContext context, {bool isSpaceEvenly = false}) {
     return Row(
       mainAxisAlignment: isSpaceEvenly

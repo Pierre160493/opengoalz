@@ -8,15 +8,15 @@ import 'package:opengoalz/player/players_page.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-part 'gameClass_widget_helper.dart';
-part 'gameClass_widget_teamcomp.dart';
+part 'game_widget_helper.dart';
+part 'game_widget_teamcomp.dart';
 
-class GameClass {
+class Game {
   List<GameEvent> events = []; //list of events in the game
   late Club leftClub; //left club
   late Club rightClub; //left club
 
-  GameClass({
+  Game({
     required this.id,
     required this.idClubLeft,
     required this.idClubRight,
@@ -40,8 +40,8 @@ class GameClass {
   final bool isLeague;
   final bool isFriendly;
 
-  factory GameClass.fromMap(Map<String, dynamic> map) {
-    return GameClass(
+  factory Game.fromMap(Map<String, dynamic> map) {
+    return Game(
       id: map['id'],
       idClubLeft: map['id_club_left'],
       idClubRight: map['id_club_right'],

@@ -1,6 +1,6 @@
-part of 'gameClass.dart';
+part of 'game.dart';
 
-extension GameClassWidgetTeamcomps on GameClass {
+extension GameClassWidgetTeamcomps on Game {
   Widget getTeamcompsTab(BuildContext context, {bool isSpaceEvenly = false}) {
     return DefaultTabController(
       length: 2,

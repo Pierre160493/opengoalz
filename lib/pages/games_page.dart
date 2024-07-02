@@ -5,7 +5,7 @@ import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:opengoalz/game/class/gameClass.dart';
+import 'package:opengoalz/game/class/game.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
@@ -26,9 +26,9 @@ class GamesPage extends StatefulWidget {
 }
 
 class _HomePageState extends State<GamesPage> {
-  late final Stream<List<GameClass>> _gamesStream;
-  late final Stream<List<GameClass>> _gamesStreamLeft;
-  late final Stream<List<GameClass>> _gamesStreamRight;
+  late final Stream<List<Game>> _gamesStream;
+  late final Stream<List<Game>> _gamesStreamLeft;
+  late final Stream<List<Game>> _gamesStreamRight;
 
   @override
   void initState() {
@@ -36,7 +36,7 @@ class _HomePageState extends State<GamesPage> {
             .from('games')
             .stream(primaryKey: ['id'])
             .eq('id_club_left', widget.idClub)
-            .map((maps) => maps.map((map) => GameClass.fromMap(map)).toList())
+            .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
             .switchMap((games) {
               print('Number of games: ' + games.length.toString());
 
@@ -52,8 +52,7 @@ class _HomePageState extends State<GamesPage> {
                   .from('games')
                   .stream(primaryKey: ['id'])
                   .eq('id_club_right', widget.idClub)
-                  .map((maps) =>
-                      maps.map((map) => GameClass.fromMap(map)).toList())
+                  .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
                   .map((games2) {
                     for (var game in games2) {
                       games.add(game);
@@ -164,7 +163,7 @@ class _HomePageState extends State<GamesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<GameClass>>(
+    return StreamBuilder<List<Game>>(
         stream: _gamesStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -190,14 +189,14 @@ class _HomePageState extends State<GamesPage> {
                 ),
               );
             } else {
-              final List<GameClass> gamesCurrent = [];
-              final List<GameClass> gamesIncoming = [];
-              final List<GameClass> gamesPlayed = [];
-              final List<GameClass> gamesHistoric = [];
+              final List<Game> gamesCurrent = [];
+              final List<Game> gamesIncoming = [];
+              final List<Game> gamesPlayed = [];
+              final List<Game> gamesHistoric = [];
 
               DateTime now = DateTime.now();
               Club? currentClub = null;
-              for (GameClass game in games) {
+              for (Game game in games) {
                 if (game.dateStart.isAfter(now) &&
                     game.dateStart
                         .isBefore(now.add(const Duration(hours: 3)))) {
@@ -268,7 +267,7 @@ class _HomePageState extends State<GamesPage> {
         });
   }
 
-  Widget _buildGameList(List<GameClass> games) {
+  Widget _buildGameList(List<Game> games) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -276,7 +275,7 @@ class _HomePageState extends State<GamesPage> {
           child: ListView.builder(
             itemCount: games.length,
             itemBuilder: (context, index) {
-              final GameClass game = games[index];
+              final Game game = games[index];
               return InkWell(
                 onTap: () {
                   Navigator.of(context).push(GamePage.route(game.id));

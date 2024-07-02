@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/league.dart';
 import 'package:opengoalz/classes/ranking.dart';
-import 'package:opengoalz/game/class/gameClass.dart';
+import 'package:opengoalz/game/class/game.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';

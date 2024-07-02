@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
-import 'package:opengoalz/game/class/gameClass.dart';
+import 'package:opengoalz/game/class/game.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/player/class/player.dart';
@@ -24,7 +24,7 @@ class GamePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<GamePage> {
-  late Stream<GameClass> _gameStream;
+  late Stream<Game> _gameStream;
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _HomePageState extends State<GamePage> {
         .from('games')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idGame)
-        .map((maps) => maps.map((map) => GameClass.fromMap(map)).first)
+        .map((maps) => maps.map((map) => Game.fromMap(map)).first)
         .switchMap((game) {
           return supabase
               .from('clubs')
@@ -146,7 +146,7 @@ class _HomePageState extends State<GamePage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<GameClass>(
+    return StreamBuilder<Game>(
         stream: _gameStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -162,7 +162,7 @@ class _HomePageState extends State<GamePage> {
               child: Text('No data available'),
             );
           } else {
-            final GameClass game = snapshot.data!;
+            final Game game = snapshot.data!;
 
             return Scaffold(
               appBar: AppBar(
