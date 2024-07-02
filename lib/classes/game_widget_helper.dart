@@ -236,48 +236,6 @@ extension GameWidgetsHelper on GameView {
     );
   }
 
-  // Widget getDateRow() {
-  //   return Row(
-  //     children: [
-  //       Icon(Icons.exit_to_app, color: Colors.green),
-  //       StreamBuilder<int>(
-  //         stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
-  //         builder: (context, snapshot) {
-  //           final remainingTime = dateStart.difference(DateTime.now());
-  //           final daysLeft = remainingTime.inDays;
-  //           final hoursLeft = remainingTime.inHours.remainder(24);
-  //           final minutesLeft = remainingTime.inMinutes.remainder(60);
-  //           final secondsLeft = remainingTime.inSeconds.remainder(60);
-
-  //           return RichText(
-  //             text: TextSpan(
-  //               text: ' Will be fired in: ',
-  //               style: const TextStyle(),
-  //               children: [
-  //                 if (daysLeft > 0) // Conditionally include days left
-  //                   TextSpan(
-  //                     text: '$daysLeft d, ',
-  //                     style: const TextStyle(
-  //                       color: Colors.red,
-  //                       fontWeight: FontWeight.bold,
-  //                     ),
-  //                   ),
-  //                 TextSpan(
-  //                   text: '$hoursLeft h, $minutesLeft m, $secondsLeft s',
-  //                   style: const TextStyle(
-  //                     color: Colors.red,
-  //                     fontWeight: FontWeight.bold,
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           );
-  //         },
-  //       ),
-  //     ],
-  //   );
-  // }
-
   Widget getStatLinearWidget(String label, double value) {
     return Row(
       children: [

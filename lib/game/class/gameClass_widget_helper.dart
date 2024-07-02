@@ -84,25 +84,53 @@ extension GameClassWidgetHelper on GameClass {
   }
 
   Widget getGameDetails(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 12,
-        ),
-        getGameRow(context, isSpaceEvenly: true),
-        SizedBox(
-          height: 12,
-        ),
-        Row(
+    return Card(
+      elevation: 6,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Date: '),
-            Text(
-              DateFormat('dd/MM/yyyy').format(dateStart),
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            Icon(
+                // Icons.military_tech,
+                // Icons.sports_score,
+                Icons.emoji_events_outlined,
+                size: 60,
+                color: Colors.green),
+            SizedBox(width: 12.0),
+            Expanded(
+                child: Column(
+              children: [
+                getGameRow(context, isSpaceEvenly: true),
+                SizedBox(
+                  height: 12,
+                ),
+                Row(
+                  children: [
+                    Icon(Icons.timer_outlined),
+                    // Text(' Date: '),
+                    Text(
+                      DateFormat('dd/MM/yyyy HH:mm:ss').format(dateStart),
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Spacer(),
+                    const Icon(Icons.calendar_month_outlined),
+                    Text(
+                      ' Week Day ${weekNumber}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )),
           ],
         ),
-      ],
+      ),
     );
   }
 

@@ -7,7 +7,7 @@ AS $function$
 DECLARE
     multiverse RECORD;
     league_exists BOOLEAN;
-    loc_n_league_divisions INT8 := 2; -- Number of league divisions for a new country
+    loc_n_league_divisions INT8 := 3; -- Number of league divisions for a new country
     loc_id_league INT8; -- Temporary variable to store the id of the newly created leagues
     loc_id_champions_league_lvl1 INT8; -- Id of the champions league level 1
     loc_id_champions_league_lvl2 INT8; -- Id of the champions league level 2

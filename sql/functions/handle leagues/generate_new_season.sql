@@ -1,4 +1,4 @@
--- DROP FUNCTION public.create_club_with_league_id(int8);
+-- DROP FUNCTION public.generate_new_season();
 
 CREATE OR REPLACE FUNCTION public.generate_new_season()
  RETURNS void
@@ -18,6 +18,7 @@ BEGIN
             PERFORM generate_leagues_games_schedule(
                 inp_date_season_start := multiverse.date_season_start,
                 inp_multiverse_speed := multiverse.speed,
+                inp_id_league := leagues.id,
                 inp_array_clubs_id := ARRAY(
                     SELECT id FROM clubs WHERE id_league = leagues.id
                 )
