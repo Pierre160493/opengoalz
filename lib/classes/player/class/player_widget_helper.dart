@@ -252,7 +252,7 @@ extension PlayerWidgetsHelper on Player {
               ),
             )
           else
-            GestureDetector(
+            InkWell(
               onTap: () {
                 Navigator.push(
                   context,

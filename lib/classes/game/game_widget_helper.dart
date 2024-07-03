@@ -133,6 +133,7 @@ extension GameClassWidgetHelper on Game {
       ),
     );
   }
+  
 
   Widget getGameReport(BuildContext context) {
     int leftClubScore = 0;

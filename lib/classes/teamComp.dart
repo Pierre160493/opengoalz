@@ -1,4 +1,4 @@
-import 'package:opengoalz/player/class/player.dart';
+import 'package:opengoalz/classes/player/class/player.dart';
 
 class TeamComp {
   TeamComp({

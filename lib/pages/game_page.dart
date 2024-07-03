@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
-import 'package:opengoalz/game/class/game.dart';
+import 'package:opengoalz/classes/game/game.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/player/class/player.dart';
+import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:rxdart/rxdart.dart';
 
 class GamePage extends StatefulWidget {

@@ -9,7 +9,7 @@ import 'package:opengoalz/pages/finances_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/home_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
-import 'package:opengoalz/player/players_page.dart';
+import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:provider/provider.dart';
 
@@ -83,8 +83,8 @@ class AppDrawer extends StatelessWidget {
               GamesPage(idClub: selectedClub.id_club)), // Add the Games page
           buildDrawerOption(
               context,
-              icon_rankings,
-              'Rankings',
+              icon_league,
+              'League',
               LeaguePage(
                   idLeague: selectedClub.id_league)), // Add the Rankings page
           buildDrawerOption(

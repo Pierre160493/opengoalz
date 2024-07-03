@@ -5,7 +5,7 @@ import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:opengoalz/game/class/game.dart';
+import 'package:opengoalz/classes/game/game.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
@@ -27,8 +27,6 @@ class GamesPage extends StatefulWidget {
 
 class _HomePageState extends State<GamesPage> {
   late final Stream<List<Game>> _gamesStream;
-  late final Stream<List<Game>> _gamesStreamLeft;
-  late final Stream<List<Game>> _gamesStreamRight;
 
   @override
   void initState() {
@@ -40,34 +38,22 @@ class _HomePageState extends State<GamesPage> {
             .switchMap((games) {
               print('Number of games: ' + games.length.toString());
 
-              final gameStream = supabase
-                  .from('clubs')
-                  .stream(primaryKey: ['id'])
-                  .inFilter('id', games.map((game) => game.idClubLeft).toList())
-                  .map((maps) => maps
-                      .map((map) => Club.fromMap(
-                          map: map, myUserId: supabase.auth.currentUser!.id))
-                      .toList());
               return supabase
                   .from('games')
                   .stream(primaryKey: ['id'])
                   .eq('id_club_right', widget.idClub)
                   .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
                   .map((games2) {
-                    for (var game in games2) {
-                      games.add(game);
-                    }
+                    games.addAll(games2); // Add the other games
                     // Order by game date
                     games.sort((a, b) => a.dateStart.compareTo(b.dateStart));
                     return games;
                   });
             })
-            .switchMap((games) {
-              print('Number of games: ' + games.length.toString());
+            .switchMap((List<Game> games) {
               return supabase
                   .from('clubs')
                   .stream(primaryKey: ['id'])
-                  // .inFilter('id', games.map((game) => game.idClubLeft).toList())
                   .inFilter(
                       'id',
                       games
@@ -90,29 +76,30 @@ class _HomePageState extends State<GamesPage> {
                           orElse: () => throw Exception(
                               'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
                       ;
-                      print('Game:' +
-                          game.id.toString() +
-                          game.leftClub.club_name +
-                          ' VS ' +
-                          game.rightClub.club_name);
+                      // print('Game:' +
+                      //     game.id.toString() +
+                      //     game.leftClub.club_name +
+                      //     ' VS ' +
+                      //     game.rightClub.club_name);
                     }
                     return games;
                   });
             })
-            .switchMap((games) {
-              final eventStream = supabase
+            .switchMap((List<Game> games) {
+              return supabase
                   .from('game_events')
                   .stream(primaryKey: ['id'])
                   .inFilter('id_game', games.map((game) => game.id).toList())
                   .map((maps) =>
-                      maps.map((map) => GameEvent.fromMap(map)).toList());
-              return eventStream.map((events) {
-                for (var game in games) {
-                  game.events =
-                      events.where((event) => event.idGame == game.id).toList();
-                }
-                return games;
-              });
+                      maps.map((map) => GameEvent.fromMap(map)).toList())
+                  .map((events) {
+                    for (var game in games) {
+                      game.events = events
+                          .where((event) => event.idGame == game.id)
+                          .toList();
+                    }
+                    return games;
+                  });
             })
         // .switchMap((games) {
         //   final playerIds = [
@@ -228,7 +215,12 @@ class _HomePageState extends State<GamesPage> {
               }
               return Scaffold(
                 appBar: AppBar(
-                  title: Text('Games Page for: ${currentClub.club_name}'),
+                  title: Row(
+                    children: [
+                      Text('Games Page for '),
+                      currentClub.getClubNameClickable(context),
+                    ],
+                  ),
                 ),
                 drawer: const AppDrawer(),
                 body: MaxWidthContainer(

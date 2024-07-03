@@ -4,7 +4,7 @@ import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/player/players_page.dart';
+import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -15,6 +15,8 @@ class Game {
   List<GameEvent> events = []; //list of events in the game
   late Club leftClub; //left club
   late Club rightClub; //left club
+  int? leftScore = null; //left club score
+  int? rightScore = null; //right club score
 
   Game({
     required this.id,

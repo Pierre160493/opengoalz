@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club_view.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/player/players_page.dart';
+import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:provider/provider.dart';
 
@@ -235,7 +235,7 @@ class _ClubPageState extends State<ClubPage> {
                                         ),
                                       ),
                                       leading: const Icon(
-                                        icon_rankings,
+                                        icon_league,
                                         size: 30,
                                       ), // Icon to indicate players
                                       title: Row(
