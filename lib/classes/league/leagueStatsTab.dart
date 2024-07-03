@@ -121,6 +121,9 @@ extension LeagueStatsTab on League {
 
   Widget _displayPlayers(BuildContext context,
       List<MapEntry<int, int>> sortedPlayers, Map<int, Player> players) {
+    if (sortedPlayers.isEmpty) {
+      return Center(child: Text('No data available'));
+    }
     return ListView.builder(
       itemCount: sortedPlayers.length,
       itemBuilder: (context, index) {

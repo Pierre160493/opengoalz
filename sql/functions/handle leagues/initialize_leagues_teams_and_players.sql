@@ -19,8 +19,8 @@ BEGIN
     -- Loop throuh all multiverses
     FOR multiverse IN (SELECT * FROM multiverses WHERE speed = 1) LOOP
 
-        FOR continent IN (SELECT unnest FROM unnest(enum_range(NULL::public.continents))
-            WHERE unnest != 'Antarctica') LOOP
+        FOR continent IN (SELECT continents FROM unnest(enum_range(NULL::public.continents))
+            WHERE continents != 'Antarctica') LOOP
 
             -- Insert the first league for the continent
             INSERT INTO leagues (multiverse_speed, season_number, continent, level, number, id_upper_league)
