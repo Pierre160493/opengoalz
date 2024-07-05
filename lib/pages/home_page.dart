@@ -5,9 +5,9 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/login_page.dart';
-import 'package:opengoalz/pages/ranking_page.dart';
+import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
-import 'package:opengoalz/player/players_page.dart';
+import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
@@ -199,7 +199,7 @@ class _HomePageState extends State<HomePage> {
                                                 ),
                                               ),
                                               const SizedBox(width: 6.0),
-                                              club.getLastResults(),
+                                              // club.getLastResults(),
                                             ],
                                           ),
                                           subtitle: Text(
@@ -466,7 +466,7 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RankingPage(
+              builder: (context) => LeaguePage(
                 idLeague: club.id_league,
               ),
             ),
@@ -485,11 +485,11 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Rankings'),
+              Text('League'),
               CircleAvatar(
                 radius: containerImgRadius,
                 child: Icon(
-                  icon_rankings,
+                  icon_league,
                   size: containerImgRadius,
                 ),
               ),

@@ -1,4 +1,4 @@
-import 'package:opengoalz/player/class/player.dart';
+import 'package:opengoalz/classes/player/class/player.dart';
 
 class TeamComp {
   TeamComp({
@@ -181,6 +181,7 @@ class TeamComp {
     for (Map<String, dynamic> player in players) {
       ids.add(player['id']);
     }
+    // print(ids);
     return ids;
   }
 

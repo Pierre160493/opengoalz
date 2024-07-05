@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/login_page.dart';
-import 'package:provider/provider.dart';
-import 'home_page.dart';
 import '../constants.dart';
 
 /// Page to redirect users to the appropriate page depending on the initial auth state

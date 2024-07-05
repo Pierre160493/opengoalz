@@ -5,12 +5,18 @@ import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/pages/club_page.dart';
-import 'package:opengoalz/player/class/player.dart';
+import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:provider/provider.dart';
 
 class Club {
   TeamComp? teamcomp; //team composition
   List<Player> players = []; // List of players of the club
+  int points = 0; // points of the club
+  int victories = 0; // victories of the club
+  int draws = 0; // draws of the club
+  int defeats = 0; // defeats of the club
+  int goalsScored = 0; // goals scored of the club
+  int goalsTaken = 0; // goals taken of the club
 
   Club({
     required this.id_club,
@@ -73,17 +79,20 @@ class Club {
 
   Widget getClubNameClickable(BuildContext context,
       {bool isRightClub = false}) {
+    bool isMine =
+        Provider.of<SessionProvider>(context).selectedClub.id_club == id_club
+            ? true
+            : false;
     Text text = Text(
       club_name,
-      style: TextStyle(fontSize: 20),
+      style:
+          TextStyle(fontSize: 20, color: isMine ? Colors.green : Colors.white),
       overflow: TextOverflow.fade, // or TextOverflow.ellipsis
       maxLines: 1,
       softWrap: false,
     );
-    Icon icon = Icon(
-        Provider.of<SessionProvider>(context).selectedClub.id_club == id_club
-            ? icon_home
-            : Icons.sports_soccer_outlined);
+    Icon icon = Icon(isMine ? icon_home : Icons.sports_soccer_outlined,
+        color: isMine ? Colors.green : Colors.white, size: 30);
 
     return Row(
       mainAxisAlignment:

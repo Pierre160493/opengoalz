@@ -5,9 +5,9 @@ import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/player/player_card.dart';
+import 'package:opengoalz/classes/player/player_card.dart';
 import 'class/player.dart';
-import '../constants.dart';
+import '../../constants.dart';
 
 class PlayersPage extends StatefulWidget {
   final Map<String, List<Object>> inputCriteria;

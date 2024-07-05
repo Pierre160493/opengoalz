@@ -252,7 +252,7 @@ extension PlayerWidgetsHelper on Player {
               ),
             )
           else
-            GestureDetector(
+            InkWell(
               onTap: () {
                 Navigator.push(
                   context,
@@ -420,6 +420,7 @@ extension PlayerWidgetsHelper on Player {
                 .map((map) => {
                       'id': map['id'],
                       'name': map['name'],
+                      'iso2': map['iso2'],
                     })
                 .toList()),
         builder: (context, snapshot) {
@@ -465,12 +466,21 @@ extension PlayerWidgetsHelper on Player {
                   size: icon_size, // Adjust icon size as needed
                   color: Colors.green, // Adjust icon color as needed
                 ),
+
                 SizedBox(width: 4.0), // Spacing between icon and text
                 Text(
-                  '${countries.first['name']}',
+                  countries.first['name'],
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
+                ),
+                SizedBox(width: 6.0), // Spacing between icon and text
+                CountryFlag.fromCountryCode(
+                  shape: Rectangle(),
+                  // 'FR',
+                  countries.first['iso2'],
+                  width: 36,
+                  height: 24,
                 ),
               ],
             );

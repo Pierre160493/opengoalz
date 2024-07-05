@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/player/class/player.dart';
-import 'package:opengoalz/player/players_page.dart';
+import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/classes/player/players_page.dart';
 
 class GameEvent {
   Player? player;

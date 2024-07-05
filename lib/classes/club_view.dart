@@ -15,7 +15,7 @@ class ClubView {
     required this.cash_available,
     required this.player_count,
     required this.number_fans,
-    required this.last_results,
+    // required this.last_results,
     required this.isMine,
   });
 
@@ -43,7 +43,7 @@ class ClubView {
   final int number_fans;
 
   /// Last results of the club
-  final String last_results;
+  // final String? last_results;
 
   /// Whether the club is owned by the current user
   final bool isMine;
@@ -62,59 +62,60 @@ class ClubView {
         cash_available = map['cash_available'],
         player_count = map['player_count'] ?? 0,
         number_fans = map['number_fans'] ?? 0,
-        last_results = map['last_results'],
+        // last_results = map['last_results'],
         isMine = myUserId == map['id_user'];
 
-  Widget getLastResults() {
-    List<Icon> icons = [];
+  // Widget getLastResults() {
+  //   return Text('tmpLastResults');
+  //   //   List<Icon> icons = [];
 
-    // Mapping each character in lastResults to an icon with the corresponding color
-    for (int i = 0; i < last_results.length; i++) {
-      IconData iconData;
-      Color color;
+  //   //   // Mapping each character in lastResults to an icon with the corresponding color
+  //   //   for (int i = 0; i < last_results.length; i++) {
+  //   //     IconData iconData;
+  //   //     Color color;
 
-      // Determining icon and color based on result character
-      switch (last_results[i]) {
-        case 'V':
-          iconData = Icons.check_circle;
-          color = Colors.green;
-          break;
-        case 'D':
-          iconData = Icons.remove_circle;
-          color = Colors.grey;
-          break;
-        case 'L':
-          iconData = Icons.cancel;
-          color = Colors.red;
-          break;
-        default:
-          // If character is not recognized, skip it
-          continue;
-      }
+  //   //     // Determining icon and color based on result character
+  //   //     switch (last_results[i]) {
+  //   //       case 'V':
+  //   //         iconData = Icons.check_circle;
+  //   //         color = Colors.green;
+  //   //         break;
+  //   //       case 'D':
+  //   //         iconData = Icons.remove_circle;
+  //   //         color = Colors.grey;
+  //   //         break;
+  //   //       case 'L':
+  //   //         iconData = Icons.cancel;
+  //   //         color = Colors.red;
+  //   //         break;
+  //   //       default:
+  //   //         // If character is not recognized, skip it
+  //   //         continue;
+  //   //     }
 
-      // Adding the icon to the list
-      icons.add(
-        Icon(
-          iconData,
-          size: 24,
-          color: color,
-        ),
-      );
-    }
+  //   //     // Adding the icon to the list
+  //   //     icons.add(
+  //   //       Icon(
+  //   //         iconData,
+  //   //         size: 24,
+  //   //         color: color,
+  //   //       ),
+  //   //     );
+  //   //   }
 
-    // Returning a Row widget containing all the icons
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12), // Adjust the radius as needed
-        color: Colors.black, // Adjust the color as needed
-        border: Border.all(
-          width: 1,
-          color: Colors.blueGrey,
-        ),
-      ),
-      child: Row(
-        children: icons,
-      ),
-    );
-  }
+  //   //   // Returning a Row widget containing all the icons
+  //   //   return Container(
+  //   //     decoration: BoxDecoration(
+  //   //       borderRadius: BorderRadius.circular(12), // Adjust the radius as needed
+  //   //       color: Colors.black, // Adjust the color as needed
+  //   //       border: Border.all(
+  //   //         width: 1,
+  //   //         color: Colors.blueGrey,
+  //   //       ),
+  //   //     ),
+  //   //     child: Row(
+  //   //       children: icons,
+  //   //     ),
+  //   //   );
+  // }
 }

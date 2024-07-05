@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/global_variable.dart';
-import 'package:opengoalz/player/class/player.dart';
-import 'package:opengoalz/player/players_page.dart';
+import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
@@ -68,102 +68,102 @@ class _TransferPageState extends State<TransferPage>
             );
           } else {
             final List<Player> players = snapshot.data ?? [];
-            if (players.isEmpty) {
-              return const Center(
-                child: Text('ERROR: No players found'),
-              );
-            } else {
-              final List<Player> playersSell = players.where((player) {
-                return player.idClub == widget.idClub;
-              }).toList();
-              final List<Player> playersBuy = players.where((player) {
-                return player.idClub != widget.idClub;
-              }).toList();
-              return Scaffold(
-                  appBar: AppBar(
-                    title: Text(
-                      'Transfer Page',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+            // if (players.isEmpty) {
+            //   return const Center(
+            //     child: Text('ERROR: No players found'),
+            //   );
+            // } else {
+            final List<Player> playersSell = players.where((player) {
+              return player.idClub == widget.idClub;
+            }).toList();
+            final List<Player> playersBuy = players.where((player) {
+              return player.idClub != widget.idClub;
+            }).toList();
+            return Scaffold(
+                appBar: AppBar(
+                  title: Text(
+                    'Transfer Page',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
-                    // bottom: TabBar(
-                    //   controller: _tabController,
-                    //   tabs: [
-                    //     Tab(text: 'Sell (${playersSell.length})'),
-                    //     Tab(text: 'Buy (${playersBuy.length})'),
-                    //   ],
-                    // ),
                   ),
-                  drawer: AppDrawer(),
-                  body: MaxWidthContainer(
-                    child: Column(
-                      children: [
-                        RichText(
-                          text: TextSpan(
-                            text: 'Cash: ',
-                            style: const TextStyle(fontSize: 18),
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: Provider.of<SessionProvider>(context)
-                                    .selectedClub
-                                    .cash_available
-                                    .toString(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Provider.of<SessionProvider>(context)
-                                              .selectedClub
-                                              .cash_absolute >
-                                          0
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
+                  // bottom: TabBar(
+                  //   controller: _tabController,
+                  //   tabs: [
+                  //     Tab(text: 'Sell (${playersSell.length})'),
+                  //     Tab(text: 'Buy (${playersBuy.length})'),
+                  //   ],
+                  // ),
+                ),
+                drawer: AppDrawer(),
+                body: MaxWidthContainer(
+                  child: Column(
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          text: 'Cash: ',
+                          style: const TextStyle(fontSize: 18),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: Provider.of<SessionProvider>(context)
+                                  .selectedClub
+                                  .cash_available
+                                  .toString(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Provider.of<SessionProvider>(context)
+                                            .selectedClub
+                                            .cash_absolute >
+                                        0
+                                    ? Colors.green
+                                    : Colors.red,
                               ),
-                            ],
-                          ),
-                        ),
-                        RichText(
-                          text: TextSpan(
-                            text: 'Available cash: ',
-                            style: const TextStyle(fontSize: 18),
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: Provider.of<SessionProvider>(context)
-                                    .selectedClub
-                                    .cash_available
-                                    .toString(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Provider.of<SessionProvider>(context)
-                                              .selectedClub
-                                              .cash_available >
-                                          0
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        TabBar(
-                          controller: _tabController,
-                          tabs: [
-                            Tab(text: 'Sell (${playersSell.length})'),
-                            Tab(text: 'Buy (${playersBuy.length})'),
+                            ),
                           ],
                         ),
-                        Expanded(
-                          child:
-                              TabBarView(controller: _tabController, children: [
-                            _playersTransferWidget(playersSell),
-                            _playersTransferWidget(playersBuy),
-                          ]),
+                      ),
+                      RichText(
+                        text: TextSpan(
+                          text: 'Available cash: ',
+                          style: const TextStyle(fontSize: 18),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: Provider.of<SessionProvider>(context)
+                                  .selectedClub
+                                  .cash_available
+                                  .toString(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Provider.of<SessionProvider>(context)
+                                            .selectedClub
+                                            .cash_available >
+                                        0
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ));
-            }
+                      ),
+                      TabBar(
+                        controller: _tabController,
+                        tabs: [
+                          Tab(text: 'Sell (${playersSell.length})'),
+                          Tab(text: 'Buy (${playersBuy.length})'),
+                        ],
+                      ),
+                      Expanded(
+                        child:
+                            TabBarView(controller: _tabController, children: [
+                          _playersTransferWidget(playersSell),
+                          _playersTransferWidget(playersBuy),
+                        ]),
+                      ),
+                    ],
+                  ),
+                ));
+            // }
           }
         });
   }
