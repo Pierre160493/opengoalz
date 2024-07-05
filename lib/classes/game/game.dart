@@ -21,39 +21,57 @@ class Game {
   Game({
     required this.id,
     required this.idClubLeft,
+    required this.idTeamcompLeft,
     required this.idClubRight,
+    required this.idTeamcompRight,
     required this.dateStart,
     required this.idStadium,
     required this.weekNumber,
     required this.isPlayed,
     required this.isCup,
-    required this.isLeague,
+    required this.isLeagueGame,
     required this.isFriendly,
+    required this.idLeague,
+    required this.multiverseSpeed,
+    required this.seasonNumber,
   });
 
   final int id;
   final int idClubLeft;
+  final int idTeamcompLeft;
   final int idClubRight;
+  final int idTeamcompRight;
   final DateTime dateStart;
-  final int? idStadium;
+  final String?
+      idStadium; // In your SQL, id_stadium is of type UUID which is a string in Dart
   final int? weekNumber;
   final bool isPlayed;
   final bool isCup;
-  final bool isLeague;
+  final bool isLeagueGame;
   final bool isFriendly;
+  final int? idLeague;
+  final int multiverseSpeed;
+  final int seasonNumber;
 
   factory Game.fromMap(Map<String, dynamic> map) {
     return Game(
       id: map['id'],
       idClubLeft: map['id_club_left'],
+      idTeamcompLeft: map['id_teamcomp_left'],
       idClubRight: map['id_club_right'],
-      dateStart: DateTime.parse(map['date_start']),
+      idTeamcompRight: map['id_teamcomp_right'],
+      dateStart: map['date_start'] != null
+          ? DateTime.parse(map['date_start'])
+          : throw ArgumentError('date_start cannot be null'),
       idStadium: map['id_stadium'],
       weekNumber: map['week_number'],
       isPlayed: map['is_played'] ?? false,
       isCup: map['is_cup'] ?? false,
-      isLeague: map['is_league_game'] ?? false,
+      isLeagueGame: map['is_league_game'] ?? false,
       isFriendly: map['is_friendly'] ?? false,
+      idLeague: map['id_league'],
+      multiverseSpeed: map['multiverse_speed'],
+      seasonNumber: map['season_number'],
     );
   }
 }

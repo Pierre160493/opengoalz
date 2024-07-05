@@ -102,7 +102,7 @@ class _ClubPageState extends State<ClubPage> {
                                             ),
                                           ),
                                           const SizedBox(width: 6.0),
-                                          club.getLastResults(),
+                                          // club.getLastResults(),
                                           // if (club.id_club ==
                                           //     Provider.of<SessionProvider>(
                                           //             context)

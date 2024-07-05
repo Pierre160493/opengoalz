@@ -199,7 +199,7 @@ class _HomePageState extends State<HomePage> {
                                                 ),
                                               ),
                                               const SizedBox(width: 6.0),
-                                              club.getLastResults(),
+                                              // club.getLastResults(),
                                             ],
                                           ),
                                           subtitle: Text(

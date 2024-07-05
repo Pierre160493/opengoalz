@@ -134,7 +134,6 @@ extension GameClassWidgetHelper on Game {
     );
   }
   
-
   Widget getGameReport(BuildContext context) {
     int leftClubScore = 0;
     int rightClubScore = 0;
