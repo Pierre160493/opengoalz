@@ -18,3 +18,6 @@ UPDATE players SET keeper = 100, defense = 100, playmaking = 100, passes = 100, 
 WHERE id_club = 1;
 
 EXPLAIN ANALYZE SELECT simulate_games();
+
+
+

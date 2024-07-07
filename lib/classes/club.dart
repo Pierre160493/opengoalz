@@ -22,6 +22,7 @@ class Club {
     required this.id_club,
     required this.created_at,
     required this.id_league,
+    required this.season_number,
     required this.id_user,
     required this.is_default,
     required this.club_name,
@@ -41,6 +42,7 @@ class Club {
 
   /// ID of the league where the club belongs
   final int id_league;
+  final int season_number;
 
   /// Date and time when the message was created
   final String? id_user;
@@ -67,6 +69,7 @@ class Club {
         id_club = map['id'],
         created_at = DateTime.parse(map['created_at']),
         id_league = map['id_league'],
+        season_number = map['season_number'],
         id_user = map['id_user'],
         is_default = map['is_default'] == true,
         club_name = map['name_club'] ?? 'No Club Name',
