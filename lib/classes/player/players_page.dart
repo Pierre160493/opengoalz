@@ -77,7 +77,7 @@ class _PlayersPageState extends State<PlayersPage> {
         _playerStream.switchMap((players) => _clubStream.map((clubs) {
               for (var player in players) {
                 final clubData =
-                    clubs.firstWhere((club) => club.id_club == player.idClub);
+                    clubs.firstWhere((club) => club.id == player.idClub);
                 player.club = clubData;
               }
               return players;

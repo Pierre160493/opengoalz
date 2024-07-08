@@ -59,7 +59,7 @@ extension LeagueStatsTab on League {
               .map((List<Club> clubs) {
                 return players.map((player) {
                   player.club =
-                      clubs.firstWhere((club) => club.id_club == player.idClub);
+                      clubs.firstWhere((club) => club.id == player.idClub);
                   return player;
                 }).toList();
               });

@@ -51,25 +51,12 @@ BEGIN
 
                     -- Update the position
                     pos := pos + 1;
-                END LOOP;
-            END LOOP;
-
-        END LOOP; -- End of the loop through leagues
-
-        -- -- Check if all games are played
-        IF NOT EXISTS (
-            SELECT 1 FROM games
-            WHERE multiverse_speed = multiverse.speed
-            AND is_played = FALSE
-        ) THEN
-            -- All games are played, generate after season games and new season
-            PERFORM generate_after_season_games_and_new_season(
-                inp_multiverse_speed := multiverse.speed
-                inp_date_season_start := multiverse.date_league_end,
-                inp_season_number := multiverse.season_number);
-        END IF;
-
+                END LOOP; -- End of the loop through clubs
+            END LOOP; -- End of the loop through weeks
+        END LOOP;  -- End of the loop through leagues
     END LOOP; -- End of the loop through multiverses
+
+    PERFORM handle_generation_after_season_games_and_new_season();
 
 END;
 $function$

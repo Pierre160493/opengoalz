@@ -60,20 +60,20 @@ class _RankingPageState extends State<LeaguePage> {
               .map((clubs) {
                 for (Game game in league.games) {
                   game.leftClub = clubs.firstWhere(
-                      (club) => club.id_club == game.idClubLeft,
+                      (club) => club.id == game.idClubLeft,
                       orElse: () => throw Exception(
                           'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'));
                   ;
                   game.rightClub = clubs.firstWhere(
-                      (club) => club.id_club == game.idClubRight,
+                      (club) => club.id == game.idClubRight,
                       orElse: () => throw Exception(
                           'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
                   ;
                   print('Game:' +
                       game.id.toString() +
-                      game.leftClub.club_name +
+                      game.leftClub.nameClub +
                       ' VS ' +
-                      game.rightClub.club_name);
+                      game.rightClub.nameClub);
                 }
                 for (Club club in clubs) {
                   league.clubs.add(club);
@@ -106,58 +106,53 @@ class _RankingPageState extends State<LeaguePage> {
                         .length;
                     // Update the goals scored and points of the clubs
                     league.clubs
-                        .firstWhere((club) => club.id_club == game.idClubLeft)
+                        .firstWhere((club) => club.id == game.idClubLeft)
                         .goalsScored += game.leftScore!;
                     league.clubs
-                        .firstWhere((club) => club.id_club == game.idClubRight)
+                        .firstWhere((club) => club.id == game.idClubRight)
                         .goalsTaken += game.leftScore!;
                     league.clubs
-                        .firstWhere((club) => club.id_club == game.idClubLeft)
+                        .firstWhere((club) => club.id == game.idClubLeft)
                         .goalsTaken += game.rightScore!;
                     league.clubs
-                        .firstWhere((club) => club.id_club == game.idClubRight)
+                        .firstWhere((club) => club.id == game.idClubRight)
                         .goalsScored += game.rightScore!;
                     // Update the points of the clubs
                     if (game.leftScore! > game.rightScore!) {
                       // Left victory
                       league.clubs
-                          .firstWhere((club) => club.id_club == game.idClubLeft)
+                          .firstWhere((club) => club.id == game.idClubLeft)
                           .points += 3;
                       league.clubs
-                          .firstWhere((club) => club.id_club == game.idClubLeft)
+                          .firstWhere((club) => club.id == game.idClubLeft)
                           .victories += 1;
                       league.clubs
-                          .firstWhere(
-                              (club) => club.id_club == game.idClubRight)
+                          .firstWhere((club) => club.id == game.idClubRight)
                           .defeats += 1;
                     } else if (game.leftScore! < game.rightScore!) {
                       // Right Victory
                       league.clubs
-                          .firstWhere((club) => club.id_club == game.idClubLeft)
+                          .firstWhere((club) => club.id == game.idClubLeft)
                           .defeats += 1;
                       league.clubs
-                          .firstWhere(
-                              (club) => club.id_club == game.idClubRight)
+                          .firstWhere((club) => club.id == game.idClubRight)
                           .victories += 1;
                       league.clubs
-                          .firstWhere(
-                              (club) => club.id_club == game.idClubRight)
+                          .firstWhere((club) => club.id == game.idClubRight)
                           .points += 3;
                     } else {
                       // Draw
                       league.clubs
-                          .firstWhere((club) => club.id_club == game.idClubLeft)
+                          .firstWhere((club) => club.id == game.idClubLeft)
                           .draws += 1;
                       league.clubs
-                          .firstWhere((club) => club.id_club == game.idClubLeft)
+                          .firstWhere((club) => club.id == game.idClubLeft)
                           .points += 1;
                       league.clubs
-                          .firstWhere(
-                              (club) => club.id_club == game.idClubRight)
+                          .firstWhere((club) => club.id == game.idClubRight)
                           .draws += 1;
                       league.clubs
-                          .firstWhere(
-                              (club) => club.id_club == game.idClubRight)
+                          .firstWhere((club) => club.id == game.idClubRight)
                           .points += 1;
                     }
                   }

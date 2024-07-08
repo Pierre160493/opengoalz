@@ -9,11 +9,11 @@ extension GameClassWidgetTeamcomps on Game {
           TabBar(
             tabs: [
               Tab(
-                text: leftClub.club_name,
+                text: leftClub.nameClub,
                 // text: leftClub.getClubNameClickable(context),
               ),
               Tab(
-                text: rightClub.club_name,
+                text: rightClub.nameClub,
               ),
             ],
           ),
@@ -34,14 +34,13 @@ extension GameClassWidgetTeamcomps on Game {
     if (club.teamcomp == {null}) {
       return Center(
         child:
-            Text('ERROR: No team composition available for ${club.club_name}'),
+            Text('ERROR: No team composition available for ${club.nameClub}'),
       );
     } else if (isPlayed == false &&
-        Provider.of<SessionProvider>(context).selectedClub.id_club !=
-            club.id_club) {
+        Provider.of<SessionProvider>(context).selectedClub.id_club != club.id) {
       return Center(
         child: Text(
-            'Only the manager of ${club.club_name} can see the teamcomp before the game is played'),
+            'Only the manager of ${club.nameClub} can see the teamcomp before the game is played'),
       );
     }
 
@@ -174,7 +173,7 @@ extension GameClassWidgetTeamcomps on Game {
               pageBuilder: (context, animation, secondaryAnimation) {
                 return PlayersPage(
                   inputCriteria: {
-                    'Clubs': [club.id_club]
+                    'Clubs': [club.id]
                   },
                   isReturningId: true,
                 );
@@ -199,7 +198,7 @@ extension GameClassWidgetTeamcomps on Game {
                   .from('games_team_comp')
                   .update({player['database']: returnedId})
                   .eq('id_game', id)
-                  .eq('id_club', club.id_club);
+                  .eq('id_club', club.id);
             } on PostgrestException catch (error) {
               scaffoldMessenger.showSnackBar(
                 SnackBar(

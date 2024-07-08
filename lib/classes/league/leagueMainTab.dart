@@ -443,7 +443,7 @@ extension LeagueMainTab on League {
                         fontSize: 24),
                   ),
                 ),
-                title: Text(club.club_name),
+                title: Text(club.nameClub),
                 subtitle: Row(
                   children: [
                     Text('Results: '),
@@ -499,7 +499,7 @@ extension LeagueMainTab on League {
                 onTap: () {
                   Navigator.push(
                     context,
-                    ClubPage.route(club.id_club),
+                    ClubPage.route(club.id),
                   );
                 },
                 trailing: CircleAvatar(

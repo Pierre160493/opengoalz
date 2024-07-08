@@ -260,7 +260,7 @@ extension PlayerWidgetsHelper on Player {
                 );
               },
               child: Text(
-                ' ${club!.club_name}',
+                ' ${club!.nameClub}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),

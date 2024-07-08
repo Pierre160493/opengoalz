@@ -1,6 +1,7 @@
 //ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/classes/game/game.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
@@ -10,6 +11,8 @@ import 'package:provider/provider.dart';
 
 class Club {
   TeamComp? teamcomp; //team composition
+  List<TeamComp> teamcomps = []; //List of the teamcomps of the club
+  List<Game> games = []; //games of this club
   List<Player> players = []; // List of players of the club
   int points = 0; // points of the club
   int victories = 0; // victories of the club
@@ -19,75 +22,84 @@ class Club {
   int goalsTaken = 0; // goals taken of the club
 
   Club({
-    required this.id_club,
-    required this.created_at,
-    required this.id_league,
-    required this.season_number,
-    required this.id_user,
-    required this.is_default,
-    required this.club_name,
-    required this.username,
-    required this.cash_absolute,
-    required this.cash_available,
-    required this.player_count,
-    required this.number_fans,
-    required this.isMine,
+    required this.id,
+    required this.createdAt,
+    required this.multiverseSpeed,
+    required this.continent,
+    required this.idLeague,
+    this.idUser,
+    required this.nameClub,
+    required this.cashAbsolute,
+    required this.cashAvailable,
+    required this.numberFans,
+    required this.idCountry,
+    this.posSeason,
+    this.posLastSeason,
+    this.leaguePointsArray,
+    this.leaguePoints,
+    this.lastResultsArray,
+    this.lastResult,
+    required this.posLeague,
+    required this.seasonNumber,
+    required this.idLeagueNextSeason,
+    this.posLeagueNextSeason,
   });
 
-  /// ID of the club
-  final int id_club;
-
-  /// Date and time when the club was created
-  final DateTime created_at;
-
-  /// ID of the league where the club belongs
-  final int id_league;
-  final int season_number;
-
-  /// Date and time when the message was created
-  final String? id_user;
-  final bool is_default;
-
-  /// Name of the club
-  final String club_name;
-
-  /// Username of the club manager
-  final String? username;
-  final int cash_absolute;
-  final int cash_available;
-  final int player_count;
-  final int number_fans;
-
-  /// Whether the club is owned by the current user
-  final bool isMine;
+  final int id;
+  final DateTime createdAt;
+  final int multiverseSpeed;
+  final String continent;
+  final int idLeague;
+  final String? idUser;
+  final String nameClub;
+  final int cashAbsolute;
+  final int cashAvailable;
+  final int numberFans;
+  final int idCountry;
+  final List<int>? posSeason;
+  final int? posLastSeason;
+  final List<double>? leaguePointsArray;
+  final double? leaguePoints;
+  final List<int>? lastResultsArray;
+  final int? lastResult;
+  final int posLeague;
+  final int seasonNumber;
+  final int idLeagueNextSeason;
+  final int? posLeagueNextSeason;
 
   Club.fromMap({
     required Map<String, dynamic> map,
     required String myUserId,
-  })  : //
-        // id_club = map['id_club'],
-        id_club = map['id'],
-        created_at = DateTime.parse(map['created_at']),
-        id_league = map['id_league'],
-        season_number = map['season_number'],
-        id_user = map['id_user'],
-        is_default = map['is_default'] == true,
-        club_name = map['name_club'] ?? 'No Club Name',
-        username = map['username'],
-        cash_absolute = map['cash_absolute'],
-        cash_available = map['cash_available'],
-        player_count = map['player_count'] ?? 0,
-        number_fans = map['number_fans'] ?? 0,
-        isMine = myUserId == map['id_user'];
+  })  : id = map['id'],
+        createdAt = DateTime.parse(map['created_at']),
+        multiverseSpeed = map['multiverse_speed'],
+        continent = map['continent'],
+        idLeague = map['id_league'],
+        idUser = map['id_user'],
+        nameClub = map['name_club'],
+        cashAbsolute = map['cash_absolute'],
+        cashAvailable = map['cash_available'],
+        numberFans = map['number_fans'],
+        idCountry = map['id_country'],
+        posSeason = List<int>.from(map['posSeason'] ?? []),
+        posLastSeason = map['pos_last_season'],
+        leaguePointsArray = List<double>.from(map['league_points_array'] ?? []),
+        leaguePoints = map['league_points'],
+        lastResultsArray = List<int>.from(map['last_results_array'] ?? []),
+        lastResult = map['last_result'],
+        posLeague = map['pos_league'],
+        seasonNumber = map['season_number'],
+        idLeagueNextSeason = map['id_league_next_season'],
+        posLeagueNextSeason = map['pos_league_next_season'];
 
   Widget getClubNameClickable(BuildContext context,
       {bool isRightClub = false}) {
     bool isMine =
-        Provider.of<SessionProvider>(context).selectedClub.id_club == id_club
+        Provider.of<SessionProvider>(context).selectedClub.id_club == id
             ? true
             : false;
     Text text = Text(
-      club_name,
+      nameClub,
       style:
           TextStyle(fontSize: 20, color: isMine ? Colors.green : Colors.white),
       overflow: TextOverflow.fade, // or TextOverflow.ellipsis
@@ -105,7 +117,7 @@ class Club {
           onTap: () {
             Navigator.push(
               context,
-              ClubPage.route(id_club),
+              ClubPage.route(id),
             );
           },
           child: Row(
