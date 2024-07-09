@@ -224,33 +224,56 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
     -- Left team wins
     IF loc_team_left_score > loc_team_right_score THEN
         UPDATE clubs SET
-            last_result = 3, 
-            league_points = league_points + 3 + ((loc_team_left_score - loc_team_right_score) / 1000)
+            last_result = 3
             WHERE id = loc_id_club_left;
         UPDATE clubs SET
-            last_result = 0, 
-            league_points = league_points - ((loc_team_left_score - loc_team_right_score) / 1000)
+            last_result = 0
             WHERE id = loc_id_club_left;
     -- Right team wins
     ELSEIF loc_team_left_score < loc_team_right_score THEN
         UPDATE clubs SET
-            last_result = 0, 
-            league_points = league_points + ((loc_team_left_score - loc_team_right_score) / 1000)
+            last_result = 0
             WHERE id = loc_id_club_left;
         UPDATE clubs SET
-            last_result = 3, 
-            league_points = league_points - ((loc_team_left_score - loc_team_right_score) / 1000)
+            last_result = 3
             WHERE id = loc_id_club_left;
     -- Draw
     ELSE
         UPDATE clubs SET
-            last_result = 1, 
-            league_points = league_points + 1
+            last_result = 1
             WHERE id = loc_id_club_left;
         UPDATE clubs SET
-            last_result = 1, 
-            league_points = league_points +1
+            last_result = 1
             WHERE id = loc_id_club_left;
+    END IF;
+
+
+    IF loc_rec_game.is_league_game THEN
+    -- Left team wins
+    IF loc_team_left_score > loc_team_right_score THEN
+        UPDATE clubs SET
+            league_points = league_points + 3.0 + ((loc_team_left_score - loc_team_right_score) / 1000)
+            WHERE id = loc_id_club_left;
+        UPDATE clubs SET
+            league_points = league_points - ((loc_team_left_score - loc_team_right_score) / 1000)
+            WHERE id = loc_id_club_right;
+    -- Right team wins
+    ELSEIF loc_team_left_score < loc_team_right_score THEN
+        UPDATE clubs SET
+            league_points = league_points + ((loc_team_left_score - loc_team_right_score) / 1000)
+            WHERE id = loc_id_club_left;
+        UPDATE clubs SET
+            league_points = league_points + 3.0 - ((loc_team_left_score - loc_team_right_score) / 1000)
+            WHERE id = loc_id_club_right;
+    -- Draw
+    ELSE
+        UPDATE clubs SET
+            league_points = league_points + 1.0
+            WHERE id = loc_id_club_left;
+        UPDATE clubs SET
+            league_points = league_points + 1.0
+            WHERE id = loc_id_club_left;
+    END IF;
     END IF;
 
     -- Update players experience and stats
