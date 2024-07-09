@@ -36,7 +36,7 @@ class Club {
     this.posSeason,
     this.posLastSeason,
     this.leaguePointsArray,
-    this.leaguePoints,
+    required this.leaguePoints,
     this.lastResultsArray,
     this.lastResult,
     required this.posLeague,
@@ -59,7 +59,7 @@ class Club {
   final List<int>? posSeason;
   final int? posLastSeason;
   final List<double>? leaguePointsArray;
-  final double? leaguePoints;
+  final double leaguePoints;
   final List<int>? lastResultsArray;
   final int? lastResult;
   final int posLeague;
@@ -84,7 +84,8 @@ class Club {
         posSeason = List<int>.from(map['posSeason'] ?? []),
         posLastSeason = map['pos_last_season'],
         leaguePointsArray = List<double>.from(map['league_points_array'] ?? []),
-        leaguePoints = map['league_points'],
+        leaguePoints = map['league_points'].toDouble(),
+        // leaguePoints = 3.9,
         lastResultsArray = List<int>.from(map['last_results_array'] ?? []),
         lastResult = map['last_result'],
         posLeague = map['pos_league'],
