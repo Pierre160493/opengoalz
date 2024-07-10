@@ -8,7 +8,11 @@ DECLARE
     multiverse RECORD; -- Record for the multiverses loop
     league RECORD; -- Record for the league loop
     club RECORD; -- Record for the club loop
-    mat_ij bigint[6][5] :=ARRAY[
+    record RECORD; -- Record for the loop through the clubs
+    mat_ij bigint[9][5] :=ARRAY[
+        [NULL,NULL,NULL,NULL,NULL],
+        [NULL,NULL,NULL,NULL,NULL],
+        [NULL,NULL,NULL,NULL,NULL],
         [NULL,NULL,NULL,NULL,NULL],
         [NULL,NULL,NULL,NULL,NULL],
         [NULL,NULL,NULL,NULL,NULL],
@@ -27,145 +31,194 @@ RAISE NOTICE 'PG: Debut fonction handle_generation_after_season_games_and_new_se
         
         loc_interval_1_week := INTERVAL '7 days' / multiverse.speed; -- Interval of 1 week for this multiverse
 
-        ------------------------------------------------------------------------------------------------------------------------------------------------
-        ------------------------------------------------------------------------------------------------------------------------------------------------
-        ------------ If the league is over and the next season is not generated yet
-        IF now() > multiverse.date_league_end AND multiverse.is_next_season_generated IS FALSE THEN
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------ Handle the 11th week of the season
+        IF now() > (multiverse.date_league_start + loc_interval_1_week * 10) AND multiverse.is_w11_generated IS FALSE THEN
 
             -- Set this to TRUE to run another loop of simulate_games at the end of this function
             bool_simulate_games := TRUE;
 
-            ------------------------------------------------------------------------------------------------------------------------------------------------
-            ------------------------------------------------------------------------------------------------------------------------------------------------
-            ------------ Start handling final positions in league and next season league (default values, will be overwritten later for the ups and downs)
-            UPDATE clubs SET pos_league_next_season = pos_league, id_league_next_season = id_league
-                WHERE multiverse_speed = multiverse.speed;
+            -- Set the date of the first games of the week11
+            loc_date = multiverse.date_league_start + (loc_interval_1_week * 10) + INTERVAL '5 days 21 hours';
 
             ------------------------------------------------------------------------------------------------------------------------------------------------
             ------------------------------------------------------------------------------------------------------------------------------------------------
-            ------------ Handle first level leagues with world cups
-            -- Loop through the n world cups
+            ------------ Handle the 3 world cups for the 3 first clubs of the master league of each continent
+            -- Loop through the N world cups
             FOR N IN 1..3 LOOP
 
-                -- Select the 6 clubs that will play the level N world cup
-                SELECT clubs.id
-                INTO loc_array_id_clubs
-                FROM clubs
-                JOIN leagues ON leagues.id = clubs.id_league
-                WHERE leagues."level" = 1
-                AND clubs.pos_league = N
-                ORDER BY clubs.league_points DESC
+                mat_ij := NULL; -- Reset the matrix
 
-                IF loc_array_id_clubs.lenth <> 6 THEN
-                    RAISE EXCEPTION 'ERROR when handling champions world cup ==> 6 clubs expected, % found', loc_array_id_clubs.lenth;
-                END IF;
+                -- Fetch the id and teamcomp id of the 6 clubs that will play the level N world cup
+                WITH club_cte AS (
+                    SELECT
+                        clubs.id AS id_club, 
+                        games_tc_w11.id AS id_games_tc_w11,
+                        games_tc_w12.id AS id_games_tc_w12,
+                        games_tc_w13.id AS id_games_tc_w13
+                    FROM clubs
+                        JOIN leagues ON leagues.id = clubs.id_league
+                        JOIN games_teamcomp AS games_tc_w11 ON games_tc_w11.id_club = clubs.id AND games_tc_w11.season_number = leagues.season_number AND games_tc_w11.week_number = 11
+                        JOIN games_teamcomp AS games_tc_w12 ON games_tc_w12.id_club = clubs.id AND games_tc_w12.season_number = leagues.season_number AND games_tc_w12.week_number = 12
+                        JOIN games_teamcomp AS games_tc_w13 ON games_tc_w13.id_club = clubs.id AND games_tc_w13.season_number = leagues.season_number AND games_tc_w13.week_number = 13
+                    WHERE clubs.multiverse_speed = 1
+                        AND leagues."level" = 1
+                        AND clubs.pos_league = 4
+                    ORDER BY clubs.league_points DESC)
+                SELECT ARRAY_AGG(ARRAY[id_club, id_games_tc_w11, id_games_tc_w12, id_games_tc_w13]) INTO mat_ij
+                    FROM club_cte;               
 
-                mat_ij := NULL;
+                -- Store the id of the world cup in the tmp variable
+                SELECT id INTO loc_tmp_id 
+                    FROM leagues
+                    WHERE "level" = 0
+                    AND number = N
+                    AND multiverse_speed = multiverse.speed;
 
-                -- Loop through the 6 clubs
-                FOR I IN 1..6 LOOP
-
-                    -- Store the club id in the matrix
-                    mat_ij[I][1] := loc_array_id_clubs[1];
-
-                    -- Loop through the 3 games of the 2 leagues of the champions world cup
-                    FOR J IN 1..3 LOOP
-
-                        -- Select the id of the row of the teamcomp for the club I for the week number J
-                        SELECT id INTO loc_tmp_id FROM games_teamcomp 
-                        WHERE id_club = loc_array_id_clubs[I] AND week_number = (J+10) AND season_number = multiverse.season_number;
-
-                        -- Store the teamcomp id in the matrix
-                        mat_ij[i][j + 1] := loc_tmp_id;
-                    END LOOP;
-                END LOOP;
-
-            -- Generate the games for the 3 next weeks of the season
+                -- Generate the World Cup games for the 3 next weeks of the season
                 INSERT INTO games (week_number, multiverse_speed, season_number, id_club_left, id_teamcomp_left, id_club_right, id_teamcomp_right, date_start, is_cup, id_league) VALUES
-(11, multiverse.speed, league.season_number, mat_ij[1][1], mat_ij[1][2], mat_ij[4][1], mat_ij[4][2], loc_date, TRUE, 0),
-(11, multiverse.speed, league.season_number, mat_ij[2][1], mat_ij[2][2], mat_ij[3][1], mat_ij[3][2], loc_date, TRUE, 0),
-(12, multiverse.speed, league.season_number, mat_ij[4][1], mat_ij[4][3], mat_ij[5][1], mat_ij[5][3], loc_date + loc_interval_1_week * 1, TRUE, 0),
-(12, multiverse.speed, league.season_number, mat_ij[3][1], mat_ij[3][3], mat_ij[6][1], mat_ij[6][3], loc_date + loc_interval_1_week * 1, TRUE, 0),
-(13, multiverse.speed, league.season_number, mat_ij[5][1], mat_ij[5][4], mat_ij[1][1], mat_ij[1][4], loc_date + loc_interval_1_week * 2, TRUE, 0),
-(13, multiverse.speed, league.season_number, mat_ij[6][1], mat_ij[6][4], mat_ij[2][1], mat_ij[2][4], loc_date + loc_interval_1_week * 2, TRUE, 0);
+(11, multiverse.speed, league.season_number, mat_ij[1][1], mat_ij[1][2], mat_ij[4][1], mat_ij[4][2], loc_date, TRUE, loc_tmp_id),
+(11, multiverse.speed, league.season_number, mat_ij[2][1], mat_ij[2][2], mat_ij[3][1], mat_ij[3][2], loc_date, TRUE, loc_tmp_id),
+(12, multiverse.speed, league.season_number, mat_ij[1][1], mat_ij[1][3], mat_ij[6][1], mat_ij[6][3], loc_date + loc_interval_1_week, TRUE, loc_tmp_id),
+(12, multiverse.speed, league.season_number, mat_ij[2][1], mat_ij[2][3], mat_ij[5][1], mat_ij[5][3], loc_date + loc_interval_1_week, TRUE, loc_tmp_id),
+(13, multiverse.speed, league.season_number, mat_ij[4][1], mat_ij[4][4], mat_ij[6][1], mat_ij[6][4], loc_date + loc_interval_1_week * 2, TRUE, loc_tmp_id),
+(13, multiverse.speed, league.season_number, mat_ij[3][1], mat_ij[3][4], mat_ij[5][1], mat_ij[5][4], loc_date + loc_interval_1_week * 2, TRUE, loc_tmp_id);
 
                 -- Generate the friendly games
 INSERT INTO games (week_number, multiverse_speed, season_number, id_club_left, id_teamcomp_left, id_club_right, id_teamcomp_right, date_start, is_friendly, id_league) VALUES
-(11, multiverse.speed, league.season_number, mat_ij[5][1], mat_ij[5][2], mat_ij[6][1], mat_ij[6][2], loc_date, TRUE, 0),
-(12, multiverse.speed, league.season_number, mat_ij[1][1], mat_ij[1][3], mat_ij[2][1], mat_ij[2][3], loc_date + loc_interval_1_week * 1, TRUE, 0),
-(13, multiverse.speed, league.season_number, mat_ij[3][1], mat_ij[3][4], mat_ij[4][1], mat_ij[4][4], loc_date + loc_interval_1_week * 2, TRUE, 0);
+(11, multiverse.speed, league.season_number, mat_ij[5][1], mat_ij[5][2], mat_ij[6][1], mat_ij[6][2], loc_date, TRUE, loc_tmp_id),
+(12, multiverse.speed, league.season_number, mat_ij[3][1], mat_ij[3][3], mat_ij[4][1], mat_ij[4][3], loc_date + loc_interval_1_week, TRUE, loc_tmp_id),
+(13, multiverse.speed, league.season_number, mat_ij[1][1], mat_ij[1][4], mat_ij[2][1], mat_ij[2][4], loc_date + loc_interval_1_week * 2, TRUE, loc_tmp_id);
 
             END LOOP; -- End of the loop through world cups
 
-            -- Handle 4th position clubs
-            SELECT clubs.id
-            INTO loc_array_id_clubs
-            FROM clubs
-            JOIN leagues ON leagues.id = clubs.id_league
-            WHERE leagues."level" = 1
-            AND clubs.pos_league = 4
-            ORDER BY clubs.league_points DESC
-
-            FOR I IN 1..6 LOOP
-                
-                -- Store the club id in the matrix
-                mat_ij[I][1] := loc_array_id_clubs[1];
-
-                -- Select the id of the row of the teamcomp for the club I for the week number J
-                SELECT id INTO loc_tmp_id FROM games_teamcomp 
-                WHERE id_club = loc_array_id_clubs[I] AND week_number = 11 AND season_number = multiverse.season_number;
-
-                -- Store the teamcomp id in the matrix
-                mat_ij[i][2] := loc_tmp_id;
-            END LOOP;
-
-            -- Create the 3 games opoosing the 4th position clubs of each level 1 league
-            INSERT INTO games (week_number, multiverse_speed, season_number, id_club_left, id_teamcomp_left, id_club_right, id_teamcomp_right, date_start, is_friendly, id_league) VALUES
-(11, multiverse.speed, league.season_number, mat_ij[1][1], mat_ij[1][2], mat_ij[2][1], mat_ij[2][2], loc_date, TRUE, 0),
-(11, multiverse.speed, league.season_number, mat_ij[3][1], mat_ij[3][2], mat_ij[4][1], mat_ij[4][2], loc_date, TRUE, 0),
-(11, multiverse.speed, league.season_number, mat_ij[5][1], mat_ij[5][2], mat_ij[6][1], mat_ij[6][2], loc_date, TRUE, 0);
-
             ------------------------------------------------------------------------------------------------------------------------------------------------
             ------------------------------------------------------------------------------------------------------------------------------------------------
-            ------------  Loop through all leagues of the multiverse
-            FOR league IN (SELECT * FROM leagues WHERE multiverse_speed = multiverse.speed AND level > 1) LOOP
+            ------------ Handle the 6 clubs of the master league of each continent that finished 4th
+            -- Select the 6 clubs that finished in the 4th position of the master league of each continent
 
-                -- Loop through all clubs in the league ordered by position
-                FOR club IN
-                    (SELECT * FROM clubs 
-                    WHERE id_league = league.id
-                    ORDER BY pos_league)
+            mat_ij := NULL; -- Reset the matrix
+
+            I := 1; -- Index of the matrix (1 to 6)
+
+            -- Loop through the 6 clubs
+            FOR club IN (
+                SELECT * FROM clubs WHERE multiverse_speed = multiverse.speed
+                    AND "level" = 1
+                    AND pos_league = 4
+                    ORDER BY league_points DESC)
                 LOOP
 
+                -- Store the club id in the matrix
+                mat_ij[I][1] := loc_array_id_clubs[I];
+
+                -- Loop through the next 2 weeks
+                FOR J IN 1..2 LOOP
+
+                    -- Select the id of the row of the teamcomp for the club I for the week number J
+                    SELECT id INTO loc_tmp_id FROM games_teamcomp
+                    WHERE id_club = loc_array_id_clubs[I] AND week_number = (10+J) AND season_number = multiverse.season_number;
+
+                    -- Store the teamcomp id in the matrix
+                    mat_ij[I][2] := loc_tmp_id;
+                END LOOP;
+
+            END LOOP;
+
+            -- Generate the Friendly games for the week11 of the season
+            INSERT INTO games (week_number, multiverse_speed, season_number, id_club_left, id_teamcomp_left, id_club_right, id_teamcomp_right, date_start, is_friendly, id_league) VALUES
+(11, multiverse.speed, league.season_number, mat_ij[1][1], mat_ij[1][2], mat_ij[6][1], mat_ij[6][2], loc_date, TRUE, 0),
+(11, multiverse.speed, league.season_number, mat_ij[2][1], mat_ij[2][2], mat_ij[5][1], mat_ij[5][2], loc_date, TRUE, 0),
+(11, multiverse.speed, league.season_number, mat_ij[3][1], mat_ij[3][2], mat_ij[4][1], mat_ij[4][2], loc_date, TRUE, 0),
+(12, multiverse.speed, league.season_number, mat_ij[1][1], mat_ij[1][2], mat_ij[5][1], mat_ij[5][2], loc_date + loc_interval_1_week, TRUE, 0),
+(12, multiverse.speed, league.season_number, mat_ij[2][1], mat_ij[2][2], mat_ij[4][1], mat_ij[4][2], loc_date + loc_interval_1_week, TRUE, 0),
+(12, multiverse.speed, league.season_number, mat_ij[3][1], mat_ij[3][2], mat_ij[6][1], mat_ij[6][2], loc_date + loc_interval_1_week, TRUE, 0);
+
+
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------------ Handle the 6 clubs of the master league of each continent that finished 5th and 6th
+            -- Loop through the clubs that finished 5th and 6th
+            FOR N IN 5..6 LOOP
+
+                mat_ij := NULL; -- Reset the matrix
+
+                I := 1; -- Index of the matrix (1 to 6)
+
+                -- Loop through the 6 clubs that finished Nth (5 then 6) of the master league of each continent
+                FOR club IN (
+                    SELECT * FROM clubs WHERE multiverse_speed = multiverse.speed
+                        AND "level" = 1
+                        AND pos_league = N
+                        ORDER BY league_points DESC)
+                    LOOP
+
+                    -- Select the id of the row of the teamcomp for the club I for the week number J
+                    SELECT id INTO loc_tmp_id FROM games_teamcomp
+                    WHERE id_club = club.id AND week_number = 11 AND season_number = multiverse.season_number;
+
+                    -- Insert the id of the games_teamcomp in the matrix for storing in games table
+                    mat_ij[I][2] := loc_tmp_id;
+
+                    I := I + 1; -- Increment the index of the matrix for the next club
+
+                END LOOP; -- End of the loop through the 6 clubs
+
+                -- Generate the Friendly games for the week11 of the season
+                INSERT INTO games (week_number, multiverse_speed, season_number, id_club_left, id_teamcomp_left, id_club_right, id_teamcomp_right, date_start, is_friendly, id_league) VALUES
+(11, multiverse.speed, league.season_number, mat_ij[1][1], mat_ij[1][2], mat_ij[6][1], mat_ij[6][2], loc_date, TRUE, 0),
+(11, multiverse.speed, league.season_number, mat_ij[2][1], mat_ij[2][2], mat_ij[5][1], mat_ij[5][2], loc_date, TRUE, 0),
+(11, multiverse.speed, league.season_number, mat_ij[3][1], mat_ij[3][2], mat_ij[4][1], mat_ij[4][2], loc_date, TRUE, 0);
+
+            END LOOP; -- End of the loop through world cups
+
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------------  Handle the lower level leagues
+            FOR league IN (
+                SELECT * FROM leagues
+                    WHERE multiverse_speed = multiverse.speed
+                    AND "level" > 1)
+            LOOP
+
+                mat_ij := NULL; -- Reset the matrix
+
+                I := 1;
+
+                -- Fetch the 9 clubs: 1,2 and 3 are those who finished 4th, 5th and 6th in the master league and the 6 others are those who finished 1st, 2nd and 3rd in the lower league
+                FOR club IN
+                    (SELECT clubs.* 
+                        FROM clubs
+                        JOIN leagues ON clubs.id_league = leagues.id
+                        WHERE (leagues.id = league.id AND clubs.pos_league > 3) 
+                        OR (leagues.id_upper_league = league.id AND clubs.pos_league < 4)
+                        ORDER BY 
+                            CASE WHEN leagues.id = league.id THEN 1 ELSE 2 END,
+                            clubs.pos_league,
+                            clubs.league_points DESC)
+                LOOP
                     ------------------------------------------------------------------------------------------------------------------------------------------------
                     ------------------------------------------------------------------------------------------------------------------------------------------------
                     ------------ Handle end season games
                     -- Insert the id of the club in the matrix for storing in games table
-                    mat_ij[club.pos_league][1] := club.id;
+                    mat_ij[I][1] := club.id;
 
-                    -- Loop through the 4 final weeks of the season
-                    FOR J IN 1..4 LOOP 
+                    -- Loop through the weeks 11 and 12 of the season
+                    FOR J IN 1..2 LOOP 
 
                         -- Select the id of the row of the teamcomp for the club I for the week number J
-                        SELECT id INTO loc_tmp_id FROM games_teamcomp 
+                        SELECT id INTO loc_tmp_id FROM games_teamcomp
                         WHERE id_club = club.id AND week_number = (J+10) AND season_number = league.season_number;
-
-                        -- If not found insert it
-                        --IF loc_tmp_id IS NULL THEN
-                        --    -- Insert a new row for the club I for the week number J if it doesn't already exist
-                        --    INSERT INTO games_teamcomp (id_club, week_number, season_number)
-                        --    VALUES (club.id, J, league.season_number)
-                        --    RETURNING id INTO loc_tmp_id;
-                        --END IF;
 
                         -- Insert the id of the games_teamcomp in the matrix for storing in games table
                         mat_ij[club.pos_league][J + 1] := loc_tmp_id;
 
                     END LOOP; -- End of the loop through weeks
 
+                    I := I + 1; -- Increment the index of the matrix for the next club
+
                 END LOOP; -- End of the loop through clubs
-                
-                loc_date = multiverse.date_league_end + INTERVAL '5 days 21 hours';
 
                 -- Generate the games for the last 4 weeks of the season
                 INSERT INTO games (week_number, multiverse_speed, season_number, id_club_left, id_teamcomp_left, id_club_right, id_teamcomp_right, date_start, is_cup, id_league) VALUES
@@ -181,7 +234,58 @@ INSERT INTO games (week_number, multiverse_speed, season_number, id_club_left, i
 (14, multiverse.speed, league.season_number, mat_ij[2][1], mat_ij[2][5], mat_ij[1][1], mat_ij[1][5], loc_date + loc_interval_1_week * 3, TRUE, league.id),
 (14, multiverse.speed, league.season_number, mat_ij[4][1], mat_ij[4][5], mat_ij[3][1], mat_ij[3][5], loc_date + loc_interval_1_week * 3, TRUE, league.id),
 (14, multiverse.speed, league.season_number, mat_ij[6][1], mat_ij[6][5], mat_ij[5][1], mat_ij[5][5], loc_date + loc_interval_1_week * 3, TRUE, league.id);
-        
+
+            END LOOP; -- End of the loop through leagues
+
+            -- Update multiverses table that next season is generated
+            UPDATE multiverses SET 
+                is_w11_generated = TRUE
+            WHERE speed = multiverse.speed;
+
+        END IF;
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------ Handle the 12th week of the season (TEST!!!)
+                FOR club IN
+                    (SELECT clubs.* 
+                        FROM clubs
+                        JOIN leagues ON clubs.id_league = leagues.id
+                        WHERE (leagues.id = league.id AND clubs.pos_league > 3) 
+                        OR (leagues.id_upper_league = league.id AND clubs.pos_league < 4)
+                        ORDER BY 
+                            CASE WHEN leagues.id = league.id THEN 1 ELSE 2 END,
+                            clubs.pos_league,
+                            clubs.league_points DESC)
+                LOOP
+                    ------------------------------------------------------------------------------------------------------------------------------------------------
+                    ------------------------------------------------------------------------------------------------------------------------------------------------
+                    ------------ Handle end season games
+                    -- Insert the id of the club in the matrix for storing in games table
+                    mat_ij[I][1] := club.id;
+
+                    -- Loop through the weeks 11 and 12 of the season
+                    FOR J IN 1..2 LOOP 
+
+                        -- Select the id of the row of the teamcomp for the club I for the week number J
+                        SELECT id INTO loc_tmp_id FROM games_teamcomp
+                        WHERE id_club = club.id AND week_number = (J+10) AND season_number = league.season_number;
+
+                        -- Insert the id of the games_teamcomp in the matrix for storing in games table
+                        mat_ij[club.pos_league][J + 1] := loc_tmp_id;
+
+                    END LOOP; -- End of the loop through weeks
+
+                    I := I + 1; -- Increment the index of the matrix for the next club
+
+                END LOOP; -- End of the loop through clubs
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------ Handle the 14th and last week of the season
+        IF now() > (multiverse.date_league_start + loc_interval_1_week * 10) AND multiverse.is_w11_generated IS FALSE THEN
+            FOR league IN (SELECT * FROM leagues WHERE multiverse_speed = multiverse.speed) LOOP
 
                 ------------------------------------------------------------------------------------------------------------------------------------------------
                 ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -221,23 +325,21 @@ INSERT INTO games (week_number, multiverse_speed, season_number, id_club_left, i
                 END LOOP;
 
 
-            -- Generate new season for the league
-            PERFORM generate_new_season(
-                inp_date_season_start := multiverse.date_season_end,
-                inp_m_speed := multiverse.speed,
-                inp_season_number := multiverse.season_number + 1,
-                inp_id_league := league.id
-            );
+                -- Generate new season for the league
+                PERFORM generate_new_season(
+                    inp_date_season_start := multiverse.date_season_end,
+                    inp_m_speed := multiverse.speed,
+                    inp_season_number := multiverse.season_number + 1,
+                    inp_id_league := league.id
+                );
 
             END LOOP; -- End of the loop through leagues
 
             -- Update multiverses table that next season is generated
             UPDATE multiverses SET 
-                is_next_season_generated = TRUE
+                is_w14_generated = TRUE
             WHERE speed = multiverse.speed;
-
         END IF;
-
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------ If the season is over
