@@ -34,16 +34,24 @@ class Game {
     required this.idLeague,
     required this.multiverseSpeed,
     required this.seasonNumber,
+    required this.isRelegation,
+    required this.posLeftClub,
+    required this.posRightClub,
+    required this.idLeagueLeftClub,
+    required this.idLeagueRightClub,
+    required this.idGameLeftClub,
+    required this.idGameRightClub,
+    required this.isReturnGameIdGameFirstRound,
+    required this.error,
   });
 
   final int id;
-  final int idClubLeft;
-  final int idTeamcompLeft;
-  final int idClubRight;
-  final int idTeamcompRight;
+  final int? idClubLeft;
+  final int? idTeamcompLeft;
+  final int? idClubRight;
+  final int? idTeamcompRight;
   final DateTime dateStart;
-  final String?
-      idStadium; // In your SQL, id_stadium is of type UUID which is a string in Dart
+  final String? idStadium;
   final int? weekNumber;
   final bool isPlayed;
   final bool isCup;
@@ -52,6 +60,15 @@ class Game {
   final int? idLeague;
   final int multiverseSpeed;
   final int seasonNumber;
+  final bool isRelegation;
+  final int? posLeftClub;
+  final int? posRightClub;
+  final int? idLeagueLeftClub;
+  final int? idLeagueRightClub;
+  final int? idGameLeftClub;
+  final int? idGameRightClub;
+  final int? isReturnGameIdGameFirstRound;
+  final String? error;
 
   factory Game.fromMap(Map<String, dynamic> map) {
     return Game(
@@ -72,6 +89,15 @@ class Game {
       idLeague: map['id_league'],
       multiverseSpeed: map['multiverse_speed'],
       seasonNumber: map['season_number'],
+      isRelegation: map['is_relegation'] ?? false,
+      posLeftClub: map['pos_left_club'],
+      posRightClub: map['pos_right_club'],
+      idLeagueLeftClub: map['id_league_left_club'],
+      idLeagueRightClub: map['id_league_right_club'],
+      idGameLeftClub: map['id_game_left_club'],
+      idGameRightClub: map['id_game_right_club'],
+      isReturnGameIdGameFirstRound: map['is_return_game_id_game_first_round'],
+      error: map['error'],
     );
   }
 }

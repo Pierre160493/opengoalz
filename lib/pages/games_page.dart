@@ -586,15 +586,25 @@ class _HomePageState extends State<GamesPage> {
 
             /// Get the clubs for the games
             .switchMap((Club club) {
+              List<int> clubIdsLeft = club.games
+                  .where((game) => game.idClubLeft != null)
+                  .map((game) => game.idClubLeft!)
+                  .toSet()
+                  .toList();
+
+              List<int> clubIdsRight = club.games
+                  .where((game) => game.idClubRight != null)
+                  .map((game) => game.idClubRight!)
+                  .toSet()
+                  .toList();
+
               return supabase
                   .from('clubs')
                   .stream(primaryKey: ['id'])
-                  .inFilter(
-                      'id',
-                      club.games
-                          .expand((game) => [game.idClubLeft, game.idClubRight])
-                          .toSet()
-                          .toList())
+                  .inFilter('id', [
+                    ...clubIdsLeft,
+                    ...clubIdsRight,
+                  ])
                   .map((maps) => maps
                       .map((map) => Club.fromMap(
                           map: map, myUserId: supabase.auth.currentUser!.id))

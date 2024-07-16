@@ -36,10 +36,13 @@ class _HomePageState extends State<GamePage> {
         .eq('id', widget.idGame)
         .map((maps) => maps.map((map) => Game.fromMap(map)).first)
         .switchMap((game) {
+          if (game.idClubLeft == null) {
+            return Stream.value(game);
+          }
           return supabase
               .from('clubs')
               .stream(primaryKey: ['id'])
-              .eq('id', game.idClubLeft)
+              .eq('id', game.idClubLeft!)
               .map((maps) => maps
                   .map((map) => Club.fromMap(
                       map: map, myUserId: supabase.auth.currentUser!.id))
@@ -54,10 +57,13 @@ class _HomePageState extends State<GamePage> {
               });
         })
         .switchMap((game) {
+          if (game.idClubLeft == null) {
+            return Stream.value(game);
+          }
           return supabase
               .from('clubs')
               .stream(primaryKey: ['id'])
-              .eq('id', game.idClubRight)
+              .eq('id', game.idClubRight!)
               .map((maps) => maps
                   .map((map) => Club.fromMap(
                       map: map, myUserId: supabase.auth.currentUser!.id))
