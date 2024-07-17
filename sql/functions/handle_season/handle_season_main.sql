@@ -40,109 +40,21 @@ BEGIN
             -- Set this to TRUE to run another loop of simulate_games at the end of this function
             bool_simulate_games := TRUE;
 
-            ------ Loop through the 3 intercontinental cups
-            FOR league IN (
-                SELECT * FROM leagues
-                    WHERE multiverse_speed = multiverse.speed
-                    AND LEVEL = 0
+            -- Loop through the list of intercontinental cup games
+            FOR game IN (
+                SELECT * FROM games
+                    WHERE id_league = (
+                        SELECT id FROM leagues
+                            WHERE multiverse_speed = multiverse.speed
+                            AND level = 0)
+                    AND season_number = multiverse.season_number
+                    AND week_number IN (11, 12, 13)
             ) LOOP
 
-                -- Select the club ids that will play the games of this league
-                SELECT ARRAY_AGG(id) INTO loc_array_id_clubs FROM (
-                    SELECT id FROM clubs
-                        WHERE multiverse_speed = multiverse.speed
-                        WHERE id_league IN (
-                            SELECT id FROM leagues
-                                WHERE multiverse_speed = multiverse.speed
-                                AND LEVEL = 1)
-                        AND pos_league = league.number
-                        ORDER BY league_points
-                ) AS clubs_id;
+                -- Populate the game with the clubs
+                PERFORM handle_season_populate_game(game.id);
 
-                -- Check if the league has 6 clubs
-                IF array_length(loc_array_id_clubs, 1) <> 6 THEN
-                    RAISE EXCEPTION 'The league % does not have 6 clubs ==> Found %', league.name, array_length(loc_array_id_clubs, 1);
-                END IF;
-
-                -- Loop through the list of intercontinental cup games
-                FOR game IN (
-                    SELECT * FROM games
-                        WHERE multiverse_speed = multiverse.speed
-                        AND id_league = league.id
-                        AND season_number = multiverse.season_number
-                )
-                LOOP
-
-                    UPDATE games SET
-                        id_club_left = loc_array_id_clubs[game.pos_left_club],
-                        id_club_right = loc_array_id_clubs[game.pos_right_club]
-                        WHERE id = game.id;
-
-                END LOOP; -- End of the game loop
-            END LOOP; -- End of the league loop through the 3 intercontinental cups
-
-            ------ Loop through the intercontinental friendly games between 4th, 5th and 6th of the masters league
-            FOR I IN 4..6 LOOP
-
-                -- Select the club ids that will play the games of this league
-                SELECT ARRAY_AGG(id) INTO loc_array_id_clubs FROM (
-                    SELECT id FROM clubs
-                        WHERE multiverse_speed = multiverse.speed
-                        WHERE id_league IN (
-                            SELECT id FROM leagues
-                                WHERE multiverse_speed = multiverse.speed
-                                AND LEVEL = 1)
-                        AND pos_league = I
-                        ORDER BY league_points
-                ) AS clubs_id;
-
-                -- Check if the array has 6 clubs
-                IF array_length(loc_array_id_clubs, 1) <> 6 THEN
-                    RAISE EXCEPTION 'The league % does not have 6 clubs ==> Found %', league.name, array_length(loc_array_id_clubs, 1);
-                END IF;
-
-                -- Loop through the 3 intercontinental friendly games
-                FOR game IN (
-                    SELECT * FROM games
-                        WHERE multiverse_speed = multiverse.speed
-                        AND id_league = 0
-                        AND season_number = multiverse.season_number
-                        AND week_number = 11
-                        ORDER BY id
-                        LIMIT 3
-                ) LOOP
-
-                    UPDATE games SET
-                        id_club_left = loc_array_id_clubs[game.pos_left_club],
-                        id_club_right = loc_array_id_clubs[game.pos_right_club]
-                        WHERE id = game.id;
-
-                END LOOP; -- End of the game loop
-
-                -- The 4th clubs have some additional friendly games on week 12
-                IF I = 4 THEN
-                
-                    -- Loop through the 3 intercontinental friendly games
-                    FOR game IN (
-                        SELECT * FROM games
-                            WHERE multiverse_speed = multiverse.speed
-                            AND id_league = 0
-                            AND season_number = multiverse.season_number
-                            AND week_number = 12
-                            ORDER BY id
-                    ) LOOP
-
-                        UPDATE games SET
-                            id_club_left = loc_array_id_clubs[game.pos_left_club],
-                            id_club_right = loc_array_id_clubs[game.pos_right_club]
-                            WHERE id = game.id;
-
-                    END LOOP; -- End of the game loop
-
-                END IF;
-
-            END LOOP; -- End of the league loop through the 3 intercontinental cups
-
+            END LOOP; -- End of the game loop
 
 
             ------ Loop through the normal leagues
@@ -152,31 +64,42 @@ BEGIN
                     AND LEVEL > 0
             ) LOOP
 
-                -- Select the club ids that will play the games of this league
-                SELECT ARRAY_AGG(id) INTO loc_array_id_clubs FROM (
-                    SELECT id FROM clubs
-                        WHERE multiverse_speed = multiverse.speed
-                        WHERE id_league = league.id
-                        ORDER BY league_points
-                ) AS clubs_id;
-
-                -- Check if the league has 6 clubs
-                IF array_length(loc_array_id_clubs, 1) <> 6 THEN
-                    RAISE EXCEPTION 'The league % does not have 6 clubs ==> Found %', league.name, array_length(loc_array_id_clubs, 1);
-                END IF;
-
                 -- Loop through the list of games
                 FOR game IN (
                     SELECT * FROM games
                         WHERE id_league = league.id
                         AND season_number = multiverse.season_number
+                        AND (id_club_left IS NULL OR id_club_right IS NULL)
                 )
                 LOOP
 
-                    UPDATE games SET
-                        id_club_left = loc_array_id_clubs[game.pos_left_club],
-                        id_club_right = loc_array_id_clubs[game.pos_right_club]
-                        WHERE id = game.id;
+                    -- If the left club is not set, try to set it
+                    IF game.id_club_left IS NULL THEN
+                        -- Try to set it with the id_league
+                        IF game.id_league_left_club IS NOT NULL THEN
+
+                            -- Select the club ids of the leagues in the right order
+                            SELECT ARRAY_AGG(id) INTO loc_array_id_clubs FROM (
+                                SELECT id FROM clubs
+                                    WHERE multiverse_speed = multiverse.speed
+                                    WHERE id_league = league.id
+                                    ORDER BY league_points
+                            ) AS clubs_id;
+
+                            -- Update the games table
+                            UPDATE games SET
+                                id_club_left = loc_array_id_clubs[game.pos_left_club]
+                                WHERE id = game.id;
+
+                        -- Try to set it with the id_game
+                        ELSE IF game.id_game_left_club IS NOT NULL THEN
+
+
+
+                        ELSE
+                            RAISE EXCEPTION 'Cannot set the left club of the game with id: % ==> Both inputs (id_league and id_game are null)', game.id;
+                        END IF;
+                    END IF;
 
                 END LOOP; -- End of the game loop
             END LOOP; -- End of the league loop through the normal leagues
