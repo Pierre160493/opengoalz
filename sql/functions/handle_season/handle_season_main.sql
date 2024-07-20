@@ -1,4 +1,4 @@
--- DROP FUNCTION public.handle_games_generation();
+-- DROP FUNCTION public.handle_season_main();
 
 CREATE OR REPLACE FUNCTION public.handle_season_main()
  RETURNS void
@@ -6,86 +6,158 @@ CREATE OR REPLACE FUNCTION public.handle_season_main()
 AS $function$
 DECLARE
     multiverse RECORD; -- Record for the multiverses loop
+    league RECORD; -- Record for the leagues loop
+    club RECORD; -- Record for the clubs loop
     game RECORD; -- Record for the game loop
     loc_interval_1_week INTERVAL; -- Interval time for a week in this multiverse
-    bool_simulate_games bool := FALSE; -- If the the simulate_games function has to be called again
-    I bigint;
+    bool_week_advanced bool := FALSE; -- If the the simulate_games function has to be called again
+    pos integer; -- Position in the league
 BEGIN
-
+RAISE NOTICE '****** HANDLE SEASON MAIN: Start';
     -- Loop through all multiverses
     FOR multiverse IN (SELECT * FROM multiverses) LOOP
-        
-        loc_interval_1_week := INTERVAL '7 days' / multiverse.speed; -- Interval of 1 week for this multiverse
+
+        -- Loop through all leagues
+        FOR league IN (
+            SELECT * FROM leagues WHERE multiverse_speed = multiverse.speed)
+        LOOP
+
+            -- Loop through the games that need to be played for the current week
+            FOR game IN
+                (SELECT id FROM games
+                    WHERE id_league = league.id
+                    AND is_played = FALSE
+                    AND week_number = multiverse.week_number
+                    AND now() > date_start
+                    ORDER BY id)
+            LOOP
+                --BEGIN
+                    PERFORM simulate_game(inp_id_game := game.id);
+                --EXCEPTION WHEN others THEN
+                --    RAISE NOTICE 'An error occurred while simulating game with id %: %', id_game, SQLERRM;
+                --    UPDATE games SET is_played = TRUE, error = SQLERRM WHERE id = id_game;
+                --END;
+
+                -- Calculate rankings for normal leagues
+                IF league.LEVEL > 0 THEN
+                    -- Calculate rankings for each clubs in the league
+                    pos := 1;
+                    FOR club IN
+                        (SELECT * FROM clubs
+                            WHERE id_league = league.id
+                            ORDER BY league_points DESC)
+                    LOOP
+                        -- Update the position in the league of this club
+                        UPDATE clubs
+                            SET pos_league = pos
+                            WHERE id = club.id;
+
+                        -- Update the position
+                        pos := pos + 1;
+                    END LOOP; -- End of the loop through clubs
+                END IF; -- End of the calculation of the rankings of the normal leagues
+
+            END LOOP; -- End of the loop of the games simulation
+
+        END LOOP; -- End of the loop through leagues
+
+        -- Interval of 1 week for this multiverse
+        loc_interval_1_week := INTERVAL '7 days' / multiverse.speed;
+
+        -- If the current week is over, update the week number
+        IF NOT EXISTS (
+            SELECT 1 FROM games
+            WHERE multiverse_speed = multiverse.speed
+            AND season_number = multiverse.season_number
+            AND week_number = multiverse.week_number
+            AND is_played = FALSE
+        ) THEN
+        -- AND if at least 3 hours have passed since the start of the last game
+
+            -- No need to populate the games if the season is not over yet
+            IF multiverse.week_number >= 10 THEN
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------ Handle the 10th week of the season
+                IF multiverse.week_number = 10 THEN
+RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
+                    -- Update the normal leagues to say that they are finished
+                    UPDATE leagues SET is_finished = TRUE
+                        WHERE multiverse_speed = multiverse.speed
+                        AND level > 0;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------
------------- Handle the 11th week of the season
-        IF now() > (multiverse.date_season_start + loc_interval_1_week * 10) AND multiverse.is_w11_generated IS FALSE THEN
+------------ Handle the 13th week of the season ==> Intercontinental Cup Leagues are finished
+                ELSEIF multiverse.week_number = 13 THEN
+RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
 
-            -- Update the leagues to say that they are finished
-            UPDATE leagues SET is_finished = TRUE
-                WHERE multiverse_speed = multiverse.speed
-                AND level > 0;
+                    -- Update the normal leagues to say that they are finished
+                    UPDATE leagues SET is_finished = TRUE
+                        WHERE multiverse_speed = multiverse.speed
+                        AND level = 0;
 
-            -- Loop through the list of intercontinental cup games
-            FOR game IN (
-                SELECT * FROM games
-                    WHERE multiverse_speed = multiverse.speed
-                    AND season_number = multiverse.season_number
-                    AND week_number > 10
-            ) LOOP
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------ Handle the 15th week of the season ==> Season is over, start a new one
+                ELSEIF multiverse.week_number = 14 THEN
+RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
 
-                -- Populate the game with the clubs
-                PERFORM handle_season_populate_game(game.id);
+                    -- Update multiverses table for starting next season
+                    UPDATE multiverses SET
+                        date_season_start = date_season_end,
+                        date_season_end = date_season_end + loc_interval_1_week * 14,
+                        season_number = season_number + 1,
+                        week_number = 1
+                    WHERE speed = multiverse.speed;
 
-            END LOOP; -- End of the game loop
+                    -- Update leagues
+                    UPDATE leagues SET
+                        season_number = season_number + 1,
+                        is_finished = FALSE
+                        WHERE multiverse_speed = multiverse.speed;
 
-            -- Store that the week 11 has been handled
-            UPDATE multiverses SET is_w11_generated = TRUE WHERE speed = multiverses.speed;
-            
-        END IF; -- End of the handling of the 11th week of the season
+                    -- Update clubs
+                    UPDATE clubs SET
+                        season_number = season_number + 1,
+                        id_league = id_league_next_season,
+                        id_league_next_season = NULL,
+                        pos_league = pos_league_next_season,
+                        pos_league_next_season = NULL,
+                        league_points = 0
+                        WHERE multiverse_speed = multiverse.speed;
 
-        ------------------------------------------------------------------------------------------------------------------------------------------------
-        ------------------------------------------------------------------------------------------------------------------------------------------------
-        ------------ If the season is over
-        IF now() > multiverse.date_season_end THEN
-            bool_simulate_games := TRUE;
+                END IF;
 
-            -- Update multiverses table for starting next season
-            UPDATE multiverses SET
-                season_number = season_number + 1,
-                date_season_start = date_season_end,
-                date_season_end = date_season_end + loc_interval_1_week * 14,        
-                is_w11_generated = FALSE,
-                is_w12_generated = FALSE,
-                is_w13_generated = FALSE
-            WHERE speed = multiverse.speed;
+                -- Loop through the list of games that need to be played in the coming weeks
+                FOR game IN (
+                    SELECT * FROM games
+                        WHERE multiverse_speed = multiverse.speed
+                        AND season_number = (SELECT season_number FROM multiverses WHERE speed = multiverse.speed)
+                        AND week_number >= (SELECT week_number FROM multiverses WHERE speed = multiverse.speed)
+                        AND (id_club_left IS NULL OR id_club_right IS NULL)
+                        ORDER BY id
+                ) LOOP
+--RAISE NOTICE 'game.id= %', game.id;
+                    -- Try to populate the game with the clubs id
+                    PERFORM handle_season_populate_game(game.id);
+                END LOOP; -- End of the game loop
 
-            -- Update leagues
-            UPDATE leagues SET
-                season_number = season_number + 1,
-                is_finished = FALSE
-                WHERE multiverse_speed = multiverse.speed;
+            END IF; -- End of the week_number check
 
-            -- Update clubs
-            UPDATE clubs SET
-                season_number = season_number + 1,
-                id_league = id_league_next_season,
-                id_league_next_season = NULL,
-                pos_league = pos_league_next_season,
-                pos_league_next_season = NULL,
-                league_points = 0
-                WHERE multiverse_speed = multiverse.speed;
+            -- Update the week number of the multiverse
+            UPDATE multiverses SET week_number = week_number + 1 WHERE speed = multiverse.speed;
 
             -- Set this to TRUE to run another loop of simulate_games at the end of this function
-            bool_simulate_games := TRUE;
+            bool_week_advanced := TRUE;
 
-        END IF;
+        END IF; -- End if all games of the current week have been played
 
-    END LOOP;
+    END LOOP; -- End of the loop through the multiverses
 
-    IF bool_simulate_games IS TRUE THEN
-        PERFORM simulate_games();
+    -- If the week has been advanced, call this function again
+    IF bool_week_advanced IS TRUE THEN
+        PERFORM handle_season_main();
     END IF;
 
 END;
