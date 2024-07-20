@@ -44,7 +44,7 @@ class _HomePageState extends State<GamesPage> {
       return supabase
           .from('games')
           .stream(primaryKey: ['id'])
-          .eq('id_league', club.idLeague)
+          .eq('id_club_left', club.id)
           // .eq('season_number', club.season_number)
           .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
 
