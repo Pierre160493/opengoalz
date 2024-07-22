@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
+import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/classes/game/game.dart';
@@ -27,109 +28,128 @@ class GamesPage extends StatefulWidget {
 
 class _HomePageState extends State<GamesPage> {
   late final Stream<Club> _clubStream;
-  late final Stream<List<Game>> _gamesStream;
 
   @override
   void initState() {
     /// Get the club
     _clubStream = supabase
-        .from('clubs')
-        .stream(primaryKey: ['id'])
-        .eq('id', widget.idClub)
-        .map((maps) => Club.fromMap(
-            map: maps.first, myUserId: supabase.auth.currentUser!.id));
+            .from('clubs')
+            .stream(primaryKey: ['id'])
+            .eq('id', widget.idClub)
+            .map((maps) => Club.fromMap(
+                map: maps.first, myUserId: supabase.auth.currentUser!.id))
 
-    /// Get the games
-    _gamesStream = _clubStream.switchMap((Club club) {
-      return supabase
-          .from('games')
-          .stream(primaryKey: ['id'])
-          .eq('id_club_left', club.id)
-          // .eq('season_number', club.season_number)
-          .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+            /// Fetch the games where the club is left
+            .switchMap((Club club) {
+              return supabase
+                  .from('games')
+                  .stream(primaryKey: ['id'])
+                  .eq('id_club_left', club.id)
+                  .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+                  .map((games) {
+                    games
+                        .where((game) => game.seasonNumber == club.seasonNumber)
+                        .forEach((game) {
+                      club.games.add(game);
+                    });
+                    return club;
+                  });
+            })
 
-          /// Filter only the games for the club
-          .map((games) => games
-              // .where((game) =>
-              //     game.idClubLeft == widget.idClub ||
-              //     game.idClubRight == widget.idClub)
-              .where((game) =>
-                  (game.idClubLeft == widget.idClub ||
-                      game.idClubRight == widget.idClub) &&
-                  game.seasonNumber == club.seasonNumber)
-              .toList())
+            /// Fetch the games where the club is right
+            .switchMap((Club club) {
+              return supabase
+                  .from('games')
+                  .stream(primaryKey: ['id'])
+                  .eq('id_club_right', club.id)
+                  .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+                  .map((games) {
+                    games
+                        .where((game) => game.seasonNumber == club.seasonNumber)
+                        .forEach((game) {
+                      club.games.add(game);
+                    });
+                    // Order club.games by dateStart
+                    club.games
+                        .sort((a, b) => a.dateStart.compareTo(b.dateStart));
+                    return club;
+                  });
+            })
 
-          /// Order the games by date_start
-          .map((games) {
-            games.sort((a, b) =>
-                a.dateStart.compareTo(b.dateStart)); // Order by date_start
-            for (Game game in games) {
-              print('Game: ' +
-                  game.id.toString() +
-                  ' @[' +
-                  game.dateStart.toString() +
-                  '] Season Number: ' +
-                  game.seasonNumber.toString());
-            }
-            return games;
-          })
+            /// Fetch the clubs for the games
+            .switchMap((Club club) {
+              return supabase
+                  .from('clubs')
+                  .stream(primaryKey: ['id'])
+                  .inFilter(
+                      'id',
+                      [
+                        club.games.map((game) => game.idClubRight),
+                        club.games.map((game) => game.idClubLeft)
+                      ]
+                          .expand((x) => x)
+                          .where((id) => id != null)
+                          .map((id) => id!)
+                          .toSet()
+                          .toList())
+                  .map((maps) => maps
+                      .map((map) => Club.fromMap(
+                          map: map, myUserId: supabase.auth.currentUser!.id))
+                      .toList())
+                  .map((clubs) {
+                    for (var game in club.games) {
+                      game.rightClub = clubs
+                          .firstWhere((club) => club.id == game.idClubRight);
+                      game.leftClub = clubs
+                          .firstWhere((club) => club.id == game.idClubLeft);
+                    }
+                    return club;
+                  });
+            })
+            .switchMap((Club club) {
+              return supabase
+                  .from('games_teamcomp')
+                  .stream(primaryKey: ['id'])
+                  .eq('id_club', club.id)
+                  .map((maps) =>
+                      maps.map((map) => TeamComp.fromMap(map)).toList())
+                  .map((List<TeamComp> teamcomps) {
+                    for (TeamComp teamcomp in teamcomps.where((teamcomp) =>
+                        teamcomp.seasonNumber == club.seasonNumber)) {
+                      // If no game exists for the week of the teamcomp
+                      if (!club.games.any(
+                          (game) => game.weekNumber == teamcomp.weekNumber)) {
+                        club.teamcomps.add(teamcomp);
+                      }
+                    }
+                    return club;
+                  });
+            })
 
-          /// Get the clubs for the games
-          .switchMap((List<Game> games) {
-            return supabase
-                .from('clubs')
-                .stream(primaryKey: ['id'])
-                .eq('id_league', club.idLeague)
-                .map((maps) => maps
-                    .map((map) => Club.fromMap(
-                        map: map, myUserId: supabase.auth.currentUser!.id))
-                    .toList())
-                .map((clubs) {
-                  for (var game in games) {
-                    game.leftClub = clubs.firstWhere(
-                        (club) => club.id == game.idClubLeft,
-                        orElse: () => throw Exception(
-                            'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'));
-                    ;
-                    game.rightClub = clubs.firstWhere(
-                        (club) => club.id == game.idClubRight,
-                        orElse: () => throw Exception(
-                            'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
-                    ;
-                    // print('Game:' +
-                    //     game.id.toString() +
-                    //     game.leftClub.club_name +
-                    //     ' VS ' +
-                    //     game.rightClub.club_name);
-                  }
-                  return games;
-                });
-          })
-          .switchMap((List<Game> games) {
-            return supabase
-                .from('game_events')
-                .stream(primaryKey: ['id'])
-                .inFilter('id_game', games.map((game) => game.id).toList())
-                .map((maps) =>
-                    maps.map((map) => GameEvent.fromMap(map)).toList())
-                .map((events) {
-                  for (var game in games) {
-                    game.events = events
-                        .where((event) => event.idGame == game.id)
-                        .toList();
-                  }
-                  return games;
-                });
-          });
-    });
+        /// Fetch the game events for the games
+        // .switchMap((Club club) {
+        //   return supabase
+        //       .from('game_events')
+        //       .stream(primaryKey: ['id'])
+        //       .inFilter('id_game', club.games.map((game) => game.id).toList())
+        //       .map((maps) => maps.map((map) => GameEvent.fromMap(map)).toList())
+        //       .map((events) {
+        //         for (var game in club.games) {
+        //           game.events =
+        //               events.where((event) => event.idGame == game.id).toList();
+        //         }
+        //         return club;
+        //       });
+        // })
+        ;
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Game>>(
-        stream: _gamesStream,
+    return StreamBuilder<Club>(
+        stream: _clubStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -140,9 +160,8 @@ class _HomePageState extends State<GamesPage> {
               child: Text('Error: ${snapshot.error}'),
             );
           } else {
-            // Club club = snapshot.data ?? [];
-            final games = snapshot.data ?? [];
-            if (games.isEmpty) {
+            Club club = snapshot.data!;
+            if (club.games.isEmpty) {
               return Scaffold(
                 appBar: AppBar(
                   title: Text(
@@ -161,14 +180,8 @@ class _HomePageState extends State<GamesPage> {
 
               DateTime now = DateTime.now();
 
-              Club currentClub = games
-                  .firstWhere((game) =>
-                      game.leftClub.id == widget.idClub ||
-                      game.rightClub.id == widget.idClub)
-                  .leftClub;
-
               /// Loop through games to store them in the right list
-              for (Game game in games) {
+              for (Game game in club.games) {
                 /// Games for this season
                 /// Current games
                 if (game.dateStart.isAfter(now) &&
@@ -190,7 +203,7 @@ class _HomePageState extends State<GamesPage> {
                   title: Row(
                     children: [
                       Text('Games Page for '),
-                      currentClub.getClubNameClickable(context),
+                      club.getClubNameClickable(context),
                     ],
                   ),
                 ),
@@ -203,6 +216,7 @@ class _HomePageState extends State<GamesPage> {
                       children: [
                         TabBar(
                           tabs: [
+                            /// Played games title
                             Tab(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -216,6 +230,8 @@ class _HomePageState extends State<GamesPage> {
                                 ],
                               ),
                             ),
+
+                            /// Current games title
                             if (gamesCurrent.length > 0)
                               Tab(
                                 child: Row(
@@ -230,6 +246,8 @@ class _HomePageState extends State<GamesPage> {
                                   ],
                                 ),
                               ),
+
+                            /// Incoming games title
                             Tab(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -325,7 +343,6 @@ class _HomePageState extends State<GamesPage> {
                                                   width:
                                                       5), // Add some spacing between the icon and text
                                               Text(
-                                                  // 'Current season ${club.seasonNumber}: (${gamesPlayed.length})'),
                                                   'Current season (${gamesIncoming.length})'),
                                             ],
                                           ),
@@ -340,9 +357,7 @@ class _HomePageState extends State<GamesPage> {
                                               SizedBox(
                                                   width:
                                                       5), // Add some spacing between the icon and text
-                                              Text(
-                                                  // 'Current season ${club.seasonNumber}: (${gamesPlayed.length})'),
-                                                  'Next seasons'),
+                                              Text('Next season'),
                                             ],
                                           ),
                                         ),
@@ -351,7 +366,62 @@ class _HomePageState extends State<GamesPage> {
                                     Expanded(
                                       child: TabBarView(
                                         children: [
-                                          _buildGameList(gamesIncoming),
+                                          DefaultTabController(
+                                            length: 2, // Number of tabs
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                TabBar(
+                                                  tabs: [
+                                                    Tab(
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(Icons
+                                                              .calendar_month), // Add the desired icon here
+                                                          SizedBox(
+                                                              width:
+                                                                  5), // Add some spacing between the icon and text
+                                                          Text(
+                                                              // 'Current season ${club.seasonNumber}: (${gamesPlayed.length})'),
+                                                              'Organized games (${gamesIncoming.length})'),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Tab(
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(Icons
+                                                              .edit_calendar), // Add the desired icon here
+                                                          SizedBox(
+                                                              width:
+                                                                  5), // Add some spacing between the icon and text
+                                                          Text(
+                                                              'Not yet organized games (${club.teamcomps.length})'),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Expanded(
+                                                  child: TabBarView(
+                                                    children: [
+                                                      _buildGameList(
+                                                          gamesIncoming),
+                                                      _buildTeamCompList(
+                                                          club.teamcomps),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                           _buildFutureGames(widget.idClub),
                                         ],
                                       ),
@@ -387,6 +457,35 @@ class _HomePageState extends State<GamesPage> {
                 },
                 // child: _buildGameDescription(game),
                 child: game.getGameDetails(context),
+              );
+            },
+            // leading: Text('test')
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTeamCompList(List<TeamComp> teamComps) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: teamComps.length,
+            itemBuilder: (context, index) {
+              final TeamComp teamComp = teamComps[index];
+              return InkWell(
+                // onTap: () {
+                //   Navigator.of(context).push(GamePage.route(game.id));
+                // },
+                // child: _buildGameDescription(game),
+                child: ListTile(
+                  leading: Icon(Icons.sports_soccer_outlined),
+                  title: Text('Week ${teamComp.weekNumber}'),
+                  subtitle: Text('Team composition'),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                ),
               );
             },
             // leading: Text('test')
