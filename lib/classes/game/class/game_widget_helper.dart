@@ -146,34 +146,41 @@ extension GameClassWidgetHelper on Game {
 
                 /// If this is a return game of a two games round, display the score
                 if (isReturnGameIdGameFirstRound != null)
-                  InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          GamePage.route(isReturnGameIdGameFirstRound!),
-                        );
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.queue_play_next),
-                          SizedBox(width: 3),
-                          Text('First leg game: '),
-                          if (isPlayed == false)
-                            if (scoreCumulLeft != null &&
-                                scoreCumulRight != null)
-                              Text(
-                                  'Score: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
-                            else
-                              Text('ERROR: Cannot fetch the first leg score')
-                          else if (scoreCumulLeft != null &&
-                              scoreCumulRight != null)
-                            Text(
-                                'Final Score of the 2 games: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
-                          else
-                            Text('ERROR: Cannot fetch the final score')
-                        ],
-                      )),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              GamePage.route(isReturnGameIdGameFirstRound!),
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              Icon(Icons.queue_play_next),
+                              SizedBox(width: 3),
+                              Text('First leg game: '),
+                              if (isPlayed == false)
+                                if (scoreCumulLeft != null &&
+                                    scoreCumulRight != null)
+                                  Text(
+                                      'Score: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
+                                else
+                                  Text(
+                                      'ERROR: Cannot fetch the first leg score')
+                              else if (scoreCumulLeft != null &&
+                                  scoreCumulRight != null)
+                                Text(scoreCumulLeft!.toInt() ==
+                                        scoreCumulRight!.toInt()
+                                    ? 'Final Cumulated Score: ${scoreCumulLeft!.toInt()} [${(scoreCumulLeft! % 1 * 1000).toInt()}] - [${(scoreCumulRight! % 1 * 1000).toInt()}] ${scoreCumulRight!.toInt()}'
+                                    : 'Final Cumulated Score: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
+                              else
+                                Text('ERROR: Cannot fetch the final score')
+                            ],
+                          )),
+                    ],
+                  ),
                 Row(
                   children: [
                     const Icon(
