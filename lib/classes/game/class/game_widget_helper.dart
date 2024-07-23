@@ -1,6 +1,46 @@
 part of 'game.dart';
 
 extension GameClassWidgetHelper on Game {
+  /// Icon of the game: cup, league, friendly, relegation
+  Widget getGameIcon() {
+    // Icon of the game: cup, league, friendly, relegation
+    Icon Mainicon = Icon(
+      isRelegation
+          ? Icons.expand
+          : isFriendly
+              ? Icons.handshake
+              : Icons.emoji_events_outlined,
+      size: 72,
+      color: Colors.yellow,
+    );
+
+    // Text under the icon
+    Text text = Text(
+      weekNumber < 11 ? ' ${weekNumber}/10' : ' Inter ${weekNumber - 10}',
+      style: TextStyle(
+        fontSize: 16,
+        color: Colors.blueGrey,
+      ),
+    );
+
+    Icon programIcon = Icon(
+      weekNumber < 11
+          ? Icons.calendar_month_outlined
+          : Icons.format_list_bulleted_add,
+      color: Colors.blueGrey,
+    );
+
+    return Column(children: [
+      Mainicon,
+      Row(
+        children: [
+          programIcon,
+          text,
+        ],
+      )
+    ]);
+  }
+
   Widget getGameRow(BuildContext context, {bool isSpaceEvenly = false}) {
     return Row(
       mainAxisAlignment: isSpaceEvenly
@@ -17,31 +57,14 @@ extension GameClassWidgetHelper on Game {
   }
 
   Widget getScoreRow() {
-    List<GameEvent> scoreEvents =
-        events.where((event) => event.idEventType == 1).toList();
-    int leftClubScore =
-        scoreEvents.where((event) => event.idClub == idClubLeft).length;
-    int rightClubScore =
-        scoreEvents.where((event) => event.idClub == idClubRight).length;
-
-    Color leftColor = Colors.white;
-    Color rightColor = Colors.white;
-    if (leftClubScore > rightClubScore) {
-      leftColor = Colors.green;
-      rightColor = Colors.red;
-    } else if (leftClubScore < rightClubScore) {
-      leftColor = Colors.red;
-      rightColor = Colors.green;
-    }
-
     Row row = Row(
       children: [
         SizedBox(
           width: 6,
         ),
         Icon(
-          Icons.handshake,
-// Icons.compare_arrows,
+          // Icons.handshake,
+          Icons.compare_arrows,
           size: 30,
           color: Colors.blueGrey,
         ),
@@ -51,7 +74,24 @@ extension GameClassWidgetHelper on Game {
       ],
     );
 
-    if (isPlayed == false) return row;
+    if (isPlayed == false)
+      return row;
+    else if (scoreLeft == null && scoreRight == null)
+      return Text('ERR: Unknown left and right score of the game $id');
+    else if (scoreRight == null)
+      return Text('ERR: Unknown left score of the game $id');
+    else if (scoreRight == null)
+      return Text('ERR: Unknown right score of the game $id');
+
+    Color leftColor = Colors.white;
+    Color rightColor = Colors.white;
+    if (scoreRight! > scoreRight!) {
+      leftColor = Colors.green;
+      rightColor = Colors.red;
+    } else if (scoreRight! < scoreRight!) {
+      leftColor = Colors.red;
+      rightColor = Colors.green;
+    }
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 6),
@@ -62,7 +102,7 @@ extension GameClassWidgetHelper on Game {
       child: Row(
         children: [
           Text(
-            leftClubScore.toString(),
+            scoreLeft.toString(),
             style: TextStyle(
               fontSize: 24.0,
               color: leftColor,
@@ -71,7 +111,7 @@ extension GameClassWidgetHelper on Game {
           ),
           row,
           Text(
-            rightClubScore.toString(),
+            scoreRight.toString(),
             style: TextStyle(
               fontSize: 24.0,
               color: rightColor,
@@ -94,12 +134,7 @@ extension GameClassWidgetHelper on Game {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-                // Icons.military_tech,
-                // Icons.sports_score,
-                Icons.emoji_events_outlined,
-                size: 60,
-                color: Colors.green),
+            getGameIcon(),
             SizedBox(width: 12.0),
             Expanded(
                 child: Column(
@@ -108,21 +143,77 @@ extension GameClassWidgetHelper on Game {
                 SizedBox(
                   height: 12,
                 ),
+
+                /// If this is a return game of a two games round, display the score
+                if (isReturnGameIdGameFirstRound != null)
+                  InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          GamePage.route(isReturnGameIdGameFirstRound!),
+                        );
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.queue_play_next),
+                          SizedBox(width: 3),
+                          Text('First leg game: '),
+                          if (isPlayed == false)
+                            if (scoreCumulLeft != null &&
+                                scoreCumulRight != null)
+                              Text(
+                                  'Score: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
+                            else
+                              Text('ERROR: Cannot fetch the first leg score')
+                          else if (scoreCumulLeft != null &&
+                              scoreCumulRight != null)
+                            Text(
+                                'Final Score of the 2 games: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
+                          else
+                            Text('ERROR: Cannot fetch the final score')
+                        ],
+                      )),
                 Row(
                   children: [
-                    Icon(Icons.timer_outlined),
+                    const Icon(
+                      Icons.description,
+                      color: Colors.blueGrey,
+                    ),
+                    Expanded(
+                      child: Text(
+                        description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.blueGrey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 6,
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.timer_outlined,
+                    ),
                     // Text(' Date: '),
                     Text(
                       DateFormat('dd/MM/yyyy HH:mm:ss').format(dateStart),
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Spacer(),
-                    const Icon(Icons.calendar_month_outlined),
+                    Icon(
+                      Icons.calendar_month_outlined,
+                    ),
                     Text(
-                      ' Week Day ${weekNumber}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                      ),
+                      ' Week: $weekNumber',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -133,7 +224,7 @@ extension GameClassWidgetHelper on Game {
       ),
     );
   }
-  
+
   Widget getGameReport(BuildContext context) {
     int leftClubScore = 0;
     int rightClubScore = 0;

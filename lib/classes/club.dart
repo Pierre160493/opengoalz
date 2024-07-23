@@ -1,7 +1,7 @@
 //ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/game/game.dart';
+import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
@@ -99,16 +99,16 @@ class Club {
         Provider.of<SessionProvider>(context).selectedClub.id_club == id
             ? true
             : false;
+    Color color = isMine ? Colors.green : Colors.white;
     Text text = Text(
       nameClub,
-      style:
-          TextStyle(fontSize: 20, color: isMine ? Colors.green : Colors.white),
+      style: TextStyle(fontSize: 20, color: color),
       overflow: TextOverflow.fade, // or TextOverflow.ellipsis
       maxLines: 1,
       softWrap: false,
     );
     Icon icon = Icon(isMine ? icon_home : Icons.sports_soccer_outlined,
-        color: isMine ? Colors.green : Colors.white, size: 30);
+        color: color, size: 30);
 
     return Row(
       mainAxisAlignment:

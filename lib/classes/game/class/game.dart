@@ -5,6 +5,7 @@ import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/global_variable.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
+import 'package:opengoalz/pages/game_page.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -15,8 +16,6 @@ class Game {
   List<GameEvent> events = []; //list of events in the game
   late Club leftClub; //left club
   late Club rightClub; //left club
-  int? leftScore = null; //left club score
-  int? rightScore = null; //right club score
 
   Game({
     required this.id,
@@ -29,7 +28,7 @@ class Game {
     required this.weekNumber,
     required this.isPlayed,
     required this.isCup,
-    required this.isLeagueGame,
+    required this.isLeague,
     required this.isFriendly,
     required this.idLeague,
     required this.multiverseSpeed,
@@ -43,6 +42,11 @@ class Game {
     required this.idGameRightClub,
     required this.isReturnGameIdGameFirstRound,
     required this.error,
+    required this.scoreLeft,
+    required this.scoreRight,
+    required this.scoreCumulLeft,
+    required this.scoreCumulRight,
+    required this.description,
   });
 
   final int id;
@@ -52,10 +56,10 @@ class Game {
   final int? idTeamcompRight;
   final DateTime dateStart;
   final String? idStadium;
-  final int? weekNumber;
+  final int weekNumber;
   final bool isPlayed;
   final bool isCup;
-  final bool isLeagueGame;
+  final bool isLeague;
   final bool isFriendly;
   final int? idLeague;
   final int multiverseSpeed;
@@ -69,6 +73,11 @@ class Game {
   final int? idGameRightClub;
   final int? isReturnGameIdGameFirstRound;
   final String? error;
+  final int? scoreLeft;
+  final int? scoreRight;
+  final double? scoreCumulLeft;
+  final double? scoreCumulRight;
+  final String description;
 
   factory Game.fromMap(Map<String, dynamic> map) {
     return Game(
@@ -84,20 +93,29 @@ class Game {
       weekNumber: map['week_number'],
       isPlayed: map['is_played'] ?? false,
       isCup: map['is_cup'] ?? false,
-      isLeagueGame: map['is_league_game'] ?? false,
+      isLeague: map['is_league'] ?? false,
       isFriendly: map['is_friendly'] ?? false,
       idLeague: map['id_league'],
       multiverseSpeed: map['multiverse_speed'],
       seasonNumber: map['season_number'],
       isRelegation: map['is_relegation'] ?? false,
-      posLeftClub: map['pos_left_club'],
-      posRightClub: map['pos_right_club'],
-      idLeagueLeftClub: map['id_league_left_club'],
-      idLeagueRightClub: map['id_league_right_club'],
-      idGameLeftClub: map['id_game_left_club'],
-      idGameRightClub: map['id_game_right_club'],
+      posLeftClub: map['pos_club_left'],
+      posRightClub: map['pos_club_right'],
+      idLeagueLeftClub: map['id_league_club_left'],
+      idLeagueRightClub: map['id_league_club_right'],
+      idGameLeftClub: map['id_game_club_left'],
+      idGameRightClub: map['id_game_club_right'],
       isReturnGameIdGameFirstRound: map['is_return_game_id_game_first_round'],
       error: map['error'],
+      scoreLeft: map['score_left'],
+      scoreRight: map['score_right'],
+      scoreCumulLeft: map['score_cumul_left'] != null
+          ? (map['score_cumul_left'] as num).toDouble()
+          : null,
+      scoreCumulRight: map['score_cumul_right'] != null
+          ? (map['score_cumul_right'] as num).toDouble()
+          : null,
+      description: map['description'],
     );
   }
 }

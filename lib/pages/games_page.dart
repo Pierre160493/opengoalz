@@ -6,7 +6,7 @@ import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:opengoalz/classes/game/game.dart';
+import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
@@ -202,8 +202,12 @@ class _HomePageState extends State<GamesPage> {
                 appBar: AppBar(
                   title: Row(
                     children: [
-                      Text('Games Page for '),
-                      club.getClubNameClickable(context),
+                      Text('Games Page for ${club.nameClub}'),
+                      // Container(
+                      //   decoration: BoxDecoration(color: Colors.white),
+                      //   child: club.getClubNameClickable(context,
+                      //       isRightClub: true),
+                      // ),
                     ],
                   ),
                 ),
