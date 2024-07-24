@@ -83,12 +83,33 @@ extension GameClassWidgetHelper on Game {
     else if (scoreRight == null)
       return Text('ERR: Unknown right score of the game $id');
 
+    // If the game is a cup, display the score of the penalty shootout
+    int? leftPenaltyScore = null;
+    int? rightPenaltyScore = null;
+    if (isCup) {
+      if (scoreCumulLeft != null && scoreCumulRight != null) {
+        leftPenaltyScore = (scoreCumulLeft! % 1 * 1000).toInt();
+        rightPenaltyScore = (scoreCumulRight! % 1 * 1000).toInt();
+      } else {
+        return Text('ERR: Unknown cumul score of the game $id');
+      }
+    }
+
     Color leftColor = Colors.white;
     Color rightColor = Colors.white;
-    if (scoreRight! > scoreRight!) {
+    // If the game is a cup, display the score of the penalty shootout if it happened
+    if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
+      if (leftPenaltyScore > rightPenaltyScore) {
+        leftColor = Colors.green;
+        rightColor = Colors.red;
+      } else if (leftPenaltyScore < rightPenaltyScore) {
+        leftColor = Colors.red;
+        rightColor = Colors.green;
+      }
+    } else if (scoreLeft! > scoreRight!) {
       leftColor = Colors.green;
       rightColor = Colors.red;
-    } else if (scoreRight! < scoreRight!) {
+    } else if (scoreLeft! < scoreRight!) {
       leftColor = Colors.red;
       rightColor = Colors.green;
     }
@@ -105,16 +126,34 @@ extension GameClassWidgetHelper on Game {
             scoreLeft.toString(),
             style: TextStyle(
               fontSize: 24.0,
-              color: leftColor,
+              color: leftPenaltyScore == null ? leftColor : Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
+          if (leftPenaltyScore != null)
+            Text(
+              ' [${leftPenaltyScore.toString()}]',
+              style: TextStyle(
+                fontSize: 24.0,
+                color: leftColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           row,
+          if (rightPenaltyScore != null)
+            Text(
+              '[${rightPenaltyScore.toString()}] ',
+              style: TextStyle(
+                fontSize: 24.0,
+                color: rightColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           Text(
             scoreRight.toString(),
             style: TextStyle(
               fontSize: 24.0,
-              color: rightColor,
+              color: rightPenaltyScore == null ? rightColor : Colors.white,
               fontWeight: FontWeight.bold,
             ),
           )
@@ -160,23 +199,26 @@ extension GameClassWidgetHelper on Game {
                             children: [
                               Icon(Icons.queue_play_next),
                               SizedBox(width: 3),
-                              Text('First leg game: '),
-                              if (isPlayed == false)
+                              Text('First Leg Game '),
+                              // If the game is played, display the score
+                              if (isPlayed)
+                                // If the score is available, display it
                                 if (scoreCumulLeft != null &&
-                                    scoreCumulRight != null)
+                                    scoreCumulRight != null &&
+                                    scoreLeft != null &&
+                                    scoreRight != null)
                                   Text(
-                                      'Score: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
+                                      'Score: ${scoreCumulLeft!.toInt() - scoreLeft!.toInt()} - ${scoreCumulRight!.toInt() - scoreLeft!.toInt()}')
                                 else
                                   Text(
                                       'ERROR: Cannot fetch the first leg score')
+                              // Then the game is not played so scoreCumul stores the first leg score
                               else if (scoreCumulLeft != null &&
                                   scoreCumulRight != null)
-                                Text(scoreCumulLeft!.toInt() ==
-                                        scoreCumulRight!.toInt()
-                                    ? 'Final Cumulated Score: ${scoreCumulLeft!.toInt()} [${(scoreCumulLeft! % 1 * 1000).toInt()}] - [${(scoreCumulRight! % 1 * 1000).toInt()}] ${scoreCumulRight!.toInt()}'
-                                    : 'Final Cumulated Score: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
-                              else
-                                Text('ERROR: Cannot fetch the final score')
+                                Text(
+                                    'Score: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
+                              // else
+                              //   Text('ERROR: Cannot fetch the final score')
                             ],
                           )),
                     ],

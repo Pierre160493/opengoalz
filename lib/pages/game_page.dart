@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/teamComp.dart';
@@ -46,13 +46,9 @@ class _HomePageState extends State<GamePage> {
               .map((maps) => maps
                   .map((map) => Club.fromMap(
                       map: map, myUserId: supabase.auth.currentUser!.id))
-                  .toList())
-              .map((clubs) {
-                if (clubs.length != 1) {
-                  throw Exception(
-                      'DATABASE ERROR: ${clubs.length} club(s) found instead of 1 for the left club (with id: ${game.idClubLeft}) for the game with id: ${game.id}');
-                }
-                game.leftClub = clubs.first;
+                  .first)
+              .map((Club club) {
+                game.leftClub = club;
                 return game;
               });
         })
@@ -67,35 +63,36 @@ class _HomePageState extends State<GamePage> {
               .map((maps) => maps
                   .map((map) => Club.fromMap(
                       map: map, myUserId: supabase.auth.currentUser!.id))
-                  .toList())
-              .map((clubs) {
-                if (clubs.length != 1) {
-                  throw Exception(
-                      'DATABASE ERROR: ${clubs.length} club(s) found instead of 1 for the right club (with id: ${game.idClubRight}) for the game with id: ${game.id}');
-                }
-                game.rightClub = clubs.first;
+                  .first)
+              .map((Club club) {
+                game.rightClub = club;
                 return game;
               });
         })
         .switchMap((game) {
+          List<Object> clubIds = [];
+          if (game.idClubLeft != null) {
+            clubIds.add(game.idClubLeft!);
+          }
+          if (game.idClubRight != null) {
+            clubIds.add(game.idClubRight!);
+          }
+          if (clubIds.isEmpty) {
+            return Stream.value(game);
+          }
           return supabase
               .from('games_teamcomp')
               .stream(primaryKey: ['id'])
-              .eq('id_game', game.id)
+              .inFilter('id_club', clubIds)
               .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
               .map((teamComps) {
-                if (teamComps.length != 2) {
-                  throw Exception(
-                      'DATABASE ERROR: ${teamComps.length} teamcomps found instead of 2 for game with id: ${game.id}');
-                }
-                for (TeamComp teamComp in teamComps) {
+                for (TeamComp teamComp in teamComps.where((TeamComp teamcomp) =>
+                    teamcomp.seasonNumber == game.seasonNumber &&
+                    teamcomp.weekNumber == game.weekNumber)) {
                   if (teamComp.idClub == game.idClubLeft) {
                     game.leftClub.teamcomp = teamComp;
                   } else if (teamComp.idClub == game.idClubRight) {
                     game.rightClub.teamcomp = teamComp;
-                  } else {
-                    throw Exception(
-                        'DATABASE ERROR: Teamcomp with id: ${teamComp.id} does not belong to any of the clubs of the game with id: ${game.id}');
                   }
                 }
                 return game;
@@ -185,9 +182,9 @@ class _HomePageState extends State<GamePage> {
                         children: [
                           TabBar(
                             tabs: [
-                              Tab(text: 'Details'),
-                              Tab(text: 'Report'),
-                              Tab(text: 'Teams'),
+                              buildTab(Icons.preview, 'Details'),
+                              buildTab(Icons.reviews, 'Report'),
+                              buildTab(Icons.group, 'Teams'),
                             ],
                           ),
                           Expanded(
@@ -206,5 +203,18 @@ class _HomePageState extends State<GamePage> {
             );
           }
         });
+  }
+
+  Widget buildTab(IconData icon, String text) {
+    return Tab(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon),
+          SizedBox(width: 6), // Add some spacing between the icon and text
+          Text(text),
+        ],
+      ),
+    );
   }
 }
