@@ -15,6 +15,7 @@ import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+part 'leagueWidgetHelper.dart';
 part 'leagueMainTab.dart';
 part 'leagueGamesTab.dart';
 part 'leagueStatsTab.dart';

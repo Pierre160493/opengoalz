@@ -1,10 +1,11 @@
 part of 'club.dart';
 
-extension GameClassWidgetTeamcomps on Club {
-  Widget getTeamComp(BuildContext context) {
-    if (teamcomp == {null}) {
+extension GameClassWidgetteamComps on Club {
+  Widget getTeamComp(BuildContext context, int index) {
+    if (index > teamComps.length) {
       return Center(
-        child: Text('ERROR: No team composition available for ${nameClub}'),
+        child: Text(
+            'ERROR: No team composition available for ${nameClub} at index $index'),
       );
     } else if (Provider.of<SessionProvider>(context).selectedClub.id_club !=
         id) {
@@ -13,6 +14,8 @@ extension GameClassWidgetTeamcomps on Club {
             'Only the manager of ${nameClub} can see the teamcomp before the game is played'),
       );
     }
+
+    TeamComp teamcomp = teamComps[index];
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -24,13 +27,13 @@ extension GameClassWidgetTeamcomps on Club {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Left Striker')),
+                    context, teamcomp.getPlayerMapByName('Left Striker')),
                 const SizedBox(width: 6.0),
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Central Striker')),
+                    context, teamcomp.getPlayerMapByName('Central Striker')),
                 const SizedBox(width: 6.0),
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Right Striker')),
+                    context, teamcomp.getPlayerMapByName('Right Striker')),
               ],
             ),
             const SizedBox(height: 6.0), // Add spacing between rows
@@ -38,19 +41,19 @@ extension GameClassWidgetTeamcomps on Club {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Left Winger')),
+                    context, teamcomp.getPlayerMapByName('Left Winger')),
                 const SizedBox(width: 6.0),
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Left Midfielder')),
-                const SizedBox(width: 6.0),
-                buildPlayerCard(context,
-                    teamcomp!.getPlayerMapByName('Central Midfielder')),
+                    context, teamcomp.getPlayerMapByName('Left Midfielder')),
                 const SizedBox(width: 6.0),
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Right Midfielder')),
+                    context, teamcomp.getPlayerMapByName('Central Midfielder')),
                 const SizedBox(width: 6.0),
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Right Winger')),
+                    context, teamcomp.getPlayerMapByName('Right Midfielder')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(
+                    context, teamcomp.getPlayerMapByName('Right Winger')),
               ],
             ),
             const SizedBox(height: 6.0), // Add spacing between rows
@@ -58,19 +61,19 @@ extension GameClassWidgetTeamcomps on Club {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Left Back Winger')),
+                    context, teamcomp.getPlayerMapByName('Left Back Winger')),
                 const SizedBox(width: 6.0),
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Left Central Back')),
+                    context, teamcomp.getPlayerMapByName('Left Central Back')),
                 const SizedBox(width: 6.0),
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Central Back')),
-                const SizedBox(width: 6.0),
-                buildPlayerCard(context,
-                    teamcomp!.getPlayerMapByName('Right Central Back')),
+                    context, teamcomp.getPlayerMapByName('Central Back')),
                 const SizedBox(width: 6.0),
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Right Back Winger')),
+                    context, teamcomp.getPlayerMapByName('Right Central Back')),
+                const SizedBox(width: 6.0),
+                buildPlayerCard(
+                    context, teamcomp.getPlayerMapByName('Right Back Winger')),
               ],
             ),
             const SizedBox(height: 6.0), // Add spacing between rows
@@ -78,20 +81,20 @@ extension GameClassWidgetTeamcomps on Club {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildPlayerCard(
-                    context, teamcomp!.getPlayerMapByName('Goal Keeper')),
+                    context, teamcomp.getPlayerMapByName('Goal Keeper')),
               ],
             ),
             const SizedBox(height: 16.0), // Add spacing between rows
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                buildPlayerCard(context, teamcomp!.getPlayerMapByName('Sub 1')),
-                buildPlayerCard(context, teamcomp!.getPlayerMapByName('Sub 2')),
-                buildPlayerCard(context, teamcomp!.getPlayerMapByName('Sub 3')),
-                buildPlayerCard(context, teamcomp!.getPlayerMapByName('Sub 4')),
-                buildPlayerCard(context, teamcomp!.getPlayerMapByName('Sub 5')),
-                buildPlayerCard(context, teamcomp!.getPlayerMapByName('Sub 6')),
-                buildPlayerCard(context, teamcomp!.getPlayerMapByName('Sub 7')),
+                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 1')),
+                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 2')),
+                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 3')),
+                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 4')),
+                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 5')),
+                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 6')),
+                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 7')),
               ],
             ),
           ],
@@ -108,7 +111,7 @@ extension GameClassWidgetTeamcomps on Club {
           child: Center(child: Text('ERROR: player doesn\'t exist')));
     }
 
-    return GestureDetector(
+    return InkWell(
       onTap: () async {
         /// If the game is already played, only open the player page
         // if (isPlayed) {
@@ -156,11 +159,8 @@ extension GameClassWidgetTeamcomps on Club {
         /// Then we update the games_team_comp table with the new player
         if (returnedId != null) {
           try {
-            await supabase
-                .from('games_team_comp')
-                .update({player['database']: returnedId})
-                .eq('id_game', id)
-                .eq('id_club', id);
+            await supabase.from('games_team_comp').update(
+                {player['database']: returnedId}).eq('id', teamComps.first.id);
           } on PostgrestException catch (error) {
             scaffoldMessenger.showSnackBar(
               SnackBar(

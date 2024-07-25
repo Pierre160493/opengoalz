@@ -35,7 +35,7 @@ class _HomePageState extends State<GamePage> {
         .stream(primaryKey: ['id'])
         .eq('id', widget.idGame)
         .map((maps) => maps.map((map) => Game.fromMap(map)).first)
-        .switchMap((game) {
+        .switchMap((Game game) {
           if (game.idClubLeft == null) {
             return Stream.value(game);
           }
@@ -90,9 +90,9 @@ class _HomePageState extends State<GamePage> {
                     teamcomp.seasonNumber == game.seasonNumber &&
                     teamcomp.weekNumber == game.weekNumber)) {
                   if (teamComp.idClub == game.idClubLeft) {
-                    game.leftClub.teamcomp = teamComp;
+                    game.leftClub.teamComps.add(teamComp);
                   } else if (teamComp.idClub == game.idClubRight) {
-                    game.rightClub.teamcomp = teamComp;
+                    game.rightClub.teamComps.add(teamComp);
                   }
                 }
                 return game;
@@ -114,21 +114,21 @@ class _HomePageState extends State<GamePage> {
               .from('players')
               .stream(primaryKey: ['id'])
               .inFilter('id', [
-                ...game.leftClub.teamcomp!
+                ...game.leftClub.teamComps.first
                     .toListOfInt()
                     .where((id) => id != null)
                     .cast<int>(),
-                ...game.rightClub.teamcomp!
+                ...game.rightClub.teamComps.first
                     .toListOfInt()
                     .where((id) => id != null)
                     .cast<int>()
               ])
               .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
               .map((players) {
-                game.leftClub.teamcomp!.initPlayers(players
+                game.leftClub.teamComps.first.initPlayers(players
                     .where((player) => player.idClub == game.idClubLeft)
                     .toList());
-                game.rightClub.teamcomp!.initPlayers(players
+                game.rightClub.teamComps.first.initPlayers(players
                     .where((player) => player.idClub == game.idClubRight)
                     .toList());
 
@@ -192,7 +192,7 @@ class _HomePageState extends State<GamePage> {
                               children: [
                                 game.getGameDetails(context),
                                 game.getGameReport(context),
-                                game.getTeamcompsTab(context)
+                                getteamCompsTab(context, game),
                               ],
                             ),
                           ),
@@ -213,6 +213,30 @@ class _HomePageState extends State<GamePage> {
           Icon(icon),
           SizedBox(width: 6), // Add some spacing between the icon and text
           Text(text),
+        ],
+      ),
+    );
+  }
+
+  Widget getteamCompsTab(BuildContext context, Game game) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          TabBar(
+            tabs: [
+              buildTab(Icons.join_left, game.leftClub.nameClub),
+              buildTab(Icons.join_right, game.rightClub.nameClub),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                game.leftClub.getTeamComp(context, 0),
+                game.rightClub.getTeamComp(context, 0)
+              ],
+            ),
+          ),
         ],
       ),
     );

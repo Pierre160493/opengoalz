@@ -171,7 +171,7 @@ class _TransferPageState extends State<TransferPage>
   Widget _playersTransferWidget(List<Player> players) {
     if (players.isEmpty) {
       return const Center(
-        child: Text('No players'),
+        child: Text('You dont have any bids on any active transfer'),
       );
     }
     return Column(

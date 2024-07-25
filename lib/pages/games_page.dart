@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
+import 'package:opengoalz/pages/teamCompPage.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -110,13 +111,13 @@ class _HomePageState extends State<GamesPage> {
               .stream(primaryKey: ['id'])
               .eq('id_club', club.id)
               .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
-              .map((List<TeamComp> teamcomps) {
-                for (TeamComp teamcomp in teamcomps.where(
+              .map((List<TeamComp> teamComps) {
+                for (TeamComp teamcomp in teamComps.where(
                     (teamcomp) => teamcomp.seasonNumber == club.seasonNumber)) {
                   // If no game exists for the week of the teamcomp
                   if (!club.games
                       .any((game) => game.weekNumber == teamcomp.weekNumber)) {
-                    club.teamcomps.add(teamcomp);
+                    club.teamComps.add(teamcomp);
                   }
                 }
                 return club;
@@ -260,7 +261,7 @@ class _HomePageState extends State<GamesPage> {
                                       tabs: [
                                         // Current season played games
                                         buildTab(Icons.play_circle,
-                                            'Current season (${gamesIncoming.length + club.teamcomps.length})'),
+                                            'Current season (${gamesIncoming.length + club.teamComps.length})'),
                                         // Next season games
                                         buildTab(
                                             Icons.keyboard_double_arrow_right,
@@ -286,7 +287,7 @@ class _HomePageState extends State<GamesPage> {
                                                     // Current season unorganized games yet
                                                     buildTab(
                                                         Icons.edit_calendar,
-                                                        'Not yet organized games (${club.teamcomps.length})'),
+                                                        'Not yet organized games (${club.teamComps.length})'),
                                                   ],
                                                 ),
                                                 Expanded(
@@ -294,8 +295,7 @@ class _HomePageState extends State<GamesPage> {
                                                     children: [
                                                       _buildGameList(
                                                           gamesIncoming),
-                                                      _buildTeamCompList(
-                                                          club.teamcomps),
+                                                      _buildTeamCompList(club),
                                                     ],
                                                   ),
                                                 ),
@@ -364,28 +364,33 @@ class _HomePageState extends State<GamesPage> {
     );
   }
 
-  Widget _buildTeamCompList(List<TeamComp> teamComps) {
+  Widget _buildTeamCompList(Club club) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: ListView.builder(
-            itemCount: teamComps.length,
+            itemCount: club.teamComps.length,
             itemBuilder: (context, index) {
-              final TeamComp teamComp = teamComps[index];
-
               return InkWell(
-                // onTap: () {
-                //   Navigator.of(context).push(GamePage.route(game.id));
-                // },
-                // child: _buildGameDescription(game),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => TeamCompPage(
+                        idClub: club.id,
+                        seasonNumber: club.teamComps[index].seasonNumber,
+                        weekNumber: club.teamComps[index].weekNumber,
+                      ),
+                    ),
+                  );
+                },
                 child: ListTile(
                   leading: Icon(
                     Icons.sports_soccer_outlined,
                     size: 36,
                     color: Colors.blueGrey,
                   ),
-                  title: Text('Week ${teamComp.weekNumber}'),
+                  title: Text('Week ${club.teamComps[index].weekNumber}'),
                   subtitle: Row(
                     children: [
                       const Icon(
@@ -394,9 +399,9 @@ class _HomePageState extends State<GamesPage> {
                       ),
                       Expanded(
                         child: Text(
-                          teamComp.weekNumber <= 10
-                              ? 'Round ${teamComp.weekNumber} of the main league of season ${teamComp.seasonNumber}'
-                              : 'Game ${teamComp.weekNumber - 10} of the interseason games of season ${teamComp.seasonNumber}',
+                          club.teamComps[index].weekNumber <= 10
+                              ? 'Round ${club.teamComps[index].weekNumber} of the main league of season ${club.teamComps[index].seasonNumber}'
+                              : 'Game ${club.teamComps[index].weekNumber - 10} of the interseason games of season ${club.teamComps[index].seasonNumber}',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -499,13 +504,13 @@ class _HomePageState extends State<GamesPage> {
               .stream(primaryKey: ['id'])
               .eq('id_club', club.id)
               .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
-              .map((List<TeamComp> teamcomps) {
-                for (TeamComp teamcomp in teamcomps.where(
+              .map((List<TeamComp> teamComps) {
+                for (TeamComp teamcomp in teamComps.where(
                     (teamcomp) => teamcomp.seasonNumber > club.seasonNumber)) {
                   // If no game exists for the week of the teamcomp
                   if (!club.games
                       .any((game) => game.weekNumber == teamcomp.weekNumber)) {
-                    club.teamcomps.add(teamcomp);
+                    club.teamComps.add(teamcomp);
                   }
                 }
                 return club;
@@ -562,7 +567,7 @@ class _HomePageState extends State<GamesPage> {
                                     5), // Add some spacing between the icon and text
                             Text(
                                 // 'Current season ${club.seasonNumber}: (${gamesPlayed.length})'),
-                                'Not yet organized games (${club.teamcomps.length})'),
+                                'Not yet organized games (${club.teamComps.length})'),
                           ],
                         ),
                       ),
@@ -572,7 +577,7 @@ class _HomePageState extends State<GamesPage> {
                     child: TabBarView(
                       children: [
                         _buildGameList(club.games),
-                        _buildTeamCompList(club.teamcomps),
+                        _buildTeamCompList(club),
                       ],
                     ),
                   ),

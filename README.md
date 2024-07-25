@@ -1,19 +1,7 @@
 # opengoalz
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Football Management Game using postgresql (with supabase) as backend and flutter as frontend, all in open source
+Inspired by Hattrick and Football Manager, the goal is to be more realistic and dynamic than Hattrick and being able to play online on the computer and phone (compared to Football Manager)
 
 ## Reasons to make this game
 
@@ -29,37 +17,16 @@ Multiple game speeds:
 
 - Speed14: 14 games per weak (2 per day)
 
-## Player Stats
+## TODO
 
-### Main Stats
+### Default teamcomps (EASY)
 
-- Keeper
-- Defense
-- Playmaking
-- Passes
-- Winger
-- Scoring
-- Freekick
+Possiblity of setting multiple default teamcomps
 
-### Special Stats
+### Young Players Management (LONG)
 
-- Unpredictable
-- Head
-- Technical
-- Powerful
-- Quick
-- Resilient???
-- Support???
+Find an idea for example each league and country spawn young players and then bidding between clubs to get them (with money and points from their rankings)
 
-### Mindset
+### Money Management (LONG)
 
-- HardWorking
-- Talent
-- Motivation???
-- Team Spirit
-
-### Other Stats
-
-- Stamina
-- Endurance
-- Form
+Find an idea for recycling money in a closed loop. Salaries and expenses would be split and returned to the clubs according to their rankings
