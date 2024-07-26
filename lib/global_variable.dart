@@ -1,63 +1,137 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club_view.dart';
+import 'package:opengoalz/classes/club/club.dart';
+import 'package:opengoalz/classes/gameUser.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/home_page.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
 class SessionProvider extends ChangeNotifier {
-  late ClubView
-      selectedClub; // Regular variable for storing a single instance of Club
-  late final StreamController<List<ClubView>> _clubStreamController;
+  GameUser? user;
 
-  SessionProvider() {
-    _clubStreamController = StreamController<List<ClubView>>.broadcast();
-  }
-
-  Stream<List<ClubView>> get clubStream => _clubStreamController.stream;
-
-  void setselectedClub(ClubView club) {
-    selectedClub = club;
+  void providerSetUser(GameUser user) {
+    this.user = user;
     notifyListeners();
   }
 
-  void updateClubStream(String userId) {
+  Future<void> providerFetchUser(String userId) {
+    Completer<void> completer = Completer();
+
     supabase
-        .from('view_clubs')
+        .from('profiles')
         .stream(primaryKey: ['id'])
-        .eq('id_user', userId)
-        .order('created_at')
-        .map((maps) => maps
-            .map((map) => ClubView.fromMap(map: map, myUserId: userId))
-            .toList())
-        .listen((clubs) {
-          _clubStreamController.add(clubs);
+        .eq('uuid_user', userId)
+        .map((maps) => maps.map((map) => GameUser.fromMap(map)).first)
+        .switchMap((GameUser user) {
+          return supabase
+              .from('clubs')
+              .stream(primaryKey: ['id'])
+              .eq('username', user.username)
+              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
+              .map((List<Club> clubs) {
+                user.clubs = clubs;
+                return user;
+              });
+        })
+        .listen((GameUser user) {
+          providerSetUser(user);
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
         });
-    notifyListeners();
-  }
 
-  @override
-  void dispose() {
-    _clubStreamController.close();
-    super.dispose();
+    return completer.future;
   }
 }
 
-void navigateToHomePage(BuildContext context) {
-  final sessionProvider = Provider.of<SessionProvider>(context, listen: false);
-  sessionProvider.updateClubStream(
-      supabase.auth.currentUser!.id); // Update the club stream
-  ClubView? selectedClub;
 
-  sessionProvider.clubStream.listen((clubs) {
-    for (ClubView club in clubs) {
-      selectedClub ??= club;
-      if (club.is_default) {
-        selectedClub = club;
-      }
-    }
-    sessionProvider.setselectedClub(selectedClub!);
-  });
 
-  Navigator.of(context).pushAndRemoveUntil(HomePage.route(), (route) => false);
-}
+
+
+
+
+
+
+
+
+
+
+// class SessionProvider_old extends ChangeNotifier {
+//   late StreamController<GameUser> userStreamController;
+//   GameUser? user;
+
+//   SessionProvider() {
+//     print('testPierre: Debut SessionProvider');
+//     userStreamController = StreamController<GameUser>.broadcast();
+//   }
+
+//   Stream<GameUser> get userStream => userStreamController.stream;
+
+//   void setGameUser(GameUser user) {
+//     print('testPierre: Debut setGameUser dans SessionProvider');
+//     user = user;
+//     notifyListeners();
+//   }
+
+//   void updateUserStream(String userId) {
+//     print(
+//         'testPierre: Debut updateUserStream dans SessionProvider: userId: $userId');
+//     supabase
+//         .from('profiles')
+//         .stream(primaryKey: ['id'])
+//         .eq('uuid_user', userId)
+//         .map((maps) => maps.map((map) => GameUser.fromMap(map)).first)
+//         .switchMap((GameUser user) {
+//           print('testPierre: Debut switchMap dans updateUserStream');
+//           return supabase
+//               .from('clubs')
+//               .stream(primaryKey: ['id'])
+//               .eq('username', user.username)
+//               .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
+//               .map((List<Club> clubs) {
+//                 print(
+//                     'testPierre: Debut map dans updateUserStream => clubs.length: ${clubs.length}');
+//                 user.clubs = clubs;
+//                 return user;
+//               });
+//         })
+//         .listen((user) {
+//           userStreamController.add(user);
+//           print('User: ${user.username}');
+//           for (Club club in user.clubs) {
+//             print('Club: ${club.nameClub}');
+//           }
+//         });
+
+//     notifyListeners();
+//     print('testPierre: FIN updateUserStream dans SessionProvider');
+//   }
+
+//   @override
+//   void dispose() {
+//     userStreamController.close();
+//     super.dispose();
+//   }
+// }
+
+/// Ne sert potentiellement plus à rien (A SUPPRIMER A LA FIN SI TOUT EST OK)
+// void navigateToHomePage(BuildContext context) {
+//   final sessionProvider = Provider.of<SessionProvider>(context, listen: false);
+//   sessionProvider.updateUserStream(
+//       supabase.auth.currentUser!.id); // Update the club stream
+
+//   print(
+//       'testPierre: Debut navigateToHomePage dans SessionProvider mais dehors');
+//   sessionProvider.userStream.listen((GameUser user) {
+//     for (Club club in user.clubs) {
+//       if (club.id == user.idDefaultClub) {
+//         user.selectedClub = club;
+//       }
+//     }
+//     sessionProvider.setGameUser(user);
+//   });
+
+//   print('testPierre: Fin navigateToHomePage GOTO HomePage');
+//   Navigator.of(context).pushAndRemoveUntil(HomePage.route(), (route) => false);
+// }

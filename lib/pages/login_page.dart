@@ -30,9 +30,9 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text,
         password: _passwordController.text,
       );
-      navigateToHomePage(context);
-      Navigator.of(context)
-          .pushAndRemoveUntil(HomePage.route(), (route) => false);
+      // navigateToHomePage(context);
+      // Navigator.of(context)
+      //     .pushAndRemoveUntil(HomePage.route(), (route) => false);
     } on AuthException catch (error) {
       context.showErrorSnackBar(message: error.message);
     } catch (_) {
@@ -79,12 +79,12 @@ class _LoginPageState extends State<LoginPage> {
             child: const Text('Login'),
           ),
           formSpacer,
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).push(RegisterPage.route());
-            },
-            child: const Text('I don\'t have an account'),
-          )
+          // TextButton(
+          //   onPressed: () {
+          //     Navigator.of(context).push(RegisterPage.route());
+          //   },
+          //   child: const Text('I don\'t have an account'),
+          // )
         ],
       ),
     );

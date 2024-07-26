@@ -18,25 +18,18 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
   var supabaseKey = dotenv.env['SUPABASE_KEY']; // Get value from .env file
 
+  // Check if the SUPABASE_KEY is null
   if (supabaseKey == null) {
-    if (kDebugMode) {
-      print('SUPABASE_KEY not found in .env file.');
-    }
+    print('SUPABASE_KEY not found in .env file.');
     return;
   }
 
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
 
-  final sessionProvider = SessionProvider();
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: sessionProvider),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  runApp(ChangeNotifierProvider.value(
+    value: SessionProvider(),
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -48,7 +41,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: appName,
       theme: appTheme,
-      home: const SplashPage(),
+      home: SplashPage(),
     );
   }
 }

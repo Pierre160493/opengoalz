@@ -12,14 +12,14 @@ import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-part 'clubWidgetTeamcomp.dart';
-part 'clubWidgetHelper.dart';
+// part 'clubWidgetTeamcomp.dart';
+// part 'clubWidgetHelper.dart';
 
 class Club {
-  List<TeamComp> teamComps = []; //List of the teamcomps of the club
-  List<Game> games = []; //games of this club
-  List<Player> players = []; // List of players of the club
-  League? league; // League of the club
+  // List<TeamComp> teamComps = []; //List of the teamcomps of the club
+  // List<Game> games = []; //games of this club
+  // List<Player> players = []; // List of players of the club
+  // League? league; // League of the club
   int points = 0; // points of the club
   int victories = 0; // victories of the club
   int draws = 0; // draws of the club
@@ -32,7 +32,7 @@ class Club {
     required this.createdAt,
     required this.multiverseSpeed,
     required this.idLeague,
-    required this.idUser,
+    required this.userName,
     required this.nameClub,
     required this.cashAbsolute,
     required this.cashAvailable,
@@ -54,7 +54,7 @@ class Club {
   final DateTime createdAt;
   final int multiverseSpeed;
   final int idLeague;
-  final String? idUser;
+  final String? userName;
   final String nameClub;
   final int cashAbsolute;
   final int cashAvailable;
@@ -71,14 +71,14 @@ class Club {
   final int idLeagueNextSeason;
   final int? posLeagueNextSeason;
 
-  Club.fromMap({
-    required Map<String, dynamic> map,
-    required String myUserId,
-  })  : id = map['id'],
+  Club.fromMap({required Map<String, dynamic> map
+      // required String myUserId,
+      })
+      : id = map['id'],
         createdAt = DateTime.parse(map['created_at']),
         multiverseSpeed = map['multiverse_speed'],
         idLeague = map['id_league'],
-        idUser = map['id_user'],
+        userName = map['username'],
         nameClub = map['name_club'],
         cashAbsolute = map['cash_absolute'],
         cashAvailable = map['cash_available'],

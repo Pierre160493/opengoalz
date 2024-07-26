@@ -30,3 +30,13 @@ Find an idea for example each league and country spawn young players and then bi
 ### Money Management (LONG)
 
 Find an idea for recycling money in a closed loop. Salaries and expenses would be split and returned to the clubs according to their rankings
+
+### Display Events of Current Games according to time (NORMAL)
+
+### Game Simulation Extra Cases (EASY)
+
+Handle injuries, subs and free kick
+
+### Log players events (for example goals, injuries) (EASY)
+
+### Handle training and staff (HARD)

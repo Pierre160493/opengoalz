@@ -1,12 +1,12 @@
-CREATE OR REPLACE VIEW public.view_clubs
+-- public.view_clubs source
 
+CREATE OR REPLACE VIEW public.view_clubs
 AS SELECT clubs.id AS id_club,
     clubs.created_at,
     clubs.multiverse_speed,
-    clubs.continent,
     clubs.id_league,
     clubs.id_user,
-    clubs.name_club AS name_club,
+    clubs.name_club,
     profiles.username,
     profiles.id_default_club,
         CASE
@@ -23,17 +23,18 @@ AS SELECT clubs.id AS id_club,
     clubs.cash_absolute,
     clubs.cash_available,
     clubs.number_fans,
-    SELECT ARRAY_AGG(
-      result
-      ) AS last_results
-      FROM (
-        SELECT result
-          FROM view_games 
-          WHERE id_club = id_club
-          AND is_played = TRUE
-          ORDER BY date_start DESC
-          LIMIT 5
-      ) AS subquery;
+    ( SELECT string_agg(
+                CASE
+                    WHEN subquery.result = 'Victory'::text THEN 'V'::text
+                    WHEN subquery.result = 'Draw'::text THEN 'D'::text
+                    WHEN subquery.result = 'Defeat'::text THEN 'L'::text
+                    ELSE ' '::text
+                END, ''::text) AS last_results
+           FROM ( SELECT view_games.result
+                   FROM view_games
+                  WHERE view_games.id_club = clubs.id AND view_games.is_played = true
+                  ORDER BY view_games.date_start DESC
+                 LIMIT 5) subquery) AS last_results
    FROM clubs
      LEFT JOIN profiles ON clubs.id_user = profiles.uuid_user
      LEFT JOIN leagues ON clubs.id_league = leagues.id
