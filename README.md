@@ -49,3 +49,11 @@ samples, guidance on mobile development, and a full API reference.
 - Stamina
 - Endurance
 - Form
+
+## Possibility of incarning players (EASY)
+
+link username to players, and have the possibility of terminating contracts.
+
+Possibility of choising team but op, perhaps just say you will leave club at end of the season, then automatic put to sell.
+
+What to do with money won ???
