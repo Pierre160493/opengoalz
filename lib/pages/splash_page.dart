@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/gameUser.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_global_variable.dart';
 import 'package:opengoalz/pages/home_page.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +19,6 @@ class SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    print('SplashPage: initStated');
     _redirect();
   }
 
@@ -27,7 +26,6 @@ class SplashPageState extends State<SplashPage> {
     await Future.delayed(Duration
         .zero); // await for for the widget to mount, otherwise app freezes
 
-    print('SplashPage: _redirect function');
     if (supabase.auth.currentSession == null) {
       Navigator.of(context)
           .pushAndRemoveUntil(LoginPage.route(), (route) => false);

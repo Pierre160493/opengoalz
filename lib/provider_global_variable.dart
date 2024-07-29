@@ -3,18 +3,35 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/gameUser.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/pages/home_page.dart';
-import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class SessionProvider extends ChangeNotifier {
   GameUser? user;
 
-  void providerSetUser(GameUser user) {
+  /// Initialize the user
+  void providerInitUser(GameUser user) {
     this.user = user;
     notifyListeners();
   }
 
+  /// Set the selected club of the user
+  void providerSetSelectedClub(int idClub) {
+    Club? selectedClub;
+    for (Club club in user!.clubs) {
+      if (club.id == idClub) {
+        selectedClub = club;
+        break;
+      }
+    }
+    if (selectedClub == null) {
+      throw Exception('Club not found');
+    } else {
+      user!.selectedClub = selectedClub;
+    }
+    notifyListeners();
+  }
+
+  /// Fetch the user from the database
   Future<void> providerFetchUser(String userId) {
     Completer<void> completer = Completer();
 
@@ -31,11 +48,16 @@ class SessionProvider extends ChangeNotifier {
               .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
               .map((List<Club> clubs) {
                 user.clubs = clubs;
+                if (user.idDefaultClub != null)
+                  providerSetSelectedClub(user.idDefaultClub!);
+                else {
+                  user.selectedClub = user.clubs.first;
+                }
                 return user;
               });
         })
         .listen((GameUser user) {
-          providerSetUser(user);
+          providerInitUser(user);
           if (!completer.isCompleted) {
             completer.complete();
           }

@@ -10,7 +10,8 @@ DECLARE
     club RECORD; -- Record for the clubs loop
     game RECORD; -- Record for the game loop
     loc_interval_1_week INTERVAL; -- Interval time for a week in this multiverse
-    bool_week_advanced bool := FALSE; -- If the the simulate_games function has to be called again
+    bool_week_advanced bool := FALSE; -- If the the function has to be called again because a full week has being played and so passed to the next one
+    bool_league_game_played bool; -- If a game from the league was played, recalculate the rankings
     pos integer; -- Position in the league
 BEGIN
 RAISE NOTICE '****** HANDLE SEASON MAIN: Start';
@@ -22,11 +23,14 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start';
             SELECT * FROM leagues WHERE multiverse_speed = multiverse.speed)
         LOOP
 
+            -- Set to FALSE by default
+            bool_league_game_played := FALSE;
+
             -- Loop through the games that need to be played for the current week
             FOR game IN
                 (SELECT id FROM games
                     WHERE id_league = league.id
-                    AND is_played = FALSE
+                    AND date_end IS NULL
                     AND week_number = multiverse.week_number
                     AND now() > date_start
                     ORDER BY id)
@@ -35,8 +39,16 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start';
                     PERFORM simulate_game(inp_id_game := game.id);
                 --EXCEPTION WHEN others THEN
                 --    RAISE NOTICE 'An error occurred while simulating game with id %: %', id_game, SQLERRM;
-                --    UPDATE games SET is_played = TRUE, error = SQLERRM WHERE id = id_game;
+                --    UPDATE games SET date_end = date_start, error = SQLERRM WHERE id = id_game;
                 --END;
+
+                -- Say that a game from the league was simulated
+                bool_league_game_played := TRUE;
+
+            END LOOP; -- End of the loop of the games simulation
+
+            -- If a game from the league was played, recalculate the rankings
+            IF bool_league_game_played = TRUE THEN
 
                 -- Calculate rankings for normal leagues
                 IF league.LEVEL > 0 THEN
@@ -52,27 +64,33 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start';
                             SET pos_league = pos
                             WHERE id = club.id;
 
+                        -- Update the leagues rankings
+                        UPDATE leagues
+                            SET id_clubs[pos] = club.id,
+                            points[pos] = club.league_points
+                            WHERE id = league.id;
+
                         -- Update the position
                         pos := pos + 1;
                     END LOOP; -- End of the loop through clubs
                 END IF; -- End of the calculation of the rankings of the normal leagues
 
-            END LOOP; -- End of the loop of the games simulation
+            END IF;
 
         END LOOP; -- End of the loop through leagues
 
         -- Interval of 1 week for this multiverse
         loc_interval_1_week := INTERVAL '7 days' / multiverse.speed;
 
-        -- If the current week is over, update the week number
+        -- If all games from the current week have been played
         IF NOT EXISTS (
             SELECT 1 FROM games
             WHERE multiverse_speed = multiverse.speed
             AND season_number = multiverse.season_number
             AND week_number = multiverse.week_number
-            AND is_played = FALSE
+            AND date_end IS NULL
         ) THEN
-        -- AND if at least 3 hours have passed since the start of the last game
+        -- AND if at least 3 hours have passed since the start of the last game (TODO)
 
             -- No need to populate the games if the season is not over yet
             IF multiverse.week_number >= 10 THEN
@@ -85,6 +103,27 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                     UPDATE leagues SET is_finished = TRUE
                         WHERE multiverse_speed = multiverse.speed
                         AND level > 0;
+
+                    -- Update the clubs from the top level leagues that finished 1st, 2nd and 3rd (they stay in the same position)
+                    UPDATE clubs SET
+                        pos_league_next_season = pos_league,
+                        id_league_next_season = id_league
+                        WHERE id_league IN (
+                            SELECT id FROM leagues
+                                WHERE multiverse_speed = multiverse.speed
+                                AND level = 1
+                        )
+                        AND pos_league <= 3;
+
+                    -- Update the clubs from the lowest level leagues that finished 4th, 5th and 6th (they stay in the same position)
+                    UPDATE clubs SET
+                        pos_league_next_season = pos_league,
+                        id_league_next_season = id_league
+                        WHERE id_league NOT IN ( -- Exclude the leagues that are the upper leagues
+                            SELECT id_upper_league FROM leagues WHERE multiverse_speed = 1
+                            AND id_upper_league IS NOT NULL
+                        )
+                        AND pos_league >= 4;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -138,7 +177,7 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         AND (id_club_left IS NULL OR id_club_right IS NULL)
                         ORDER BY id
                 ) LOOP
---RAISE NOTICE 'game.id= %', game.id;
+
                     -- Try to populate the game with the clubs id
                     PERFORM handle_season_populate_game(game.id);
                 END LOOP; -- End of the game loop

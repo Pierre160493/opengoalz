@@ -6,20 +6,20 @@ import 'package:opengoalz/classes/league/league.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_global_variable.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// part 'clubWidgetTeamcomp.dart';
-// part 'clubWidgetHelper.dart';
+part 'clubWidgetTeamcomp.dart';
+part 'clubWidgetHelper.dart';
 
 class Club {
-  // List<TeamComp> teamComps = []; //List of the teamcomps of the club
-  // List<Game> games = []; //games of this club
-  // List<Player> players = []; // List of players of the club
-  // League? league; // League of the club
+  List<TeamComp> teamComps = []; //List of the teamcomps of the club
+  List<Game> games = []; //games of this club
+  List<Player> players = []; // List of players of the club
+  League? league; // League of the club
   int points = 0; // points of the club
   int victories = 0; // victories of the club
   int draws = 0; // draws of the club
@@ -38,11 +38,11 @@ class Club {
     required this.cashAvailable,
     required this.numberFans,
     required this.idCountry,
-    required this.posSeason,
-    required this.posLastSeason,
-    required this.leaguePointsArray,
+    // required this.posSeason,
+    // required this.posLastSeason,
+    // required this.leaguePointsArray,
     required this.leaguePoints,
-    required this.lastResultsArray,
+    // required this.lastResultsArray,
     required this.lastResult,
     required this.posLeague,
     required this.seasonNumber,
@@ -60,15 +60,15 @@ class Club {
   final int cashAvailable;
   final int numberFans;
   final int idCountry;
-  final List<int>? posSeason;
-  final int? posLastSeason;
-  final List<double>? leaguePointsArray;
+  // final List<int>? posSeason;
+  // final int? posLastSeason;
+  // final List<double>? leaguePointsArray;
   final double leaguePoints;
-  final List<int>? lastResultsArray;
+  // final List<int>? lastResultsArray;
   final int? lastResult;
   final int posLeague;
   final int seasonNumber;
-  final int idLeagueNextSeason;
+  final int? idLeagueNextSeason;
   final int? posLeagueNextSeason;
 
   Club.fromMap({required Map<String, dynamic> map
@@ -84,11 +84,11 @@ class Club {
         cashAvailable = map['cash_available'],
         numberFans = map['number_fans'],
         idCountry = map['id_country'],
-        posSeason = List<int>.from(map['posSeason'] ?? []),
-        posLastSeason = map['pos_last_season'],
-        leaguePointsArray = List<double>.from(map['league_points_array'] ?? []),
+        // posSeason = List<int>.from(map['posSeason'] ?? []),
+        // posLastSeason = map['pos_last_season'],
+        // leaguePointsArray = List<double>.from(map['league_points_array'] ?? []),
         leaguePoints = map['league_points'].toDouble(),
-        lastResultsArray = List<int>.from(map['last_results_array'] ?? []),
+        // lastResultsArray = List<int>.from(map['last_results_array'] ?? []),
         lastResult = map['last_result'],
         posLeague = map['pos_league'],
         seasonNumber = map['season_number'],
