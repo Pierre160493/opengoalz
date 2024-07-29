@@ -93,8 +93,7 @@ class _PlayerCardState extends State<PlayerCard>
                     '${widget.player.firstName[0]}.${widget.player.lastName.toUpperCase()} ',
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
                 widget.player.getStatusRow(),
@@ -242,9 +241,7 @@ class _PlayerCardState extends State<PlayerCard>
                                           title: Text(
                                             item['description'],
                                             style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
+                                                fontWeight: FontWeight.bold),
                                           ),
                                           subtitle: Row(
                                             children: [

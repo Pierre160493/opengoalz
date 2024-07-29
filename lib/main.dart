@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: appName,
-      theme: appTheme,
+      theme: getAppTheme(context),
       home: SplashPage(),
     );
   }

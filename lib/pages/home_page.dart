@@ -102,17 +102,14 @@ class _HomePageState extends State<HomePage> {
                               size: 36, color: Colors.green),
                           Text(
                             ' Hello ${Provider.of<SessionProvider>(context).user!.username} !',
-                            style: const TextStyle(fontSize: 24),
+                            // style: const TextStyle(fontSize: 24),
                           ),
                         ],
                       ),
                       const SizedBox(height: 24),
                       const Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Here is the list of your clubs:',
-                          style: TextStyle(fontSize: 18),
-                        ),
+                        child: Text('Here is the list of your clubs:'),
                       ),
                       Expanded(
                         child: ListView.builder(
@@ -153,10 +150,10 @@ class _HomePageState extends State<HomePage> {
                                               24, // Increase the radius as needed
                                           child: Text(
                                             (index + 1).toString(),
-                                            style: TextStyle(
-                                              fontSize:
-                                                  24, // Replace 20 with your desired font size
-                                            ),
+                                            // style: TextStyle(
+                                            //   fontSize:
+                                            //       24, // Replace 20 with your desired font size
+                                            // ),
                                           ),
                                         ),
                                         shape: RoundedRectangleBorder(

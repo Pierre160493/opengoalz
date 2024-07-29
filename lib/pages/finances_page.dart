@@ -64,7 +64,7 @@ class _FinancesPageState extends State<FinancesPage> {
             RichText(
               text: TextSpan(
                 text: 'Cash: ',
-                style: const TextStyle(fontSize: 18),
+                // style: const TextStyle(fontSize: 18),
                 children: <TextSpan>[
                   TextSpan(
                     text: Provider.of<SessionProvider>(context)
@@ -89,7 +89,7 @@ class _FinancesPageState extends State<FinancesPage> {
             RichText(
               text: TextSpan(
                 text: 'Available cash: ',
-                style: const TextStyle(fontSize: 18),
+                // style: const TextStyle(fontSize: 18),
                 children: <TextSpan>[
                   TextSpan(
                     text: Provider.of<SessionProvider>(context)
@@ -116,7 +116,7 @@ class _FinancesPageState extends State<FinancesPage> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Latest movements:',
-                style: TextStyle(fontSize: 18),
+                // style: TextStyle(fontSize: 18),
               ),
             ),
             Expanded(

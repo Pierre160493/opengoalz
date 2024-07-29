@@ -6,51 +6,6 @@ extension LeagueMainTab on League {
       children: [
         SizedBox(height: 6),
 
-        /// Season row
-        // Row(
-        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //   children: [
-        //     Row(
-        //       children: [
-        //         Icon(
-        //           Icons.calendar_month,
-        //           color: Colors.blueGrey,
-        //           size: 36,
-        //         ),
-        //         SizedBox(width: 8),
-        //         Text(
-        //           'Season ${seasonNumber.toString()}',
-        //           style: TextStyle(
-        //             fontSize: 16,
-        //             fontWeight: FontWeight.bold,
-        //           ),
-        //         ),
-        //         // if (idPreviousSeason != null)
-        //         //   Row(
-        //         //     children: [
-        //         //       // SizedBox(width: 64),
-        //         //       InkWell(
-        //         //         onTap: () {
-        //         //           Navigator.push(
-        //         //             context,
-        //         //             LeaguePage.route(idPreviousSeason!),
-        //         //           );
-        //         //         },
-        //         //         child: Row(
-        //         //           children: [
-        //         //             Icon(Icons.keyboard_double_arrow_left),
-        //         //             Text('Previous Season'),
-        //         //           ],
-        //         //         ),
-        //         //       ),
-        //         //     ],
-        //         //   )
-        //       ],
-        //     ),
-        //     Row(),
-        //   ],
-        // ),
-
         /// Other leagues selection widget
         otherLeaguesSelectionWidget(context),
 
@@ -69,10 +24,7 @@ extension LeagueMainTab on League {
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   'Rankings',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 20,
-                  ),
+                  style: TextStyle(color: Colors.grey),
                 ),
               ),
               Expanded(
@@ -102,62 +54,79 @@ extension LeagueMainTab on League {
                               : Colors.blue, // Set the background color
                   child: Text(
                     '${index + 1}',
-                    style: TextStyle(
-                        color: Colors.black, // Set the text color
-                        fontSize: 24),
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
                 title: Text(club.nameClub),
                 subtitle: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Results: '),
-                    Text(
-                      club.victories.toString(),
-                      style: TextStyle(
-                        color: Colors.green, // Set the text color to green
-                        fontWeight: FontWeight.bold, // Make the text bold
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          // Icons.checklist,
+                          Icons.emoji_events,
+                          color: Colors.blueGrey,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          club.victories.toString(),
+                          style: TextStyle(
+                            color: Colors.green, // Set the text color to green
+                            fontWeight: FontWeight.bold, // Make the text bold
+                          ),
+                        ),
+                        Text(' / '),
+                        Text(
+                          club.draws.toString(),
+                          style: TextStyle(
+                            color: Colors.grey, // Set the text color to green
+                            fontWeight: FontWeight.bold, // Make the text bold
+                          ),
+                        ),
+                        Text(' / '),
+                        Text(
+                          club.defeats.toString(),
+                          style: TextStyle(
+                            color: Colors.red, // Set the text color to green
+                            fontWeight: FontWeight.bold, // Make the text bold
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(' / '),
-                    Text(
-                      club.draws.toString(),
-                      style: TextStyle(
-                        color: Colors.grey, // Set the text color to green
-                        fontWeight: FontWeight.bold, // Make the text bold
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          club.goalsScored - club.goalsTaken > 0 ? '+' : '',
+                          style: TextStyle(
+                            color: Colors.grey, // Set the text color to green
+                            fontWeight: FontWeight.bold, // Make the text bold
+                          ),
+                        ),
+                        Text(
+                          (club.goalsScored - club.goalsTaken).toString(),
+                          style: TextStyle(
+                            color: Colors.grey, // Set the text color to green
+                            fontWeight: FontWeight.bold, // Make the text bold
+                          ),
+                        ),
+                        Text(' ( '),
+                        Text(
+                          club.goalsScored.toString(),
+                          style: TextStyle(
+                            color: Colors.green, // Set the text color to green
+                          ),
+                        ),
+                        Text(' / '),
+                        Text(
+                          club.goalsTaken.toString(),
+                          style: TextStyle(
+                            color: Colors.red, // Set the text color to green
+                          ),
+                        ),
+                        Text(' )'),
+                      ],
                     ),
-                    Text(' / '),
-                    Text(
-                      club.defeats.toString(),
-                      style: TextStyle(
-                        color: Colors.red, // Set the text color to green
-                        fontWeight: FontWeight.bold, // Make the text bold
-                      ),
-                    ),
-                    SizedBox(width: 36),
-                    Text('Goal Diff: '),
-                    Text(
-                      (club.goalsScored - club.goalsTaken).toString(),
-                      style: TextStyle(
-                        color: Colors.grey, // Set the text color to green
-                        fontWeight: FontWeight.bold, // Make the text bold
-                      ),
-                    ),
-                    Text(' ( '),
-                    Text(
-                      club.goalsScored.toString(),
-                      style: TextStyle(
-                        color: Colors.green, // Set the text color to green
-                      ),
-                    ),
-                    Text(' / '),
-                    Text(
-                      club.goalsTaken.toString(),
-                      style: TextStyle(
-                        color: Colors.red, // Set the text color to green
-                      ),
-                    ),
-                    Text(' )'),
                   ],
                 ),
                 onTap: () {
@@ -170,132 +139,13 @@ extension LeagueMainTab on League {
                   backgroundColor: Colors.grey,
                   child: Text(
                     '${club.points.toString()}',
-                    style: TextStyle(
-                        color: Colors.black, // Set the text color
-                        fontSize: 24),
+                    style: TextStyle(color: Colors.black),
                   ),
                 ), // Display the index starting from 1
               );
             },
           ),
         )
-
-        /// Rankings tables
-        // Card(
-        //   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        //   child: DataTable(
-        //     columns: const [
-        //       DataColumn(label: Text('Pos')),
-        //       DataColumn(label: Text('Name')),
-        //       DataColumn(label: Text('Points')),
-        //       DataColumn(label: Text('Goal Diff')),
-        //     ],
-        //     rows: rankings.take(6).map((ranking) {
-        //       final index = rankings.indexOf(ranking) + 1;
-        //       var color = index.isOdd ? Colors.blueGrey : null;
-        //       if (ranking.idClub ==
-        //           Provider.of<SessionProvider>(context).selectedClub.id_club)
-        //         color = Colors.green;
-        //       return DataRow(
-        //         color: WidgetStateProperty.all(color),
-        //         onSelectChanged: (_) {
-        //           Navigator.push(
-        //             context,
-        //             ClubPage.route(ranking.idClub),
-        //           );
-        //         },
-        //         cells: [
-        //           DataCell(Text(index.toString())),
-        //           DataCell(
-        //             Container(
-        //               constraints: BoxConstraints(
-        //                 maxWidth: 120, // Set the maximum width here
-        //               ),
-        //               child: Flexible(
-        //                 child: Text(ranking.nameClub,
-        //                     overflow: TextOverflow.ellipsis,
-        //                     style: TextStyle(
-        //                         // fontWeight: FontWeight.bold,
-        //                         fontSize: 12)),
-        //               ),
-        //             ),
-        //           ),
-
-        //           DataCell(Row(
-        //             children: [
-        //               Text(
-        //                 ranking.nPoints.toString(),
-        //                 style: TextStyle(
-        //                     fontWeight: FontWeight.bold, fontSize: 18),
-        //               ),
-        //               Text(' '),
-        //               Container(
-        //                 padding: EdgeInsets.all(4),
-        //                 color: Colors.black, // Set the background color here
-        //                 child: Row(
-        //                   children: [
-        //                     Text(
-        //                       ranking.nVictories.toString(),
-        //                       style: TextStyle(
-        //                         color: Colors.green,
-        //                       ),
-        //                     ),
-        //                     Text(' / '),
-        //                     Text(
-        //                       ranking.nDraws.toString(),
-        //                       style: TextStyle(
-        //                         color: Colors.white,
-        //                       ),
-        //                     ),
-        //                     Text(' / '),
-        //                     Text(
-        //                       ranking.nDefeats.toString(),
-        //                       style: TextStyle(
-        //                         color: Colors.red,
-        //                       ),
-        //                     ),
-        //                   ],
-        //                 ),
-        //               ),
-        //             ],
-        //           )),
-        //           // DataCell(Text(ranking.totalGoalAverage.toString())),
-        //           DataCell(Row(
-        //             children: [
-        //               Text(
-        //                 ranking.totalGoalAverage.toString(),
-        //                 style: TextStyle(
-        //                     fontWeight: FontWeight.bold, fontSize: 18),
-        //               ),
-        //               Text(' '),
-        //               Container(
-        //                 padding: EdgeInsets.all(4),
-        //                 color: Colors.black, // Set the background color here
-        //                 child: Row(
-        //                   children: [
-        //                     Text(
-        //                       ranking.goalsScored.toString(),
-        //                       style: TextStyle(
-        //                         color: Colors.green,
-        //                       ),
-        //                     ),
-        //                     Text(' / '),
-        //                     Text(
-        //                       ranking.goalsTaken.toString(),
-        //                       style: TextStyle(
-        //                         color: Colors.red,
-        //                       ),
-        //                     ),
-        //                   ],
-        //                 ),
-        //               ),
-        //             ],
-        //           )),
-        //         ],
-        //       );
-        //     }).toList(),
-        //   ),
-        // )
       ],
     );
   }
@@ -334,17 +184,13 @@ extension LeagueMainTab on League {
                     color: idUpperLeague == null
                         ? Colors.blueGrey
                         : Colors.green, // Changed the icon color
-                    size: 32, // Increased the icon size
                   ),
-                  const SizedBox(width: 6),
                   Text('Upper League'),
-                  const SizedBox(width: 6),
                   Icon(
                     Icons.arrow_circle_up, // Changed the icon
                     color: idUpperLeague == null
                         ? Colors.blueGrey
                         : Colors.green, // Changed the icon color
-                    size: 32, // Increased the icon size
                   ),
                 ],
               ),
@@ -358,7 +204,7 @@ extension LeagueMainTab on League {
           children: [
             /// Same level league button (left)
             Container(
-              width: 160,
+              // width: 160,
               child: Row(
                 children: [
                   InkWell(
@@ -429,13 +275,11 @@ extension LeagueMainTab on League {
                       children: [
                         Text(
                             'Left (${number - 1 == 0 ? pow(2, level - 1) : number - 1}/${pow(2, level - 1)})'),
-                        const SizedBox(width: 6),
                         Icon(
                           Icons.arrow_circle_left, // Changed the icon
                           color: level == 1
                               ? Colors.blueGrey
                               : Colors.green, // Changed the icon color
-                          size: 32, // Increased the icon size
                         ),
                       ],
                     ),
@@ -472,17 +316,13 @@ extension LeagueMainTab on League {
                     color: level == 1
                         ? Colors.blueGrey
                         : Colors.green, // Changed the icon color
-                    size: 32, // Increased the icon size
                   ),
-                  const SizedBox(width: 6),
-                  Text('Opposite League'),
-                  const SizedBox(width: 6),
+                  Text('Opposite'),
                   Icon(
                     Icons.compare_arrows, // Changed the icon
                     color: level == 1
                         ? Colors.blueGrey
                         : Colors.green, // Changed the icon color
-                    size: 32, // Increased the icon size
                   ),
                 ],
               ),
@@ -490,7 +330,7 @@ extension LeagueMainTab on League {
 
             /// Same level league button (right)
             Container(
-              width: 160,
+              // width: 160,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -561,9 +401,8 @@ extension LeagueMainTab on League {
                           color: level == 1
                               ? Colors.blueGrey
                               : Colors.green, // Changed the icon color
-                          size: 32, // Increased the icon size
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 3),
                         Text(
                             'Right (${number + 1 > pow(2, level - 1) ? 1 : number + 1}/${pow(2, level - 1)})'),
                       ],
@@ -625,12 +464,11 @@ extension LeagueMainTab on League {
               },
               child: Row(
                 children: [
-                  Text('Left Lower League'),
-                  SizedBox(width: 6),
+                  Text('Lower Left'),
+                  SizedBox(width: 3),
                   Icon(
                     Icons.arrow_circle_down, // Changed the icon
                     color: Colors.green, // Changed the icon color
-                    size: 32, // Increased the icon size
                   ),
                 ],
               ),
@@ -684,10 +522,9 @@ extension LeagueMainTab on League {
                   Icon(
                     Icons.arrow_circle_down, // Changed the icon
                     color: Colors.green, // Changed the icon color
-                    size: 32, // Increased the icon size
                   ),
                   const SizedBox(width: 6),
-                  Text('Right Lower League'),
+                  Text('Lower Right'),
                 ],
               ),
             ),

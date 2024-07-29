@@ -167,10 +167,7 @@ class PlayerTransferTile extends StatelessWidget {
                     return ListTile(
                       title: Text(
                         '${bid.nameClub}: ${NumberFormat('#,###').format(bid.amount)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Row(
                         children: [
@@ -291,11 +288,13 @@ class PlayerTransferTile extends StatelessWidget {
                     'id_player': player.id,
                     'id_club':
                         Provider.of<SessionProvider>(context, listen: false)
-                            .user!.selectedClub
+                            .user!
+                            .selectedClub
                             .id,
                     'name_club':
                         Provider.of<SessionProvider>(context, listen: false)
-                            .user!.selectedClub
+                            .user!
+                            .selectedClub
                             .nameClub,
                   });
 
@@ -308,14 +307,12 @@ class PlayerTransferTile extends StatelessWidget {
                   print('testPG aqui');
                   print(error);
                   Fluttertoast.showToast(
-                    msg: "Your message here",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    timeInSecForIosWeb: 1,
-                    backgroundColor: Colors.red,
-                    textColor: Colors.white,
-                    fontSize: 16.0,
-                  );
+                      msg: "Your message here",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white);
                 }
               },
               child: Text('Confirm'),

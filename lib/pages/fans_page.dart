@@ -77,7 +77,7 @@ class _FansPageState extends State<FansPage> {
                     );
                     return Text(
                       'Total number of fans: $totalFans',
-                      style: const TextStyle(fontSize: 18),
+                      // style: const TextStyle(fontSize: 18),
                     );
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));

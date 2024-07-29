@@ -103,7 +103,6 @@ class _TransferPageState extends State<TransferPage>
                       RichText(
                         text: TextSpan(
                           text: 'Cash: ',
-                          style: const TextStyle(fontSize: 18),
                           children: <TextSpan>[
                             TextSpan(
                               text: Provider.of<SessionProvider>(context)

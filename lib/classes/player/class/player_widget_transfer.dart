@@ -151,10 +151,7 @@ extension PlayerWidgetTransfer on Player {
                     return ListTile(
                       title: Text(
                         '${bid.nameClub}: ${NumberFormat('#,###').format(bid.amount)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Row(
                         children: [
@@ -291,14 +288,12 @@ extension PlayerWidgetTransfer on Player {
                   }
                 } on PostgrestException catch (error) {
                   Fluttertoast.showToast(
-                    msg: "ERROR: ${error.message}",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    timeInSecForIosWeb: 1,
-                    backgroundColor: Colors.red,
-                    textColor: Colors.white,
-                    fontSize: 16.0,
-                  );
+                      msg: "ERROR: ${error.message}",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white);
                 }
               },
               child: Text('Confirm'),

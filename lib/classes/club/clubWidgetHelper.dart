@@ -11,7 +11,6 @@ extension ClubWidgetHelper on Club {
     Text text = Text(
       nameClub,
       style: TextStyle(
-        fontSize: 20,
         fontWeight: FontWeight.bold,
         fontStyle: isMine ? FontStyle.italic : FontStyle.normal,
       ),
@@ -19,8 +18,7 @@ extension ClubWidgetHelper on Club {
       maxLines: 1,
       softWrap: false,
     );
-    Icon icon =
-        Icon(isMine ? icon_home : Icons.sports_soccer_outlined, size: 30);
+    Icon icon = Icon(isMine ? icon_home : Icons.sports_soccer_outlined);
 
     return Row(
       mainAxisAlignment:
@@ -35,9 +33,8 @@ extension ClubWidgetHelper on Club {
           },
           child: Row(
             children: [
-              if (isRightClub) icon else text,
-              SizedBox(width: 6),
               if (isRightClub) text else icon,
+              if (isRightClub) icon else text,
             ],
           ),
         ),

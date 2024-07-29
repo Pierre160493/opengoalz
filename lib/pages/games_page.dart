@@ -5,6 +5,7 @@ import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -307,12 +308,12 @@ class _HomePageState extends State<GamesPage> {
                                                     // Current season organized games
                                                     buildTab(
                                                         Icons.calendar_month,
-                                                        'Organized games (${gamesIncoming.length})'),
+                                                        'Planned (${gamesIncoming.length})'),
 
                                                     // Current season unorganized games yet
                                                     buildTab(
                                                         Icons.edit_calendar,
-                                                        'Not yet organized games (${club.teamComps.length})'),
+                                                        'Unplanned (${club.teamComps.length})'),
                                                   ],
                                                 ),
                                                 Expanded(
@@ -345,19 +346,6 @@ class _HomePageState extends State<GamesPage> {
             }
           }
         });
-  }
-
-  Widget buildTab(IconData icon, String text) {
-    return Tab(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon),
-          SizedBox(width: 6), // Add some spacing between the icon and text
-          Text(text),
-        ],
-      ),
-    );
   }
 
   Widget _buildGameList(List<Game> games) {

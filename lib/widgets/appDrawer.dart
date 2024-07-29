@@ -98,7 +98,6 @@ class AppDrawer extends StatelessWidget {
             child: Text(
               'This is some information about the app or the navigation.',
               style: TextStyle(
-                fontSize: 14.0,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -117,10 +116,7 @@ Widget buildDrawerTitle(String title) {
     child: ListTile(
       title: Text(
         title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 24.0,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       onTap: () {
         // Handle navigation

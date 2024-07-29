@@ -43,57 +43,67 @@ const icon_chat = Icons.wechat_outlined;
 const icon_club = Icons.home_work_rounded;
 
 /// Basic theme to change the look and feel of the app
-final appTheme = ThemeData.dark().copyWith(
-  primaryColorDark: Colors.green[800],
-  appBarTheme: const AppBarTheme(
-    elevation: 1,
-    backgroundColor: Colors.green,
-    iconTheme: IconThemeData(color: Colors.white),
-    titleTextStyle: TextStyle(
-      color: Colors.white,
-      fontSize: 18,
-    ),
-  ),
-  primaryColor: Colors.green,
-  textButtonTheme: TextButtonThemeData(
-    style: TextButton.styleFrom(
-      foregroundColor: Colors.green,
-    ),
-  ),
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      foregroundColor: Colors.white,
+ThemeData getAppTheme(BuildContext context) {
+  final isDesktop = Theme.of(context).platform == TargetPlatform.windows ||
+      Theme.of(context).platform == TargetPlatform.linux ||
+      Theme.of(context).platform == TargetPlatform.macOS;
+
+  // final textScaleFactor = isDesktop ? 1.5 : 1.0; // Adjust based on platform
+  final textScaleFactor = isDesktop ? 1.0 : 1.0; // Adjust based on platform
+
+  return ThemeData.dark().copyWith(
+    primaryColorDark: Colors.green[800],
+    appBarTheme: AppBarTheme(
+      elevation: 1,
       backgroundColor: Colors.green,
-    ),
-  ),
-  inputDecorationTheme: InputDecorationTheme(
-    floatingLabelStyle: const TextStyle(
-      color: Colors.green,
-    ),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(
-        color: Colors.grey,
-        width: 2,
+      iconTheme: const IconThemeData(color: Colors.white),
+      titleTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 18 * textScaleFactor,
       ),
     ),
-    focusColor: Colors.green,
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(
+    primaryColor: Colors.green,
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.green,
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.green,
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      floatingLabelStyle: TextStyle(
         color: Colors.green,
-        width: 2,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(
+          color: Colors.grey,
+          width: 2,
+        ),
+      ),
+      focusColor: Colors.green,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(
+          color: Colors.green,
+          width: 2,
+        ),
       ),
     ),
-  ),
-  textTheme: ThemeData.dark().textTheme.copyWith(
-        titleLarge:
-            TextStyle(fontSize: 16.0), // Change the default font size here
-        titleSmall: TextStyle(fontSize: 16.0),
-        bodyLarge: TextStyle(fontSize: 14.0),
-        bodySmall: TextStyle(fontSize: 8.0),
-      ),
-);
+    textTheme: ThemeData.dark().textTheme.copyWith(
+        // titleLarge: TextStyle(
+        //     fontSize:
+        //         14.0 * textScaleFactor), // Change the default font size here
+        // titleSmall: TextStyle(fontSize: 12.0 * textScaleFactor),
+        // bodyLarge: TextStyle(fontSize: 11.0 * textScaleFactor),
+        // bodySmall: TextStyle(fontSize: 8.0 * textScaleFactor),
+        ),
+  );
+}
 
 /// Set of extension methods to easily display a snackbar
 extension ShowSnackBar on BuildContext {

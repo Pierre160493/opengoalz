@@ -10,7 +10,7 @@ extension GameClassWidgetHelper on Game {
           : isFriendly
               ? Icons.handshake
               : Icons.emoji_events_outlined,
-      size: 72,
+      size: 60,
       color: Colors.yellow,
     );
 
@@ -18,7 +18,6 @@ extension GameClassWidgetHelper on Game {
     Text text = Text(
       weekNumber < 11 ? ' ${weekNumber}/10' : ' Inter ${weekNumber - 10}',
       style: TextStyle(
-        fontSize: 16,
         color: Colors.blueGrey,
       ),
     );
@@ -60,18 +59,22 @@ extension GameClassWidgetHelper on Game {
   Widget getScoreRow() {
     Row row = Row(
       children: [
-        SizedBox(
-          width: 6,
+        // SizedBox(
+        //   width: 6,
+        // ),
+        // Icon(
+        //   // Icons.handshake,
+        //   Icons.compare_arrows,
+        //   // size: 30,
+        //   color: Colors.blueGrey,
+        // ),
+        Text(
+          ' : ',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        Icon(
-          // Icons.handshake,
-          Icons.compare_arrows,
-          size: 30,
-          color: Colors.blueGrey,
-        ),
-        SizedBox(
-          width: 6,
-        )
+        // SizedBox(
+        //   width: 6,
+        // )
       ],
     );
 
@@ -126,7 +129,6 @@ extension GameClassWidgetHelper on Game {
           Text(
             scoreLeft.toString(),
             style: TextStyle(
-              fontSize: 24.0,
               color: leftPenaltyScore == null ? leftColor : Colors.white,
               fontWeight: FontWeight.bold,
             ),
@@ -135,7 +137,6 @@ extension GameClassWidgetHelper on Game {
             Text(
               ' [${leftPenaltyScore.toString()}]',
               style: TextStyle(
-                fontSize: 24.0,
                 color: leftColor,
                 fontWeight: FontWeight.bold,
               ),
@@ -145,7 +146,6 @@ extension GameClassWidgetHelper on Game {
             Text(
               '[${rightPenaltyScore.toString()}] ',
               style: TextStyle(
-                fontSize: 24.0,
                 color: rightColor,
                 fontWeight: FontWeight.bold,
               ),
@@ -153,7 +153,6 @@ extension GameClassWidgetHelper on Game {
           Text(
             scoreRight.toString(),
             style: TextStyle(
-              fontSize: 24.0,
               color: rightPenaltyScore == null ? rightColor : Colors.white,
               fontWeight: FontWeight.bold,
             ),
@@ -237,7 +236,6 @@ extension GameClassWidgetHelper on Game {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 14,
                           color: Colors.blueGrey,
                           fontStyle: FontStyle.italic,
                         ),
@@ -255,7 +253,7 @@ extension GameClassWidgetHelper on Game {
                     ),
                     // Text(' Date: '),
                     Text(
-                      DateFormat('dd/MM/yyyy HH:mm:ss').format(dateStart),
+                      DateFormat(' dd/MM HH:mm').format(dateStart),
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Spacer(),
@@ -328,10 +326,8 @@ extension GameClassWidgetHelper on Game {
                           child: Text(
                             '${event.gameMinute.toString()}\'',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16.0,
-                            ),
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -345,7 +341,6 @@ extension GameClassWidgetHelper on Game {
                               Text(
                                 '$leftClubScore - $rightClubScore',
                                 style: TextStyle(
-                                  fontSize: 16.0,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

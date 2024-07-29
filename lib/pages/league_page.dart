@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/classes/league/league.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -201,51 +202,15 @@ class _RankingPageState extends State<LeaguePage> {
               drawer: const AppDrawer(),
               body: MaxWidthContainer(
                 child: DefaultTabController(
-                  length: 4,
+                  length: 3,
                   child: Column(
                     children: [
                       TabBar(
                         tabs: [
-                          Tab(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.format_list_numbered),
-                                SizedBox(width: 6),
-                                Text('Rankings'),
-                              ],
-                            ),
-                          ),
-                          Tab(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.event),
-                                SizedBox(width: 6),
-                                Text('Games'),
-                              ],
-                            ),
-                          ),
-                          Tab(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.query_stats),
-                                SizedBox(width: 6),
-                                Text('Stats'),
-                              ],
-                            ),
-                          ),
-                          Tab(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.wechat),
-                                SizedBox(width: 6),
-                                Text('Chat'),
-                              ],
-                            ),
-                          ),
+                          buildTab(Icons.format_list_numbered, 'Rankings'),
+                          buildTab(Icons.event, 'Games'),
+                          buildTab(Icons.query_stats, 'Stats'),
+                          // buildTab(Icons.wechat, 'Chat'),
                         ],
                       ),
                       Expanded(
@@ -254,8 +219,8 @@ class _RankingPageState extends State<LeaguePage> {
                           league.leagueMainTab(context),
                           league.leagueGamesTab(context),
                           league.leagueStatsTab(context),
-                          Center(
-                              child: Text('League Chat (Not yet implemented)')),
+                          // Center(
+                          //     child: Text('League Chat (Not yet implemented)')),
                         ],
                       )),
                     ],
