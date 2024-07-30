@@ -3,14 +3,18 @@ import 'package:opengoalz/classes/player/class/player.dart';
 class TeamComp {
   TeamComp({
     required this.id,
-    required this.idGame,
+    // required this.idGame,
     required this.idClub,
+    required this.seasonNumber,
+    required this.weekNumber,
     required this.players,
   });
 
   final int id;
-  final int idGame;
+  // final int idGame;
   final int idClub;
+  final int seasonNumber;
+  final int weekNumber;
   final List<Map<String, dynamic>> players;
 
   static List<Map<String, dynamic>> defaultPlayers = [
@@ -170,8 +174,10 @@ class TeamComp {
 
     return TeamComp(
       id: map['id'],
-      idGame: map['id_game'],
+      // idGame: map['id_game'],
       idClub: map['id_club'],
+      seasonNumber: map['season_number'],
+      weekNumber: map['week_number'],
       players: players,
     );
   }
@@ -192,7 +198,7 @@ class TeamComp {
           list_players.firstWhere((lp) => lp!.id == player['id']);
       if (player['player'] == null) {
         throw Exception(
-            'No player found with id {${player['id']}} for the club with id {{$idClub}} for the game {{$idGame}}');
+            'No player found with id {${player['id']}} for the club with id {{$idClub}} for the game {{}}');
       }
     }
   }

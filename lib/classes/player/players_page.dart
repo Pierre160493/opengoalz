@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/classes/player/player_card.dart';
@@ -65,19 +65,14 @@ class _PlayersPageState extends State<PlayersPage> {
           .from('clubs')
           .stream(primaryKey: ['id'])
           .inFilter('id', clubIds.cast<Object>())
-          .map((maps) => maps
-              .map((map) => Club.fromMap(
-                    map: map,
-                    myUserId: supabase.auth.currentUser!.id,
-                  ))
-              .toList());
+          .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList());
     });
     // Combine player and club streams
     _playerStream =
         _playerStream.switchMap((players) => _clubStream.map((clubs) {
               for (var player in players) {
                 final clubData =
-                    clubs.firstWhere((club) => club.id_club == player.idClub);
+                    clubs.firstWhere((club) => club.id == player.idClub);
                 player.club = clubData;
               }
               return players;
@@ -128,7 +123,6 @@ class _PlayersPageState extends State<PlayersPage> {
               );
             } else {
               return Scaffold(
-                  // backgroundColor: Colors.grey[700],
                   appBar: AppBar(
                     title: players.length == 1
                         ? Text(
@@ -136,7 +130,6 @@ class _PlayersPageState extends State<PlayersPage> {
                         : Text(
                             '${players.length} Players',
                           ),
-                    backgroundColor: Colors.green,
                     elevation: 0,
                     actions: [
                       IconButton(
@@ -156,7 +149,7 @@ class _PlayersPageState extends State<PlayersPage> {
                               Icon(
                                 Icons.sort,
                                 color: Colors.green,
-                                size: 36,
+                                size: iconSizeMedium,
                               ),
                               Text(' Sort Players By',
                                   style: TextStyle(

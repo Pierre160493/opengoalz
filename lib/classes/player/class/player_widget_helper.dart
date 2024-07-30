@@ -99,7 +99,7 @@ extension PlayerWidgetsHelper on Player {
                   CircleAvatar(
                     radius: 48,
                     child: Icon(
-                      Icons.person_pin_outlined,
+                      getIcon(),
                       size: 90,
                     ),
                   ),
@@ -109,8 +109,15 @@ extension PlayerWidgetsHelper on Player {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //   children: [
+                      //     getAgeWidget(),
+                      //     getCountryNameWidget(context, idCountry),
+                      //   ],
+                      // ),
                       getAgeWidget(),
-                      getCountryNameWidget(idCountry),
+                      getCountryNameWidget(context, idCountry),
                       getAvgStatsWidget(),
                       getClubNameWidget(context),
                     ],
@@ -121,7 +128,6 @@ extension PlayerWidgetsHelper on Player {
           ],
         ),
         SizedBox(height: 6.0),
-        // if (date_sell?.isAfter(DateTime.now()) ?? false)
         if (transferBids.length > 0 && dateSell!.isAfter(DateTime.now()))
           playerTransferWidget(context),
         if (dateEndInjury != null) getInjuryWidget(),
@@ -172,7 +178,7 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  static const double icon_size = 24.0;
+  static const double icon_size = 30.0;
 
   Widget getAgeWidget() {
     return Row(
@@ -260,7 +266,7 @@ extension PlayerWidgetsHelper on Player {
                 );
               },
               child: Text(
-                ' ${club!.club_name}',
+                ' ${club!.nameClub}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
@@ -401,92 +407,31 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  Widget getCountryNameWidget(int? id_country) {
-    if (id_country == null) {
-      // Should'nt be nullable
-      return Text(
-        'Apatride',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    } else {
-      return StreamBuilder<List<Map>>(
-        stream: supabase
-            .from('countries')
-            .stream(primaryKey: ['id'])
-            .eq('id', id_country)
-            .map((maps) => maps
-                .map((map) => {
-                      'id': map['id'],
-                      'name': map['name'],
-                      'iso2': map['iso2'],
-                    })
-                .toList()),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            // Placeholder row while loading
-            return Row(
-              children: [
-                SizedBox(
-                  width: 16.0, // Same width as the icon
-                  height: 16.0, // Same height as the icon
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.0,
-                  ),
-                ),
-                SizedBox(width: 4.0), // Spacing between icon and text
-                SizedBox(
-                  width: 100.0, // Adjust the width as needed
-                  child: Text(
-                    'Loading...', // Placeholder text
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey, // Placeholder text color
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            );
-          } else if (snapshot.hasError) {
-            return Text('ERROR: ${snapshot.error}');
-          } else {
-            final countries = snapshot.data!;
-            if (countries.isEmpty) {
-              return Text('ERROR: Country not found');
-            } else if (countries.length > 1) {
-              return Text('ERROR: Multiple countries found');
-            }
-            // Actual row with data
-            return Row(
-              children: [
-                Icon(
-                  Icons.flag_circle_outlined,
-                  size: icon_size, // Adjust icon size as needed
-                  color: Colors.green, // Adjust icon color as needed
-                ),
-
-                SizedBox(width: 4.0), // Spacing between icon and text
-                Text(
-                  countries.first['name'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(width: 6.0), // Spacing between icon and text
-                CountryFlag.fromCountryCode(
-                  shape: Rectangle(),
-                  // 'FR',
-                  countries.first['iso2'],
-                  width: 36,
-                  height: 24,
-                ),
-              ],
-            );
-          }
-        },
-      );
+  /// Generate ico of the player based on the last digit of the player id
+  IconData getIcon() {
+    switch (id % 10) {
+      case 0:
+        return Icons.person;
+      case 1:
+        return Icons.person_2;
+      case 2:
+        return Icons.person_3;
+      case 3:
+        return Icons.person_4;
+      case 4:
+        return Icons.person_outline;
+      case 5:
+        return Icons.person_pin;
+      case 6:
+        return Icons.person_pin_rounded;
+      case 7:
+        return Icons.person_sharp;
+      case 8:
+        return Icons.perm_contact_cal_outlined;
+      case 9:
+        return Icons.self_improvement;
+      default:
+        return Icons.error;
     }
   }
 }

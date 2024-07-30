@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
-import 'package:opengoalz/classes/game/game.dart';
+import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
@@ -35,61 +35,69 @@ class _HomePageState extends State<GamePage> {
         .stream(primaryKey: ['id'])
         .eq('id', widget.idGame)
         .map((maps) => maps.map((map) => Game.fromMap(map)).first)
-        .switchMap((game) {
+        .switchMap((Game game) {
+          return supabase
+              .from('games_description')
+              .stream(primaryKey: ['id'])
+              .eq('id', game.idDescription)
+              .map((maps) => maps.first)
+              .map((map) {
+                game.description = map['description'];
+                return game;
+              });
+        })
+        .switchMap((Game game) {
+          if (game.idClubLeft == null) {
+            return Stream.value(game);
+          }
           return supabase
               .from('clubs')
               .stream(primaryKey: ['id'])
-              .eq('id', game.idClubLeft)
-              .map((maps) => maps
-                  .map((map) => Club.fromMap(
-                      map: map, myUserId: supabase.auth.currentUser!.id))
-                  .toList())
-              .map((clubs) {
-                if (clubs.length != 1) {
-                  throw Exception(
-                      'DATABASE ERROR: ${clubs.length} club(s) found instead of 1 for the left club (with id: ${game.idClubLeft}) for the game with id: ${game.id}');
-                }
-                game.leftClub = clubs.first;
+              .eq('id', game.idClubLeft!)
+              .map((maps) => maps.map((map) => Club.fromMap(map: map)).first)
+              .map((Club club) {
+                game.leftClub = club;
                 return game;
               });
         })
         .switchMap((game) {
+          if (game.idClubLeft == null) {
+            return Stream.value(game);
+          }
           return supabase
               .from('clubs')
               .stream(primaryKey: ['id'])
-              .eq('id', game.idClubRight)
-              .map((maps) => maps
-                  .map((map) => Club.fromMap(
-                      map: map, myUserId: supabase.auth.currentUser!.id))
-                  .toList())
-              .map((clubs) {
-                if (clubs.length != 1) {
-                  throw Exception(
-                      'DATABASE ERROR: ${clubs.length} club(s) found instead of 1 for the right club (with id: ${game.idClubRight}) for the game with id: ${game.id}');
-                }
-                game.rightClub = clubs.first;
+              .eq('id', game.idClubRight!)
+              .map((maps) => maps.map((map) => Club.fromMap(map: map)).first)
+              .map((Club club) {
+                game.rightClub = club;
                 return game;
               });
         })
         .switchMap((game) {
+          List<Object> clubIds = [];
+          if (game.idClubLeft != null) {
+            clubIds.add(game.idClubLeft!);
+          }
+          if (game.idClubRight != null) {
+            clubIds.add(game.idClubRight!);
+          }
+          if (clubIds.isEmpty) {
+            return Stream.value(game);
+          }
           return supabase
               .from('games_teamcomp')
               .stream(primaryKey: ['id'])
-              .eq('id_game', game.id)
+              .inFilter('id_club', clubIds)
               .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
               .map((teamComps) {
-                if (teamComps.length != 2) {
-                  throw Exception(
-                      'DATABASE ERROR: ${teamComps.length} teamcomps found instead of 2 for game with id: ${game.id}');
-                }
-                for (TeamComp teamComp in teamComps) {
+                for (TeamComp teamComp in teamComps.where((TeamComp teamcomp) =>
+                    teamcomp.seasonNumber == game.seasonNumber &&
+                    teamcomp.weekNumber == game.weekNumber)) {
                   if (teamComp.idClub == game.idClubLeft) {
-                    game.leftClub.teamcomp = teamComp;
+                    game.leftClub.teamComps.add(teamComp);
                   } else if (teamComp.idClub == game.idClubRight) {
-                    game.rightClub.teamcomp = teamComp;
-                  } else {
-                    throw Exception(
-                        'DATABASE ERROR: Teamcomp with id: ${teamComp.id} does not belong to any of the clubs of the game with id: ${game.id}');
+                    game.rightClub.teamComps.add(teamComp);
                   }
                 }
                 return game;
@@ -111,21 +119,21 @@ class _HomePageState extends State<GamePage> {
               .from('players')
               .stream(primaryKey: ['id'])
               .inFilter('id', [
-                ...game.leftClub.teamcomp!
+                ...game.leftClub.teamComps.first
                     .toListOfInt()
                     .where((id) => id != null)
                     .cast<int>(),
-                ...game.rightClub.teamcomp!
+                ...game.rightClub.teamComps.first
                     .toListOfInt()
                     .where((id) => id != null)
                     .cast<int>()
               ])
               .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
               .map((players) {
-                game.leftClub.teamcomp!.initPlayers(players
+                game.leftClub.teamComps.first.initPlayers(players
                     .where((player) => player.idClub == game.idClubLeft)
                     .toList());
-                game.rightClub.teamcomp!.initPlayers(players
+                game.rightClub.teamComps.first.initPlayers(players
                     .where((player) => player.idClub == game.idClubRight)
                     .toList());
 
@@ -179,9 +187,9 @@ class _HomePageState extends State<GamePage> {
                         children: [
                           TabBar(
                             tabs: [
-                              Tab(text: 'Details'),
-                              Tab(text: 'Report'),
-                              Tab(text: 'Teams'),
+                              buildTab(Icons.preview, 'Details'),
+                              buildTab(Icons.reviews, 'Report'),
+                              buildTab(Icons.group, 'Teams'),
                             ],
                           ),
                           Expanded(
@@ -189,7 +197,7 @@ class _HomePageState extends State<GamePage> {
                               children: [
                                 game.getGameDetails(context),
                                 game.getGameReport(context),
-                                game.getTeamcompsTab(context)
+                                getteamCompsTab(context, game),
                               ],
                             ),
                           ),
@@ -200,5 +208,42 @@ class _HomePageState extends State<GamePage> {
             );
           }
         });
+  }
+
+  Widget buildTab(IconData icon, String text) {
+    return Tab(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon),
+          SizedBox(width: 6), // Add some spacing between the icon and text
+          Text(text),
+        ],
+      ),
+    );
+  }
+
+  Widget getteamCompsTab(BuildContext context, Game game) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          TabBar(
+            tabs: [
+              buildTab(Icons.join_left, game.leftClub.nameClub),
+              buildTab(Icons.join_right, game.rightClub.nameClub),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                game.leftClub.getTeamComp(context, 0),
+                game.rightClub.getTeamComp(context, 0)
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

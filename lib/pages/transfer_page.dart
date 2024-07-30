@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -103,18 +103,17 @@ class _TransferPageState extends State<TransferPage>
                       RichText(
                         text: TextSpan(
                           text: 'Cash: ',
-                          style: const TextStyle(fontSize: 18),
                           children: <TextSpan>[
                             TextSpan(
                               text: Provider.of<SessionProvider>(context)
-                                  .selectedClub
-                                  .cash_available
+                                  .user!.selectedClub
+                                  .cashAvailable
                                   .toString(),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Provider.of<SessionProvider>(context)
-                                            .selectedClub
-                                            .cash_absolute >
+                                            .user!.selectedClub
+                                            .cashAbsolute >
                                         0
                                     ? Colors.green
                                     : Colors.red,
@@ -130,14 +129,14 @@ class _TransferPageState extends State<TransferPage>
                           children: <TextSpan>[
                             TextSpan(
                               text: Provider.of<SessionProvider>(context)
-                                  .selectedClub
-                                  .cash_available
+                                  .user!.selectedClub
+                                  .cashAvailable
                                   .toString(),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Provider.of<SessionProvider>(context)
-                                            .selectedClub
-                                            .cash_available >
+                                            .user!.selectedClub
+                                            .cashAvailable >
                                         0
                                     ? Colors.green
                                     : Colors.red,
@@ -171,7 +170,7 @@ class _TransferPageState extends State<TransferPage>
   Widget _playersTransferWidget(List<Player> players) {
     if (players.isEmpty) {
       return const Center(
-        child: Text('No players'),
+        child: Text('You dont have any bids on any active transfer'),
       );
     }
     return Column(

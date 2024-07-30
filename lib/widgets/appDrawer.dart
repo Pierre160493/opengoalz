@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/club_view.dart';
+import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/chat_page.dart';
 import 'package:opengoalz/pages/fans_page.dart';
 import 'package:opengoalz/pages/finances_page.dart';
@@ -18,7 +18,8 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ClubView selectedClub = Provider.of<SessionProvider>(context).selectedClub;
+    Club selectedClub =
+        Provider.of<SessionProvider>(context).user!.selectedClub;
 
     return Drawer(
       child: ListView(
@@ -35,18 +36,17 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
-          buildDrawerTitle('Club: ${selectedClub.name_club ?? 'No club Name'}'),
+          buildDrawerTitle('Club: ${selectedClub.nameClub}'),
           buildDrawerOption(
               context,
               icon_finance,
-              'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.cash_absolute)} €',
-              FinancesPage(
-                  idClub: selectedClub.id_club)), // Add the finances page
+              'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.cashAbsolute)} €',
+              FinancesPage(idClub: selectedClub.id)), // Add the finances page
           buildDrawerOption(
               context,
               icon_fans,
-              'Fans (${selectedClub.number_fans})',
-              FansPage(idClub: selectedClub.id_club)), // Add the fans page
+              'Fans (${selectedClub.numberFans})',
+              FansPage(idClub: selectedClub.id)), // Add the fans page
           buildDrawerOption(
             context,
             icon_stadium,
@@ -69,24 +69,20 @@ class AppDrawer extends StatelessWidget {
               context,
               icon_players,
               // 'Players (${selectedClub.player_count})',
-              'Players (${selectedClub.player_count})',
+              'Players',
               PlayersPage(inputCriteria: {
-                'Clubs': [selectedClub.id_club]
+                'Clubs': [selectedClub.id]
               })), // Add the Players page
-          buildDrawerOption(
-              context,
-              icon_transfers,
-              'Transfers',
-              TransferPage(
-                  idClub: selectedClub.id_club)), // Add the Transfers page
+          buildDrawerOption(context, icon_transfers, 'Transfers',
+              TransferPage(idClub: selectedClub.id)), // Add the Transfers page
           buildDrawerOption(context, icon_games, 'Games',
-              GamesPage(idClub: selectedClub.id_club)), // Add the Games page
+              GamesPage(idClub: selectedClub.id)), // Add the Games page
           buildDrawerOption(
               context,
               icon_league,
               'League',
               LeaguePage(
-                  idLeague: selectedClub.id_league)), // Add the Rankings page
+                  idLeague: selectedClub.idLeague)), // Add the Rankings page
           buildDrawerOption(
             context,
             icon_training,
@@ -102,7 +98,6 @@ class AppDrawer extends StatelessWidget {
             child: Text(
               'This is some information about the app or the navigation.',
               style: TextStyle(
-                fontSize: 14.0,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -121,10 +116,7 @@ Widget buildDrawerTitle(String title) {
     child: ListTile(
       title: Text(
         title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 24.0,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       onTap: () {
         // Handle navigation

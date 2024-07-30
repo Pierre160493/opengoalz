@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 import 'class/player.dart';
 
@@ -68,64 +68,52 @@ class _PlayerCardState extends State<PlayerCard>
       widget.player.freekick,
     ];
     return Card(
-      color: Colors.grey[850],
       child: Padding(
-        padding: const EdgeInsets.all(4.0),
+        padding: const EdgeInsets.all(0.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                if (widget.number > 0)
+            ListTile(
+              leading: CircleAvatar(
+                child: Text(
+                  (widget.number).toString(),
+                ),
+              ),
+              title: Row(
+                children: [
                   Text(
-                    '${widget.number})',
-                    style: TextStyle(
-                        color: Colors
-                            .white, // Change the color of the text as needed
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle
-                            .italic, // Add this line to make the text italic
-                        fontSize: 20.0),
+                    '${widget.player.firstName[0]}.${widget.player.lastName.toUpperCase()}',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                const SizedBox(width: 6.0),
-                Flexible(
-                  child: Text(
-                    '${widget.player.firstName[0]}.${widget.player.lastName.toUpperCase()} ',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                widget.player.getStatusRow(),
-
-                /// Spacer widget to push the following widgets to the right
-                // Spacer(),
-
-                /// IconButton to expand/collapse the player card
-                IconButton(
-                  icon: Icon(
-                    _developed
-                        ? Icons.expand_less
-                        : Icons.expand_circle_down_outlined,
-                    color: Colors.purple[300], // Set the icon color
-                  ),
-                  iconSize: 24.0,
-                  onPressed: () {
-                    setState(() {
-                      _developed = !_developed;
-                    });
-                  },
-                ),
-
-                /// PopMenuButton if the player belongs to current user's club
-                if (widget.player.idClub ==
-                    Provider.of<SessionProvider>(context, listen: false)
-                        .selectedClub
-                        .id_club)
-                  widget.player.playerPopUpMenuItem(context, widget.number)
-              ],
+                  widget.player.getStatusRow(),
+                  if (widget.player.idClub ==
+                      Provider.of<SessionProvider>(context, listen: false)
+                          .user!
+                          .selectedClub
+                          .id)
+                    Row(
+                      children: [
+                        SizedBox(width: 6.0),
+                        widget.player
+                            .playerPopUpMenuItem(context, widget.number),
+                      ],
+                    )
+                ],
+              ),
+              // subtitle: Text(
+              //   'Born: ${DateFormat('yyyy-MM-dd').format(widget.player.dateBirth)}',
+              // ),
+              trailing: IconButton(
+                icon: Icon(_developed
+                    ? Icons.expand_less
+                    : Icons.expand_circle_down_outlined),
+                iconSize: iconSizeMedium,
+                onPressed: () {
+                  setState(() {
+                    _developed = !_developed;
+                  });
+                },
+              ),
             ),
             if (!_developed) widget.player.getPlayerMainInformation(context),
             const SizedBox(height: 6.0),
@@ -245,9 +233,7 @@ class _PlayerCardState extends State<PlayerCard>
                                           title: Text(
                                             item['description'],
                                             style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
+                                                fontWeight: FontWeight.bold),
                                           ),
                                           subtitle: Row(
                                             children: [

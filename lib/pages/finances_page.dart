@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +48,7 @@ class _FinancesPageState extends State<FinancesPage> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-              'Finances for: ${Provider.of<SessionProvider>(context).selectedClub.name_club ?? 'No club name'}')),
+              'Finances for: ${Provider.of<SessionProvider>(context).user!.selectedClub.nameClub}')),
       drawer: const AppDrawer(),
       body: MaxWidthContainer(
         child: Column(
@@ -57,25 +57,27 @@ class _FinancesPageState extends State<FinancesPage> {
           children: [
             const SizedBox(height: 16),
             // Text(
-            //   'Hello ${Provider.of<SessionProvider>(context).selectedClub.username}',
+            //   'Hello ${Provider.of<SessionProvider>(context).user!.selectedClub.username}',
             //   style: const TextStyle(fontSize: 24),
             // ),
             const SizedBox(height: 16),
             RichText(
               text: TextSpan(
                 text: 'Cash: ',
-                style: const TextStyle(fontSize: 18),
+                // style: const TextStyle(fontSize: 18),
                 children: <TextSpan>[
                   TextSpan(
                     text: Provider.of<SessionProvider>(context)
+                        .user!
                         .selectedClub
-                        .cash_available
+                        .cashAvailable
                         .toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Provider.of<SessionProvider>(context)
+                                  .user!
                                   .selectedClub
-                                  .cash_absolute >
+                                  .cashAbsolute >
                               0
                           ? Colors.green
                           : Colors.red,
@@ -87,18 +89,20 @@ class _FinancesPageState extends State<FinancesPage> {
             RichText(
               text: TextSpan(
                 text: 'Available cash: ',
-                style: const TextStyle(fontSize: 18),
+                // style: const TextStyle(fontSize: 18),
                 children: <TextSpan>[
                   TextSpan(
                     text: Provider.of<SessionProvider>(context)
+                        .user!
                         .selectedClub
-                        .cash_available
+                        .cashAvailable
                         .toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Provider.of<SessionProvider>(context)
+                                  .user!
                                   .selectedClub
-                                  .cash_available >
+                                  .cashAvailable >
                               0
                           ? Colors.green
                           : Colors.red,
@@ -112,7 +116,7 @@ class _FinancesPageState extends State<FinancesPage> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Latest movements:',
-                style: TextStyle(fontSize: 18),
+                // style: TextStyle(fontSize: 18),
               ),
             ),
             Expanded(

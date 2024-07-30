@@ -66,10 +66,7 @@ extension PlayerWidgetsActions on Player {
           // Add cases for additional actions if needed
         }
       },
-      child: Icon(
-        Icons.pending_actions_outlined,
-        color: Colors.purple[300],
-      ),
+      child: Icon(Icons.pending_actions_outlined),
     );
   }
 
@@ -130,8 +127,9 @@ extension PlayerWidgetsActions on Player {
                     'id_player': id,
                     'id_club':
                         Provider.of<SessionProvider>(context, listen: false)
+                            .user!
                             .selectedClub
-                            .id_club,
+                            .id,
                   });
                   scaffoldMessenger.showSnackBar(
                     SnackBar(

@@ -12,7 +12,7 @@ extension LeagueGamesTab on League {
       if (game.dateStart.isAfter(now) &&
           game.dateStart.isBefore(now.add(const Duration(hours: 3)))) {
         gamesCurrent.add(game);
-      } else if (game.isPlayed) {
+      } else if (game.dateEnd != null) {
         gamesPlayed.add(game);
       } else {
         gamesIncoming.add(game);

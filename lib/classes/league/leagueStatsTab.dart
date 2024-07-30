@@ -6,7 +6,7 @@ extension LeagueStatsTab on League {
     Map<int, int> playerAssists = {}; // Map of player IDs to assists
 
     // Count the goals and assists by each player
-    for (Game game in games.where((game) => game.isPlayed)) {
+    for (Game game in games.where((game) => game.dateEnd != null)) {
       for (GameEvent event
           in game.events.where((event) => event.idEventType == 1)) {
         if (event.idPlayer != null) {
@@ -50,16 +50,11 @@ extension LeagueStatsTab on League {
                       .toSet()
                       .toList()
                       .cast<Object>())
-              .map((maps) => maps
-                  .map((map) => Club.fromMap(
-                        map: map,
-                        myUserId: supabase.auth.currentUser!.id,
-                      ))
-                  .toList())
+              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
               .map((List<Club> clubs) {
                 return players.map((player) {
                   player.club =
-                      clubs.firstWhere((club) => club.id_club == player.idClub);
+                      clubs.firstWhere((club) => club.id == player.idClub);
                   return player;
                 }).toList();
               });
@@ -121,6 +116,9 @@ extension LeagueStatsTab on League {
 
   Widget _displayPlayers(BuildContext context,
       List<MapEntry<int, int>> sortedPlayers, Map<int, Player> players) {
+    if (sortedPlayers.isEmpty) {
+      return Center(child: Text('No data available'));
+    }
     return ListView.builder(
       itemCount: sortedPlayers.length,
       itemBuilder: (context, index) {
@@ -143,7 +141,9 @@ extension LeagueStatsTab on League {
                         : Colors.blue,
             child: Text(
               '${rank}.',
-              style: TextStyle(color: Colors.black, fontSize: 24),
+              style: TextStyle(color: Colors.black
+                  // , fontSize: 24
+                  ),
             ),
           ),
 
@@ -185,9 +185,7 @@ extension LeagueStatsTab on League {
             backgroundColor: Colors.blueGrey, // Set the background color,
             child: Text(
               '${entry.value}',
-              style: TextStyle(
-                  color: Colors.black, // Set the text color
-                  fontSize: 24),
+              style: TextStyle(color: Colors.black),
             ),
           ),
         );

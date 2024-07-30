@@ -4,12 +4,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/club.dart';
+import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
+import 'package:opengoalz/widgets/countryStreamWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:country_flags/country_flags.dart';
@@ -26,6 +27,7 @@ class Player {
     required this.id,
     required this.created_at,
     required this.idClub,
+    required this.userName,
     required this.firstName,
     required this.lastName,
     required this.dateBirth,
@@ -49,6 +51,7 @@ class Player {
   final int id;
   final DateTime created_at;
   final int? idClub;
+  final String? userName;
   final String firstName;
   final String lastName;
   final DateTime dateBirth;
@@ -72,6 +75,7 @@ class Player {
       : id = map['id'],
         created_at = DateTime.parse(map['created_at']),
         idClub = map['id_club'],
+        userName = map['username'],
         firstName = map['first_name'],
         lastName = map['last_name'],
         dateBirth = DateTime.parse(map['date_birth']),

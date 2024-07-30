@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'home_page.dart';
 import 'register_page.dart';
 import '../constants.dart';
@@ -30,7 +30,6 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text,
         password: _passwordController.text,
       );
-      navigateToHomePage(context);
       Navigator.of(context)
           .pushAndRemoveUntil(HomePage.route(), (route) => false);
     } on AuthException catch (error) {

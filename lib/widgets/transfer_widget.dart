@@ -2,7 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -60,7 +60,7 @@ class PlayerTransferTile extends StatelessWidget {
               ),
             ),
             if (player.idClub !=
-                Provider.of<SessionProvider>(context).selectedClub.id_club)
+                Provider.of<SessionProvider>(context).user!.selectedClub.id)
               IconButton(
                 icon: Icon(
                   Icons.arrow_circle_up_outlined,
@@ -167,10 +167,7 @@ class PlayerTransferTile extends StatelessWidget {
                     return ListTile(
                       title: Text(
                         '${bid.nameClub}: ${NumberFormat('#,###').format(bid.amount)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Row(
                         children: [
@@ -262,7 +259,7 @@ class PlayerTransferTile extends StatelessWidget {
                 ),
               ),
               Text(
-                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).selectedClub.cash_available)}'),
+                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub.cashAvailable)}'),
             ],
           ),
           actions: <Widget>[
@@ -291,12 +288,14 @@ class PlayerTransferTile extends StatelessWidget {
                     'id_player': player.id,
                     'id_club':
                         Provider.of<SessionProvider>(context, listen: false)
+                            .user!
                             .selectedClub
-                            .id_club,
+                            .id,
                     'name_club':
                         Provider.of<SessionProvider>(context, listen: false)
+                            .user!
                             .selectedClub
-                            .name_club,
+                            .nameClub,
                   });
 
                   if (date_sell.isAfter(player.dateSell!)) {
@@ -308,14 +307,12 @@ class PlayerTransferTile extends StatelessWidget {
                   print('testPG aqui');
                   print(error);
                   Fluttertoast.showToast(
-                    msg: "Your message here",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    timeInSecForIosWeb: 1,
-                    backgroundColor: Colors.red,
-                    textColor: Colors.white,
-                    fontSize: 16.0,
-                  );
+                      msg: "Your message here",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white);
                 }
               },
               child: Text('Confirm'),

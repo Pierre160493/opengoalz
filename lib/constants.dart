@@ -39,60 +39,17 @@ const icon_games = Icons.event_outlined;
 const icon_league = Icons.emoji_events_outlined;
 const icon_training = Icons.query_stats;
 const icon_chat = Icons.wechat_outlined;
-const icon_club = Icons.real_estate_agent_outlined;
+// const icon_club = Icons.real_estate_agent_outlined;
+const icon_club = Icons.home_work_rounded;
+
+const iconSizeSmall = 24.0;
+const iconSizeMedium = 30.0;
+const iconSizeLarge = 36.0;
 
 /// Basic theme to change the look and feel of the app
-final appTheme = ThemeData.dark().copyWith(
-  primaryColorDark: Colors.green[800],
-  appBarTheme: const AppBarTheme(
-    elevation: 1,
-    backgroundColor: Colors.green,
-    iconTheme: IconThemeData(color: Colors.white),
-    titleTextStyle: TextStyle(
-      color: Colors.white,
-      fontSize: 18,
-    ),
-  ),
-  primaryColor: Colors.green,
-  textButtonTheme: TextButtonThemeData(
-    style: TextButton.styleFrom(
-      foregroundColor: Colors.green,
-    ),
-  ),
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      foregroundColor: Colors.white,
-      backgroundColor: Colors.green,
-    ),
-  ),
-  inputDecorationTheme: InputDecorationTheme(
-    floatingLabelStyle: const TextStyle(
-      color: Colors.green,
-    ),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(
-        color: Colors.grey,
-        width: 2,
-      ),
-    ),
-    focusColor: Colors.green,
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(
-        color: Colors.green,
-        width: 2,
-      ),
-    ),
-  ),
-  textTheme: ThemeData.dark().textTheme.copyWith(
-        titleLarge:
-            TextStyle(fontSize: 16.0), // Change the default font size here
-        titleSmall: TextStyle(fontSize: 16.0),
-        bodyLarge: TextStyle(fontSize: 14.0),
-        bodySmall: TextStyle(fontSize: 8.0),
-      ),
-);
+ThemeData getAppTheme(BuildContext context) {
+  return ThemeData.dark().copyWith();
+}
 
 /// Set of extension methods to easily display a snackbar
 extension ShowSnackBar on BuildContext {

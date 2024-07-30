@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
@@ -46,9 +46,10 @@ class _FansPageState extends State<FansPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text(
-              Provider.of<SessionProvider>(context).selectedClub.name_club ??
-                  'No club name')),
+          title: Text(Provider.of<SessionProvider>(context)
+              .user!
+              .selectedClub
+              .nameClub)),
       // CustomAppBar(clubStream: _clubStream),
       // drawer: AppDrawer(clubStream: _clubStream),
       drawer: const AppDrawer(),
@@ -59,7 +60,7 @@ class _FansPageState extends State<FansPage> {
           children: [
             const SizedBox(height: 16),
             // Text(
-            //   'Hello ${Provider.of<SessionProvider>(context).selectedClub.username} !',
+            //   'Hello ${Provider.of<SessionProvider>(context).user!.selectedClub.username} !',
             //   style: const TextStyle(fontSize: 24),
             // ),
             const SizedBox(height: 16),
@@ -76,7 +77,7 @@ class _FansPageState extends State<FansPage> {
                     );
                     return Text(
                       'Total number of fans: $totalFans',
-                      style: const TextStyle(fontSize: 18),
+                      // style: const TextStyle(fontSize: 18),
                     );
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));

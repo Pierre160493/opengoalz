@@ -46,7 +46,7 @@ extension PlayerWidgetTransfer on Player {
               ),
             ),
             if (idClub !=
-                Provider.of<SessionProvider>(context).selectedClub.id_club)
+                Provider.of<SessionProvider>(context).user!.selectedClub.id)
               IconButton(
                 icon: Icon(
                   Icons.arrow_circle_up_outlined,
@@ -151,10 +151,7 @@ extension PlayerWidgetTransfer on Player {
                     return ListTile(
                       title: Text(
                         '${bid.nameClub}: ${NumberFormat('#,###').format(bid.amount)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Row(
                         children: [
@@ -245,7 +242,7 @@ extension PlayerWidgetTransfer on Player {
                 ),
               ),
               Text(
-                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).selectedClub.cash_available)}'),
+                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub.cashAvailable)}'),
             ],
           ),
           actions: <Widget>[
@@ -274,12 +271,14 @@ extension PlayerWidgetTransfer on Player {
                     'id_player': id,
                     'id_club':
                         Provider.of<SessionProvider>(context, listen: false)
+                            .user!
                             .selectedClub
-                            .id_club,
+                            .id,
                     'name_club':
                         Provider.of<SessionProvider>(context, listen: false)
+                            .user!
                             .selectedClub
-                            .name_club,
+                            .nameClub,
                   });
 
                   if (new_date_sell.isAfter(dateSell!)) {
@@ -289,14 +288,12 @@ extension PlayerWidgetTransfer on Player {
                   }
                 } on PostgrestException catch (error) {
                   Fluttertoast.showToast(
-                    msg: "ERROR: ${error.message}",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    timeInSecForIosWeb: 1,
-                    backgroundColor: Colors.red,
-                    textColor: Colors.white,
-                    fontSize: 16.0,
-                  );
+                      msg: "ERROR: ${error.message}",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white);
                 }
               },
               child: Text('Confirm'),
