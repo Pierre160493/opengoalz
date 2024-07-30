@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/gameUser.dart';
+import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -53,6 +54,17 @@ class SessionProvider extends ChangeNotifier {
                 else {
                   user.selectedClub = user.clubs.first;
                 }
+                return user;
+              });
+        })
+        .switchMap((GameUser user) {
+          return supabase
+              .from('players')
+              .stream(primaryKey: ['id'])
+              .eq('username', user.username)
+              .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+              .map((List<Player> players) {
+                user.players = players;
                 return user;
               });
         })

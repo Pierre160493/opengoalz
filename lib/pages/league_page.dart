@@ -207,9 +207,9 @@ class _RankingPageState extends State<LeaguePage> {
                     children: [
                       TabBar(
                         tabs: [
-                          buildTab(Icons.format_list_numbered, 'Rankings'),
-                          buildTab(Icons.event, 'Games'),
-                          buildTab(Icons.query_stats, 'Stats'),
+                          buildTabWithIcon(Icons.format_list_numbered, 'Rankings'),
+                          buildTabWithIcon(Icons.event, 'Games'),
+                          buildTabWithIcon(Icons.query_stats, 'Stats'),
                           // buildTab(Icons.wechat, 'Chat'),
                         ],
                       ),

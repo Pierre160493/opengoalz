@@ -42,6 +42,10 @@ const icon_chat = Icons.wechat_outlined;
 // const icon_club = Icons.real_estate_agent_outlined;
 const icon_club = Icons.home_work_rounded;
 
+const iconSizeSmall = 24.0;
+const iconSizeMedium = 30.0;
+const iconSizeLarge = 36.0;
+
 /// Basic theme to change the look and feel of the app
 ThemeData getAppTheme(BuildContext context) {
   return ThemeData.dark().copyWith();

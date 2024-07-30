@@ -123,7 +123,6 @@ class _PlayersPageState extends State<PlayersPage> {
               );
             } else {
               return Scaffold(
-                  // backgroundColor: Colors.grey[700],
                   appBar: AppBar(
                     title: players.length == 1
                         ? Text(
@@ -131,7 +130,6 @@ class _PlayersPageState extends State<PlayersPage> {
                         : Text(
                             '${players.length} Players',
                           ),
-                    backgroundColor: Colors.green,
                     elevation: 0,
                     actions: [
                       IconButton(
@@ -151,7 +149,7 @@ class _PlayersPageState extends State<PlayersPage> {
                               Icon(
                                 Icons.sort,
                                 color: Colors.green,
-                                size: 36,
+                                size: iconSizeMedium,
                               ),
                               Text(' Sort Players By',
                                   style: TextStyle(

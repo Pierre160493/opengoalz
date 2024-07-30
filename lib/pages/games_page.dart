@@ -229,16 +229,16 @@ class _HomePageState extends State<GamesPage> {
                         TabBar(
                           tabs: [
                             /// Played games title
-                            buildTab(Icons.arrow_circle_left_outlined,
+                            buildTabWithIcon(Icons.play_circle,
                                 'Played (${gamesPlayed.length})'),
 
                             /// Current games title
                             if (gamesCurrent.length > 0)
-                              buildTab(Icons.play_circle,
+                              buildTabWithIcon(Icons.notifications_active,
                                   'Current (${gamesCurrent.length})'),
 
                             /// Incoming games title
-                            buildTab(Icons.arrow_circle_right_outlined,
+                            buildTabWithIcon(Icons.arrow_circle_right_outlined,
                                 'Incoming (${gamesIncoming.length})'),
                           ],
                         ),
@@ -254,9 +254,9 @@ class _HomePageState extends State<GamesPage> {
                                     TabBar(
                                       tabs: [
                                         // Current season played games
-                                        buildTab(Icons.play_circle,
+                                        buildTabWithIcon(Icons.play_circle,
                                             'Current season (${gamesPlayed.length})'),
-                                        buildTab(
+                                        buildTabWithIcon(
                                             Icons.keyboard_double_arrow_left,
                                             'Previous seasons'),
                                       ],
@@ -286,10 +286,10 @@ class _HomePageState extends State<GamesPage> {
                                     TabBar(
                                       tabs: [
                                         // Current season played games
-                                        buildTab(Icons.play_circle,
+                                        buildTabWithIcon(Icons.play_circle,
                                             'Current season (${gamesIncoming.length + club.teamComps.length})'),
                                         // Next season games
-                                        buildTab(
+                                        buildTabWithIcon(
                                             Icons.keyboard_double_arrow_right,
                                             'Next season (14)'),
                                       ],
@@ -306,12 +306,12 @@ class _HomePageState extends State<GamesPage> {
                                                 TabBar(
                                                   tabs: [
                                                     // Current season organized games
-                                                    buildTab(
+                                                    buildTabWithIcon(
                                                         Icons.calendar_month,
                                                         'Planned (${gamesIncoming.length})'),
 
                                                     // Current season unorganized games yet
-                                                    buildTab(
+                                                    buildTabWithIcon(
                                                         Icons.edit_calendar,
                                                         'Unplanned (${club.teamComps.length})'),
                                                   ],

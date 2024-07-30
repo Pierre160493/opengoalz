@@ -1,9 +1,11 @@
 import 'package:opengoalz/classes/club/club.dart';
+import 'package:opengoalz/classes/player/class/player.dart';
 
 class GameUser {
   late Club selectedClub; // Selected club of the profile
   List<Club> clubs = []; // List of clubs belonging to the profile
   int? idDefaultClub; // ID of the default club
+  List<Player> players = []; // List of players belonging to the profile
 
   GameUser({
     required this.id,

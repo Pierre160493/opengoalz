@@ -1,11 +1,15 @@
 //ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/league/league.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/pages/games_page.dart';
+import 'package:opengoalz/pages/league_page.dart';
+import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/classes/player/class/player.dart';

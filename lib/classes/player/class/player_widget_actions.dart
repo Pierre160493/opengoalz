@@ -66,10 +66,7 @@ extension PlayerWidgetsActions on Player {
           // Add cases for additional actions if needed
         }
       },
-      child: Icon(
-        Icons.pending_actions_outlined,
-        color: Colors.purple[300],
-      ),
+      child: Icon(Icons.pending_actions_outlined),
     );
   }
 

@@ -27,6 +27,7 @@ class Player {
     required this.id,
     required this.created_at,
     required this.idClub,
+    required this.userName,
     required this.firstName,
     required this.lastName,
     required this.dateBirth,
@@ -50,6 +51,7 @@ class Player {
   final int id;
   final DateTime created_at;
   final int? idClub;
+  final String? userName;
   final String firstName;
   final String lastName;
   final DateTime dateBirth;
@@ -73,6 +75,7 @@ class Player {
       : id = map['id'],
         created_at = DateTime.parse(map['created_at']),
         idClub = map['id_club'],
+        userName = map['username'],
         firstName = map['first_name'],
         lastName = map['last_name'],
         dateBirth = DateTime.parse(map['date_birth']),
