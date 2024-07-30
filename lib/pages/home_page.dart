@@ -3,7 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/gameUser.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/provider_global_variable.dart';
+import 'package:opengoalz/pages/settings_page.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
@@ -40,11 +41,10 @@ class _HomePageState extends State<HomePage> {
         return Scaffold(
           appBar: AppBar(
             title: Text('Home Page'),
-            backgroundColor: Colors.green,
             actions: [
               IconButton(
                 onPressed: () {
-                  // Add your action here
+                  Navigator.of(context).push(SettingsPage.route());
                 },
                 icon: Icon(Icons.settings),
               ),
@@ -102,14 +102,17 @@ class _HomePageState extends State<HomePage> {
                               size: 36, color: Colors.green),
                           Text(
                             ' Hello ${Provider.of<SessionProvider>(context).user!.username} !',
-                            // style: const TextStyle(fontSize: 24),
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
                         ],
                       ),
                       const SizedBox(height: 24),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Here is the list of your clubs:'),
+                        child: Text(
+                          'Here is the list of your clubs:',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                       ),
                       Expanded(
                         child: ListView.builder(

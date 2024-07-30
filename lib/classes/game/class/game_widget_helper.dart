@@ -70,7 +70,7 @@ extension GameClassWidgetHelper on Game {
         // ),
         Text(
           ' : ',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
         ),
         // SizedBox(
         //   width: 6,
@@ -99,8 +99,8 @@ extension GameClassWidgetHelper on Game {
       }
     }
 
-    Color leftColor = Colors.white;
-    Color rightColor = Colors.white;
+    Color leftColor = Colors.blueGrey;
+    Color rightColor = Colors.blueGrey;
     // If the game is a cup, display the score of the penalty shootout if it happened
     if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
       if (leftPenaltyScore > rightPenaltyScore) {

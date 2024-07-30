@@ -6,7 +6,7 @@ import 'package:opengoalz/classes/league/league.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/provider_global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:provider/provider.dart';

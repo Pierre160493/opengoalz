@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/provider_global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';

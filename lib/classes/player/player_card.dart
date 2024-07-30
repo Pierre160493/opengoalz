@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/provider_global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 import 'class/player.dart';
 

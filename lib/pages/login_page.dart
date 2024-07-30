@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/provider_global_variable.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'home_page.dart';
 import 'register_page.dart';
 import '../constants.dart';

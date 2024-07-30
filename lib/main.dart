@@ -1,11 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:opengoalz/provider_global_variable.dart';
+import 'package:opengoalz/provider_theme_app.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
-import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/splash_page.dart';
 
 const supabaseUrl =
@@ -28,20 +27,25 @@ Future<void> main() async {
 
   runApp(ChangeNotifierProvider.value(
     value: SessionProvider(),
-    child: const MyApp(),
+    child: MyApp(),
   ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: appName,
-      theme: getAppTheme(context),
-      home: SplashPage(),
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            theme: themeProvider.isDarkTheme
+                ? ThemeData.dark()
+                : ThemeData.light(),
+            home: SplashPage(),
+          );
+        },
+      ),
     );
   }
 }
