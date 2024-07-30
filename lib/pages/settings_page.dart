@@ -25,6 +25,23 @@ class SettingsPage extends StatelessWidget {
               },
             ),
           ),
+          AboutListTile(
+            icon: Icon(Icons.info),
+            applicationIcon: Container(
+              width: 120, // Set width
+              height: 120, // Set height
+              child: Image.asset('assets/icon/opengoalz.png'),
+            ),
+            applicationName: 'OpenGoalZ',
+            applicationVersion: '0.0.0',
+            applicationLegalese: '© OpenGoalZ 2024',
+            aboutBoxChildren: <Widget>[
+              Text('Thank you for using our app !'),
+              Text('Hope you\'re enjoying it.'),
+              Text(
+                  'Feel free to contact us on our discord server if you have questions.'),
+            ],
+          ),
         ],
       ),
     );
