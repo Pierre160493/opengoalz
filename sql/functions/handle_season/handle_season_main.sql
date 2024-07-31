@@ -166,7 +166,9 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                     -- Update leagues
                     UPDATE leagues SET
                         season_number = season_number + 1,
-                        is_finished = FALSE
+                        is_finished = FALSE,
+                        cash_last_season = (cash / 1400) * 1400,
+                        cash = cash - (cash / 1400) * 1400
                         WHERE multiverse_speed = multiverse.speed;
 
                     -- Update clubs
@@ -174,9 +176,21 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         season_number = season_number + 1,
                         id_league = id_league_next_season,
                         id_league_next_season = NULL,
+                        revenues = (
+                            (SELECT cash_last_season FROM leagues WHERE id = id_league) * 
+                            CASE 
+                                WHEN pos_league = 1 THEN 0.20
+                                WHEN pos_league = 2 THEN 0.18
+                                WHEN pos_league = 3 THEN 0.17
+                                WHEN pos_league = 4 THEN 0.16
+                                WHEN pos_league = 5 THEN 0.15
+                                WHEN pos_league = 6 THEN 0.14
+                                ELSE 0
+                            END
+                        ) / 14,
                         pos_league = pos_league_next_season,
                         pos_league_next_season = NULL,
-                        league_points = 0
+                        league_points = 0,
                         WHERE multiverse_speed = multiverse.speed;
 
                 END IF;
@@ -197,11 +211,54 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
 
             END IF; -- End of the week_number check
 
-            -- Update the week number of the multiverse
-            UPDATE multiverses SET week_number = week_number + 1 WHERE speed = multiverse.speed;
+            ------ Handle revenues, expanses (tax, salaries, staff)
+            -- Calculate the tax for this week and new cash value
+            UPDATE clubs SET 
+                tax = FLOOR(cash * 0.01),
+                cash = cash + revenues - FLOOR(cash * 0.01) - staff_expanses - (
+                    SELECT COALESCE(SUM(salary), 0)
+                        FROM players 
+                        WHERE id_club = clubs.id)
+                staff_weight = (staff_weight + staff_expanses) * 2/3
+            WHERE multiverse_speed = multiverse.speed;
+
+            -- Insert new row in the clubs_information table
+            INSERT INTO clubs_information (id_club, season_number, week_number, cash, tax, staff_expanses, salaries, revenues)
+                SELECT id, multiverse.season_number, multiverse.week_number, cash, tax, staff_expanses, (
+                    SELECT SUM(salary)
+                    FROM players WHERE id_club = clubs.id
+                    ), revenues
+                FROM clubs WHERE multiverse_speed = multiverse.speed;
+
+            -- Update the leagues cash by paying club expanses and players salaries and cash last season
+            UPDATE leagues SET
+                cash = cash + (
+                    SELECT SUM(tax)
+                    FROM clubs WHERE id IN (
+                    SELECT id FROM clubs WHERE id_league = leagues.id)
+                    ) + (
+                    SELECT SUM(staff_expanses)
+                    FROM clubs WHERE id IN (
+                    SELECT id FROM clubs WHERE id_league = leagues.id)
+                    )
+                    + (
+                    SELECT SUM(salary)
+                    FROM players WHERE id_club IN (
+                    SELECT id FROM clubs WHERE id_league = leagues.id)
+                    ),
+                cash_last_season = cash_last_season - (
+                    SELECT SUM(revenues)
+                    FROM clubs WHERE WHERE id_league = leagues.id
+                    )
+                WHERE multiverse_speed = multiverse.speed
+            WHERE multiverse_speed = multiverse.speed
+            AND level > 0;
 
             -- Update players training points
             UPDATE players SET training_points = training_points + 1 WHERE multiverse_speed = multiverse.speed;
+
+            -- Update the week number of the multiverse
+            UPDATE multiverses SET week_number = week_number + 1 WHERE speed = multiverse.speed;
 
             -- Set this to TRUE to run another loop of simulate_games at the end of this function
             bool_week_advanced := TRUE;
