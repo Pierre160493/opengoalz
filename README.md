@@ -58,3 +58,8 @@ Handle injuries, subs and free kick
 
 Should be almost the same than home page but without the provider
 Create an user widget from clubs and players to see the user
+
+### Others small development and corrections
+
+- At first connection, after login, the page crashes
+- Error with the stats page on WebSite

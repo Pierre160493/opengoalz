@@ -118,6 +118,7 @@ extension PlayerWidgetsHelper on Player {
                       // ),
                       getAgeWidget(),
                       getCountryNameWidget(context, idCountry),
+                      getCostPerWeekWidget(),
                       getAvgStatsWidget(),
                       getClubNameWidget(context),
                     ],
@@ -196,12 +197,34 @@ extension PlayerWidgetsHelper on Player {
         ),
         Text(' years, '),
         Text(
-          ((age - age.truncate()) * 112).floor().toString(),
+          ((age - age.truncate()) * (7 * 14 / multiverseSpeed))
+              .floor()
+              .toString(),
           style: TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(' days '),
+      ],
+    );
+  }
+
+  Widget getCostPerWeekWidget() {
+    return Row(
+      children: [
+        Icon(
+          // iconMoney,
+          icon_home,
+          size: icon_size, // Adjust icon size as needed
+          color: Colors.green, // Adjust icon color as needed
+        ),
+        Text(
+          ' ${costPerWeek}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(' Salary per week'),
       ],
     );
   }

@@ -14,10 +14,10 @@ DECLARE
     bool_league_game_played bool; -- If a game from the league was played, recalculate the rankings
     pos integer; -- Position in the league
 BEGIN
-RAISE NOTICE '****** HANDLE SEASON MAIN: Start';
+
     -- Loop through all multiverses
     FOR multiverse IN (SELECT * FROM multiverses) LOOP
-
+RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number %', multiverse.speed, multiverse.season_number, multiverse.week_number;
         -- Loop through all leagues
         FOR league IN (
             SELECT * FROM leagues WHERE multiverse_speed = multiverse.speed)
@@ -31,12 +31,13 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start';
                 (SELECT id FROM games
                     WHERE id_league = league.id
                     AND date_end IS NULL
+                    AND season_number = multiverse.season_number
                     AND week_number = multiverse.week_number
                     AND now() > date_start
                     ORDER BY id)
             LOOP
                 --BEGIN
-                    PERFORM simulate_game(inp_id_game := game.id);
+                    PERFORM simulate_game_main(inp_id_game := game.id);
                 --EXCEPTION WHEN others THEN
                 --    RAISE NOTICE 'An error occurred while simulating game with id %: %', id_game, SQLERRM;
                 --    UPDATE games SET date_end = date_start, error = SQLERRM WHERE id = id_game;
@@ -103,7 +104,7 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                     UPDATE leagues SET is_finished = TRUE
                         WHERE multiverse_speed = multiverse.speed
                         AND level > 0;
-
+/*
                     -- Update the clubs from the top level leagues that finished 1st, 2nd and 3rd (they stay in the same position)
                     UPDATE clubs SET
                         pos_league_next_season = pos_league,
@@ -123,7 +124,13 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                             SELECT id_upper_league FROM leagues WHERE multiverse_speed = 1
                             AND id_upper_league IS NOT NULL
                         )
-                        AND pos_league >= 4;
+                        AND pos_league >= 4;*/
+
+                    -- Update each clubs by default staying at their position
+                    UPDATE clubs SET
+                        pos_league_next_season = pos_league,
+                        id_league_next_season = id_league
+                        WHERE multiverse_speed = multiverse.speed;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -142,12 +149,18 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                 ELSEIF multiverse.week_number = 14 THEN
 RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
 
+                    -- Generate the games_teamcomp and the games of the next season
+                    PERFORM handle_season_generate_games_and_teamcomps(
+                        inp_multiverse_speed := multiverse.speed,
+                        inp_season_number := multiverse.season_number + 2,
+                        inp_date_start := multiverse.date_season_end + loc_interval_1_week * 14);
+
                     -- Update multiverses table for starting next season
                     UPDATE multiverses SET
                         date_season_start = date_season_end,
                         date_season_end = date_season_end + loc_interval_1_week * 14,
                         season_number = season_number + 1,
-                        week_number = 1
+                        week_number = 0
                     WHERE speed = multiverse.speed;
 
                     -- Update leagues
@@ -186,6 +199,9 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
 
             -- Update the week number of the multiverse
             UPDATE multiverses SET week_number = week_number + 1 WHERE speed = multiverse.speed;
+
+            -- Update players training points
+            UPDATE players SET training_points = training_points + 1 WHERE multiverse_speed = multiverse.speed;
 
             -- Set this to TRUE to run another loop of simulate_games at the end of this function
             bool_week_advanced := TRUE;
