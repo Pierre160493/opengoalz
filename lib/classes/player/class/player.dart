@@ -39,7 +39,7 @@ class Player {
     required this.dateBirth,
     required this.multiverseSpeed,
     required this.idCountry,
-    required this.costPerWeek,
+    required this.lisExpanses,
     required this.trainingPoints,
     required this.keeper,
     required this.defense,
@@ -66,7 +66,7 @@ class Player {
   final DateTime dateBirth;
   final int multiverseSpeed;
   final int? idCountry; //Shouldn't be nullable
-  final int costPerWeek;
+  final List<int> lisExpanses;
   final double trainingPoints;
   final double keeper;
   final double defense;
@@ -93,7 +93,7 @@ class Player {
         dateBirth = DateTime.parse(map['date_birth']),
         multiverseSpeed = map['multiverse_speed'],
         idCountry = map['id_country'],
-        costPerWeek = map['cost_per_week'],
+        lisExpanses = List<int>.from(map['lis_expanses']),
         trainingPoints = (map['training_points'] as num).toDouble(),
         keeper = (map['keeper'] as num).toDouble(),
         defense = (map['defense'] as num).toDouble(),

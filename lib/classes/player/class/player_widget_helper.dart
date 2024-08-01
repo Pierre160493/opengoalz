@@ -213,13 +213,12 @@ extension PlayerWidgetsHelper on Player {
     return Row(
       children: [
         Icon(
-          // iconMoney,
-          icon_home,
+          iconMoney,
           size: icon_size, // Adjust icon size as needed
           color: Colors.green, // Adjust icon color as needed
         ),
         Text(
-          ' ${costPerWeek}',
+          ' ${lisExpanses.last}',
           style: TextStyle(
             fontWeight: FontWeight.bold,
           ),
