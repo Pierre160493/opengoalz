@@ -107,13 +107,13 @@ class _TransferPageState extends State<TransferPage>
                             TextSpan(
                               text: Provider.of<SessionProvider>(context)
                                   .user!.selectedClub
-                                  .cashAvailable
+                                  .lisCash.last
                                   .toString(),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Provider.of<SessionProvider>(context)
                                             .user!.selectedClub
-                                            .cashAbsolute >
+                                            .lisCash.last >
                                         0
                                     ? Colors.green
                                     : Colors.red,
@@ -130,13 +130,13 @@ class _TransferPageState extends State<TransferPage>
                             TextSpan(
                               text: Provider.of<SessionProvider>(context)
                                   .user!.selectedClub
-                                  .cashAvailable
+                                  .lisCash.last
                                   .toString(),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Provider.of<SessionProvider>(context)
                                             .user!.selectedClub
-                                            .cashAvailable >
+                                            .lisCash.last >
                                         0
                                     ? Colors.green
                                     : Colors.red,

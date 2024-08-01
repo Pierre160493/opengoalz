@@ -15,10 +15,15 @@ DECLARE
     pos integer; -- Position in the league
 BEGIN
 
-    -- Loop through all multiverses
+    ------------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------------
+    ------ Loop through all multiverses
     FOR multiverse IN (SELECT * FROM multiverses) LOOP
 RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number %', multiverse.speed, multiverse.season_number, multiverse.week_number;
-        -- Loop through all leagues
+
+        ------------------------------------------------------------------------------------------------------------------------------------------------
+        ------------------------------------------------------------------------------------------------------------------------------------------------
+        ------ Loop through all leagues
         FOR league IN (
             SELECT * FROM leagues WHERE multiverse_speed = multiverse.speed)
         LOOP
@@ -26,7 +31,9 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
             -- Set to FALSE by default
             bool_league_game_played := FALSE;
 
-            -- Loop through the games that need to be played for the current week
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------ Loop through the games that need to be played for the current week
             FOR game IN
                 (SELECT id FROM games
                     WHERE id_league = league.id
@@ -48,7 +55,9 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
 
             END LOOP; -- End of the loop of the games simulation
 
-            -- If a game from the league was played, recalculate the rankings
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------ If a game from the league was played, recalculate the rankings
             IF bool_league_game_played = TRUE THEN
 
                 -- Calculate rankings for normal leagues
@@ -83,7 +92,9 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
         -- Interval of 1 week for this multiverse
         loc_interval_1_week := INTERVAL '7 days' / multiverse.speed;
 
-        -- If all games from the current week have been played
+        ------------------------------------------------------------------------------------------------------------------------------------------------
+        ------------------------------------------------------------------------------------------------------------------------------------------------
+        ------ If all games from the current week have been played
         IF NOT EXISTS (
             SELECT 1 FROM games
             WHERE multiverse_speed = multiverse.speed
@@ -93,11 +104,65 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
         ) THEN
         -- AND if at least 3 hours have passed since the start of the last game (TODO)
 
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------ Handle revenues, expanses (tax, salaries, staff)
+            -- Calculate the expanses and revenues of the clubs
+            UPDATE clubs SET
+                lis_tax = lis_tax ||
+                    FLOOR(lis_cash[array_length(lis_cash, 1)] * 0.01),
+                lis_players_expanses = lis_players_expanses || 
+                    (SELECT COALESCE(SUM(salary), 0)
+                        FROM players 
+                        WHERE id_club = clubs.id),
+                lis_staff_expanses = lis_staff_expanses ||
+                    staff_expanses,
+                staff_weight = (staff_weight + staff_expanses) * 0.5
+            WHERE multiverse_speed = multiverse.speed;
+
+            -- Update the clubs revenues and expanses in the list
+            UPDATE clubs SET
+                lis_revenues = lis_revenues ||
+                    revenues,
+                lis_expanses = lis_expanses || (
+                    lis_tax[array_length(lis_expanses, 1)] +
+                    lis_players_expanses[array_length(lis_players_expanses, 1)] +
+                    lis_staff_expanses[array_length(lis_staff_expanses, 1)]
+                    )
+            WHERE multiverse_speed = multiverse.speed;
+
+            -- Update the clubs cash
+            UPDATE clubs SET
+                lis_cash = lis_cash ||
+                    lis_cash[array_length(lis_cash, 1)] +
+                    lis_revenues[array_length(lis_revenues, 1)] -
+                    lis_expanses[array_length(lis_expanses, 1)]
+            WHERE multiverse_speed = multiverse.speed;
+
+            -- Update the leagues cash by paying club expanses and players salaries and cash last season
+            UPDATE leagues SET
+                cash = cash + (
+                    SELECT SUM(lis_expanses[array_length(lis_expanses, 1)])
+                    FROM clubs WHERE id_league = leagues.id
+                    ),
+                cash_last_season = cash_last_season - (
+                    SELECT SUM(lis_revenues[array_length(lis_revenues, 1)])
+                    FROM clubs WHERE id_league = leagues.id
+                    )
+            WHERE multiverse_speed = multiverse.speed
+            AND level > 0;
+
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------ Update players training points
+            UPDATE players SET training_points = training_points + 1 WHERE multiverse_speed = multiverse.speed;
+
             -- No need to populate the games if the season is not over yet
             IF multiverse.week_number >= 10 THEN
-------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------
------------- Handle the 10th week of the season
+
+                ------------------------------------------------------------------------------------------------------------------------------------------------
+                ------------------------------------------------------------------------------------------------------------------------------------------------
+                ------ Handle the 10th week of the season
                 IF multiverse.week_number = 10 THEN
 RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
                     -- Update the normal leagues to say that they are finished
@@ -132,9 +197,9 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         id_league_next_season = id_league
                         WHERE multiverse_speed = multiverse.speed;
 
-------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------
------------- Handle the 13th week of the season ==> Intercontinental Cup Leagues are finished
+                ------------------------------------------------------------------------------------------------------------------------------------------------
+                ------------------------------------------------------------------------------------------------------------------------------------------------
+                ------ Handle the 13th week of the season ==> Intercontinental Cup Leagues are finished
                 ELSEIF multiverse.week_number = 13 THEN
 RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
 
@@ -143,9 +208,9 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         WHERE multiverse_speed = multiverse.speed
                         AND level = 0;
 
-------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------
------------- Handle the 15th week of the season ==> Season is over, start a new one
+                ------------------------------------------------------------------------------------------------------------------------------------------------
+                ------------------------------------------------------------------------------------------------------------------------------------------------
+                ------ Handle the 15th week of the season ==> Season is over, start a new one
                 ELSEIF multiverse.week_number = 14 THEN
 RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
 
@@ -190,12 +255,14 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         ) / 14,
                         pos_league = pos_league_next_season,
                         pos_league_next_season = NULL,
-                        league_points = 0,
+                        league_points = 0
                         WHERE multiverse_speed = multiverse.speed;
 
                 END IF;
 
-                -- Loop through the list of games that need to be played in the coming weeks
+                ------------------------------------------------------------------------------------------------------------------------------------------------
+                ------------------------------------------------------------------------------------------------------------------------------------------------
+                ------ Loop through the list of games that need to be played in the coming weeks
                 FOR game IN (
                     SELECT * FROM games
                         WHERE multiverse_speed = multiverse.speed
@@ -211,53 +278,9 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
 
             END IF; -- End of the week_number check
 
-            ------ Handle revenues, expanses (tax, salaries, staff)
-            -- Calculate the tax for this week and new cash value
-            UPDATE clubs SET 
-                tax = FLOOR(cash * 0.01),
-                cash = cash + revenues - FLOOR(cash * 0.01) - staff_expanses - (
-                    SELECT COALESCE(SUM(salary), 0)
-                        FROM players 
-                        WHERE id_club = clubs.id)
-                staff_weight = (staff_weight + staff_expanses) * 2/3
-            WHERE multiverse_speed = multiverse.speed;
-
-            -- Insert new row in the clubs_information table
-            INSERT INTO clubs_information (id_club, season_number, week_number, cash, tax, staff_expanses, salaries, revenues)
-                SELECT id, multiverse.season_number, multiverse.week_number, cash, tax, staff_expanses, (
-                    SELECT SUM(salary)
-                    FROM players WHERE id_club = clubs.id
-                    ), revenues
-                FROM clubs WHERE multiverse_speed = multiverse.speed;
-
-            -- Update the leagues cash by paying club expanses and players salaries and cash last season
-            UPDATE leagues SET
-                cash = cash + (
-                    SELECT SUM(tax)
-                    FROM clubs WHERE id IN (
-                    SELECT id FROM clubs WHERE id_league = leagues.id)
-                    ) + (
-                    SELECT SUM(staff_expanses)
-                    FROM clubs WHERE id IN (
-                    SELECT id FROM clubs WHERE id_league = leagues.id)
-                    )
-                    + (
-                    SELECT SUM(salary)
-                    FROM players WHERE id_club IN (
-                    SELECT id FROM clubs WHERE id_league = leagues.id)
-                    ),
-                cash_last_season = cash_last_season - (
-                    SELECT SUM(revenues)
-                    FROM clubs WHERE WHERE id_league = leagues.id
-                    )
-                WHERE multiverse_speed = multiverse.speed
-            WHERE multiverse_speed = multiverse.speed
-            AND level > 0;
-
-            -- Update players training points
-            UPDATE players SET training_points = training_points + 1 WHERE multiverse_speed = multiverse.speed;
-
-            -- Update the week number of the multiverse
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------------------------------------------------------------------------------------------------------------------------------------------------
+            ------ Update the week number of the multiverse and call the function again
             UPDATE multiverses SET week_number = week_number + 1 WHERE speed = multiverse.speed;
 
             -- Set this to TRUE to run another loop of simulate_games at the end of this function
@@ -267,7 +290,9 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
 
     END LOOP; -- End of the loop through the multiverses
 
-    -- If the week has been advanced, call this function again
+    ------------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------------
+    ------ If the week has been advanced, call this function again
     IF bool_week_advanced IS TRUE THEN
         PERFORM handle_season_main();
     END IF;

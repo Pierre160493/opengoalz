@@ -45,7 +45,6 @@ const icon_club = Icons.home_work_rounded;
 const iconDetails = Icons.description;
 const iconHistory = Icons.history_edu;
 const iconMoney = Icons.monetization_on_outlined;
-const iconMoney = Icons.monetization_on_outlined;
 
 const iconSizeSmall = 24.0;
 const iconSizeMedium = 30.0;

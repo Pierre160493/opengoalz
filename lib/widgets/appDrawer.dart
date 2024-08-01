@@ -40,7 +40,7 @@ class AppDrawer extends StatelessWidget {
           buildDrawerOption(
               context,
               icon_finance,
-              'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.cashAbsolute)} €',
+              'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.lisCash.last)} €',
               FinancesPage(idClub: selectedClub.id)), // Add the finances page
           buildDrawerOption(
               context,

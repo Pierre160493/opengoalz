@@ -38,8 +38,15 @@ class Club {
     required this.idLeague,
     required this.userName,
     required this.nameClub,
-    required this.cashAbsolute,
-    required this.cashAvailable,
+    required this.revenues,
+    required this.staffExpanses,
+    required this.lisCash,
+    // required this.lisRevenues,
+    // required this.lisExpanses,
+    // required this.lisTax,
+    // required this.lisPlayersExpanses,
+    // required this.lisStaffExpanses,
+    // required this.staffWeight,
     required this.numberFans,
     required this.idCountry,
     // required this.posSeason,
@@ -60,8 +67,15 @@ class Club {
   final int idLeague;
   final String? userName;
   final String nameClub;
-  final int cashAbsolute;
-  final int cashAvailable;
+  final int revenues;
+  final int staffExpanses;
+  final List<int> lisCash;
+  // final List<int> lisRevenues;
+  // final List<int> lisExpanses;
+  // final List<int> lisTax;
+  // final List<int> lisPlayersExpanses;
+  // final List<int> lisStaffExpanses;
+  // final double staffWeight;
   final int numberFans;
   final int idCountry;
   // final List<int>? posSeason;
@@ -84,8 +98,15 @@ class Club {
         idLeague = map['id_league'],
         userName = map['username'],
         nameClub = map['name_club'],
-        cashAbsolute = map['cash_absolute'],
-        cashAvailable = map['cash_available'],
+        staffExpanses = map['staff_expanses'],
+        revenues = map['revenues'],
+        lisCash = List<int>.from(map['lis_cash']),
+        // lisRevenues = List<int>.from(map['lis_revenues']),
+        // lisExpanses = List<int>.from(map['lis_expanses']),
+        // lisTax = List<int>.from(map['lis_tax']),
+        // lisPlayersExpanses = List<int>.from(map['lis_players_expanses']),
+        // lisStaffExpanses = List<int>.from(map['lis_staff_expanses']),
+        // staffWeight = map['staff_weight'],
         numberFans = map['number_fans'],
         idCountry = map['id_country'],
         // posSeason = List<int>.from(map['posSeason'] ?? []),
