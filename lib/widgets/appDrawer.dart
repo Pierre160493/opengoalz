@@ -40,7 +40,7 @@ class AppDrawer extends StatelessWidget {
           buildDrawerOption(
               context,
               icon_finance,
-              'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.cashAbsolute)} €',
+              'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.lisCash.last)} €',
               FinancesPage(idClub: selectedClub.id)), // Add the finances page
           buildDrawerOption(
               context,
@@ -85,7 +85,7 @@ class AppDrawer extends StatelessWidget {
                   idLeague: selectedClub.idLeague)), // Add the Rankings page
           buildDrawerOption(
             context,
-            icon_training,
+            iconTraining,
             'Training',
           ), // Add the Training page
           buildDrawerTitle('Young Team'),

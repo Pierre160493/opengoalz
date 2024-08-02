@@ -1,5 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'dart:math';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -13,11 +15,16 @@ import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:country_flags/country_flags.dart';
+import 'package:flutter_radar_chart/flutter_radar_chart.dart'
+    as flutter_radar_chart;
 
 part 'player_widget_helper.dart';
 part 'player_widget_transfer.dart';
 part 'player_widget_actions.dart';
+part 'player_card_details.dart';
+part 'player_card_stats.dart';
+part 'player_card_history.dart';
+part 'player_expanses_history.dart';
 
 class Player {
   Club? club;
@@ -31,7 +38,10 @@ class Player {
     required this.firstName,
     required this.lastName,
     required this.dateBirth,
+    required this.multiverseSpeed,
     required this.idCountry,
+    required this.expanses,
+    required this.trainingPoints,
     required this.keeper,
     required this.defense,
     required this.playmaking,
@@ -55,7 +65,10 @@ class Player {
   final String firstName;
   final String lastName;
   final DateTime dateBirth;
+  final int multiverseSpeed;
   final int? idCountry; //Shouldn't be nullable
+  final int expanses;
+  final double trainingPoints;
   final double keeper;
   final double defense;
   final double playmaking;
@@ -79,7 +92,10 @@ class Player {
         firstName = map['first_name'],
         lastName = map['last_name'],
         dateBirth = DateTime.parse(map['date_birth']),
+        multiverseSpeed = map['multiverse_speed'],
         idCountry = map['id_country'],
+        expanses = map['expanses'],
+        trainingPoints = (map['training_points'] as num).toDouble(),
         keeper = (map['keeper'] as num).toDouble(),
         defense = (map['defense'] as num).toDouble(),
         playmaking = (map['playmaking'] as num).toDouble(),
@@ -101,7 +117,8 @@ class Player {
         dateArrival = DateTime.parse(map['date_arrival']);
 
   double get age {
-    return DateTime.now().difference(dateBirth).inDays / 112.0;
+    return DateTime.now().difference(dateBirth).inDays /
+        (14 * 7 / multiverseSpeed); //14 weeks of 7 days per season
   }
 
   double get stats_average {

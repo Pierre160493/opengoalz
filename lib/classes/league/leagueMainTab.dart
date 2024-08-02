@@ -221,10 +221,6 @@ extension LeagueMainTab on League {
                             ? (pow(2, level - 1)).toInt()
                             : number - 1;
                         try {
-                          print('Current league level:' + level.toString());
-                          print('Current league number:' + level.toString());
-                          print(level);
-                          print(leagueNumber);
                           final response = await supabase
                               .from('leagues')
                               .select('id')

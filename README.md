@@ -59,10 +59,7 @@ Handle injuries, subs and free kick
 Should be almost the same than home page but without the provider
 Create an user widget from clubs and players to see the user
 
-## Possibility of incarning players (EASY)
+### Others small development and corrections
 
-link username to players, and have the possibility of terminating contracts.
-
-Possibility of choising team but op, perhaps just say you will leave club at end of the season, then automatic put to sell.
-
-What to do with money won ???
+- At first connection, after login, the page crashes
+- Error with the stats page on WebSite
