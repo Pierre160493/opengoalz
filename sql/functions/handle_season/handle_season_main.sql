@@ -112,7 +112,7 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
                 lis_tax = lis_tax ||
                     FLOOR(lis_cash[array_length(lis_cash, 1)] * 0.01),
                 lis_players_expanses = lis_players_expanses || 
-                    (SELECT COALESCE(SUM(salary), 0)
+                    (SELECT COALESCE(SUM(expanses), 0)
                         FROM players 
                         WHERE id_club = clubs.id),
                 lis_staff_expanses = lis_staff_expanses ||
@@ -256,6 +256,11 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         pos_league = pos_league_next_season,
                         pos_league_next_season = NULL,
                         league_points = 0
+                        WHERE multiverse_speed = multiverse.speed;
+
+                    -- Update players
+                    UPDATE players SET
+                        expanses = FLOOR(expanses + 100 + (keeper + defense + playmaking + passes + winger + scoring + freekick) * 0.5)
                         WHERE multiverse_speed = multiverse.speed;
 
                 END IF;

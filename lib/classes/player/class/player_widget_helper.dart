@@ -118,7 +118,7 @@ extension PlayerWidgetsHelper on Player {
                       // ),
                       getAgeWidget(),
                       getCountryNameWidget(context, idCountry),
-                      getCostPerWeekWidget(),
+                      getExpansesWidget(context),
                       getAvgStatsWidget(),
                       getClubNameWidget(context),
                     ],
@@ -209,22 +209,27 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  Widget getCostPerWeekWidget() {
-    return Row(
-      children: [
-        Icon(
-          iconMoney,
-          size: icon_size, // Adjust icon size as needed
-          color: Colors.green, // Adjust icon color as needed
-        ),
-        Text(
-          ' ${lisExpanses.last}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+  Widget getExpansesWidget(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        showPlayerExpansesHistory(context);
+      },
+      child: Row(
+        children: [
+          Icon(
+            iconMoney,
+            size: icon_size, // Adjust icon size as needed
+            color: Colors.green, // Adjust icon color as needed
           ),
-        ),
-        Text(' Salary per week'),
-      ],
+          Text(
+            ' ${expanses.toString()}',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(' / week'),
+        ],
+      ),
     );
   }
 

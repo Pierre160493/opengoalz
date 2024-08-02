@@ -18,6 +18,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'clubWidgetTeamcomp.dart';
 part 'clubWidgetHelper.dart';
+part 'clubWidgetFinances.dart';
 
 class Club {
   List<TeamComp> teamComps = []; //List of the teamcomps of the club
@@ -38,10 +39,10 @@ class Club {
     required this.idLeague,
     required this.userName,
     required this.nameClub,
-    required this.revenues,
     required this.staffExpanses,
     required this.lisCash,
     required this.lisRevenues,
+    required this.lisSponsors,
     required this.lisExpanses,
     required this.lisTax,
     required this.lisPlayersExpanses,
@@ -67,10 +68,10 @@ class Club {
   final int idLeague;
   final String? userName;
   final String nameClub;
-  final int revenues;
   final int staffExpanses;
   final List<int> lisCash;
   final List<int> lisRevenues;
+  final List<int> lisSponsors;
   final List<int> lisExpanses;
   final List<int> lisTax;
   final List<int> lisPlayersExpanses;
@@ -99,9 +100,9 @@ class Club {
         userName = map['username'],
         nameClub = map['name_club'],
         staffExpanses = map['staff_expanses'],
-        revenues = map['revenues'],
         lisCash = List<int>.from(map['lis_cash']),
         lisRevenues = List<int>.from(map['lis_revenues']),
+        lisSponsors = List<int>.from(map['lis_sponsors']),
         lisExpanses = List<int>.from(map['lis_expanses']),
         lisTax = List<int>.from(map['lis_tax']),
         lisPlayersExpanses = List<int>.from(map['lis_players_expanses']),

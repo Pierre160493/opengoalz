@@ -1,9 +1,14 @@
+import 'dart:math';
+
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 
 class FinancesPage extends StatefulWidget {
@@ -36,7 +41,6 @@ class _FinancesPageState extends State<FinancesPage> {
                   'created_at': map['created_at'],
                   'amount': map['amount'],
                   'description': map['description'],
-                  // Add more fields here as needed
                 })
             .toList());
 
@@ -47,116 +51,177 @@ class _FinancesPageState extends State<FinancesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text(
-              'Finances for: ${Provider.of<SessionProvider>(context).user!.selectedClub.nameClub}')),
+        title: Text('Finances'),
+      ),
       drawer: const AppDrawer(),
       body: MaxWidthContainer(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 16),
-            // Text(
-            //   'Hello ${Provider.of<SessionProvider>(context).user!.selectedClub.username}',
-            //   style: const TextStyle(fontSize: 24),
-            // ),
-            const SizedBox(height: 16),
-            RichText(
-              text: TextSpan(
-                text: 'Cash: ',
-                // style: const TextStyle(fontSize: 18),
-                children: <TextSpan>[
-                  TextSpan(
-                    text: Provider.of<SessionProvider>(context)
-                        .user!
-                        .selectedClub
-                        .lisCash
-                        .last
-                        .toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Provider.of<SessionProvider>(context)
-                                  .user!
-                                  .selectedClub
-                                  .lisCash
-                                  .last >
-                              0
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                  ),
+        child: DefaultTabController(
+          length: 2, // The number of tabs
+          child: Column(
+            children: [
+              TabBar(
+                tabs: [
+                  buildTabWithIcon(iconMoney, 'Finances'),
+                  buildTabWithIcon(iconHistory, 'History'),
                 ],
               ),
-            ),
-            RichText(
-              text: TextSpan(
-                text: 'Available cash: ',
-                // style: const TextStyle(fontSize: 18),
-                children: <TextSpan>[
-                  TextSpan(
-                    text: Provider.of<SessionProvider>(context)
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _getFinances(Provider.of<SessionProvider>(context)
                         .user!
-                        .selectedClub
-                        .lisCash
-                        .last
-                        .toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Provider.of<SessionProvider>(context)
-                                  .user!
-                                  .selectedClub
-                                  .lisCash
-                                  .last >
-                              0
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                  ),
-                ],
+                        .selectedClub),
+                    _getFinancesHistory(Provider.of<SessionProvider>(context)
+                        .user!
+                        .selectedClub),
+                  ],
+                ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _getFinances(Club club) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: Center(
+        child: DataTable(
+          columns: [
+            DataColumn(
+              label: buildTabWithIcon(Icons.trending_up, 'Revenues'),
             ),
-            const SizedBox(height: 24),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Latest movements:',
-                // style: TextStyle(fontSize: 18),
-              ),
-            ),
-            Expanded(
-              child: StreamBuilder<List<Map<String, dynamic>>>(
-                stream: _financeStream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final finances = snapshot.data!;
-                    return ListView.builder(
-                      itemCount: finances.length,
-                      itemBuilder: (context, index) {
-                        final finance = finances[index];
-                        return Card(
-                          margin: const EdgeInsets.all(8),
-                          child: ListTile(
-                            title: Text(
-                                finance['description'] ?? 'No description'),
-                            subtitle: Text('Amount: ${finance['amount']}'),
-                            trailing: Text(
-                              'Date: ${DateFormat.yMd().format(DateTime.parse(finance['created_at']))}',
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-            ),
+            DataColumn(
+                label: buildTabWithIcon(Icons.trending_down, 'Expanses')),
+          ],
+          rows: [
+            DataRow(cells: [
+              DataCell(_getDataCellRow(
+                  'Sponsors', club.lisSponsors.last, Colors.green)),
+              DataCell(_getDataCellRow(
+                  'Salaries', club.lisPlayersExpanses.last, Colors.red)),
+            ]),
+            DataRow(cells: [
+              DataCell(Text('')),
+              DataCell(_getDataCellRow(
+                  'Staff', club.lisStaffExpanses.last, Colors.red)),
+            ]),
+            DataRow(cells: [
+              DataCell(Text('')),
+              DataCell(_getDataCellRow('Taxes', club.lisTax.last, Colors.red)),
+            ]),
+            DataRow(cells: [
+              DataCell(_getDataCellRow(
+                  'Total', club.lisRevenues.last, Colors.green)),
+              DataCell(
+                  _getDataCellRow('Total', club.lisExpanses.last, Colors.red)),
+            ]),
           ],
         ),
       ),
     );
   }
+
+  Widget _getDataCellRow(String title, int value, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('${title}:    '),
+        Text(
+          NumberFormat.decimalPattern().format(value),
+          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+        ),
+      ],
+    );
+  }
+
+  Widget _getFinancesHistory(Club club) {
+    List<FlSpot> cashData = club.lisCash
+        .asMap()
+        .entries
+        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
+        .toList();
+
+    List<FlSpot> revenuesData = club.lisRevenues
+        .asMap()
+        .entries
+        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
+        .toList();
+
+    List<FlSpot> expansesData = club.lisExpanses
+        .asMap()
+        .entries
+        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
+        .toList();
+
+    double minY = [
+      club.lisCash.reduce(min),
+      club.lisRevenues.reduce(min),
+      club.lisExpanses.reduce(min),
+    ].reduce(min).toDouble();
+    minY = (minY / 1000).floorToDouble() * 1000;
+
+    double maxY = [
+      club.lisCash.reduce(max),
+      club.lisRevenues.reduce(max),
+      club.lisExpanses.reduce(max),
+    ].reduce(max).toDouble();
+    maxY = (maxY / 1000).ceilToDouble() * 1000;
+
+    return LineChart(
+      LineChartData(
+        minY: minY,
+        maxY: maxY,
+        lineBarsData: [
+          LineChartBarData(
+            spots: cashData,
+            color: Colors.blue,
+          ),
+          LineChartBarData(
+            spots: revenuesData,
+            color: Colors.green,
+          ),
+          LineChartBarData(
+            spots: expansesData,
+            color: Colors.red,
+          ),
+        ],
+      ),
+    );
+  }
 }
+
+
+// Expanded(
+//               child: StreamBuilder<List<Map<String, dynamic>>>(
+//                 stream: _financeStream,
+//                 builder: (context, snapshot) {
+//                   if (snapshot.hasData) {
+//                     final finances = snapshot.data!;
+//                     return ListView.builder(
+//                       itemCount: finances.length,
+//                       itemBuilder: (context, index) {
+//                         final finance = finances[index];
+//                         return Card(
+//                           margin: const EdgeInsets.all(8),
+//                           child: ListTile(
+//                             title: Text(
+//                                 finance['description'] ?? 'No description'),
+//                             subtitle: Text('Amount: ${finance['amount']}'),
+//                             trailing: Text(
+//                               'Date: ${DateFormat.yMd().format(DateTime.parse(finance['created_at']))}',
+//                             ),
+//                           ),
+//                         );
+//                       },
+//                     );
+//                   } else if (snapshot.hasError) {
+//                     return Center(child: Text('Error: ${snapshot.error}'));
+//                   } else {
+//                     return const Center(child: CircularProgressIndicator());
+//                   }
+//                 },
+//               ),
+//             ),

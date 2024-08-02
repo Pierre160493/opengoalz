@@ -24,6 +24,7 @@ part 'player_widget_actions.dart';
 part 'player_card_details.dart';
 part 'player_card_stats.dart';
 part 'player_card_history.dart';
+part 'player_expanses_history.dart';
 
 class Player {
   Club? club;
@@ -39,7 +40,7 @@ class Player {
     required this.dateBirth,
     required this.multiverseSpeed,
     required this.idCountry,
-    required this.lisExpanses,
+    required this.expanses,
     required this.trainingPoints,
     required this.keeper,
     required this.defense,
@@ -66,7 +67,7 @@ class Player {
   final DateTime dateBirth;
   final int multiverseSpeed;
   final int? idCountry; //Shouldn't be nullable
-  final List<int> lisExpanses;
+  final int expanses;
   final double trainingPoints;
   final double keeper;
   final double defense;
@@ -93,7 +94,7 @@ class Player {
         dateBirth = DateTime.parse(map['date_birth']),
         multiverseSpeed = map['multiverse_speed'],
         idCountry = map['id_country'],
-        lisExpanses = List<int>.from(map['lis_expanses']),
+        expanses = map['expanses'],
         trainingPoints = (map['training_points'] as num).toDouble(),
         keeper = (map['keeper'] as num).toDouble(),
         defense = (map['defense'] as num).toDouble(),
