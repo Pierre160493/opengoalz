@@ -5,7 +5,7 @@ extension ClubWidgetHelper on Club {
     bool isMine =
         Provider.of<SessionProvider>(context).user!.selectedClub.id == id;
     Text text = Text(
-      nameClub,
+      name,
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontStyle: isMine ? FontStyle.italic : FontStyle.normal,
@@ -160,7 +160,7 @@ extension ClubWidgetHelper on Club {
               CircleAvatar(
                 radius: containerImgRadius,
                 child: Icon(
-                  icon_games,
+                  iconGames,
                   size: containerImgRadius,
                 ),
               ),

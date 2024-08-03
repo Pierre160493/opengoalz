@@ -5,7 +5,7 @@ extension GameClassWidgetteamComps on Club {
     if (index > teamComps.length) {
       return Center(
         child: Text(
-            'ERROR: No team composition available for ${nameClub} at index $index'),
+            'ERROR: No team composition available for ${name} at index $index'),
       );
     }
 
@@ -14,7 +14,7 @@ extension GameClassWidgetteamComps on Club {
         id) {
       return Center(
         child: Text(
-            'Only the manager of ${nameClub} can see the teamcomp before the game is played'),
+            'Only the manager of ${name} can see the teamcomp before the game is played'),
       );
     }
 

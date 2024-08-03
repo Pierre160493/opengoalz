@@ -278,7 +278,7 @@ extension PlayerWidgetTransfer on Player {
                         Provider.of<SessionProvider>(context, listen: false)
                             .user!
                             .selectedClub
-                            .nameClub,
+                            .name,
                   });
 
                   if (new_date_sell.isAfter(dateSell!)) {

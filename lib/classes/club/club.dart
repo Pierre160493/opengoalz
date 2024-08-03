@@ -38,7 +38,7 @@ class Club {
     required this.multiverseSpeed,
     required this.idLeague,
     required this.userName,
-    required this.nameClub,
+    required this.name,
     required this.staffExpanses,
     required this.lisCash,
     required this.lisRevenues,
@@ -67,7 +67,7 @@ class Club {
   final int multiverseSpeed;
   final int idLeague;
   final String? userName;
-  final String nameClub;
+  final String name;
   final int staffExpanses;
   final List<int> lisCash;
   final List<int> lisRevenues;
@@ -98,7 +98,7 @@ class Club {
         multiverseSpeed = map['multiverse_speed'],
         idLeague = map['id_league'],
         userName = map['username'],
-        nameClub = map['name_club'],
+        name = map['name_club'],
         staffExpanses = map['staff_expanses'],
         lisCash = List<int>.from(map['lis_cash']),
         lisRevenues = List<int>.from(map['lis_revenues']),

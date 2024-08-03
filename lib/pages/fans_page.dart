@@ -49,7 +49,7 @@ class _FansPageState extends State<FansPage> {
           title: Text(Provider.of<SessionProvider>(context)
               .user!
               .selectedClub
-              .nameClub)),
+              .name)),
       // CustomAppBar(clubStream: _clubStream),
       // drawer: AppDrawer(clubStream: _clubStream),
       drawer: const AppDrawer(),

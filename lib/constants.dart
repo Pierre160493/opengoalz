@@ -35,7 +35,6 @@ const icon_scouts = Icons.camera_indoor_outlined;
 const icon_medics = Icons.healing;
 const icon_players = Icons.diversity_3;
 const icon_transfers = Icons.currency_exchange;
-const icon_games = Icons.event_outlined;
 const iconGames = Icons.calendar_month;
 const icon_league = Icons.emoji_events_outlined;
 const iconTraining = Icons.query_stats;
@@ -45,10 +44,14 @@ const icon_club = Icons.home_work_rounded;
 const iconDetails = Icons.description;
 const iconHistory = Icons.history_edu;
 const iconMoney = Icons.monetization_on_outlined;
+const iconUser = Icons.account_circle;
 
 const iconSizeSmall = 24.0;
 const iconSizeMedium = 30.0;
 const iconSizeLarge = 36.0;
+
+/// Color for players or clubs belonging to the currently connected user
+const Color colorIsMine = Colors.purple;
 
 /// Basic theme to change the look and feel of the app
 ThemeData getAppTheme(BuildContext context) {

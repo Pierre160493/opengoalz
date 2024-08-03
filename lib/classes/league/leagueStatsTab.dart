@@ -148,37 +148,17 @@ extension LeagueStatsTab on League {
           ),
 
           /// Display player name
-          title: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PlayersPage(
-                    inputCriteria: {
-                      'Players': [players[entry.key]!.id]
-                    },
-                  ),
-                ),
-              );
-            },
-            child: Flexible(
-              // Expanded(
-              //   child: players[entry.key]!
-              //       .getPlayerMainInformation(context),
-              // ),
-              child: Text(
-                ' ${players[entry.key]!.firstName[0]}.${players[entry.key]!.lastName.toUpperCase()} ',
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          title: players[entry.key]!.getPlayerNameClickable(context),
 
-          /// Display club name
-          subtitle: players[entry.key]!.getClubNameWidget(context),
+          /// Display club name and username
+          subtitle: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              players[entry.key]!.getClubNameWidget(context),
+              if (players[entry.key]!.userName != null)
+                getUserNameClickable(context, players[entry.key]!.userName!),
+            ],
+          ),
 
           /// Show number of goals
           trailing: CircleAvatar(

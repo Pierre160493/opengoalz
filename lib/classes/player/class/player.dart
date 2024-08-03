@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
+import 'package:opengoalz/classes/club/getClubNameWidget.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/provider_user.dart';

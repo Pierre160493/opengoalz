@@ -78,7 +78,7 @@ class _ClubPageState extends State<ClubPage> {
           Club club = snapshot.data!;
           return Scaffold(
             appBar: AppBar(
-              title: Text('${club.nameClub}'),
+              title: Text('${club.name}'),
               backgroundColor: Colors.green,
             ),
             // drawer: const AppDrawer(),
@@ -104,7 +104,7 @@ class _ClubPageState extends State<ClubPage> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  club.nameClub,
+                                  club.name,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize:

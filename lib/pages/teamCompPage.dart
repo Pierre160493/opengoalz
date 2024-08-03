@@ -100,7 +100,7 @@ class _HomePageState extends State<TeamCompPage> {
             return Scaffold(
               appBar: AppBar(
                   title: Text(
-                      'TeamComp for ${club.nameClub} for week ${club.teamComps.first.weekNumber} of season ${club.teamComps.first.seasonNumber}')), //Row presentation of the game
+                      'TeamComp for ${club.name} for week ${club.teamComps.first.weekNumber} of season ${club.teamComps.first.seasonNumber}')), //Row presentation of the game
               body: Center(
                 child: Container(
                   constraints: BoxConstraints(

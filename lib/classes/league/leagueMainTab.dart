@@ -57,7 +57,7 @@ extension LeagueMainTab on League {
                     style: TextStyle(color: Colors.black),
                   ),
                 ),
-                title: Text(club.nameClub),
+                title: club.getClubName(context),
                 subtitle: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

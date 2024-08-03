@@ -36,7 +36,7 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
-          buildDrawerTitle('Club: ${selectedClub.nameClub}'),
+          buildDrawerTitle('Club: ${selectedClub.name}'),
           buildDrawerOption(
               context,
               icon_finance,
@@ -75,7 +75,7 @@ class AppDrawer extends StatelessWidget {
               })), // Add the Players page
           buildDrawerOption(context, icon_transfers, 'Transfers',
               TransferPage(idClub: selectedClub.id)), // Add the Transfers page
-          buildDrawerOption(context, icon_games, 'Games',
+          buildDrawerOption(context, iconGames, 'Games',
               GamesPage(idClub: selectedClub.id)), // Add the Games page
           buildDrawerOption(
               context,

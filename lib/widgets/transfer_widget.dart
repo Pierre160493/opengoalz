@@ -295,7 +295,7 @@ class PlayerTransferTile extends StatelessWidget {
                         Provider.of<SessionProvider>(context, listen: false)
                             .user!
                             .selectedClub
-                            .nameClub,
+                            .name,
                   });
 
                   if (date_sell.isAfter(player.dateSell!)) {

@@ -39,40 +39,53 @@ class _RankingPageState extends State<LeaguePage> {
         .map((maps) => maps.map((map) => League.fromMap(map)).first)
         .switchMap((League league) {
           return supabase
-              .from('clubs')
-              .stream(primaryKey: ['id'])
-              .eq('id_league', league.id)
-              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
-              .map((clubs) {
-                for (Club club in clubs) {
-                  league.clubs.add(club);
-                }
-                return league;
-              });
-        })
-        .switchMap((League league) {
-          return supabase
               .from('games')
               .stream(primaryKey: ['id'])
               .eq('id_league', league.id)
+              .order('date_start', ascending: true) // Order by date_start
               .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
               .map((games) {
                 league.games = games
                     .where(
                         (Game game) => game.seasonNumber == league.seasonNumber)
                     .toList(); // Add all the games of this league
-                league.games.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+                // league.games.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+                return league;
+              });
+        })
+        .switchMap((League league) {
+          return supabase
+              .from('clubs')
+              .stream(primaryKey: ['id'])
+              .inFilter(
+                  'id',
+                  league.games
+                      .map((game) => [game.idClubLeft, game.idClubRight])
+                      .expand((element) => element)
+                      .where((element) =>
+                          element != null) // Filter out null values
+                      .toSet()
+                      .toList()
+                      .cast<int>() // Cast to List<int>
+                  )
+              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
+              .map((clubs) {
+                league.clubs = clubs;
                 for (Game game in league.games) {
-                  game.leftClub = league.clubs.firstWhere(
+                  if (game.idClubLeft != null) {
+                    game.leftClub = league.clubs.firstWhere(
                       (club) => club.id == game.idClubLeft,
                       orElse: () => throw Exception(
-                          'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'));
-                  ;
-                  game.rightClub = league.clubs.firstWhere(
-                      (club) => club.id == game.idClubRight,
-                      orElse: () => throw Exception(
-                          'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
-                  ;
+                          'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'),
+                    );
+                  }
+                  if (game.idClubRight != null) {
+                    game.rightClub = league.clubs.firstWhere(
+                        (club) => club.id == game.idClubRight,
+                        orElse: () => throw Exception(
+                            'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
+                    ;
+                  }
                 }
                 return league;
               });
@@ -197,7 +210,7 @@ class _RankingPageState extends State<LeaguePage> {
             return Scaffold(
               appBar: AppBar(
                 title: Text(
-                    'League ${league.level.toString()}.${league.number.toString()} of ${league.continent}'),
+                    'L${league.level.toString()}.${league.number.toString()} of ${league.continent}'),
               ),
               drawer: const AppDrawer(),
               body: MaxWidthContainer(
@@ -207,7 +220,8 @@ class _RankingPageState extends State<LeaguePage> {
                     children: [
                       TabBar(
                         tabs: [
-                          buildTabWithIcon(Icons.format_list_numbered, 'Rankings'),
+                          buildTabWithIcon(
+                              Icons.format_list_numbered, 'Rankings'),
                           buildTabWithIcon(Icons.event, 'Games'),
                           buildTabWithIcon(Icons.query_stats, 'Stats'),
                           // buildTab(Icons.wechat, 'Chat'),

@@ -77,7 +77,7 @@ class Game {
       idClubLeft: map['id_club_left'],
       idClubRight: map['id_club_right'],
       dateStart: map['date_start'] != null
-          ? DateTime.parse(map['date_start'])
+          ? DateTime.parse(map['date_start']).toLocal()
           : throw ArgumentError('date_start cannot be null'),
       dateEnd: map['date_end'] != null ? DateTime.parse(map['date_end']) : null,
       idStadium: map['id_stadium'],

@@ -230,8 +230,8 @@ class _HomePageState extends State<GamePage> {
         children: [
           TabBar(
             tabs: [
-              buildTab(Icons.join_left, game.leftClub.nameClub),
-              buildTab(Icons.join_right, game.rightClub.nameClub),
+              buildTab(Icons.join_left, game.leftClub.name),
+              buildTab(Icons.join_right, game.rightClub.name),
             ],
           ),
           Expanded(

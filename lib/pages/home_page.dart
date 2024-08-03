@@ -11,6 +11,7 @@ import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/multiverse_row_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 
@@ -48,7 +49,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.of(context).push(SettingsPage.route());
                 },
-                icon: Icon(Icons.settings, size: iconSizeMedium),
+                icon: Icon(Icons.settings, size: iconSizeSmall),
               ),
               IconButton(
                 onPressed: () async {
@@ -86,7 +87,7 @@ class _HomePageState extends State<HomePage> {
                         LoginPage.route(), (route) => false);
                   }
                 },
-                icon: Icon(Icons.logout, size: iconSizeMedium),
+                icon: Icon(Icons.logout, size: iconSizeSmall),
               ),
             ],
           ),
@@ -102,7 +103,7 @@ class _HomePageState extends State<HomePage> {
                         icon_club, 'Clubs (${user!.clubs.length})'),
                     buildTabWithIcon(
                         icon_players, 'Players (${user.players.length})'),
-                    buildTabWithIcon(Icons.description, 'User Info'),
+                    buildTabWithIcon(Icons.description, 'User'),
                   ],
                 ),
                 Expanded(
@@ -115,8 +116,7 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(height: 12),
                           Text('Username: ${user.username}'),
                           Text(
-                              'Created at: ${DateFormat.yMMMMd('en_US').format(user.createdAt)}'),
-                          const SizedBox(height: 12),
+                              'Since: ${DateFormat.yMMMMd('en_US').format(user.createdAt)}'),
                         ],
                       ),
                     ],
@@ -179,7 +179,13 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           title: club.getClubName(context),
-                          subtitle: club.getCreationWidget(),
+                          subtitle: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              club.getCreationWidget(),
+                              multiverseWidget(club.multiverseSpeed),
+                            ],
+                          ),
                         ),
                         if (club.id ==
                             Provider.of<SessionProvider>(context)

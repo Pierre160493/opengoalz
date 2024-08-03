@@ -1,6 +1,134 @@
 part of 'player.dart';
 
 extension PlayerWidgetsHelper on Player {
+  Widget getPlayerNames(BuildContext context) {
+    /// Check if the player belongs to the currently connected user
+    bool isMine = Provider.of<SessionProvider>(context)
+        .user!
+        .players
+        .map((player) => player.id)
+        .toList()
+        .contains(id);
+
+    /// Text widget of the player name
+    Text text = Text(
+      '${firstName[0]}.${lastName.toUpperCase()}',
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        color: isMine ? colorIsMine : null,
+      ),
+
+      overflow: TextOverflow.fade, // or TextOverflow.ellipsis
+      maxLines: 1,
+      softWrap: false,
+    );
+
+    return Row(
+      children: [Icon(getPlayerIcon()), text],
+    );
+  }
+
+  /// Clickable widget of the club name
+  Widget getPlayerNameClickable(BuildContext context,
+      {bool isRightClub = false}) {
+    return Row(
+      mainAxisAlignment:
+          isRightClub ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PlayersPage(
+                  inputCriteria: {
+                    'Players': [id]
+                  },
+                ),
+              ),
+            );
+          },
+          child: getPlayerNames(context),
+        ),
+      ],
+    );
+  }
+
+  /// get the club name
+  Widget getClubNameWidget(BuildContext context) {
+    return getClubNameClickable(context, club, idClub);
+
+    // if (idClub == null) {
+    //   return Row(
+    //     children: [
+    //       Icon(
+    //         Icons.fireplace_outlined,
+    //         size: icon_size, // Adjust icon size as needed
+    //         color: Colors.green, // Adjust icon color as needed
+    //       ),
+    //       Text(
+    //         'Free Player',
+    //         style: TextStyle(
+    //           fontWeight: FontWeight.bold,
+    //         ),
+    //       ),
+    //     ],
+    //   );
+    // } else {
+    //   return Row(
+    //     children: [
+    //       // Icon(
+    //       //   icon_club,
+    //       //   size: icon_size, // Adjust icon size as needed
+    //       //   color: Colors.green, // Adjust icon color as needed
+    //       // ),
+    //       if (club == null)
+    //         Text(
+    //           'ERROR: Club of this player wasn\'t found',
+    //           style: TextStyle(
+    //             fontWeight: FontWeight.bold,
+    //           ),
+    //         )
+    //       else
+    //         club!.getClubNameClickable(context),
+    //     ],
+    //   );
+    // }
+  }
+
+  /// get the username of the player
+  // Widget getUserNameWidget() {
+  //   if (userName == null) {
+  //     return Row(
+  //       children: [
+  //         Icon(
+  //           Icons.error,
+  //         ),
+  //         Text(
+  //           'No User',
+  //           style: TextStyle(
+  //             fontWeight: FontWeight.bold,
+  //           ),
+  //         ),
+  //       ],
+  //     );
+  //   }
+  //   return Row(
+  //     children: [
+  //       Icon(
+  //         Icons.android_outlined,
+  //         color: Colors.green, // Adjust icon color as needed
+  //       ),
+  //       Text(
+  //         userName!,
+  //         style: TextStyle(
+  //           fontWeight: FontWeight.bold,
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+
   /// Returns the status of the player (on transfer list, being fired, injured, etc...)
   Widget getStatusRow() {
     DateTime currentDate = DateTime.now();
@@ -99,7 +227,7 @@ extension PlayerWidgetsHelper on Player {
                   CircleAvatar(
                     radius: 48,
                     child: Icon(
-                      getIcon(),
+                      getPlayerIcon(),
                       size: 90,
                     ),
                   ),
@@ -252,76 +380,6 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  Widget getClubNameWidget(BuildContext context) {
-    if (idClub == null) {
-      return Row(
-        children: [
-          Icon(
-            Icons.fireplace_outlined,
-            size: icon_size, // Adjust icon size as needed
-            color: Colors.green, // Adjust icon color as needed
-          ),
-          Text(
-            'Free Player',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      );
-    } else {
-      return Row(
-        children: [
-          Icon(
-            icon_club,
-            size: icon_size, // Adjust icon size as needed
-            color: Colors.green, // Adjust icon color as needed
-          ),
-          if (club == null)
-            Text(
-              'ERROR: Club of this player wasn\'t found',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            )
-          else
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  ClubPage.route(idClub!),
-                );
-              },
-              child: Text(
-                ' ${club!.nameClub}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-        ],
-      );
-    }
-  }
-
-  Widget getUserNameWidget() {
-    return Row(
-      children: [
-        Icon(
-          Icons.android_outlined,
-          size: icon_size, // Adjust icon size as needed
-          color: Colors.green, // Adjust icon color as needed
-        ),
-        // Text(
-        //   ' ${username}',
-        //   style: TextStyle(
-        //     fontWeight: FontWeight.bold,
-        //   ),
-        // ),
-      ],
-    );
-  }
-
   Widget getInjuryWidget() {
     return Row(
       children: [
@@ -435,12 +493,12 @@ extension PlayerWidgetsHelper on Player {
   }
 
   /// Generate ico of the player based on the last digit of the player id
-  IconData getIcon() {
+  IconData getPlayerIcon() {
     switch (id % 10) {
       case 0:
         return Icons.person;
       case 1:
-        return Icons.person_2;
+        return Icons.face_5;
       case 2:
         return Icons.person_3;
       case 3:
@@ -450,13 +508,13 @@ extension PlayerWidgetsHelper on Player {
       case 5:
         return Icons.person_pin;
       case 6:
-        return Icons.person_pin_rounded;
+        return Icons.face_6;
       case 7:
-        return Icons.person_sharp;
+        return Icons.person_pin_rounded;
       case 8:
-        return Icons.perm_contact_cal_outlined;
+        return Icons.person_2;
       case 9:
-        return Icons.self_improvement;
+        return Icons.face;
       default:
         return Icons.error;
     }
