@@ -14,11 +14,14 @@ import '../constants.dart';
 
 class LeaguePage extends StatefulWidget {
   final int idLeague; // Add idLeague as an input parameter
-  const LeaguePage({Key? key, required this.idLeague}) : super(key: key);
+  final int? idSelectedClub; // Add idClub as an input parameter
+  const LeaguePage({Key? key, required this.idLeague, this.idSelectedClub})
+      : super(key: key);
 
-  static Route<void> route(int idLeague) {
+  static Route<void> route(int idLeague, {int? idClub}) {
     return MaterialPageRoute<void>(
-      builder: (context) => LeaguePage(idLeague: idLeague),
+      builder: (context) =>
+          LeaguePage(idLeague: idLeague, idSelectedClub: idClub),
     );
   }
 
@@ -36,7 +39,10 @@ class _RankingPageState extends State<LeaguePage> {
         .from('leagues')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idLeague) // Access idLeague via widget
-        .map((maps) => maps.map((map) => League.fromMap(map)).first)
+        .map((maps) => maps
+            .map((map) =>
+                League.fromMap(map, idSelectedClub: widget.idSelectedClub))
+            .first)
         .switchMap((League league) {
           return supabase
               .from('games')
@@ -68,7 +74,7 @@ class _RankingPageState extends State<LeaguePage> {
                       .toList()
                       .cast<int>() // Cast to List<int>
                   )
-              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
+              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((clubs) {
                 league.clubs = clubs;
                 for (Game game in league.games) {

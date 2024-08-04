@@ -51,13 +51,14 @@ extension LeagueMainTab on League {
                           ? Colors.grey
                           : index == 2
                               ? Colors.amber
-                              : Colors.blue, // Set the background color
+                              : Colors
+                                  .blue, // Set the background color of the circleAvatar
                   child: Text(
                     '${index + 1}',
                     style: TextStyle(color: Colors.black),
                   ),
                 ),
-                title: club.getClubName(context),
+                title: club.getClubNameClickable(context),
                 subtitle: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -129,12 +130,12 @@ extension LeagueMainTab on League {
                     ),
                   ],
                 ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    ClubPage.route(club.id),
-                  );
-                },
+                // onTap: () {
+                //   Navigator.push(
+                //     context,
+                //     ClubPage.route(club.id),
+                //   );
+                // },
                 trailing: CircleAvatar(
                   backgroundColor: Colors.grey,
                   child: Text(

@@ -65,7 +65,7 @@ class _PlayersPageState extends State<PlayersPage> {
           .from('clubs')
           .stream(primaryKey: ['id'])
           .inFilter('id', clubIds.cast<Object>())
-          .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList());
+          .map((maps) => maps.map((map) => Club.fromMap(map)).toList());
     });
     // Combine player and club streams
     _playerStream =

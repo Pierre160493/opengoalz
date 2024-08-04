@@ -54,7 +54,7 @@ class _HomePageState extends State<GamePage> {
               .from('clubs')
               .stream(primaryKey: ['id'])
               .eq('id', game.idClubLeft!)
-              .map((maps) => maps.map((map) => Club.fromMap(map: map)).first)
+              .map((maps) => maps.map((map) => Club.fromMap(map)).first)
               .map((Club club) {
                 game.leftClub = club;
                 return game;
@@ -68,7 +68,7 @@ class _HomePageState extends State<GamePage> {
               .from('clubs')
               .stream(primaryKey: ['id'])
               .eq('id', game.idClubRight!)
-              .map((maps) => maps.map((map) => Club.fromMap(map: map)).first)
+              .map((maps) => maps.map((map) => Club.fromMap(map)).first)
               .map((Club club) {
                 game.rightClub = club;
                 return game;

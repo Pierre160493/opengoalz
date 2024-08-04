@@ -7,7 +7,6 @@ import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
-import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
@@ -20,8 +19,9 @@ part 'leagueGamesTab.dart';
 part 'leagueStatsTab.dart';
 
 class League {
-  List<Game> games = [];
-  List<Club> clubs = [];
+  List<Game> games = []; // List of games in the league
+  List<Club> clubs = []; // List of clubs in the league
+  int? idSelectedClub; // id of the club selected in the club tab
 
   League({
     required this.id,
@@ -43,7 +43,8 @@ class League {
   final int? idUpperLeague;
   final bool isFinished;
 
-  League.fromMap(Map<String, dynamic> map)
+  League.fromMap(Map<String, dynamic> map,
+      {this.idSelectedClub}) // Add idSelectedClub as an optional parameter
       : id = map['id'],
         multiverseSpeed = map['multiverse_speed'],
         seasonNumber = map['season_number'],

@@ -36,7 +36,7 @@ class _ClubPageState extends State<ClubPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map: map)).first)
+        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
 
         /// Fetch its league
         .switchMap((Club club) {

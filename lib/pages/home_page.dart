@@ -15,20 +15,20 @@ import 'package:opengoalz/widgets/multiverse_row_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class UserPage extends StatefulWidget {
+  const UserPage({Key? key}) : super(key: key);
 
   static Route<void> route() {
     return MaterialPageRoute(
-      builder: (context) => HomePage(),
+      builder: (context) => UserPage(),
     );
   }
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<UserPage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<UserPage> {
   @override
   void initState() {
     super.initState();
@@ -41,7 +41,6 @@ class _HomePageState extends State<HomePage> {
         GameUser? user = sessionProvider.user;
         return Scaffold(
           appBar: AppBar(
-            // title: Text('Home Page'),
             title: Text(
                 'Hello ${Provider.of<SessionProvider>(context).user!.username} !'),
             actions: [

@@ -37,7 +37,7 @@ class _HomePageState extends State<GamesPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => Club.fromMap(map: maps.first))
+        .map((maps) => Club.fromMap(maps.first))
 
         /// Fetch the games where the club is left
         .switchMap((Club club) {
@@ -111,7 +111,7 @@ class _HomePageState extends State<GamesPage> {
                       .map((id) => id!)
                       .toSet()
                       .toList())
-              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
+              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((clubs) {
                 for (var game in club.games) {
                   game.rightClub =
@@ -442,7 +442,7 @@ class _HomePageState extends State<GamesPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => Club.fromMap(map: maps.first))
+        .map((maps) => Club.fromMap(maps.first))
 
         /// Fetch the games where the club is left
         .switchMap((Club club) {
@@ -496,7 +496,7 @@ class _HomePageState extends State<GamesPage> {
                       .map((id) => id!)
                       .toSet()
                       .toList())
-              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
+              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((clubs) {
                 for (var game in club.games) {
                   game.rightClub =
@@ -603,7 +603,7 @@ class _HomePageState extends State<GamesPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => Club.fromMap(map: maps.first))
+        .map((maps) => Club.fromMap(maps.first))
 
         /// Fetch the games where the club is left
         .switchMap((Club club) {
@@ -657,7 +657,7 @@ class _HomePageState extends State<GamesPage> {
                       .map((id) => id!)
                       .toSet()
                       .toList())
-              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
+              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((clubs) {
                 for (var game in club.games) {
                   game.rightClub =

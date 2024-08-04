@@ -162,7 +162,8 @@ extension PlayerCardStats on Player {
       },
       child: Row(
         children: [
-          Text('Increase ${stat} from ${value} to ${value + 1}'),
+          Text(
+              '${stat} from ${value.toStringAsFixed(1)} to ${(value + 1).toStringAsFixed(1)}'),
         ],
       ),
       // child: Text('Increase ${stat}'),

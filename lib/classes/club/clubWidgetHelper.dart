@@ -2,19 +2,31 @@ part of 'club.dart';
 
 extension ClubWidgetHelper on Club {
   Widget getClubName(BuildContext context, {bool isRightClub = false}) {
-    bool isMine =
+    /// If the club belongs to the current user
+    bool isMine = Provider.of<SessionProvider>(context)
+        .user!
+        .clubs
+        .map((Club club) => club.id)
+        .toList()
+        .contains(id);
+
+    /// If the club is currently selected
+    bool isSelected =
         Provider.of<SessionProvider>(context).user!.selectedClub.id == id;
     Text text = Text(
       name,
       style: TextStyle(
         fontWeight: FontWeight.bold,
-        fontStyle: isMine ? FontStyle.italic : FontStyle.normal,
+        fontStyle: isSelected ? FontStyle.italic : FontStyle.normal,
+        color: isMine ? colorIsMine : null,
+        decoration:
+            isSelected ? TextDecoration.underline : null, // Add this line
       ),
       overflow: TextOverflow.fade, // or TextOverflow.ellipsis
       maxLines: 1,
       softWrap: false,
     );
-    Icon icon = Icon(isMine ? icon_home : Icons.sports_soccer_outlined);
+    Icon icon = Icon(isSelected ? icon_home : Icons.sports_soccer_outlined);
 
     return Row(
       children: [

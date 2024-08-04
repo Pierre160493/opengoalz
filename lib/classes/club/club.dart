@@ -32,6 +32,10 @@ class Club {
   int goalsScored = 0; // goals scored of the club
   int goalsTaken = 0; // goals taken of the club
 
+  bool isBelongingToConnectedUser =
+      false; // If the club belongs to the current user
+  bool isCurrentlySelected = false; // If the club is currently selected
+
   Club({
     required this.id,
     required this.createdAt,
@@ -90,10 +94,13 @@ class Club {
   final int? idLeagueNextSeason;
   final int? posLeagueNextSeason;
 
-  Club.fromMap({required Map<String, dynamic> map
-      // required String myUserId,
-      })
+  Club.fromMap(Map<String, dynamic> map,
+      {List<int>? myClubsIds, int? idSelectedClub})
       : id = map['id'],
+        isBelongingToConnectedUser = myClubsIds?.contains(map['id']) ??
+            false, // Set isUser to true if the club id is in myClubsIds
+        isCurrentlySelected =
+            idSelectedClub == map['id'], // Is the club selected
         createdAt = DateTime.parse(map['created_at']),
         multiverseSpeed = map['multiverse_speed'],
         idLeague = map['id_league'],

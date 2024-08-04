@@ -50,7 +50,7 @@ extension LeagueStatsTab on League {
                       .toSet()
                       .toList()
                       .cast<Object>())
-              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
+              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((List<Club> clubs) {
                 return players.map((player) {
                   player.club =

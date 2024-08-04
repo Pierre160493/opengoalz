@@ -79,7 +79,9 @@ class Game {
       dateStart: map['date_start'] != null
           ? DateTime.parse(map['date_start']).toLocal()
           : throw ArgumentError('date_start cannot be null'),
-      dateEnd: map['date_end'] != null ? DateTime.parse(map['date_end']) : null,
+      dateEnd: map['date_end'] != null
+          ? DateTime.parse(map['date_end']).toLocal()
+          : null,
       idStadium: map['id_stadium'],
       weekNumber: map['week_number'],
       isCup: map['is_cup'] ?? false,

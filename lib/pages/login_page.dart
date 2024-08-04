@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text,
       );
       Navigator.of(context)
-          .pushAndRemoveUntil(HomePage.route(), (route) => false);
+          .pushAndRemoveUntil(UserPage.route(), (route) => false);
     } on AuthException catch (error) {
       context.showErrorSnackBar(message: error.message);
     } catch (_) {

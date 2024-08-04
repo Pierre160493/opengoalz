@@ -46,7 +46,7 @@ class SessionProvider extends ChangeNotifier {
               .from('clubs')
               .stream(primaryKey: ['id'])
               .eq('username', user.username)
-              .map((maps) => maps.map((map) => Club.fromMap(map: map)).toList())
+              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((List<Club> clubs) {
                 user.clubs = clubs;
                 if (user.idDefaultClub != null)

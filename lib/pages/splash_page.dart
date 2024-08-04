@@ -35,7 +35,7 @@ class SplashPageState extends State<SplashPage> {
           .providerFetchUser(supabase.auth.currentUser!.id);
 
       Navigator.of(context)
-          .pushAndRemoveUntil(HomePage.route(), (route) => false);
+          .pushAndRemoveUntil(UserPage.route(), (route) => false);
     }
   }
 

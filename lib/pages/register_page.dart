@@ -41,7 +41,7 @@ class _RegisterPageState extends State<RegisterPage> {
       await supabase.auth.signUp(
           email: email, password: password, data: {'username': username});
       Navigator.of(context)
-          .pushAndRemoveUntil(HomePage.route(), (route) => false);
+          .pushAndRemoveUntil(UserPage.route(), (route) => false);
     } on AuthException catch (error) {
       context.showErrorSnackBar(message: error.message);
     } catch (error) {

@@ -20,7 +20,7 @@ Widget getClubNameClickable(BuildContext context, Club? club, int? idCLub) {
           .from('clubs')
           .stream(primaryKey: ['id'])
           .eq('id', idCLub)
-          .map((maps) => maps.map((map) => Club.fromMap(map: map)).first),
+          .map((maps) => maps.map((map) => Club.fromMap(map)).first),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();

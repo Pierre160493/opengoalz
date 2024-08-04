@@ -40,7 +40,7 @@ class _HomePageState extends State<TeamCompPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map: map)).first)
+        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
         .switchMap((Club club) {
           return supabase
               .from('games_teamcomp')

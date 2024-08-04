@@ -56,30 +56,17 @@ extension GameClassWidgetHelper on Game {
     );
   }
 
-  Widget getScoreRow() {
-    Row row = Row(
-      children: [
-        // SizedBox(
-        //   width: 6,
-        // ),
-        // Icon(
-        //   // Icons.handshake,
-        //   Icons.compare_arrows,
-        //   // size: 30,
-        //   color: Colors.blueGrey,
-        // ),
-        Text(
-          ' : ',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
-        ),
-        // SizedBox(
-        //   width: 6,
-        // )
-      ],
-    );
-
+  Widget getScoreRow({int? idClubSelected = null}) {
     if (dateEnd == null)
-      return row;
+      return Row(
+        children: [
+          Text(
+            ' : ',
+            style:
+                TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+          ),
+        ],
+      );
     else if (scoreLeft == null && scoreRight == null)
       return Text('ERR: Unknown left and right score of the game $id');
     else if (scoreRight == null)
@@ -99,24 +86,59 @@ extension GameClassWidgetHelper on Game {
       }
     }
 
-    Color leftColor = Colors.blueGrey;
-    Color rightColor = Colors.blueGrey;
-    // If the game is a cup, display the score of the penalty shootout if it happened
-    if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
-      if (leftPenaltyScore > rightPenaltyScore) {
-        leftColor = Colors.green;
-        rightColor = Colors.red;
-      } else if (leftPenaltyScore < rightPenaltyScore) {
-        leftColor = Colors.red;
-        rightColor = Colors.green;
-      }
-    } else if (scoreLeft! > scoreRight!) {
-      leftColor = Colors.green;
-      rightColor = Colors.red;
-    } else if (scoreLeft! < scoreRight!) {
-      leftColor = Colors.red;
-      rightColor = Colors.green;
+    if (idClubSelected == null) {} else {
+      
     }
+
+    Color colorScore = Colors.blueGrey;
+    if (idClubLeft == idClubSelected) {
+      if (scoreLeft! > scoreRight!) {
+        Color colorScore = Colors.green;
+      } else if (scoreLeft! < scoreRight!) {
+        Color colorScore = Colors.red;
+      }
+    } else if (idClubRight == idClubSelected) {
+      if (scoreLeft! > scoreRight!) {
+        Color colorScore = Colors.red;
+      } else if (scoreLeft! < scoreRight!) {
+        Color colorScore = Colors.green;
+      }
+    }
+    Color colorPenalty = Colors.blueGrey;
+    if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
+      if (idClubLeft == idClubSelected) {
+        if (leftPenaltyScore > rightPenaltyScore) {
+          Color colorPenalty = Colors.green;
+        } else {
+          Color colorPenalty = Colors.red;
+        }
+      } else if (idClubRight == idClubSelected) {
+        if (leftPenaltyScore > rightPenaltyScore) {
+          Color colorPenalty = Colors.red;
+        } else {
+          Color colorPenalty = Colors.green;
+        }
+      }
+    }
+
+    // Color leftColor = Colors.blueGrey;
+    // Color rightColor = Colors.blueGrey;
+    // // If the game is a cup, display the score of the penalty shootout if it happened
+    // if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
+    //   if (leftPenaltyScore > rightPenaltyScore) {
+    //     leftColor = Colors.green;
+    //     rightColor = Colors.red;
+    //   } else if (leftPenaltyScore < rightPenaltyScore) {
+    //     leftColor = Colors.red;
+    //     rightColor = Colors.green;
+    //   }
+    // } else if (scoreLeft! > scoreRight!) {
+    //   leftColor = Colors.green;
+    //   rightColor = Colors.red;
+    // } else if (scoreLeft! < scoreRight!) {
+    //   leftColor = Colors.red;
+    //   rightColor = Colors.green;
+    // }
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 6),
@@ -129,7 +151,7 @@ extension GameClassWidgetHelper on Game {
           Text(
             scoreLeft.toString(),
             style: TextStyle(
-              color: leftPenaltyScore == null ? leftColor : Colors.white,
+              color: leftPenaltyScore == null ? colorPenalty : null,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -137,23 +159,27 @@ extension GameClassWidgetHelper on Game {
             Text(
               ' [${leftPenaltyScore.toString()}]',
               style: TextStyle(
-                color: leftColor,
+                color: colorScore,
                 fontWeight: FontWeight.bold,
               ),
             ),
-          row,
+          Text(
+            ' : ',
+            style:
+                TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+          ),
           if (rightPenaltyScore != null)
             Text(
               '[${rightPenaltyScore.toString()}] ',
               style: TextStyle(
-                color: rightColor,
+                color: colorScore,
                 fontWeight: FontWeight.bold,
               ),
             ),
           Text(
             scoreRight.toString(),
             style: TextStyle(
-              color: rightPenaltyScore == null ? rightColor : Colors.white,
+              color: rightPenaltyScore == null ? colorPenalty : null,
               fontWeight: FontWeight.bold,
             ),
           )
