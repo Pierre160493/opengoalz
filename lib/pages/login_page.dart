@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'home_page.dart';
+import 'user_page.dart';
 import 'register_page.dart';
 import '../constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

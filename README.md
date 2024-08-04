@@ -54,12 +54,10 @@ Handle injuries, subs and free kick
 
 ### Handle training and staff (MEDIUM)
 
-### Create User Page (EASY)
-
-Should be almost the same than home page but without the provider
-Create an user widget from clubs and players to see the user
-
 ### Others small development and corrections
 
 - At first connection, after login, the page crashes
-- Error with the stats page on WebSite
+
+### Select followed (or favorite) clubs and players and access it from the UserPage (EASY)
+
+Make a table linking id_clubs or id_player to id_user (in profiles table)

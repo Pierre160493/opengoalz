@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/gameUser.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/pages/home_page.dart';
+import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:provider/provider.dart';
 import '../constants.dart';
@@ -32,7 +30,7 @@ class SplashPageState extends State<SplashPage> {
     } else {
       ///
       await Provider.of<SessionProvider>(context, listen: false)
-          .providerFetchUser(supabase.auth.currentUser!.id);
+          .providerFetchUser(userId: supabase.auth.currentUser!.id);
 
       Navigator.of(context)
           .pushAndRemoveUntil(UserPage.route(), (route) => false);

@@ -7,7 +7,7 @@ import 'package:opengoalz/pages/chat_page.dart';
 import 'package:opengoalz/pages/fans_page.dart';
 import 'package:opengoalz/pages/finances_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
-import 'package:opengoalz/pages/home_page.dart';
+import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
