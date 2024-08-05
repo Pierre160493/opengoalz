@@ -16,6 +16,16 @@ class ThemeProvider extends ChangeNotifier {
     _saveThemePreference();
   }
 
+  void setOtherThemeWhenSelectedUserIsNotConnectedUser(
+      bool selectedUserIsConnectedUser) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _isDarkTheme = (prefs.getBool('isDarkTheme') ?? true);
+    if (!selectedUserIsConnectedUser) {
+      _isDarkTheme = !_isDarkTheme;
+    }
+    notifyListeners();
+  }
+
   void _loadThemePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _isDarkTheme = (prefs.getBool('isDarkTheme') ?? true);

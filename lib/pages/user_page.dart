@@ -6,6 +6,7 @@ import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/classes/player/player_card.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/settings_page.dart';
+import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
@@ -182,6 +183,14 @@ class _UserPageState extends State<UserPage> {
                       await Provider.of<SessionProvider>(context, listen: false)
                           .providerFetchUser(
                               userId: supabase.auth.currentUser!.id);
+
+                      /// Modify the app theme if the user is not the connected user
+                      Provider.of<ThemeProvider>(context, listen: false)
+                          .setOtherThemeWhenSelectedUserIsNotConnectedUser(
+                              Provider.of<SessionProvider>(context)
+                                      .user
+                                      ?.isConnectedUser ??
+                                  false);
 
                       Navigator.of(context).pushAndRemoveUntil(
                           UserPage.route(), (route) => false);

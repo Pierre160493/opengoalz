@@ -3,6 +3,8 @@ import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/user_page.dart';
+import 'package:opengoalz/provider_user.dart';
+import 'package:provider/provider.dart';
 
 class GameUser {
   bool isConnectedUser = false; // True if the profile is the connected user
@@ -63,53 +65,73 @@ class GameUser {
   }
 }
 
-Widget getUserNameClickable(BuildContext context, String? userName) {
+Widget getUserName(BuildContext context, String? userName) {
   if (userName == null) {
     return Row(
       children: [
-        Icon(iconUser),
+        Icon(iconBot),
+        SizedBox(width: 3),
         Text(' No User'),
       ],
     );
   }
 
-  return StreamBuilder<GameUser>(
-    stream: supabase
-        .from('profiles')
-        .stream(primaryKey: ['id'])
-        .eq('username', userName)
-        .map((maps) => maps.map((map) => GameUser.fromMap(map)).first),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return CircularProgressIndicator();
-      } else if (snapshot.hasError) {
-        return Text('ERROR: ${snapshot.error}');
-      } else {
-        final user = snapshot.data!;
-        return user.getUserNameClickable(context);
-      }
-    },
+  return Row(
+    children: [
+      Icon(iconUser),
+      SizedBox(width: 3),
+      Text(userName),
+      if (userName ==
+          Provider.of<SessionProvider>(context)
+              .user
+              ?.username) // If the user is the connected user
+        Icon(Icons.check_circle, color: Colors.green),
+    ],
   );
 }
 
-// Widget getUserNameWidget(BuildContext context, String userName) {
+Widget getUserNameClickable(BuildContext context, String? userName) {
+  if (userName == null) {
+    return getUserName(context, userName);
+  }
+
+  return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => UserPage(
+              userName: userName,
+            ),
+          ),
+        );
+      },
+      child: getUserName(context, userName));
+}
+
+// Widget getUserNameClickable2(BuildContext context, String? userName) {
+//   if (userName == null) {
+//     return Row(
+//       children: [
+//         Icon(iconUser),
+//         Text(' No User'),
+//       ],
+//     );
+//   }
+
 //   return StreamBuilder<GameUser>(
 //     stream: supabase
 //         .from('profiles')
 //         .stream(primaryKey: ['id'])
 //         .eq('username', userName)
-//         .map((maps) => maps
-//             .map((map) => GameUser.fromMap(map,
-//                 connectedUserId: supabase.auth.currentUser!.id))
-//             .first),
+//         .map((maps) => maps.map((map) => GameUser.fromMap(map)).first),
 //     builder: (context, snapshot) {
 //       if (snapshot.connectionState == ConnectionState.waiting) {
 //         return CircularProgressIndicator();
 //       } else if (snapshot.hasError) {
-//         return Center(child: Text('ERROR: ${snapshot.error}'));
+//         return Text('ERROR: ${snapshot.error}');
 //       } else {
-//         final GameUser user = snapshot.data!;
-
+//         final user = snapshot.data!;
 //         return user.getUserNameClickable(context);
 //       }
 //     },

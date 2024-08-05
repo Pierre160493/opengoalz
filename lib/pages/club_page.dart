@@ -8,7 +8,10 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/user_page.dart';
+import 'package:opengoalz/provider_theme_app.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ClubPage extends StatefulWidget {
@@ -154,49 +157,41 @@ class _ClubPageState extends State<ClubPage> {
 
                         /// Username of the club owner
                         ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                24), // Adjust border radius as needed
-                            side: const BorderSide(
-                              color: Colors.blueGrey, // Border color
-                            ),
-                          ),
-                          leading: const Icon(
-                            Icons.account_circle,
-                            size: 30,
-                          ), // Icon to indicate players
-                          title: Text(
-                            club.userName ?? 'Bot Club',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          subtitle: Row(
-                            children: [
-                              Text(
-                                'Since: ',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  24), // Adjust border radius as needed
+                              side: const BorderSide(
+                                color: Colors.blueGrey, // Border color
                               ),
-                              Text(
-                                  '${DateFormat.yMMMMd('en_US').format(club.createdAt)}'),
-                            ],
-                          ),
-                          onTap: club.userName != null
-                              ? () {
+                            ),
+                            title: getUserName(context, club.userName),
+                            onTap: () async => {
+                                  /// Reset the user to the user that is being visited
+                                  await Provider.of<SessionProvider>(context,
+                                          listen: false)
+                                      .providerFetchUser(
+                                          userName: club.userName),
+
+                                  /// Modify the app theme if the user is not the connected user
+                                  Provider.of<ThemeProvider>(context,
+                                          listen: false)
+                                      .setOtherThemeWhenSelectedUserIsNotConnectedUser(
+                                          Provider.of<SessionProvider>(context,
+                                                      listen: false)
+                                                  .user
+                                                  ?.isConnectedUser ??
+                                              false),
+
+                                  /// Go to the User's Page
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => UserPage(
-                                        userName: club.userName,
-                                      ),
+                                          // userName: club.userName,
+                                          ),
                                     ),
-                                  );
-                                }
-                              : null,
-                        ),
+                                  ),
+                                }),
 
                         /// Players
                         const SizedBox(height: 6),
