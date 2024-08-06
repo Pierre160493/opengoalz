@@ -3,6 +3,7 @@ import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:rxdart/rxdart.dart';
 
 class TeamCompPage extends StatefulWidget {
@@ -25,11 +26,11 @@ class TeamCompPage extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _HomePageState();
+    return _TeamCompPageState();
   }
 }
 
-class _HomePageState extends State<TeamCompPage> {
+class _TeamCompPageState extends State<TeamCompPage> {
   late Stream<Club> _clubStream;
 
   @override
@@ -101,34 +102,30 @@ class _HomePageState extends State<TeamCompPage> {
               appBar: AppBar(
                   title: Text(
                       'TeamComp for ${club.name} for week ${club.teamComps.first.weekNumber} of season ${club.teamComps.first.seasonNumber}')), //Row presentation of the game
-              body: Center(
-                child: Container(
-                  constraints: BoxConstraints(
-                      maxWidth: 600), // Set your desired maximum width
-                  child: DefaultTabController(
-                      length: 3, // Number of tabs
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TabBar(
-                            tabs: [
-                              buildTab(Icons.preview, 'TeamComp'),
-                              buildTab(Icons.reviews, 'Stats'),
-                              buildTab(Icons.group, 'Teams'),
+              body: MaxWidthContainer(
+                child: DefaultTabController(
+                    length: 3, // Number of tabs
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TabBar(
+                          tabs: [
+                            buildTab(Icons.preview, 'TeamComp'),
+                            buildTab(Icons.reviews, 'Stats'),
+                            buildTab(Icons.group, 'Teams'),
+                          ],
+                        ),
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              club.getTeamComp(context, 0),
+                              Center(child: Text('test')),
+                              Center(child: Text('test')),
                             ],
                           ),
-                          Expanded(
-                            child: TabBarView(
-                              children: [
-                                club.getTeamComp(context, 0),
-                                Center(child: Text('test')),
-                                Center(child: Text('test')),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )),
-                ),
+                        ),
+                      ],
+                    )),
               ),
             );
           }

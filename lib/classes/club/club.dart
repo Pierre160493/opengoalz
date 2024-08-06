@@ -22,6 +22,7 @@ part 'clubWidgetFinances.dart';
 
 class Club {
   List<TeamComp> teamComps = []; //List of the teamcomps of the club
+  List<TeamComp> defaultTeamComps = []; //List of the teamcomps of the club
   List<Game> games = []; //games of this club
   List<Player> players = []; // List of players of the club
   League? league; // League of the club

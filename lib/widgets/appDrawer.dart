@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/provider_theme_app.dart';
+import 'package:opengoalz/pages/teamCompsPage.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/chat_page.dart';
 import 'package:opengoalz/pages/fans_page.dart';
@@ -59,23 +59,23 @@ class AppDrawer extends StatelessWidget {
               icon_fans,
               'Fans (${selectedClub.numberFans})',
               FansPage(idClub: selectedClub.id)), // Add the fans page
-          buildDrawerOption(
-            context,
-            icon_stadium,
-            'Stadium',
-          ), // Add the Stadium page
-          buildDrawerOption(
-            context,
-            icon_staff,
-            'Staff',
-          ), // Add the Staff page
-          buildDrawerOption(
-            context,
-            icon_scouts,
-            'Scouts',
-          ), // Add the Scouts page
-          buildDrawerOption(
-              context, icon_medics, 'Medics'), // Add the Medics page
+          // buildDrawerOption(
+          //   context,
+          //   icon_stadium,
+          //   'Stadium',
+          // ), // Add the Stadium page
+          // buildDrawerOption(
+          //   context,
+          //   icon_staff,
+          //   'Staff',
+          // ), // Add the Staff page
+          // buildDrawerOption(
+          //   context,
+          //   icon_scouts,
+          //   'Scouts',
+          // ), // Add the Scouts page
+          // buildDrawerOption(
+          //     context, icon_medics, 'Medics'), // Add the Medics page
           buildDrawerTitle('Main Team'), // Add the Main Team page
           buildDrawerOption(
               context,
@@ -89,6 +89,14 @@ class AppDrawer extends StatelessWidget {
               TransferPage(idClub: selectedClub.id)), // Add the Transfers page
           buildDrawerOption(context, iconGames, 'Games',
               GamesPage(idClub: selectedClub.id)), // Add the Games page
+          buildDrawerOption(
+              context,
+              iconTeamComp,
+              'TeamComps',
+              TeamCompsPage(
+                  idClub: selectedClub.id,
+                  seasonNumber:
+                      selectedClub.seasonNumber)), // Add the Rankings page
           buildDrawerOption(
               context,
               icon_league,

@@ -78,15 +78,13 @@ extension ClubWidgetHelper on Club {
     }
     return Row(
       children: lisLastResults.reversed.take(5).map((result) {
-        if (result == 3) {
-          return Icon(Icons.check_circle,
-              color: Colors.green); // Icon for victory
-        } else if (result == 1) {
-          return Icon(Icons.swap_horizontal_circle,
-              color: Colors.blueGrey); // Icon for draw
-        } else {
-          return Icon(Icons.cancel, color: Colors.red); // Icon for defeat
-        }
+        return Icon(Icons.circle,
+            size: (iconSizeSmall / 1.5),
+            color: result == 3
+                ? Colors.green
+                : result == 0
+                    ? Colors.red
+                    : null); // Icon for victory
       }).toList(),
     );
   }

@@ -46,6 +46,7 @@ const iconHistory = Icons.history_edu;
 const iconMoney = Icons.monetization_on_outlined;
 const iconUser = Icons.account_circle;
 const iconBot = Icons.smart_toy_outlined;
+const iconTeamComp = Icons.grid_on;
 
 const iconSizeSmall = 24.0;
 const iconSizeMedium = 30.0;
