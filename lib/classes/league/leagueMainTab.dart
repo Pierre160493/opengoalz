@@ -23,7 +23,7 @@ extension LeagueMainTab on League {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
-                  'Rankings',
+                  'Rankings ${(100 * games.where((Game game) => game.dateEnd != null).length / 30).round().toString()} % played',
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
@@ -43,107 +43,111 @@ extension LeagueMainTab on League {
             itemCount: clubs.length,
             itemBuilder: (context, index) {
               final club = clubs[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: index == 0
-                      ? Colors.yellow
-                      : index == 1
-                          ? Colors.grey
-                          : index == 2
-                              ? Colors.amber
-                              : Colors
-                                  .blue, // Set the background color of the circleAvatar
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
-                title: club.getClubNameClickable(context),
-                subtitle: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          // Icons.checklist,
-                          Icons.emoji_events,
-                          color: Colors.blueGrey,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          club.victories.toString(),
-                          style: TextStyle(
-                            color: Colors.green, // Set the text color to green
-                            fontWeight: FontWeight.bold, // Make the text bold
-                          ),
-                        ),
-                        Text(' / '),
-                        Text(
-                          club.draws.toString(),
-                          style: TextStyle(
-                            color: Colors.grey, // Set the text color to green
-                            fontWeight: FontWeight.bold, // Make the text bold
-                          ),
-                        ),
-                        Text(' / '),
-                        Text(
-                          club.defeats.toString(),
-                          style: TextStyle(
-                            color: Colors.red, // Set the text color to green
-                            fontWeight: FontWeight.bold, // Make the text bold
-                          ),
-                        ),
-                      ],
+              if (club.idLeague == id)
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: index == 0
+                        ? Colors.yellow
+                        : index == 1
+                            ? Colors.grey
+                            : index == 2
+                                ? Colors.amber
+                                : Colors
+                                    .blue, // Set the background color of the circleAvatar
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(color: Colors.black),
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          club.goalsScored - club.goalsTaken > 0 ? '+' : '',
-                          style: TextStyle(
-                            color: Colors.grey, // Set the text color to green
-                            fontWeight: FontWeight.bold, // Make the text bold
-                          ),
-                        ),
-                        Text(
-                          (club.goalsScored - club.goalsTaken).toString(),
-                          style: TextStyle(
-                            color: Colors.grey, // Set the text color to green
-                            fontWeight: FontWeight.bold, // Make the text bold
-                          ),
-                        ),
-                        Text(' ( '),
-                        Text(
-                          club.goalsScored.toString(),
-                          style: TextStyle(
-                            color: Colors.green, // Set the text color to green
-                          ),
-                        ),
-                        Text(' / '),
-                        Text(
-                          club.goalsTaken.toString(),
-                          style: TextStyle(
-                            color: Colors.red, // Set the text color to green
-                          ),
-                        ),
-                        Text(' )'),
-                      ],
-                    ),
-                  ],
-                ),
-                // onTap: () {
-                //   Navigator.push(
-                //     context,
-                //     ClubPage.route(club.id),
-                //   );
-                // },
-                trailing: CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: Text(
-                    '${club.points.toString()}',
-                    style: TextStyle(color: Colors.black),
                   ),
-                ), // Display the index starting from 1
-              );
+                  title: club.getClubNameClickable(context),
+                  subtitle: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            // Icons.checklist,
+                            Icons.emoji_events,
+                            color: Colors.blueGrey,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            club.victories.toString(),
+                            style: TextStyle(
+                              color:
+                                  Colors.green, // Set the text color to green
+                              fontWeight: FontWeight.bold, // Make the text bold
+                            ),
+                          ),
+                          Text(' / '),
+                          Text(
+                            club.draws.toString(),
+                            style: TextStyle(
+                              color: Colors.grey, // Set the text color to green
+                              fontWeight: FontWeight.bold, // Make the text bold
+                            ),
+                          ),
+                          Text(' / '),
+                          Text(
+                            club.defeats.toString(),
+                            style: TextStyle(
+                              color: Colors.red, // Set the text color to green
+                              fontWeight: FontWeight.bold, // Make the text bold
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            club.goalsScored - club.goalsTaken > 0 ? '+' : '',
+                            style: TextStyle(
+                              color: Colors.grey, // Set the text color to green
+                              fontWeight: FontWeight.bold, // Make the text bold
+                            ),
+                          ),
+                          Text(
+                            (club.goalsScored - club.goalsTaken).toString(),
+                            style: TextStyle(
+                              color: Colors.grey, // Set the text color to green
+                              fontWeight: FontWeight.bold, // Make the text bold
+                            ),
+                          ),
+                          Text(' ( '),
+                          Text(
+                            club.goalsScored.toString(),
+                            style: TextStyle(
+                              color:
+                                  Colors.green, // Set the text color to green
+                            ),
+                          ),
+                          Text(' / '),
+                          Text(
+                            club.goalsTaken.toString(),
+                            style: TextStyle(
+                              color: Colors.red, // Set the text color to green
+                            ),
+                          ),
+                          Text(' )'),
+                        ],
+                      ),
+                    ],
+                  ),
+                  // onTap: () {
+                  //   Navigator.push(
+                  //     context,
+                  //     ClubPage.route(club.id),
+                  //   );
+                  // },
+                  trailing: CircleAvatar(
+                    backgroundColor: Colors.grey,
+                    child: Text(
+                      '${club.points.toString()}',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ), // Display the index starting from 1
+                );
+              return null;
             },
           ),
         )

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/chat_page.dart';
 import 'package:opengoalz/pages/fans_page.dart';
@@ -25,8 +26,9 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         children: [
           ListTile(
-            leading: const Icon(icon_home), // Add the home icon
-            title: const Text('Home'),
+            // leading: const Icon(icon_home), // Add the home icon
+            // title: const Text('Home'),
+            title: Provider.of<SessionProvider>(context).user!.getUserName(),
             onTap: () {
               Navigator.push(
                 context,
@@ -35,6 +37,16 @@ class AppDrawer extends StatelessWidget {
                 ),
               );
             },
+            subtitle:
+                !Provider.of<SessionProvider>(context).user!.isConnectedUser
+                    ? Text('Currently visiting this profile')
+                    : null,
+            trailing:
+                !Provider.of<SessionProvider>(context).user!.isConnectedUser
+                    ? Provider.of<SessionProvider>(context)
+                        .user!
+                        .returnToConnectedUserIconButton(context)
+                    : null,
           ),
           buildDrawerTitle('Club: ${selectedClub.name}'),
           buildDrawerOption(

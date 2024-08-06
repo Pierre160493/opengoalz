@@ -8,7 +8,6 @@ import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

@@ -150,54 +150,9 @@ class _UserPageState extends State<UserPage> {
                   icon: Icon(Icons.logout, size: iconSizeSmall),
                 )
               // If the user is not the connected user, show the switch button
-              : IconButton(
-                  onPressed: () async {
-                    bool switchConfirmed = await showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text("Confirm Switch Profiles"),
-                          content: Text("Return to your profile ?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                // Dismiss the dialog and return false to indicate cancellation
-                                Navigator.of(context).pop(false);
-                              },
-                              child: Text("Cancel"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                // Dismiss the dialog and return true to indicate confirmation
-                                Navigator.of(context).pop(true);
-                              },
-                              child: Text("Switch"),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-
-                    // If switch is confirmed, proceed with switching
-                    if (switchConfirmed == true) {
-                      await Provider.of<SessionProvider>(context, listen: false)
-                          .providerFetchUser(
-                              userId: supabase.auth.currentUser!.id);
-
-                      /// Modify the app theme if the user is not the connected user
-                      Provider.of<ThemeProvider>(context, listen: false)
-                          .setOtherThemeWhenSelectedUserIsNotConnectedUser(
-                              Provider.of<SessionProvider>(context)
-                                      .user
-                                      ?.isConnectedUser ??
-                                  false);
-
-                      Navigator.of(context).pushAndRemoveUntil(
-                          UserPage.route(), (route) => false);
-                    }
-                  },
-                  icon: Icon(Icons.keyboard_return, size: iconSizeSmall),
-                )
+              : Provider.of<SessionProvider>(context)
+                  .user!
+                  .returnToConnectedUserIconButton(context)
         ],
       ),
       drawer: const AppDrawer(),
@@ -284,7 +239,13 @@ class _UserPageState extends State<UserPage> {
                               color: Colors.blueGrey, // Border color
                             ),
                           ),
-                          title: club.getClubName(context),
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              club.getClubName(context),
+                              club.getLastResultsWidget()
+                            ],
+                          ),
                           subtitle: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

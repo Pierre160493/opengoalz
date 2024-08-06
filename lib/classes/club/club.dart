@@ -54,12 +54,8 @@ class Club {
     required this.staffWeight,
     required this.numberFans,
     required this.idCountry,
-    // required this.posSeason,
-    // required this.posLastSeason,
-    // required this.leaguePointsArray,
     required this.leaguePoints,
-    // required this.lastResultsArray,
-    required this.lastResult,
+    required this.lisLastResults,
     required this.posLeague,
     required this.seasonNumber,
     required this.idLeagueNextSeason,
@@ -83,12 +79,8 @@ class Club {
   final double staffWeight;
   final int numberFans;
   final int idCountry;
-  // final List<int>? posSeason;
-  // final int? posLastSeason;
-  // final List<double>? leaguePointsArray;
   final double leaguePoints;
-  // final List<int>? lastResultsArray;
-  final int? lastResult;
+  final List<int> lisLastResults;
   final int posLeague;
   final int seasonNumber;
   final int? idLeagueNextSeason;
@@ -117,12 +109,8 @@ class Club {
         staffWeight = (map['staff_weight'] as num).toDouble(),
         numberFans = map['number_fans'],
         idCountry = map['id_country'],
-        // posSeason = List<int>.from(map['posSeason'] ?? []),
-        // posLastSeason = map['pos_last_season'],
-        // leaguePointsArray = List<double>.from(map['league_points_array'] ?? []),
         leaguePoints = map['league_points'].toDouble(),
-        // lastResultsArray = List<int>.from(map['last_results_array'] ?? []),
-        lastResult = map['last_result'],
+        lisLastResults = List<int>.from(map['lis_last_results']),
         posLeague = map['pos_league'],
         seasonNumber = map['season_number'],
         idLeagueNextSeason = map['id_league_next_season'],

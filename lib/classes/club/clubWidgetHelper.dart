@@ -57,7 +57,38 @@ extension ClubWidgetHelper on Club {
   }
 
   Widget getCreationWidget() {
-    return Text('Since: ${DateFormat.yMMMMd('en_US').format(createdAt)}');
+    return Row(
+      children: [
+        Icon(iconHistory),
+        SizedBox(width: 3),
+        Text('Since: ${DateFormat.yMMMMd('en_US').format(createdAt)}'),
+      ],
+    );
+  }
+
+  Widget getLastResultsWidget() {
+    if (lisLastResults.isEmpty) {
+      return Text(
+        'No last results',
+        style: TextStyle(
+          fontStyle: FontStyle.italic,
+          color: Colors.blueGrey, // Replace "bluerey" with the desired color
+        ),
+      );
+    }
+    return Row(
+      children: lisLastResults.reversed.take(5).map((result) {
+        if (result == 3) {
+          return Icon(Icons.check_circle,
+              color: Colors.green); // Icon for victory
+        } else if (result == 1) {
+          return Icon(Icons.swap_horizontal_circle,
+              color: Colors.blueGrey); // Icon for draw
+        } else {
+          return Icon(Icons.cancel, color: Colors.red); // Icon for defeat
+        }
+      }).toList(),
+    );
   }
 
   Widget getQquickAccessWidget(BuildContext context) {

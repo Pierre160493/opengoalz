@@ -3,6 +3,7 @@ import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/user_page.dart';
+import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 
@@ -62,6 +63,57 @@ class GameUser {
           );
         },
         child: getUserName());
+  }
+
+  Widget returnToConnectedUserIconButton(BuildContext context) {
+    return IconButton(
+      onPressed: () async {
+        bool switchConfirmed = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Confirm Switch Profiles"),
+              content: Text("Return to your profile ?"),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    // Dismiss the dialog and return false to indicate cancellation
+                    Navigator.of(context).pop(false);
+                  },
+                  child: Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Dismiss the dialog and return true to indicate confirmation
+                    Navigator.of(context).pop(true);
+                  },
+                  child: Text("Switch"),
+                ),
+              ],
+            );
+          },
+        );
+
+        // If switch is confirmed, proceed with switching
+        if (switchConfirmed == true) {
+          await Provider.of<SessionProvider>(context, listen: false)
+              .providerFetchUser(userId: supabase.auth.currentUser!.id);
+
+          /// Modify the app theme if the user is not the connected user
+          Provider.of<ThemeProvider>(context, listen: false)
+              .setOtherThemeWhenSelectedUserIsNotConnectedUser(
+                  Provider.of<SessionProvider>(context, listen: false)
+                          .user
+                          ?.isConnectedUser ??
+                      false);
+
+          /// Launch UserPage Page
+          Navigator.of(context)
+              .pushAndRemoveUntil(UserPage.route(), (route) => false);
+        }
+      },
+      icon: Icon(Icons.keyboard_return, size: iconSizeSmall),
+    );
   }
 }
 

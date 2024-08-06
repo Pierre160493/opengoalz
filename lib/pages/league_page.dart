@@ -123,7 +123,8 @@ class _RankingPageState extends State<LeaguePage> {
               .inFilter('id_game', league.games.map((game) => game.id).toList())
               .map((maps) => maps.map((map) => GameEvent.fromMap(map)).toList())
               .map((events) {
-                for (Game game in league.games) {
+                for (Game game in league.games
+                    .where((Game game) => game.weekNumber <= 10)) {
                   game.events = events
                       .where((GameEvent event) => event.idGame == game.id)
                       .toList();

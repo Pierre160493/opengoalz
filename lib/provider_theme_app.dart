@@ -16,6 +16,7 @@ class ThemeProvider extends ChangeNotifier {
     _saveThemePreference();
   }
 
+  /// If the connected user is not the selected user, the theme is different than default
   void setOtherThemeWhenSelectedUserIsNotConnectedUser(
       bool selectedUserIsConnectedUser) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
