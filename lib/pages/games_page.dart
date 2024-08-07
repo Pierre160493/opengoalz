@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/teamComp.dart';
+import 'package:opengoalz/classes/teamcomp/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';

@@ -1,20 +1,28 @@
+import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/classes/player/players_page.dart';
+import 'package:opengoalz/constants.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+part 'teamComp_helper.dart';
 
 class TeamComp {
   TeamComp({
     required this.id,
-    // required this.idGame,
     required this.idClub,
     required this.seasonNumber,
     required this.weekNumber,
     required this.players,
+    required this.name,
+    required this.description,
   });
 
   final int id;
-  // final int idGame;
   final int idClub;
   final int seasonNumber;
   final int weekNumber;
+  final String name;
+  final String description;
   final List<Map<String, dynamic>> players;
 
   static List<Map<String, dynamic>> defaultPlayers = [
@@ -178,6 +186,8 @@ class TeamComp {
       idClub: map['id_club'],
       seasonNumber: map['season_number'],
       weekNumber: map['week_number'],
+      name: map['name'],
+      description: map['description'],
       players: players,
     );
   }
@@ -196,6 +206,7 @@ class TeamComp {
         in players.where((player) => player['id'] != null).toList()) {
       player['player'] =
           list_players.firstWhere((lp) => lp!.id == player['id']);
+      // print(player['player']);
       if (player['player'] == null) {
         throw Exception(
             'No player found with id {${player['id']}} for the club with id {{$idClub}} for the game {{}}');

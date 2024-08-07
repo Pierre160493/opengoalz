@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
-import 'package:opengoalz/classes/teamComp.dart';
+import 'package:opengoalz/classes/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:rxdart/rxdart.dart';
@@ -237,8 +237,8 @@ class _HomePageState extends State<GamePage> {
           Expanded(
             child: TabBarView(
               children: [
-                game.leftClub.getTeamComp(context, 0),
-                game.rightClub.getTeamComp(context, 0)
+                game.leftClub.teamComps[0].getTeamCompWidget(context),
+                game.rightClub.teamComps[0].getTeamCompWidget(context),
               ],
             ),
           ),

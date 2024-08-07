@@ -1,25 +1,7 @@
-part of 'club.dart';
+part of 'teamComp.dart';
 
-extension GameClassWidgetteamComps on Club {
-  Widget getTeamComp(BuildContext context, int index) {
-    if (index > teamComps.length) {
-      return Center(
-        child: Text(
-            'ERROR: No team composition available for ${name} at index $index'),
-      );
-    }
-
-    /// TODO ! If the game is not played yet, only the manager can see the teamcomp
-    else if (Provider.of<SessionProvider>(context).user!.selectedClub.id !=
-        id) {
-      return Center(
-        child: Text(
-            'Only the manager of ${name} can see the teamcomp before the game is played'),
-      );
-    }
-
-    TeamComp teamcomp = teamComps[index];
-
+extension TeamCompWidgetsHelper on TeamComp {
+  Widget getTeamCompWidget(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16.0),
       child: SingleChildScrollView(
@@ -29,75 +11,73 @@ extension GameClassWidgetteamComps on Club {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Left Striker')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Left Striker')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Central Striker')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Central Striker')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Right Striker')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Right Striker')),
               ],
             ),
             const SizedBox(height: 6.0), // Add spacing between rows
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Left Winger')),
+                _playerTeamCompCard(context, getPlayerMapByName('Left Winger')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Left Midfielder')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Left Midfielder')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Central Midfielder')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Central Midfielder')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Right Midfielder')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Right Midfielder')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Right Winger')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Right Winger')),
               ],
             ),
             const SizedBox(height: 6.0), // Add spacing between rows
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Left Back Winger')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Left Back Winger')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Left Central Back')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Left Central Back')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Central Back')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Central Back')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Right Central Back')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Right Central Back')),
                 const SizedBox(width: 6.0),
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Right Back Winger')),
+                _playerTeamCompCard(
+                    context, getPlayerMapByName('Right Back Winger')),
               ],
             ),
             const SizedBox(height: 6.0), // Add spacing between rows
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                buildPlayerCard(
-                    context, teamcomp.getPlayerMapByName('Goal Keeper')),
+                _playerTeamCompCard(context, getPlayerMapByName('Goal Keeper')),
               ],
             ),
             const SizedBox(height: 16.0), // Add spacing between rows
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 1')),
-                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 2')),
-                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 3')),
-                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 4')),
-                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 5')),
-                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 6')),
-                buildPlayerCard(context, teamcomp.getPlayerMapByName('Sub 7')),
+                _playerTeamCompCard(context, getPlayerMapByName('Sub 1')),
+                _playerTeamCompCard(context, getPlayerMapByName('Sub 2')),
+                _playerTeamCompCard(context, getPlayerMapByName('Sub 3')),
+                _playerTeamCompCard(context, getPlayerMapByName('Sub 4')),
+                _playerTeamCompCard(context, getPlayerMapByName('Sub 5')),
+                _playerTeamCompCard(context, getPlayerMapByName('Sub 6')),
+                _playerTeamCompCard(context, getPlayerMapByName('Sub 7')),
               ],
             ),
           ],
@@ -106,7 +86,8 @@ extension GameClassWidgetteamComps on Club {
     );
   }
 
-  Widget buildPlayerCard(BuildContext context, Map<String, dynamic>? player) {
+  Widget _playerTeamCompCard(
+      BuildContext context, Map<String, dynamic>? player) {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     if (player == null || player.isEmpty) {
       return Container(
@@ -141,7 +122,7 @@ extension GameClassWidgetteamComps on Club {
             pageBuilder: (context, animation, secondaryAnimation) {
               return PlayersPage(
                 inputCriteria: {
-                  'Clubs': [id]
+                  'Clubs': [idClub]
                 },
                 isReturningId: true,
               );
@@ -162,12 +143,15 @@ extension GameClassWidgetteamComps on Club {
         /// Then we update the games_team_comp table with the new player
         if (returnedId != null) {
           try {
-            await supabase.from('games_team_comp').update(
-                {player['database']: returnedId}).eq('id', teamComps.first.id);
+            print(id);
+            await supabase
+                .from('games_team_comp')
+                .update({player['database']: returnedId}).eq('id', id);
           } on PostgrestException catch (error) {
+            print(error.message);
             scaffoldMessenger.showSnackBar(
               SnackBar(
-                content: Text(error.message),
+                content: Text('POSTGRES ERROR: ' + error.message),
               ),
             );
           } catch (error) {
@@ -195,7 +179,6 @@ extension GameClassWidgetteamComps on Club {
                         children: [
                           GestureDetector(
                             onTap: () async {
-                              print('Delete player');
                               await supabase
                                   .from('games_team_comp')
                                   .update({player['database']: null}).match(
@@ -225,7 +208,6 @@ extension GameClassWidgetteamComps on Club {
                         size: 12,
                         color: Colors
                             .white), // Placeholder icon when player is null
-                // child: Text(idPlayer != null ? idPlayer.toString() : 'NONE'),
               ),
             ),
           ],

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/teamComp.dart';
+import 'package:opengoalz/classes/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -118,7 +118,7 @@ class _TeamCompPageState extends State<TeamCompPage> {
                         Expanded(
                           child: TabBarView(
                             children: [
-                              club.getTeamComp(context, 0),
+                              club.teamComps[0].getTeamCompWidget(context),
                               Center(child: Text('test')),
                               Center(child: Text('test')),
                             ],

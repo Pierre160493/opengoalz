@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/league/league.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
-import 'package:opengoalz/classes/teamComp.dart';
+import 'package:opengoalz/classes/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
@@ -14,9 +14,7 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-part 'clubWidgetTeamcomp.dart';
 part 'clubWidgetHelper.dart';
 part 'clubWidgetFinances.dart';
 
