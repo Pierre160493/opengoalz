@@ -249,7 +249,7 @@ class _UserPageState extends State<UserPage> {
                           subtitle: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              club.getCreationWidget(),
+                              club.getRankingWidget(context),
                               multiverseWidget(club.multiverseSpeed),
                             ],
                           ),

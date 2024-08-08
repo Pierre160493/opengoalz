@@ -66,6 +66,26 @@ extension ClubWidgetHelper on Club {
     );
   }
 
+  Widget getRankingWidget(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LeaguePage(
+              idLeague: idLeague,
+            ),
+          ),
+        );
+      },
+      child: Row(children: [
+        Icon(icon_league),
+        SizedBox(width: 3),
+        Text('${posLeague} with ${leaguePoints.round()} points'),
+      ]),
+    );
+  }
+
   Widget getLastResultsWidget() {
     if (lisLastResults.isEmpty) {
       return Text(

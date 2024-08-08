@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/pages/staff_page.dart';
 import 'package:opengoalz/pages/teamCompsPage.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/chat_page.dart';
@@ -59,16 +60,17 @@ class AppDrawer extends StatelessWidget {
               icon_fans,
               'Fans (${selectedClub.numberFans})',
               FansPage(idClub: selectedClub.id)), // Add the fans page
-          // buildDrawerOption(
-          //   context,
-          //   icon_stadium,
-          //   'Stadium',
-          // ), // Add the Stadium page
-          // buildDrawerOption(
-          //   context,
-          //   icon_staff,
-          //   'Staff',
-          // ), // Add the Staff page
+          buildDrawerOption(
+            context,
+            icon_stadium,
+            'Stadium',
+          ), // Add the Stadium page
+          buildDrawerOption(
+            context,
+            icon_staff,
+            'Staff',
+            StaffPage(idClub: selectedClub.id),
+          ), // Add the Staff page
           // buildDrawerOption(
           //   context,
           //   icon_scouts,

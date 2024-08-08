@@ -9,6 +9,7 @@ import 'package:opengoalz/classes/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
+import 'package:opengoalz/pages/staff_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/club_page.dart';

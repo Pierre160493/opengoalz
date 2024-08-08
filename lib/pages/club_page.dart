@@ -10,6 +10,7 @@ import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -83,10 +84,9 @@ class _ClubPageState extends State<ClubPage> {
           Club club = snapshot.data!;
           return Scaffold(
             appBar: AppBar(
-              title: Text('${club.name}'),
-              backgroundColor: Colors.green,
+              title: club.getClubName(context),
             ),
-            // drawer: const AppDrawer(),
+            drawer: const AppDrawer(),
             body: MaxWidthContainer(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
