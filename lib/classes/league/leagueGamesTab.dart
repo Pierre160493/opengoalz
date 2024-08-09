@@ -84,7 +84,7 @@ extension LeagueGamesTab on League {
               final Game game = games[index];
               return InkWell(
                 onTap: () {
-                  Navigator.of(context).push(GamePage.route(game.id));
+                  Navigator.of(context).push(GamePage.route(game.id, 0));
                 },
                 // child: _buildGameDescription(game),
                 child: game.getGameDetails(context),

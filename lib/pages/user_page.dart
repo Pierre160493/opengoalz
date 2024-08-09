@@ -6,7 +6,6 @@ import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/classes/player/player_card.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/settings_page.dart';
-import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
@@ -262,7 +261,7 @@ class _UserPageState extends State<UserPage> {
                           Column(
                             children: [
                               const SizedBox(height: 6),
-                              club.getQquickAccessWidget(context),
+                              club.getQuickAccessWidget(context, club.id),
                               const SizedBox(height: 6),
                             ],
                           ),

@@ -47,26 +47,30 @@ extension GameClassWidgetHelper on Game {
           : MainAxisAlignment.start,
       children: [
         leftClub.getClubNameClickable(context),
-        SizedBox(width: 6),
+        SizedBox(width: 3),
         // If dateEnd is null, the game is not played yet
-        dateEnd == null ? Text('VS') : getScoreRow(),
-        SizedBox(width: 6),
+        dateEnd == null
+            // ? Text('VS')
+            ? Icon(Icons.sync, size: iconSizeSmall)
+            : getScoreRow(),
+        SizedBox(width: 3),
         rightClub.getClubNameClickable(context, isRightClub: true),
       ],
     );
   }
 
-  Widget getScoreRow({int? idClubSelected = null}) {
+  Widget getScoreRow() {
     if (dateEnd == null)
-      return Row(
-        children: [
-          Text(
-            ' : ',
-            style:
-                TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
-          ),
-        ],
-      );
+      return Icon(Icons.sync, size: iconSizeSmall);
+    // Row(
+    //   children: [
+    //     Text(
+    //       ' : ',
+    //       style:
+    //           TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+    //     ),
+    //   ],
+    // );
     else if (scoreLeft == null && scoreRight == null)
       return Text('ERR: Unknown left and right score of the game $id');
     else if (scoreRight == null)
@@ -86,59 +90,80 @@ extension GameClassWidgetHelper on Game {
       }
     }
 
-    if (idClubSelected == null) {} else {
-      
+    /// Default white colors
+    Color leftColor = Colors.white;
+    Color rightColor = Colors.white;
+    Color colorLeftPenalty = Colors.white;
+    Color colorRightPenalty = Colors.white;
+    print('getScoreRow: isLeftClubSelected= ' + isLeftClubSelected.toString());
+
+    /// If no club is selected
+    if (isLeftClubSelected == null) {
+      // if (scoreLeft! > scoreRight!) {
+      //   leftColor = Colors.green;
+      //   rightColor = Colors.red;
+      // } else if (scoreLeft! < scoreRight!) {
+      //   leftColor = Colors.red;
+      //   rightColor = Colors.green;
+      // } else if (scoreLeft! == scoreRight!) {
+      //   leftColor = Colors.blueGrey;
+      //   rightColor = Colors.blueGrey;
+      // }
+      // if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
+      //   if (leftPenaltyScore > rightPenaltyScore) {
+      //     colorLeftPenalty = Colors.green;
+      //     colorRightPenalty = Colors.red;
+      //   } else {
+      //     colorLeftPenalty = Colors.red;
+      //     colorRightPenalty = Colors.green;
+      //   }
+      // }
+
+      /// If the left club is selected
+    } else if (isLeftClubSelected!) {
+      if (scoreLeft! > scoreRight!) {
+        leftColor = Colors.green;
+        rightColor = Colors.green;
+      } else if (scoreLeft! < scoreRight!) {
+        leftColor = Colors.red;
+        rightColor = Colors.red;
+      } else if (scoreLeft! == scoreRight!) {
+        leftColor = Colors.blueGrey;
+        rightColor = Colors.blueGrey;
+      }
+      if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
+        if (leftPenaltyScore > rightPenaltyScore) {
+          colorLeftPenalty = Colors.green;
+          colorRightPenalty = Colors.green;
+        } else {
+          colorLeftPenalty = Colors.red;
+          colorRightPenalty = Colors.red;
+        }
+      }
     }
 
-    Color colorScore = Colors.blueGrey;
-    if (idClubLeft == idClubSelected) {
+    /// If the left club is selected
+    else if (!isLeftClubSelected!) {
       if (scoreLeft! > scoreRight!) {
-        Color colorScore = Colors.green;
+        leftColor = Colors.red;
+        rightColor = Colors.red;
       } else if (scoreLeft! < scoreRight!) {
-        Color colorScore = Colors.red;
+        leftColor = Colors.green;
+        rightColor = Colors.green;
+      } else if (scoreLeft! == scoreRight!) {
+        leftColor = Colors.blueGrey;
+        rightColor = Colors.blueGrey;
       }
-    } else if (idClubRight == idClubSelected) {
-      if (scoreLeft! > scoreRight!) {
-        Color colorScore = Colors.red;
-      } else if (scoreLeft! < scoreRight!) {
-        Color colorScore = Colors.green;
-      }
-    }
-    Color colorPenalty = Colors.blueGrey;
-    if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
-      if (idClubLeft == idClubSelected) {
+      if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
         if (leftPenaltyScore > rightPenaltyScore) {
-          Color colorPenalty = Colors.green;
+          colorLeftPenalty = Colors.red;
+          colorRightPenalty = Colors.red;
         } else {
-          Color colorPenalty = Colors.red;
-        }
-      } else if (idClubRight == idClubSelected) {
-        if (leftPenaltyScore > rightPenaltyScore) {
-          Color colorPenalty = Colors.red;
-        } else {
-          Color colorPenalty = Colors.green;
+          colorLeftPenalty = Colors.green;
+          colorRightPenalty = Colors.green;
         }
       }
     }
-
-    // Color leftColor = Colors.blueGrey;
-    // Color rightColor = Colors.blueGrey;
-    // // If the game is a cup, display the score of the penalty shootout if it happened
-    // if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
-    //   if (leftPenaltyScore > rightPenaltyScore) {
-    //     leftColor = Colors.green;
-    //     rightColor = Colors.red;
-    //   } else if (leftPenaltyScore < rightPenaltyScore) {
-    //     leftColor = Colors.red;
-    //     rightColor = Colors.green;
-    //   }
-    // } else if (scoreLeft! > scoreRight!) {
-    //   leftColor = Colors.green;
-    //   rightColor = Colors.red;
-    // } else if (scoreLeft! < scoreRight!) {
-    //   leftColor = Colors.red;
-    //   rightColor = Colors.green;
-    // }
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 6),
@@ -151,7 +176,8 @@ extension GameClassWidgetHelper on Game {
           Text(
             scoreLeft.toString(),
             style: TextStyle(
-              color: leftPenaltyScore == null ? colorPenalty : null,
+              // color: leftPenaltyScore == null ? colorLeftPenalty : null,
+              color: leftColor,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -159,7 +185,7 @@ extension GameClassWidgetHelper on Game {
             Text(
               ' [${leftPenaltyScore.toString()}]',
               style: TextStyle(
-                color: colorScore,
+                color: colorLeftPenalty,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -172,14 +198,15 @@ extension GameClassWidgetHelper on Game {
             Text(
               '[${rightPenaltyScore.toString()}] ',
               style: TextStyle(
-                color: colorScore,
+                color: colorRightPenalty,
                 fontWeight: FontWeight.bold,
               ),
             ),
           Text(
             scoreRight.toString(),
             style: TextStyle(
-              color: rightPenaltyScore == null ? colorPenalty : null,
+              // color: rightPenaltyScore == null ? colorRightPenalty : null,
+              color: leftColor,
               fontWeight: FontWeight.bold,
             ),
           )
@@ -188,6 +215,7 @@ extension GameClassWidgetHelper on Game {
     );
   }
 
+  // Widget getGameDetails(BuildContext context, {int? idClubSelected = null}) {
   Widget getGameDetails(BuildContext context) {
     return Card(
       elevation: 6,
@@ -218,7 +246,13 @@ extension GameClassWidgetHelper on Game {
                           onTap: () {
                             Navigator.push(
                               context,
-                              GamePage.route(isReturnGameIdGameFirstRound!),
+                              GamePage.route(
+                                  isReturnGameIdGameFirstRound!,
+                                  isLeftClubSelected == null
+                                      ? 0
+                                      : isLeftClubSelected!
+                                          ? idClubLeft
+                                          : idClubRight),
                             );
                           },
                           child: Row(

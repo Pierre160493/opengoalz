@@ -104,7 +104,9 @@ class AppDrawer extends StatelessWidget {
               icon_league,
               'League',
               LeaguePage(
-                  idLeague: selectedClub.idLeague)), // Add the Rankings page
+                idLeague: selectedClub.idLeague,
+                idSelectedClub: selectedClub.id,
+              )), // Add the Rankings page
           buildDrawerOption(
             context,
             iconTraining,

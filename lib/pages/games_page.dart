@@ -45,7 +45,8 @@ class _HomePageState extends State<GamesPage> {
               .from('games')
               .stream(primaryKey: ['id'])
               .eq('id_club_left', club.id)
-              .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+              .map((maps) =>
+                  maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
               .map((games) {
                 games
                     .where((game) => game.seasonNumber == club.seasonNumber)
@@ -62,7 +63,8 @@ class _HomePageState extends State<GamesPage> {
               .from('games')
               .stream(primaryKey: ['id'])
               .eq('id_club_right', club.id)
-              .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+              .map((maps) =>
+                  maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
               .map((games) {
                 games
                     .where((game) => game.seasonNumber == club.seasonNumber)
@@ -364,10 +366,13 @@ class _HomePageState extends State<GamesPage> {
               final Game game = games[index];
               return InkWell(
                 onTap: () {
-                  Navigator.of(context).push(GamePage.route(game.id));
+                  Navigator.of(context)
+                      .push(GamePage.route(game.id, widget.idClub));
                 },
                 // child: _buildGameDescription(game),
-                child: game.getGameDetails(context),
+                child:
+                    // game.getGameDetails(context, idClubSelected: widget.idClub),
+                    game.getGameDetails(context),
               );
             },
             // leading: Text('test')
@@ -450,7 +455,8 @@ class _HomePageState extends State<GamesPage> {
               .from('games')
               .stream(primaryKey: ['id'])
               .eq('id_club_left', club.id)
-              .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+              .map((maps) =>
+                  maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
               .map((games) {
                 games
                     .where((game) => game.seasonNumber > club.seasonNumber)
@@ -467,7 +473,8 @@ class _HomePageState extends State<GamesPage> {
               .from('games')
               .stream(primaryKey: ['id'])
               .eq('id_club_right', club.id)
-              .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+              .map((maps) =>
+                  maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
               .map((games) {
                 games
                     .where((game) => game.seasonNumber > club.seasonNumber)
@@ -611,7 +618,8 @@ class _HomePageState extends State<GamesPage> {
               .from('games')
               .stream(primaryKey: ['id'])
               .eq('id_club_left', club.id)
-              .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+              .map((maps) =>
+                  maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
               .map((games) {
                 games
                     .where((game) => game.seasonNumber < club.seasonNumber)
@@ -628,7 +636,8 @@ class _HomePageState extends State<GamesPage> {
               .from('games')
               .stream(primaryKey: ['id'])
               .eq('id_club_right', club.id)
-              .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+              .map((maps) =>
+                  maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
               .map((games) {
                 games
                     .where((game) => game.seasonNumber < club.seasonNumber)
@@ -701,12 +710,12 @@ class _HomePageState extends State<GamesPage> {
                     itemBuilder: (context, index) {
                       final Game game = club.games[index];
                       return InkWell(
-                        onTap: () {
-                          Navigator.of(context).push(GamePage.route(game.id));
-                        },
-                        // child: _buildGameDescription(game),
-                        child: game.getGameDetails(context),
-                      );
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(GamePage.route(game.id, widget.idClub));
+                          },
+                          // child: _buildGameDescription(game),
+                          child: game.getGameDetails(context));
                     },
                     // leading: Text('test')
                   ),

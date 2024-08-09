@@ -34,6 +34,7 @@ class _RankingPageState extends State<LeaguePage> {
 
   @override
   void initState() {
+    print('League: widget.idSelectedClub= ' + widget.idSelectedClub.toString());
     // Fetch the league data
     _leagueStream = supabase
         .from('leagues')
@@ -49,7 +50,9 @@ class _RankingPageState extends State<LeaguePage> {
               .stream(primaryKey: ['id'])
               .eq('id_league', league.id)
               .order('date_start', ascending: true) // Order by date_start
-              .map((maps) => maps.map((map) => Game.fromMap(map)).toList())
+              .map((maps) => maps
+                  .map((map) => Game.fromMap(map, widget.idSelectedClub))
+                  .toList())
               .map((games) {
                 league.games = games
                     .where(

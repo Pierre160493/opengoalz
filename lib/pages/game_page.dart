@@ -9,11 +9,14 @@ import 'package:rxdart/rxdart.dart';
 
 class GamePage extends StatefulWidget {
   final int idGame;
-  const GamePage({Key? key, required this.idGame}) : super(key: key);
+  final int? idSelectedClub;
+  const GamePage({Key? key, required this.idGame, this.idSelectedClub})
+      : super(key: key);
 
-  static Route<void> route(int idGame) {
+  static Route<void> route(int idGame, int? idSelectedClub) {
     return MaterialPageRoute(
-      builder: (context) => GamePage(idGame: idGame),
+      builder: (context) =>
+          GamePage(idGame: idGame, idSelectedClub: idSelectedClub),
     );
   }
 
@@ -34,7 +37,8 @@ class _HomePageState extends State<GamePage> {
         .from('games')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idGame)
-        .map((maps) => maps.map((map) => Game.fromMap(map)).first)
+        .map((maps) =>
+            maps.map((map) => Game.fromMap(map, widget.idSelectedClub)).first)
         .switchMap((Game game) {
           return supabase
               .from('games_description')

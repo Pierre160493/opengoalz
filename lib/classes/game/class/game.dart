@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
+import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/game_page.dart';
 
 part 'game_widget_helper.dart';
@@ -12,6 +13,7 @@ class Game {
   late Club rightClub; //left club
   String description =
       'ERROR: Game description not found !'; //description of the game
+  bool? isLeftClubSelected;
 
   Game({
     required this.id,
@@ -41,6 +43,7 @@ class Game {
     required this.scoreCumulLeft,
     required this.scoreCumulRight,
     required this.idDescription,
+    this.isLeftClubSelected,
   });
 
   final int id;
@@ -71,7 +74,17 @@ class Game {
   final double? scoreCumulRight;
   final int idDescription;
 
-  factory Game.fromMap(Map<String, dynamic> map) {
+  // factory Game.fromMap(Map<String, dynamic> map, {int? idClubSelected}) {
+  factory Game.fromMap(Map<String, dynamic> map, int? idClubSelected) {
+    bool? isLeftClubSelected;
+    if (map['id_club_left'] == idClubSelected) {
+      isLeftClubSelected = true;
+    } else if (map['id_club_right'] == idClubSelected) {
+      isLeftClubSelected = false;
+    }
+    print('idClubSelected= ' + idClubSelected.toString());
+    print('isLeftClubSelected= ' + isLeftClubSelected.toString());
+
     return Game(
       id: map['id'],
       idClubLeft: map['id_club_left'],
@@ -108,6 +121,7 @@ class Game {
           ? (map['score_cumul_right'] as num).toDouble()
           : null,
       idDescription: map['id_games_description'],
+      isLeftClubSelected: isLeftClubSelected,
     );
   }
 }

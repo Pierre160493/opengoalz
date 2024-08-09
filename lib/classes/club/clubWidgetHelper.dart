@@ -81,7 +81,8 @@ extension ClubWidgetHelper on Club {
       child: Row(children: [
         Icon(icon_league),
         SizedBox(width: 3),
-        Text('${posLeague} with ${leaguePoints.round()} points'),
+        Text(
+            '${posLeague == 1 ? "1st" : posLeague == 2 ? "2nd" : posLeague == 3 ? "3rd" : posLeague <= 6 ? "${posLeague}th" : posLeague} with ${leaguePoints.round()} points'),
       ]),
     );
   }
@@ -109,7 +110,7 @@ extension ClubWidgetHelper on Club {
     );
   }
 
-  Widget getQquickAccessWidget(BuildContext context) {
+  Widget getQuickAccessWidget(BuildContext context, int? idSelectedClub) {
     double containerWidth = 80;
     double containerImgRadius = 24;
     return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
@@ -238,6 +239,7 @@ extension ClubWidgetHelper on Club {
             MaterialPageRoute(
               builder: (context) => LeaguePage(
                 idLeague: idLeague,
+                idSelectedClub: idSelectedClub,
               ),
             ),
           );
