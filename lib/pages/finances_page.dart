@@ -192,36 +192,3 @@ class _FinancesPageState extends State<FinancesPage> {
     );
   }
 }
-
-
-// Expanded(
-//               child: StreamBuilder<List<Map<String, dynamic>>>(
-//                 stream: _financeStream,
-//                 builder: (context, snapshot) {
-//                   if (snapshot.hasData) {
-//                     final finances = snapshot.data!;
-//                     return ListView.builder(
-//                       itemCount: finances.length,
-//                       itemBuilder: (context, index) {
-//                         final finance = finances[index];
-//                         return Card(
-//                           margin: const EdgeInsets.all(8),
-//                           child: ListTile(
-//                             title: Text(
-//                                 finance['description'] ?? 'No description'),
-//                             subtitle: Text('Amount: ${finance['amount']}'),
-//                             trailing: Text(
-//                               'Date: ${DateFormat.yMd().format(DateTime.parse(finance['created_at']))}',
-//                             ),
-//                           ),
-//                         );
-//                       },
-//                     );
-//                   } else if (snapshot.hasError) {
-//                     return Center(child: Text('Error: ${snapshot.error}'));
-//                   } else {
-//                     return const Center(child: CircularProgressIndicator());
-//                   }
-//                 },
-//               ),
-//             ),

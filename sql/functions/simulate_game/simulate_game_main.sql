@@ -1,4 +1,4 @@
--- DROP FUNCTION public.simulate_game(int8);
+-- DROP FUNCTION public.simulate_game_main(int8);
 
 CREATE OR REPLACE FUNCTION public.simulate_game_main(inp_id_game bigint)
  RETURNS void
@@ -73,8 +73,8 @@ BEGIN
     PERFORM populate_games_teamcomp(inp_id_teamcomp := loc_id_teamcomp_right);
 
     ------ Fetch players id of the club for this game
-    PERFORM check_teamcomp_errors(inp_id_teamcomp := loc_id_teamcomp_left);
-    PERFORM check_teamcomp_errors(inp_id_teamcomp := loc_id_teamcomp_right);
+    PERFORM teamcomps_check_error_in_teamcomp(inp_id_teamcomp := loc_id_teamcomp_left);
+    PERFORM teamcomps_check_error_in_teamcomp(inp_id_teamcomp := loc_id_teamcomp_right);
     
     ------ Fetch players id of the club for this game
     loc_array_players_id_left := simulate_game_fetch_players_id(inp_id_teamcomp := loc_id_teamcomp_left);
@@ -283,27 +283,42 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
     -- Left team wins
     IF loc_score_left > loc_score_right THEN
         UPDATE clubs SET
-            last_result = 3
+            lis_last_results = lis_last_results || 3
             WHERE id = game.id_club_left;
         UPDATE clubs SET
-            last_result = 0
-            WHERE id = game.id_club_left;
+            lis_last_results = lis_last_results || 0
+            WHERE id = game.id_club_right;
+
+        -- Insert messages
+        INSERT INTO messages_mail (id_club, title, message) VALUES
+            (game.id_club_left, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+            (game.id_club_right, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+
     -- Right team wins
     ELSEIF loc_score_left < loc_score_right THEN
         UPDATE clubs SET
-            last_result = 0
+            lis_last_results = lis_last_results || 0
             WHERE id = game.id_club_left;
         UPDATE clubs SET
-            last_result = 3
-            WHERE id = game.id_club_left;
+            lis_last_results = lis_last_results || 3
+            WHERE id = game.id_club_right;
+
+        -- Insert messages
+        INSERT INTO messages_mail (id_club, title, message) VALUES
+            (game.id_club_left, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+            (game.id_club_right, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+
     -- Draw
     ELSE
         UPDATE clubs SET
-            last_result = 1
-            WHERE id = game.id_club_left;
-        UPDATE clubs SET
-            last_result = 1
-            WHERE id = game.id_club_left;
+            lis_last_results = lis_last_results || 1
+            WHERE id IN (game.id_club_left, game.id_club_right);
+
+        -- Insert messages
+        INSERT INTO messages_mail (id_club, title, message) VALUES
+            (game.id_club_left, 'Draw for game in week' || game.week_number, 'We drew the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+            (game.id_club_right, 'Draw for game in week ' || game.week_number, 'We drew the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+
     END IF;
 
     -- Update the league points
@@ -342,7 +357,7 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
 
     ------ Update league position for specific games
     -- Barrage 1: Winner of barrage 1 switches place with 6th of upper_league
-    IF game.id_game_description = 212 THEN
+    IF game.id_games_description = 212 THEN
         IF (loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0)) > (loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0)) THEN
             UPDATE clubs SET
                 pos_league_next_season = 6,
@@ -365,7 +380,7 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
                 WHERE id = (SELECT id FROM clubs WHERE id_league = game.id_league AND pos_league = 6);
         END IF;
     -- Barrage 1: Loser of barrage 1 plays against 5th of upper_league, winner plays the upper league
-    ELSEIF game.id_game_description = 214 THEN
+    ELSEIF game.id_games_description = 214 THEN
         IF (loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0)) > (loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0)) THEN
             -- 5th of upper league won, both clubs stay at their place and league
             UPDATE clubs SET
@@ -389,7 +404,7 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
                 WHERE id = game.id_club_right;
         END IF;
     -- Barrage 2: Winner barrage 2 plays against 4th of upper_league, winner plays the upper league
-    ELSEIF game.id_game_description = 332 THEN
+    ELSEIF game.id_games_description = 332 THEN
         IF (loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0)) > (loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0)) THEN
             -- 4th of upper league won, both clubs stay at their place and league
             UPDATE clubs SET

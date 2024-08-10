@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/pages/mails_page.dart';
 import 'package:opengoalz/pages/staff_page.dart';
 import 'package:opengoalz/pages/teamCompsPage.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -50,6 +51,12 @@ class AppDrawer extends StatelessWidget {
                     : null,
           ),
           buildDrawerTitle('Club: ${selectedClub.name}'),
+          buildDrawerOption(
+              context,
+              iconMails,
+              // 'Mails:     ${NumberFormat.decimalPattern().format(selectedClub.lisCash.last)} €',
+              'Mails',
+              MailsPage(idClub: selectedClub.id)), // Add the finances page
           buildDrawerOption(
               context,
               icon_finance,

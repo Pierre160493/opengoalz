@@ -95,7 +95,6 @@ extension GameClassWidgetHelper on Game {
     Color rightColor = Colors.white;
     Color colorLeftPenalty = Colors.white;
     Color colorRightPenalty = Colors.white;
-    print('getScoreRow: isLeftClubSelected= ' + isLeftClubSelected.toString());
 
     /// If no club is selected
     if (isLeftClubSelected == null) {

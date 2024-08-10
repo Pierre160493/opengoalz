@@ -48,6 +48,7 @@ const iconMoney = Icons.monetization_on_outlined;
 const iconUser = Icons.account_circle;
 const iconBot = Icons.smart_toy_outlined;
 const iconTeamComp = Icons.grid_on;
+const iconMails = Icons.email;
 
 const iconSizeSmall = 24.0;
 const iconSizeMedium = 30.0;
@@ -57,9 +58,9 @@ const iconSizeLarge = 36.0;
 const Color colorIsMine = Colors.purple;
 
 /// Basic theme to change the look and feel of the app
-ThemeData getAppTheme(BuildContext context) {
-  return ThemeData.dark().copyWith();
-}
+// ThemeData getAppTheme(BuildContext context) {
+//   return ThemeData.dark().copyWith();
+// }
 
 /// Set of extension methods to easily display a snackbar
 extension ShowSnackBar on BuildContext {
