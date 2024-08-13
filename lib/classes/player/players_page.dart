@@ -274,7 +274,7 @@ class _PlayersPageState extends State<PlayersPage> {
                                     // Text('${index + 1}'),
                                     PlayerCard(
                                         player: player,
-                                        number:
+                                        index:
                                             players.length == 1 ? 0 : index + 1,
                                         isExpanded:
                                             players.length == 1 ? true : false),

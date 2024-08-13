@@ -5,6 +5,8 @@ import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/provider_user.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class GamePage extends StatefulWidget {
@@ -201,7 +203,7 @@ class _HomePageState extends State<GamePage> {
                               children: [
                                 game.getGameDetails(context),
                                 game.getGameReport(context),
-                                getteamCompsTab(context, game),
+                                getTeamCompsTab(context, game),
                               ],
                             ),
                           ),
@@ -227,7 +229,7 @@ class _HomePageState extends State<GamePage> {
     );
   }
 
-  Widget getteamCompsTab(BuildContext context, Game game) {
+  Widget getTeamCompsTab(BuildContext context, Game game) {
     return DefaultTabController(
       length: 2,
       child: Column(
@@ -241,8 +243,33 @@ class _HomePageState extends State<GamePage> {
           Expanded(
             child: TabBarView(
               children: [
-                game.leftClub.teamComps[0].getTeamCompWidget(context),
-                game.rightClub.teamComps[0].getTeamCompWidget(context),
+                /// Left Club TeamComp
+                if (game.dateEnd == null &&
+                    game.leftClub.id !=
+                        Provider.of<SessionProvider>(context)
+                            .user!
+                            .selectedClub
+                            .id)
+                  Center(
+                    child: Text(
+                        'Only the team manager can see the teamcomp before the game'),
+                  )
+                else
+                  game.leftClub.teamComps[0].getTeamCompWidget(context),
+
+                /// Right Club TeamComp
+                if (game.dateEnd == null &&
+                    game.rightClub.id !=
+                        Provider.of<SessionProvider>(context)
+                            .user!
+                            .selectedClub
+                            .id)
+                  Center(
+                    child: Text(
+                        'Only the team manager can see the teamcomp before the game'),
+                  )
+                else
+                  game.rightClub.teamComps[0].getTeamCompWidget(context),
               ],
             ),
           ),

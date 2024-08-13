@@ -9,15 +9,16 @@ import 'package:opengoalz/classes/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
-import 'package:opengoalz/pages/staff_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/widgets/multiverse_row_widget.dart';
 import 'package:provider/provider.dart';
 
 part 'clubWidgetHelper.dart';
 part 'clubWidgetFinances.dart';
+part 'clubCardWidget.dart';
 
 class Club {
   List<TeamComp> teamComps = []; //List of the teamcomps of the club

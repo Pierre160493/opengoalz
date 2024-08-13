@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/widgets/errorTextWidget.dart';
 
 Widget getClubNameClickable(BuildContext context, Club? club, int? idCLub) {
   /// Returns a clickable widget with the club name
@@ -23,9 +24,13 @@ Widget getClubNameClickable(BuildContext context, Club? club, int? idCLub) {
           .map((maps) => maps.map((map) => Club.fromMap(map)).first),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          // return CircularProgressIndicator();
+          return Expanded(
+            child: LinearProgressIndicator(),
+          );
         } else if (snapshot.hasError) {
-          return Text('ERROR: ${snapshot.error}');
+          // return Text('ERROR: ${snapshot.error}');
+          return ErrorTextWidget(snapshot.error.toString());
         } else {
           final Club club = snapshot.data!;
           return club.getClubNameClickable(context);

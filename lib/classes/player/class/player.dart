@@ -11,9 +11,9 @@ import 'package:opengoalz/classes/club/getClubNameWidget.dart';
 import 'package:opengoalz/classes/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/pages/club_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
+import 'package:opengoalz/widgets/multiverse_row_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart'
@@ -26,6 +26,7 @@ part 'player_card_details.dart';
 part 'player_card_stats.dart';
 part 'player_card_history.dart';
 part 'player_expanses_history.dart';
+part 'player_card_widget.dart';
 
 class Player {
   Club? club;
@@ -38,6 +39,8 @@ class Player {
     required this.userName,
     required this.firstName,
     required this.lastName,
+    required this.surName,
+    required this.shirtNumber,
     required this.dateBirth,
     required this.multiverseSpeed,
     required this.idCountry,
@@ -57,6 +60,7 @@ class Player {
     required this.stamina,
     required this.form,
     required this.experience,
+    required this.notes,
   });
 
   final int id;
@@ -65,6 +69,8 @@ class Player {
   final String? userName;
   final String firstName;
   final String lastName;
+  final String? surName;
+  final int? shirtNumber;
   final DateTime dateBirth;
   final int multiverseSpeed;
   final int? idCountry; //Shouldn't be nullable
@@ -84,6 +90,7 @@ class Player {
   final double stamina;
   final double form;
   final double experience;
+  final String? notes;
 
   Player.fromMap(Map<String, dynamic> map)
       : id = map['id'],
@@ -92,6 +99,8 @@ class Player {
         userName = map['username'],
         firstName = map['first_name'],
         lastName = map['last_name'],
+        surName = map['surname'],
+        shirtNumber = map['shirt_number'],
         dateBirth = DateTime.parse(map['date_birth']),
         multiverseSpeed = map['multiverse_speed'],
         idCountry = map['id_country'],
@@ -115,7 +124,8 @@ class Player {
             : null,
         dateSell =
             map['date_sell'] != null ? DateTime.parse(map['date_sell']) : null,
-        dateArrival = DateTime.parse(map['date_arrival']);
+        dateArrival = DateTime.parse(map['date_arrival']),
+        notes = map['notes'];
 
   double get age {
     return DateTime.now().difference(dateBirth).inDays /

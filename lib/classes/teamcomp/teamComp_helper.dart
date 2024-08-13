@@ -140,12 +140,11 @@ extension TeamCompWidgetsHelper on TeamComp {
           ),
         );
 
-        /// Then we update the games_team_comp table with the new player
+        /// Then we update the games_teamcomp table with the new player
         if (returnedId != null) {
           try {
-            print(id);
             await supabase
-                .from('games_team_comp')
+                .from('games_teamcomp')
                 .update({player['database']: returnedId}).eq('id', id);
           } on PostgrestException catch (error) {
             print(error.message);
@@ -180,7 +179,7 @@ extension TeamCompWidgetsHelper on TeamComp {
                           GestureDetector(
                             onTap: () async {
                               await supabase
-                                  .from('games_team_comp')
+                                  .from('games_teamcomp')
                                   .update({player['database']: null}).match(
                                       {'id': player['player'].id});
                             },

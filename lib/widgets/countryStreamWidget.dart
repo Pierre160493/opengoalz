@@ -25,27 +25,35 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
         // Placeholder row while loading
         return Row(
           children: [
-            SizedBox(
-              width: 16.0, // Same width as the icon
-              height: 16.0, // Same height as the icon
-              child: CircularProgressIndicator(
-                strokeWidth: 2.0,
-              ),
-            ),
-            SizedBox(width: 4.0), // Spacing between icon and text
-            SizedBox(
-              width: 100.0, // Adjust the width as needed
-              child: Text(
-                'Loading...', // Placeholder text
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey, // Placeholder text color
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
+            Expanded(
+              child: LinearProgressIndicator(),
             ),
           ],
         );
+
+        // Row(
+        //   children: [
+        //     SizedBox(
+        //       width: 16.0, // Same width as the icon
+        //       height: 16.0, // Same height as the icon
+        //       child: CircularProgressIndicator(
+        //         strokeWidth: 2.0,
+        //       ),
+        //     ),
+        //     SizedBox(width: 4.0), // Spacing between icon and text
+        //     SizedBox(
+        //       width: 100.0, // Adjust the width as needed
+        //       child: Text(
+        //         'Loading...', // Placeholder text
+        //         style: TextStyle(
+        //           fontWeight: FontWeight.bold,
+        //           color: Colors.grey, // Placeholder text color
+        //         ),
+        //         overflow: TextOverflow.ellipsis,
+        //       ),
+        //     ),
+        //   ],
+        // );
       } else if (snapshot.hasError) {
         return Text('ERROR: ${snapshot.error}');
       } else {
@@ -54,36 +62,57 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
           return Text('ERROR: Country with id ${idCountry} not found');
         }
         // Actual row with data
-        return InkWell(
+        return ListTile(
           onTap: () {
             // Navigator.push(
             //   context,
             //   CountryPage.route(country['id']),
             // );
           },
-          child: Row(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(12), // Adjust border radius as needed
+            side: const BorderSide(
+              color: Colors.blueGrey, // Border color
+            ),
+          ),
+          // leading: CountryFlag.fromCountryCode(
+          //   shape: Rectangle(),
+          //   country['iso2'],
+          //   width: 36,
+          //   height: 24,
+          // ),
+          title: Row(
             children: [
-              Text(
-                country['name'],
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(width: 6.0),
               CountryFlag.fromCountryCode(
                 shape: Rectangle(),
                 country['iso2'],
                 width: 36,
                 height: 24,
               ),
-              SizedBox(width: 6),
               Text(
-                country['continent'],
-                style: TextStyle(
-                    fontStyle: FontStyle.italic, color: Colors.blueGrey),
+                country['name'],
+                // style: TextStyle(
+                //   fontWeight: FontWeight.bold,
+                // ),
               ),
             ],
           ),
+          subtitle: Row(
+            children: [
+              // Icon(Icons.language, size: iconSizeSmall),
+              Icon(Icons.public, size: iconSizeSmall),
+              Text(country['continent'],
+                  style: TextStyle(
+                      fontStyle: FontStyle.italic, color: Colors.blueGrey)),
+            ],
+          ),
+          // trailing: CountryFlag.fromCountryCode(
+          //   shape: Rectangle(),
+          //   country['iso2'],
+          //   width: 48,
+          //   height: 36,
+          // ),
         );
       }
     },

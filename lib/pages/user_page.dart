@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/gameUser.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
-import 'package:opengoalz/classes/player/player_card.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/settings_page.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -11,7 +10,6 @@ import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
-import 'package:opengoalz/widgets/multiverse_row_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -202,74 +200,7 @@ class _UserPageState extends State<UserPage> {
             itemCount: user.clubs.length,
             itemBuilder: (context, index) {
               final Club club = user.clubs[index];
-              return Column(
-                children: [
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          24), // Adjust border radius as needed
-                      side: const BorderSide(
-                        color: Colors.blueGrey, // Border color
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          onTap: () {
-                            Provider.of<SessionProvider>(context, listen: false)
-                                .providerSetSelectedClub(club.id);
-                          },
-                          leading: CircleAvatar(
-                            backgroundColor: (club.id ==
-                                    Provider.of<SessionProvider>(context)
-                                        .user!
-                                        .selectedClub
-                                        .id)
-                                ? Colors.green
-                                : Colors.blueGrey,
-                            child: Text(
-                              (index + 1).toString(),
-                            ),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                24), // Adjust border radius as needed
-                            side: const BorderSide(
-                              color: Colors.blueGrey, // Border color
-                            ),
-                          ),
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              club.getClubName(context),
-                              club.getLastResultsWidget()
-                            ],
-                          ),
-                          subtitle: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              club.getRankingWidget(context),
-                              multiverseWidget(club.multiverseSpeed),
-                            ],
-                          ),
-                        ),
-                        if (club.id ==
-                            Provider.of<SessionProvider>(context)
-                                .user!
-                                .selectedClub
-                                .id)
-                          Column(
-                            children: [
-                              const SizedBox(height: 6),
-                              club.getQuickAccessWidget(context, club.id),
-                              const SizedBox(height: 6),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
+              return club.getClubCard(context, index);
             },
           ),
         ),
@@ -302,12 +233,7 @@ class _UserPageState extends State<UserPage> {
                     ),
                   );
                 },
-                child: Column(
-                  children: [
-                    PlayerCard(
-                        player: player, number: index + 1, isExpanded: false),
-                  ],
-                ),
+                child: player.getPlayerCard(context, index),
               );
             },
           ),

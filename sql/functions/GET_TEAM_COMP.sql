@@ -24,7 +24,7 @@ BEGIN
     ------------ Initialization
     ------ Get all the orders for the game from the club
     FOR loc_record IN
-        SELECT id_player, id_position FROM games_team_comp
+        SELECT id_player, id_position FROM games_teamcomp
             WHERE id_game = inp_id_game AND id_club = inp_id_club
     LOOP
         -- Process each row here

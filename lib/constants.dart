@@ -35,7 +35,9 @@ const icon_scouts = Icons.camera_indoor_outlined;
 const icon_medics = Icons.healing;
 const icon_players = Icons.diversity_3;
 const icon_transfers = Icons.currency_exchange;
-const iconGames = Icons.calendar_month;
+const iconGames = Icons.event;
+const iconCalendar = Icons.calendar_month;
+const iconNotes = Icons.event_note;
 // const icon_league = Icons.emoji_events_outlined;
 const icon_league = Icons.format_list_numbered;
 const iconTraining = Icons.query_stats;
@@ -49,13 +51,22 @@ const iconUser = Icons.account_circle;
 const iconBot = Icons.smart_toy_outlined;
 const iconTeamComp = Icons.grid_on;
 const iconMails = Icons.email;
+const iconStamina = Icons.ev_station;
+// const iconBug = Icons.bug_report;
+const iconBug = Icons.error;
+
+/// Color for players or clubs belonging to the currently connected user
+const Color colorIsMine = Colors.purple;
 
 const iconSizeSmall = 24.0;
 const iconSizeMedium = 30.0;
 const iconSizeLarge = 36.0;
-
-/// Color for players or clubs belonging to the currently connected user
-const Color colorIsMine = Colors.purple;
+// double iconSizeSmall =
+//     MediaQuery.of(context).size.width * 0.05; // 5% of screen width
+// double iconSizeMedium =
+//     MediaQuery.of(context).size.width * 0.075; // 7.5% of screen width
+// double iconSizeLarge =
+//     MediaQuery.of(context).size.width * 0.1; // 10% of screen width
 
 /// Basic theme to change the look and feel of the app
 // ThemeData getAppTheme(BuildContext context) {

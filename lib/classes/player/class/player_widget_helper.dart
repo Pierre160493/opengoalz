@@ -1,7 +1,7 @@
 part of 'player.dart';
 
 extension PlayerWidgetsHelper on Player {
-  Widget getPlayerNames(BuildContext context) {
+  Widget getPlayerNames(BuildContext context, {bool isSurname = false}) {
     /// Check if the player belongs to the currently connected user
     bool isMine = Provider.of<SessionProvider>(context)
         .user!
@@ -10,30 +10,36 @@ extension PlayerWidgetsHelper on Player {
         .toList()
         .contains(id);
 
-    /// Text widget of the player name
-    Text text = Text(
-      '${firstName[0]}.${lastName.toUpperCase()}',
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-        color: isMine ? colorIsMine : null,
-      ),
-
-      overflow: TextOverflow.fade, // or TextOverflow.ellipsis
-      maxLines: 1,
-      softWrap: false,
-    );
-
     return Row(
-      children: [Icon(getPlayerIcon()), text],
+      children: [
+        Icon(getPlayerIcon()),
+        Tooltip(
+          message: firstName + ' ' + lastName,
+          child: Text(
+            isSurname
+                ? surName == null
+                    ? 'No Surname'
+                    : surName!
+                : '${firstName[0]}.${lastName.toUpperCase()}',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isMine ? colorIsMine : null,
+            ),
+            overflow: TextOverflow.fade, // or TextOverflow.ellipsis
+            maxLines: 1,
+            softWrap: false,
+          ),
+        )
+      ],
     );
   }
 
   /// Clickable widget of the club name
   Widget getPlayerNameClickable(BuildContext context,
-      {bool isRightClub = false}) {
+      {bool isRightClub = false, bool isSurname = false}) {
     return Row(
-      mainAxisAlignment:
-          isRightClub ? MainAxisAlignment.end : MainAxisAlignment.start,
+      // mainAxisAlignment:
+      //     isRightClub ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         InkWell(
           onTap: () {
@@ -221,42 +227,20 @@ extension PlayerWidgetsHelper on Player {
       children: [
         Row(
           children: [
-            Expanded(
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 48,
-                    child: Icon(
-                      getPlayerIcon(),
-                      size: 90,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 6,
-                  ), // Add some space between the avatar and the text
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //   children: [
-                      //     getAgeWidget(),
-                      //     getCountryNameWidget(context, idCountry),
-                      //   ],
-                      // ),
-                      getAgeWidget(),
-                      getCountryNameWidget(context, idCountry),
-                      getExpansesWidget(context),
-                      getAvgStatsWidget(),
-                      getClubNameWidget(context),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            // First ListTile
+            Expanded(child: getAgeWidget()),
+            // Second ListTile
+            Expanded(child: getCountryNameWidget(context, idCountry)),
           ],
         ),
-        SizedBox(height: 6.0),
+        Row(
+          children: [
+            // First ListTile
+            Expanded(child: getAvgStatsWidget()),
+            // Second ListTile
+            Expanded(child: getExpansesWidget(context)),
+          ],
+        ),
         if (transferBids.length > 0 && dateSell!.isAfter(DateTime.now()))
           playerTransferWidget(context),
         if (dateEndInjury != null) getInjuryWidget(),
@@ -307,76 +291,123 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  static const double icon_size = 30.0;
+  static const double iconSize = iconSizeSmall;
 
   Widget getAgeWidget() {
-    return Row(
-      children: [
-        Icon(
-          Icons.cake_outlined,
-          size: icon_size, // Adjust icon size as needed
-          color: Colors.green, // Adjust icon color as needed
+    return ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(12), // Adjust border radius as needed
+        side: const BorderSide(
+          color: Colors.blueGrey, // Border color
         ),
-        Text(
-          ' ${age.truncate()}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(' years, '),
-        Text(
-          ((age - age.truncate()) * (7 * 14 / multiverseSpeed))
-              .floor()
-              .toString(),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(' days '),
-      ],
-    );
-  }
-
-  Widget getExpansesWidget(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        showPlayerExpansesHistory(context);
-      },
-      child: Row(
+      ),
+      // leading: Icon(
+      //   Icons.cake_outlined,
+      //   size: iconSize,
+      // ),
+      title: Row(
         children: [
-          Icon(
-            iconMoney,
-            size: icon_size, // Adjust icon size as needed
-            color: Colors.green, // Adjust icon color as needed
-          ),
+          Icon(Icons.cake_outlined, size: iconSize),
           Text(
-            ' ${expanses.toString()}',
+            age.truncate().toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(' / week'),
+          Text(
+            ' & ',
+          ),
+          Text(
+            ((age - age.truncate()) * (7 * 14 / multiverseSpeed))
+                .floor()
+                .toString(),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            ' days',
+          ),
+        ],
+      ),
+      subtitle: Row(
+        children: [
+          Icon(Icons.calendar_month, size: iconSize),
+          Text(DateFormat('dd MMMM yyyy').format(dateBirth),
+              style: TextStyle(
+                  fontStyle: FontStyle.italic, color: Colors.blueGrey)),
         ],
       ),
     );
   }
 
-  Widget getAvgStatsWidget() {
-    return Row(
-      children: [
-        Icon(
-          Icons.query_stats_outlined,
-          size: icon_size, // Adjust icon size as needed
-          color: Colors.green, // Adjust icon color as needed
+  Widget getExpansesWidget(BuildContext context) {
+    return ListTile(
+      onTap: () => showPlayerExpansesHistory(context),
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(12), // Adjust border radius as needed
+        side: const BorderSide(
+          color: Colors.blueGrey, // Border color
         ),
-        Text(
-          ' ${stats_average.toStringAsFixed(1)}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+      ),
+      // leading: Icon(
+      //   iconMoney,
+      //   size: iconSize, // Adjust icon size as needed
+      // ),
+      title: Row(
+        children: [
+          Icon(
+            iconMoney,
+            size: iconSize, // Adjust icon size as needed
           ),
+          Text(
+            expanses.toString(),
+            // style: TextStyle(
+            //   fontWeight: FontWeight.bold,
+            // ),
+          ),
+        ],
+      ),
+      subtitle: Text(
+        'Expanses per week',
+        style: TextStyle(
+          fontStyle: FontStyle.italic,
+          color: Colors.blueGrey,
         ),
-        Text(' Average Stats')
-      ],
+      ),
+    );
+  }
+
+  Widget getAvgStatsWidget() {
+    return ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(12), // Adjust border radius as needed
+        side: const BorderSide(
+          color: Colors.blueGrey, // Border color
+        ),
+      ),
+      // leading: Icon(
+      //   Icons.query_stats_outlined,
+      //   size: iconSize,
+      // ),
+      title: Row(
+        children: [
+          Icon(Icons.query_stats_outlined, size: iconSize),
+          Text(
+            stats_average.toStringAsFixed(1),
+            // style: TextStyle(
+            //   fontWeight: FontWeight.bold,
+            // ),
+          ),
+        ],
+      ),
+      subtitle: Text(
+        'Average stats',
+        style: TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey),
+      ),
     );
   }
 
@@ -384,7 +415,7 @@ extension PlayerWidgetsHelper on Player {
     return Row(
       children: [
         Icon(Icons.personal_injury_outlined,
-            size: icon_size, color: Colors.red), // Adjust icon size and color
+            size: iconSize, color: Colors.red), // Adjust icon size and color
         Text(
           ' ${dateEndInjury!.difference(DateTime.now()).inDays.toString()}',
           style: const TextStyle(

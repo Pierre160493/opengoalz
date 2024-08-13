@@ -1,11 +1,11 @@
 part of 'player.dart';
 
 extension PlayerWidgetsActions on Player {
-  Widget playerPopUpMenuItem(BuildContext context, int number) {
+  Widget playerPopUpMenuItem(BuildContext context, int? index) {
     return PopupMenuButton<String>(
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-        if (number >
-            0) // Show the "Open Page" option only if multiple players currently displayed
+        if (index !=
+            null) // Show the "Open Page" option only if multiple players currently displayed
           const PopupMenuItem<String>(
             value: 'Open Page',
             child: ListTile(
