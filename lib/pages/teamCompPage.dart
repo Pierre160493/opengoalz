@@ -52,6 +52,8 @@ class _TeamCompPageState extends State<TeamCompPage> {
                 for (TeamComp teamComp in teamComps.where((TeamComp teamcomp) =>
                     teamcomp.seasonNumber == widget.seasonNumber &&
                     teamcomp.weekNumber == widget.weekNumber)) {
+                  club.teamComps
+                      .clear(); // Clear otherwise it appends the new element to the list when stream emits new data
                   club.teamComps.add(teamComp);
                 }
                 return club;
@@ -118,7 +120,7 @@ class _TeamCompPageState extends State<TeamCompPage> {
                         Expanded(
                           child: TabBarView(
                             children: [
-                              club.teamComps[0].getTeamCompWidget(context),
+                              club.teamComps.first.getTeamCompWidget(context),
                               Center(child: Text('test')),
                               Center(child: Text('test')),
                             ],

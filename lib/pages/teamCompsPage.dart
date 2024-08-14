@@ -55,6 +55,10 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
               .eq('id_club', club.id)
               .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
               .map((List<TeamComp> teamComps) {
+                /// Clear the lists otherwise when stream emits new data, the new teamcomps are appended
+                club.defaultTeamComps.clear();
+                club.teamComps.clear();
+
                 /// Set all the teamComps
                 for (TeamComp teamComp in teamComps
                     .where((TeamComp teamcomp) => teamcomp.seasonNumber == 0)) {
@@ -93,16 +97,11 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                   ].toSet().toList())
               .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
               .map((players) {
-                for (Player player in players) {
-                  print('Player: ' + player.id.toString());
-                }
                 for (TeamComp teamComp
                     in club.teamComps + club.defaultTeamComps) {
-                  print('TeamComp: ' + teamComp.id.toString());
                   teamComp.initPlayers(players
                       .where((player) => player.idClub == club.id)
                       .toList());
-                  print(teamComp.players);
                 }
                 return club;
               });
@@ -162,8 +161,9 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                     children: [
                       TabBar(
                         tabs: [
-                          buildTabWithIcon(Icons.save, 'Default'),
-                          buildTabWithIcon(Icons.update, 'This Season Games'),
+                          buildTabWithIcon(Icons.save, 'Defaults'),
+                          buildTabWithIcon(
+                              Icons.update, 'Season ${_seasonNumber}'),
                         ],
                       ),
                       Expanded(

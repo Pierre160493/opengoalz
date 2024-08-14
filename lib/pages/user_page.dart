@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/gameUser.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/classes/player/player_card.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/settings_page.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -233,7 +234,11 @@ class _UserPageState extends State<UserPage> {
                     ),
                   );
                 },
-                child: player.getPlayerCard(context, index),
+                // child: player.getPlayerCard(context, index),
+                child: PlayerCard(
+                    player: player,
+                    index: user.players.length == 1 ? 0 : index + 1,
+                    isExpanded: user.players.length == 1 ? true : false),
               );
             },
           ),

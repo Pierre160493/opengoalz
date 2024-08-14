@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/getClubNameWidget.dart';
-import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/multiverse_row_widget.dart';
@@ -16,7 +15,7 @@ class PlayerCard extends StatefulWidget {
   const PlayerCard(
       {Key? key,
       required this.player,
-      required this.index,
+      this.index = null,
       this.isExpanded = false})
       : super(key: key);
 
@@ -57,18 +56,18 @@ class _PlayerCardState extends State<PlayerCard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PlayersPage(
-                    inputCriteria: {
-                      'Players': [widget.player.id]
-                    },
-                  ),
-                ),
-              );
-            },
+            // onTap: () {
+            //   Navigator.push(
+            //     context,
+            //     MaterialPageRoute(
+            //       builder: (context) => PlayersPage(
+            //         inputCriteria: {
+            //           'Players': [widget.player.id]
+            //         },
+            //       ),
+            //     ),
+            //   );
+            // },
             leading: CircleAvatar(
               backgroundColor: (Provider.of<SessionProvider>(context)
                       .user!
@@ -77,7 +76,7 @@ class _PlayerCardState extends State<PlayerCard>
                   ? Colors.purple
                   : null,
               child: widget.index == null
-                  ? Text('test NULL')
+                  ? Icon(widget.player.getPlayerIcon())
                   : Text(
                       (widget.index!).toString(),
                     ),

@@ -82,8 +82,6 @@ class Game {
     } else if (map['id_club_right'] == idClubSelected) {
       isLeftClubSelected = false;
     }
-    print('idClubSelected= ' + idClubSelected.toString());
-    print('isLeftClubSelected= ' + isLeftClubSelected.toString());
 
     return Game(
       id: map['id'],

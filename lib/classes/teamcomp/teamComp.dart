@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/classes/player/player_card.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

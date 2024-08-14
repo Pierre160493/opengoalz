@@ -13,7 +13,6 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
-import 'package:opengoalz/widgets/multiverse_row_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart'
@@ -26,7 +25,7 @@ part 'player_card_details.dart';
 part 'player_card_stats.dart';
 part 'player_card_history.dart';
 part 'player_expanses_history.dart';
-part 'player_card_widget.dart';
+// part 'player_card_widget.dart';
 
 class Player {
   Club? club;

@@ -269,17 +269,12 @@ class _PlayersPageState extends State<PlayersPage> {
                                     // Handle logic for single player directly
                                   }
                                 },
-                                child: Column(
-                                  children: [
-                                    // Text('${index + 1}'),
-                                    PlayerCard(
-                                        player: player,
-                                        index:
-                                            players.length == 1 ? 0 : index + 1,
-                                        isExpanded:
-                                            players.length == 1 ? true : false),
-                                  ],
-                                ),
+                                child: PlayerCard(
+                                    player: player,
+                                    index:
+                                        players.length == 1 ? 0 : index + 1,
+                                    isExpanded:
+                                        players.length == 1 ? true : false),
                               );
                             },
                           ),
