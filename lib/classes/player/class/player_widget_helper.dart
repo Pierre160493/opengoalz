@@ -10,27 +10,22 @@ extension PlayerWidgetsHelper on Player {
         .toList()
         .contains(id);
 
-    return Row(
-      children: [
-        Icon(getPlayerIcon()),
-        Tooltip(
-          message: firstName + ' ' + lastName,
-          child: Text(
-            isSurname
-                ? surName == null
-                    ? 'No Surname'
-                    : surName!
-                : '${firstName[0]}.${lastName.toUpperCase()}',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isMine ? colorIsMine : null,
-            ),
-            overflow: TextOverflow.fade, // or TextOverflow.ellipsis
-            maxLines: 1,
-            softWrap: false,
-          ),
-        )
-      ],
+    return Tooltip(
+      message: firstName + ' ' + lastName.toUpperCase(),
+      child: Text(
+        isSurname
+            ? surName == null
+                ? 'No Surname'
+                : surName!
+            : '${firstName[0]}.${lastName.toUpperCase()}',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: isMine ? colorIsMine : null,
+        ),
+        overflow: TextOverflow.fade, // or TextOverflow.ellipsis
+        maxLines: 1,
+        softWrap: false,
+      ),
     );
   }
 
@@ -291,7 +286,7 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  static const double iconSize = iconSizeSmall;
+  static double iconSize = iconSizeSmall;
 
   Widget getAgeWidget() {
     return ListTile(
@@ -308,7 +303,7 @@ extension PlayerWidgetsHelper on Player {
       // ),
       title: Row(
         children: [
-          Icon(Icons.cake_outlined, size: iconSize),
+          Icon(iconAge, size: iconSize),
           Text(
             age.truncate().toString(),
             style: TextStyle(
@@ -339,6 +334,20 @@ extension PlayerWidgetsHelper on Player {
                   fontStyle: FontStyle.italic, color: Colors.blueGrey)),
         ],
       ),
+    );
+  }
+
+  Widget getAgeWidgetSmall() {
+    return Tooltip(
+      message:
+          '${age.truncate().toString()} & ${((age - age.truncate()) * (7 * 14 / multiverseSpeed)).floor().toString()} days',
+      child: Row(
+        children: [
+          Icon(iconAge, size: iconSize),
+          Text(age.toStringAsFixed(1)),
+        ],
+      ),
+      waitDuration: const Duration(seconds: 1),
     );
   }
 

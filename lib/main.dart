@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/app_theme.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -40,9 +41,7 @@ class MyApp extends StatelessWidget {
         builder: (context, themeProvider, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            theme: themeProvider.isDarkTheme
-                ? ThemeData.dark()
-                : ThemeData.light(),
+            theme: getTheme(context, themeProvider.isDarkTheme),
             home: SplashPage(),
           );
         },

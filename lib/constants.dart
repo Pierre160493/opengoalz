@@ -24,6 +24,8 @@ const formPadding = EdgeInsets.symmetric(vertical: 20, horizontal: 16);
 /// Error message to display the user when unexpected error occurs.
 const unexpectedErrorMessage = 'Unexpected error occurred.';
 
+const maxWidth = 600.0;
+
 /// Icons
 
 const icon_home = Icons.home;
@@ -49,6 +51,7 @@ const iconHistory = Icons.history_edu;
 const iconMoney = Icons.monetization_on_outlined;
 const iconUser = Icons.account_circle;
 const iconBot = Icons.smart_toy_outlined;
+const iconAge = Icons.cake_outlined;
 const iconTeamComp = Icons.grid_on;
 const iconMails = Icons.email;
 const iconStamina = Icons.ev_station;
@@ -58,20 +61,9 @@ const iconBug = Icons.error;
 /// Color for players or clubs belonging to the currently connected user
 const Color colorIsMine = Colors.purple;
 
-const iconSizeSmall = 24.0;
-const iconSizeMedium = 30.0;
-const iconSizeLarge = 36.0;
-// double iconSizeSmall =
-//     MediaQuery.of(context).size.width * 0.05; // 5% of screen width
-// double iconSizeMedium =
-//     MediaQuery.of(context).size.width * 0.075; // 7.5% of screen width
-// double iconSizeLarge =
-//     MediaQuery.of(context).size.width * 0.1; // 10% of screen width
-
-/// Basic theme to change the look and feel of the app
-// ThemeData getAppTheme(BuildContext context) {
-//   return ThemeData.dark().copyWith();
-// }
+double iconSizeSmall = 24.0;
+double iconSizeMedium = 30.0;
+double iconSizeLarge = 36.0;
 
 /// Set of extension methods to easily display a snackbar
 extension ShowSnackBar on BuildContext {

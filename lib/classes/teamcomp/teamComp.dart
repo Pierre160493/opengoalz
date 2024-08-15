@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/classes/player/player_card.dart';

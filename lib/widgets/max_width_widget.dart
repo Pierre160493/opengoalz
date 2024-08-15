@@ -1,6 +1,5 @@
-
-
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 
 class MaxWidthContainer extends StatelessWidget {
   final Widget child;
@@ -11,7 +10,7 @@ class MaxWidthContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 600),
+        constraints: const BoxConstraints(maxWidth: maxWidth),
         child: child,
       ),
     );

@@ -291,8 +291,8 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
 
         -- Insert messages
         INSERT INTO messages_mail (id_club, title, message) VALUES
-            (game.id_club_left, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right);
-            (game.id_club_right, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+            (game.id_club_left, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right),
+            (game.id_club_right, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
 
     -- Right team wins
     ELSEIF loc_score_left < loc_score_right THEN
@@ -305,8 +305,8 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
 
         -- Insert messages
         INSERT INTO messages_mail (id_club, title, message) VALUES
-            (game.id_club_left, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right);
-            (game.id_club_right, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+            (game.id_club_left, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right),
+            (game.id_club_right, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
 
     -- Draw
     ELSE
@@ -316,8 +316,8 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
 
         -- Insert messages
         INSERT INTO messages_mail (id_club, title, message) VALUES
-            (game.id_club_left, 'Draw for game in week' || game.week_number, 'We drew the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right);
-            (game.id_club_right, 'Draw for game in week ' || game.week_number, 'We drew the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+            (game.id_club_left, 'Draw for game in week' || game.week_number, 'We drew the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right),
+            (game.id_club_right, 'Draw for game in week ' || game.week_number, 'We drew the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
 
     END IF;
 

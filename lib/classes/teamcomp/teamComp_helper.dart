@@ -2,8 +2,19 @@ part of 'teamComp.dart';
 
 extension TeamCompWidgetsHelper on TeamComp {
   Widget getTeamCompWidget(BuildContext context) {
+    double width =
+        (min(MediaQuery.of(context).size.width, maxWidth) ~/ 6).toDouble();
+
+    /// sizedBox resued for spacing between rows
+    var sizedBox = SizedBox(width: width / 6);
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.blueGrey,
+          width: 1.0, // Set border width
+        ),
+      ),
+      width: width,
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -12,32 +23,13 @@ extension TeamCompWidgetsHelper on TeamComp {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _playerTeamCompCard(
-                    context, getPlayerMapByName('Left Striker')),
-                const SizedBox(width: 6.0),
+                    context, width, getPlayerMapByName('Left Striker')),
+                sizedBox,
                 _playerTeamCompCard(
-                    context, getPlayerMapByName('Central Striker')),
-                const SizedBox(width: 6.0),
+                    context, width, getPlayerMapByName('Central Striker')),
+                sizedBox,
                 _playerTeamCompCard(
-                    context, getPlayerMapByName('Right Striker')),
-              ],
-            ),
-            const SizedBox(height: 6.0), // Add spacing between rows
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _playerTeamCompCard(context, getPlayerMapByName('Left Winger')),
-                const SizedBox(width: 6.0),
-                _playerTeamCompCard(
-                    context, getPlayerMapByName('Left Midfielder')),
-                const SizedBox(width: 6.0),
-                _playerTeamCompCard(
-                    context, getPlayerMapByName('Central Midfielder')),
-                const SizedBox(width: 6.0),
-                _playerTeamCompCard(
-                    context, getPlayerMapByName('Right Midfielder')),
-                const SizedBox(width: 6.0),
-                _playerTeamCompCard(
-                    context, getPlayerMapByName('Right Winger')),
+                    context, width, getPlayerMapByName('Right Striker')),
               ],
             ),
             const SizedBox(height: 6.0), // Add spacing between rows
@@ -45,26 +37,47 @@ extension TeamCompWidgetsHelper on TeamComp {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _playerTeamCompCard(
-                    context, getPlayerMapByName('Left Back Winger')),
-                const SizedBox(width: 6.0),
+                    context, width, getPlayerMapByName('Left Winger')),
+                sizedBox,
                 _playerTeamCompCard(
-                    context, getPlayerMapByName('Left Central Back')),
-                const SizedBox(width: 6.0),
+                    context, width, getPlayerMapByName('Left Midfielder')),
+                sizedBox,
                 _playerTeamCompCard(
-                    context, getPlayerMapByName('Central Back')),
-                const SizedBox(width: 6.0),
+                    context, width, getPlayerMapByName('Central Midfielder')),
+                sizedBox,
                 _playerTeamCompCard(
-                    context, getPlayerMapByName('Right Central Back')),
-                const SizedBox(width: 6.0),
+                    context, width, getPlayerMapByName('Right Midfielder')),
+                sizedBox,
                 _playerTeamCompCard(
-                    context, getPlayerMapByName('Right Back Winger')),
+                    context, width, getPlayerMapByName('Right Winger')),
               ],
             ),
             const SizedBox(height: 6.0), // Add spacing between rows
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _playerTeamCompCard(context, getPlayerMapByName('Goal Keeper')),
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Left Back Winger')),
+                sizedBox,
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Left Central Back')),
+                sizedBox,
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Central Back')),
+                sizedBox,
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Right Central Back')),
+                sizedBox,
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Right Back Winger')),
+              ],
+            ),
+            const SizedBox(height: 6.0), // Add spacing between rows
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Goal Keeper')),
               ],
             ),
             const SizedBox(height: 16.0), // Add spacing between rows
@@ -78,19 +91,26 @@ extension TeamCompWidgetsHelper on TeamComp {
                   ],
                 ),
                 SizedBox(width: 6.0),
-                _playerTeamCompCard(context, getPlayerMapByName('Sub 1')),
-                _playerTeamCompCard(context, getPlayerMapByName('Sub 2')),
-                _playerTeamCompCard(context, getPlayerMapByName('Sub 3')),
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Sub 1')),
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Sub 2')),
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Sub 3')),
               ],
             ),
             const SizedBox(height: 16.0), // Add spacing between rows
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _playerTeamCompCard(context, getPlayerMapByName('Sub 4')),
-                _playerTeamCompCard(context, getPlayerMapByName('Sub 5')),
-                _playerTeamCompCard(context, getPlayerMapByName('Sub 6')),
-                _playerTeamCompCard(context, getPlayerMapByName('Sub 7')),
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Sub 4')),
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Sub 5')),
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Sub 6')),
+                _playerTeamCompCard(
+                    context, width, getPlayerMapByName('Sub 7')),
               ],
             ),
           ],
@@ -100,7 +120,7 @@ extension TeamCompWidgetsHelper on TeamComp {
   }
 
   Widget _playerTeamCompCard(
-      BuildContext context, Map<String, dynamic>? playerMap) {
+      BuildContext context, double width, Map<String, dynamic>? playerMap) {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     if (playerMap == null || playerMap.isEmpty) {
       return Container(
@@ -124,8 +144,8 @@ extension TeamCompWidgetsHelper on TeamComp {
                   title: Text('Current player for ${playerMap['name']}'),
                   // content: Text('Are you sure you want to navigate?'),
                   content: Container(
-                    width: MediaQuery.of(context).size.width *
-                        0.8, // 80% of screen width
+                    width: min(MediaQuery.of(context).size.width,
+                        maxWidth), // 80% of screen width
                     child: SingleChildScrollView(
                       child: PlayerCard(
                         player: player,
@@ -228,27 +248,48 @@ extension TeamCompWidgetsHelper on TeamComp {
             );
           },
           child: Container(
-            color: Colors.green,
-            child: Column(
-              children: [
-                Card(
-                  elevation: 3.0,
-                  child: Container(
-                      width: 48.0,
-                      height: 60.0,
-                      alignment: Alignment.center,
-                      child: Column(
+            width: width,
+            height: width * 1.2,
+            child: Card(
+              color: Colors.green,
+              elevation: 3.0,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
                         children: [
-                          Icon(player.getPlayerIcon()),
-                          Center(
-                            child: Text(
-                              '${player.firstName[0].toUpperCase()}.${player.lastName}',
-                            ),
-                          ),
+                          player.getAgeWidgetSmall(),
                         ],
-                      )),
-                ),
-              ],
+                      ),
+                      Row(
+                        children: [
+                          if (player.shirtNumber != null)
+                            Text('# ' + player.shirtNumber.toString()),
+                          SizedBox(width: 3.0),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        player.getPlayerIcon(),
+                        size: iconSizeLarge,
+                      ),
+                      player.getPlayerNames(context),
+                      // Text(
+                      //   player.firstName,
+                      // ),
+                      // Text(
+                      //   player.lastName.toUpperCase(),
+                      // ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -309,7 +350,7 @@ extension TeamCompWidgetsHelper on TeamComp {
           },
           child: Container(
             color: Colors.blueGrey,
-            child: const Icon(Icons.add, size: iconSizeLarge),
+            child: Icon(Icons.add, size: iconSizeLarge),
           ),
         ),
       );

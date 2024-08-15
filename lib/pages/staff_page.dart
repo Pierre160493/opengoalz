@@ -58,7 +58,7 @@ class _StaffPageState extends State<StaffPage> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(icon_staff, size: iconSizeMedium),
+                    leading: Icon(icon_staff, size: iconSizeMedium),
                     title: Row(
                       children: [
                         Text('Staff expanses: '),
@@ -157,7 +157,7 @@ class _StaffPageState extends State<StaffPage> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.thermostat, size: iconSizeMedium),
+                    leading: Icon(Icons.thermostat, size: iconSizeMedium),
                     title: Row(
                       children: [
                         Text('Staff skill: '),
