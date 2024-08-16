@@ -433,6 +433,8 @@ inp_matrix_player_stats_defense := loc_matrix_player_stats_left -- Matrix of the
     UPDATE games SET date_end =
         date_start + (loc_minute_period_end + loc_minute_period_extra_time) * INTERVAL '1 minute'
     WHERE id = inp_id_game;
+    -- Set games_teamcomp is_played = TRUE
+    UPDATE games_teamcomp SET is_played = TRUE WHERE id IN (loc_id_teamcomp_left, loc_id_teamcomp_right);
 
 END;
 $function$

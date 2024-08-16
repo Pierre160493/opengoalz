@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
+import 'package:opengoalz/classes/subs.dart';
 import 'package:opengoalz/classes/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
@@ -87,11 +88,13 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                   'id',
                   [
                     ...club.teamComps
-                        .expand((teamComp) => teamComp.toListOfInt())
+                        .expand((TeamComp teamComp) =>
+                            teamComp.playersIdToListOfInt())
                         .where((id) => id != null)
                         .cast<Object>(),
                     ...club.defaultTeamComps
-                        .expand((teamComp) => teamComp.toListOfInt())
+                        .expand((TeamComp teamComp) =>
+                            teamComp.playersIdToListOfInt())
                         .where((id) => id != null)
                         .cast<Object>()
                   ].toSet().toList())
@@ -102,6 +105,30 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                   teamComp.initPlayers(players
                       .where((player) => player.idClub == club.id)
                       .toList());
+                }
+                return club;
+              });
+        })
+        .switchMap((Club club) {
+          return supabase
+              .from('games_subs')
+              .stream(primaryKey: ['id'])
+              .inFilter(
+                  'id_teamcomp',
+                  [
+                    ...club.defaultTeamComps
+                        .map((teamComp) => teamComp.id)
+                        .toList(),
+                    ...club.teamComps.map((teamComp) => teamComp.id).toList(),
+                  ].toSet().toList())
+              .order('minute', ascending: true)
+              .map((maps) => maps.map((map) => GameSub.fromMap(map)).toList())
+              .map((subs) {
+                for (TeamComp teamComp
+                    in club.teamComps + club.defaultTeamComps) {
+                  teamComp.subs = subs
+                      .where((sub) => sub.idTeamComp == teamComp.id)
+                      .toList();
                 }
                 return club;
               });
@@ -236,35 +263,8 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                     child: TabBarView(
                                       children: List<Widget>.generate(
                                         club.defaultTeamComps.length,
-                                        (index) => DefaultTabController(
-                                          length:
-                                              2, // Number of tabs for the inner TabController
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              TabBar(
-                                                tabs: [
-                                                  buildTabWithIcon(
-                                                      Icons.preview,
-                                                      'TeamComp'),
-                                                  buildTabWithIcon(
-                                                      Icons.reviews, 'Stats'),
-                                                ],
-                                              ),
-                                              Expanded(
-                                                child: TabBarView(
-                                                  children: [
-                                                    club.defaultTeamComps[index]
-                                                        .getTeamCompWidget(
-                                                            context),
-                                                    Center(child: Text('test')),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+                                        (index) => club.defaultTeamComps[index]
+                                            .getMainTeamCompWidget(context),
                                       ),
                                     ),
                                   ),
@@ -272,15 +272,15 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                               ),
                             ),
                             DefaultTabController(
-                              length:
-                                  14, // Number of tabs for the outer TabController
+                              length: club.teamComps
+                                  .length, // Number of tabs for the outer TabController
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   TabBar(
                                     isScrollable: true,
                                     tabs: List<Widget>.generate(
-                                      14,
+                                      club.teamComps.length,
                                       (index) => Tab(text: '${index + 1}'),
                                     ),
                                   ),
@@ -288,35 +288,8 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                     child: TabBarView(
                                       children: List<Widget>.generate(
                                         14,
-                                        (index) => DefaultTabController(
-                                          length:
-                                              2, // Number of tabs for the inner TabController
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              TabBar(
-                                                tabs: [
-                                                  buildTabWithIcon(
-                                                      Icons.preview,
-                                                      'TeamComp'),
-                                                  buildTabWithIcon(
-                                                      Icons.reviews, 'Stats'),
-                                                ],
-                                              ),
-                                              Expanded(
-                                                child: TabBarView(
-                                                  children: [
-                                                    club.teamComps[index]
-                                                        .getTeamCompWidget(
-                                                            context),
-                                                    Center(child: Text('test')),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+                                        (index) => club.teamComps[index]
+                                            .getMainTeamCompWidget(context),
                                       ),
                                     ),
                                   ),

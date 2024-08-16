@@ -25,9 +25,9 @@ ThemeData getTheme(BuildContext context, bool isDark) {
 // Function to generate TextTheme with a size multiplier
 TextTheme getTextTheme(double multiplier) {
   /// Modify the icons size based on the multiplier
-  iconSizeSmall = iconSizeSmall * multiplier;
-  iconSizeMedium = iconSizeMedium * multiplier;
-  iconSizeLarge = iconSizeLarge * multiplier;
+  iconSizeSmall = 24 * multiplier;
+  iconSizeMedium = 30 * multiplier;
+  iconSizeLarge = 36 * multiplier;
 
   /// Set the font sizes based on the multiplier
   return TextTheme(

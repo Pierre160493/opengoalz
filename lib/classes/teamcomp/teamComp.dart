@@ -4,12 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/classes/player/player_card.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
+import 'package:opengoalz/classes/subs.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-part 'teamComp_helper.dart';
+part 'teamComp_main_widget.dart';
+part 'teamComp_tab_teamcomp.dart';
+part 'teamComp_tab_orders.dart';
+part 'teamComp_player_card.dart';
 
 class TeamComp {
+  List<GameSub> subs = [];
+  int? idSelectedPlayer;
+
   TeamComp({
     required this.id,
     required this.idClub,
@@ -18,6 +26,8 @@ class TeamComp {
     required this.players,
     required this.name,
     required this.description,
+    required this.isPlayed,
+    // required this.isValid,
   });
 
   final int id;
@@ -26,6 +36,8 @@ class TeamComp {
   final int weekNumber;
   final String name;
   final String description;
+  final bool isPlayed;
+  // final bool isValid;
   final List<Map<String, dynamic>> players;
 
   static List<Map<String, dynamic>> defaultPlayers = [
@@ -191,11 +203,13 @@ class TeamComp {
       weekNumber: map['week_number'],
       name: map['name'],
       description: map['description'],
+      isPlayed: map['is_played'],
+      // isValid: map['is_valid'],
       players: players,
     );
   }
 
-  List<int?> toListOfInt() {
+  List<int?> playersIdToListOfInt() {
     List<int?> ids = [];
     for (Map<String, dynamic> player in players) {
       ids.add(player['id']);

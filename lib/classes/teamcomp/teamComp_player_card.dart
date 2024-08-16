@@ -1,124 +1,6 @@
 part of 'teamComp.dart';
 
-extension TeamCompWidgetsHelper on TeamComp {
-  Widget getTeamCompWidget(BuildContext context) {
-    double width =
-        (min(MediaQuery.of(context).size.width, maxWidth) ~/ 6).toDouble();
-
-    /// sizedBox resued for spacing between rows
-    var sizedBox = SizedBox(width: width / 6);
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blueGrey,
-          width: 1.0, // Set border width
-        ),
-      ),
-      width: width,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Left Striker')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Central Striker')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Right Striker')),
-              ],
-            ),
-            const SizedBox(height: 6.0), // Add spacing between rows
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Left Winger')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Left Midfielder')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Central Midfielder')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Right Midfielder')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Right Winger')),
-              ],
-            ),
-            const SizedBox(height: 6.0), // Add spacing between rows
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Left Back Winger')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Left Central Back')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Central Back')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Right Central Back')),
-                sizedBox,
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Right Back Winger')),
-              ],
-            ),
-            const SizedBox(height: 6.0), // Add spacing between rows
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Goal Keeper')),
-              ],
-            ),
-            const SizedBox(height: 16.0), // Add spacing between rows
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Column(
-                  children: [
-                    Text('Substitutes'),
-                    Icon(Icons.weekend, size: iconSizeLarge),
-                  ],
-                ),
-                SizedBox(width: 6.0),
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Sub 1')),
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Sub 2')),
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Sub 3')),
-              ],
-            ),
-            const SizedBox(height: 16.0), // Add spacing between rows
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Sub 4')),
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Sub 5')),
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Sub 6')),
-                _playerTeamCompCard(
-                    context, width, getPlayerMapByName('Sub 7')),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+extension TeamCompPlayerCard on TeamComp {
   Widget _playerTeamCompCard(
       BuildContext context, double width, Map<String, dynamic>? playerMap) {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -210,6 +92,57 @@ extension TeamCompWidgetsHelper on TeamComp {
                       },
                     ),
 
+                    /// Substitute player
+                    TextButton(
+                      child: Text('Substitute'),
+                      onPressed: () async {
+                        if (idSelectedPlayer == null) {
+                          scaffoldMessenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Which player do you wish to substitute ${player.firstName} ${player.lastName.toUpperCase()} with?'),
+                            ),
+                          );
+                          idSelectedPlayer = player.id;
+                        } else {
+                          print('handle substitution');
+                          if (idSelectedPlayer == player.id) {
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'You cannot substitute a player with himself !'),
+                              ),
+                            );
+                          } else {
+                            try {
+                              await supabase.from('games_subs').insert({
+                                'id_teamcomp': id,
+                                'id_player_out': idSelectedPlayer,
+                                'id_player_in': player.id,
+                                'minute': 40,
+                              });
+                            } on PostgrestException catch (error) {
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('POSTGRES ERROR: ' + error.message),
+                                ),
+                              );
+                            } catch (error) {
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('An unexpected error occurred.'),
+                                ),
+                              );
+                            }
+                          }
+                          idSelectedPlayer = null;
+                        }
+                        Navigator.of(context).pop();
+                      },
+                    ),
+
                     /// Remove the player from the teamcomp
                     TextButton(
                       child: Text('Remove'),
@@ -251,7 +184,8 @@ extension TeamCompWidgetsHelper on TeamComp {
             width: width,
             height: width * 1.2,
             child: Card(
-              color: Colors.green,
+              color:
+                  idSelectedPlayer == player.id ? Colors.amber : Colors.green,
               elevation: 3.0,
               child: Column(
                 children: [

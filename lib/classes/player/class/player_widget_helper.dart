@@ -218,29 +218,46 @@ extension PlayerWidgetsHelper on Player {
   }
 
   Widget getPlayerMainInformation(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            // First ListTile
-            Expanded(child: getAgeWidget()),
-            // Second ListTile
-            Expanded(child: getCountryNameWidget(context, idCountry)),
-          ],
-        ),
-        Row(
-          children: [
-            // First ListTile
-            Expanded(child: getAvgStatsWidget()),
-            // Second ListTile
-            Expanded(child: getExpansesWidget(context)),
-          ],
-        ),
-        if (transferBids.length > 0 && dateSell!.isAfter(DateTime.now()))
-          playerTransferWidget(context),
-        if (dateEndInjury != null) getInjuryWidget(),
-        if (dateFiring != null) getFiringRow(),
-      ],
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        if (constraints.maxWidth > maxWidth / 2) {
+          // Display information for larger screens
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(child: getAgeWidget()),
+                  Expanded(child: getCountryNameWidget(context, idCountry)),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(child: getAvgStatsWidget()),
+                  Expanded(child: getExpansesWidget(context)),
+                ],
+              ),
+              if (transferBids.length > 0 && dateSell!.isAfter(DateTime.now()))
+                playerTransferWidget(context),
+              if (dateEndInjury != null) getInjuryWidget(),
+              if (dateFiring != null) getFiringRow(),
+            ],
+          );
+        } else {
+          // Display information for smaller screens
+          return Column(
+            children: [
+              getAgeWidget(),
+              getCountryNameWidget(context, idCountry),
+              getAvgStatsWidget(),
+              getExpansesWidget(context),
+              if (transferBids.length > 0 && dateSell!.isAfter(DateTime.now()))
+                playerTransferWidget(context),
+              if (dateEndInjury != null) getInjuryWidget(),
+              if (dateFiring != null) getFiringRow(),
+            ],
+          );
+        }
+      },
     );
   }
 
@@ -314,9 +331,7 @@ extension PlayerWidgetsHelper on Player {
             ' & ',
           ),
           Text(
-            ((age - age.truncate()) * (7 * 14 / multiverseSpeed))
-                .floor()
-                .toString(),
+            (age - age.truncate()).floor().toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
             ),
@@ -340,10 +355,11 @@ extension PlayerWidgetsHelper on Player {
   Widget getAgeWidgetSmall() {
     return Tooltip(
       message:
-          '${age.truncate().toString()} & ${((age - age.truncate()) * (7 * 14 / multiverseSpeed)).floor().toString()} days',
+          // '${age.truncate().toString()} & ${((age - age.truncate()) * (7 * 14 / multiverseSpeed)).floor().toString()} days',
+          '${age.truncate().toString()} & ${(age - age.truncate()).floor().toString()} days',
       child: Row(
         children: [
-          Icon(iconAge, size: iconSize),
+          Icon(iconAge, size: iconSizeSmall),
           Text(age.toStringAsFixed(1)),
         ],
       ),

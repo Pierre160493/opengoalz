@@ -159,7 +159,10 @@ Widget buildDrawerTitle(String title) {
 Widget buildDrawerOption(BuildContext context, IconData icon, String title,
     [Widget? page]) {
   return ListTile(
-    leading: Icon(icon),
+    leading: Icon(
+      icon,
+      size: iconSizeMedium,
+    ),
     title: Text(title),
     onTap: page != null
         ? () {

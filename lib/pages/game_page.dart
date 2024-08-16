@@ -126,11 +126,11 @@ class _HomePageState extends State<GamePage> {
               .stream(primaryKey: ['id'])
               .inFilter('id', [
                 ...game.leftClub.teamComps.first
-                    .toListOfInt()
+                    .playersIdToListOfInt()
                     .where((id) => id != null)
                     .cast<int>(),
                 ...game.rightClub.teamComps.first
-                    .toListOfInt()
+                    .playersIdToListOfInt()
                     .where((id) => id != null)
                     .cast<int>()
               ])

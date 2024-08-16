@@ -65,7 +65,7 @@ class _TeamCompPageState extends State<TeamCompPage> {
               .stream(primaryKey: ['id'])
               .inFilter('id', [
                 ...club.teamComps.first
-                    .toListOfInt()
+                    .playersIdToListOfInt()
                     .where((id) => id != null)
                     .cast<int>()
               ])
