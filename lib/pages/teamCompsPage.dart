@@ -111,7 +111,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
         })
         .switchMap((Club club) {
           return supabase
-              .from('games_subs')
+              .from('game_orders')
               .stream(primaryKey: ['id'])
               .inFilter(
                   'id_teamcomp',

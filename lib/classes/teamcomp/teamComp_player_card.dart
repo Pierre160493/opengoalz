@@ -36,61 +36,61 @@ extension TeamCompPlayerCard on TeamComp {
                     ),
                   ),
                   actions: [
-                    /// Swap player by opening Players Page
-                    TextButton(
-                      child: Text('Swap'),
-                      onPressed: () async {
-                        final returnedId = await Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) {
-                              return PlayersPage(
-                                inputCriteria: {
-                                  'Clubs': [idClub]
-                                },
-                                isReturningId: true,
-                              );
-                            },
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
-                              return SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: const Offset(1.0, 0.0),
-                                  end: Offset.zero,
-                                ).animate(animation),
-                                child: child,
-                              );
-                            },
-                          ),
-                        );
+                    // /// Swap player by opening Players Page
+                    // TextButton(
+                    //   child: Text('Swap'),
+                    //   onPressed: () async {
+                    //     final returnedId = await Navigator.push(
+                    //       context,
+                    //       PageRouteBuilder(
+                    //         pageBuilder:
+                    //             (context, animation, secondaryAnimation) {
+                    //           return PlayersPage(
+                    //             inputCriteria: {
+                    //               'Clubs': [idClub]
+                    //             },
+                    //             isReturningId: true,
+                    //           );
+                    //         },
+                    //         transitionsBuilder: (context, animation,
+                    //             secondaryAnimation, child) {
+                    //           return SlideTransition(
+                    //             position: Tween<Offset>(
+                    //               begin: const Offset(1.0, 0.0),
+                    //               end: Offset.zero,
+                    //             ).animate(animation),
+                    //             child: child,
+                    //           );
+                    //         },
+                    //       ),
+                    //     );
 
-                        /// Then we update the games_teamcomp table with the new player
-                        if (returnedId != null) {
-                          try {
-                            await supabase
-                                .from('games_teamcomp')
-                                .update({playerMap['database']: returnedId}).eq(
-                                    'id', id);
-                          } on PostgrestException catch (error) {
-                            // print(error.message);
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('POSTGRES ERROR: ' + error.message),
-                              ),
-                            );
-                          } catch (error) {
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content: Text('An unexpected error occurred.'),
-                              ),
-                            );
-                          }
-                        }
-                        Navigator.of(context).pop();
-                      },
-                    ),
+                    //     /// Then we update the games_teamcomp table with the new player
+                    //     if (returnedId != null) {
+                    //       try {
+                    //         await supabase
+                    //             .from('games_teamcomp')
+                    //             .update({playerMap['database']: returnedId}).eq(
+                    //                 'id', id);
+                    //       } on PostgrestException catch (error) {
+                    //         // print(error.message);
+                    //         scaffoldMessenger.showSnackBar(
+                    //           SnackBar(
+                    //             content:
+                    //                 Text('POSTGRES ERROR: ' + error.message),
+                    //           ),
+                    //         );
+                    //       } catch (error) {
+                    //         scaffoldMessenger.showSnackBar(
+                    //           SnackBar(
+                    //             content: Text('An unexpected error occurred.'),
+                    //           ),
+                    //         );
+                    //       }
+                    //     }
+                    //     Navigator.of(context).pop();
+                    //   },
+                    // ),
 
                     /// Substitute player
                     TextButton(
@@ -105,7 +105,6 @@ extension TeamCompPlayerCard on TeamComp {
                           );
                           idSelectedPlayer = player.id;
                         } else {
-                          print('handle substitution');
                           if (idSelectedPlayer == player.id) {
                             scaffoldMessenger.showSnackBar(
                               SnackBar(
@@ -114,32 +113,79 @@ extension TeamCompPlayerCard on TeamComp {
                               ),
                             );
                           } else {
-                            try {
-                              await supabase.from('games_subs').insert({
-                                'id_teamcomp': id,
-                                'id_player_out': idSelectedPlayer,
-                                'id_player_in': player.id,
-                                'minute': 40,
-                              });
-                            } on PostgrestException catch (error) {
+                            /// Set the minute of substitution
+                            final minuteController = TextEditingController();
+                            await showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title:
+                                      Text('Enter the minute of substitution'),
+                                  content: TextField(
+                                    controller: minuteController,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                        hintText: "Enter minute"),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: Text('OK'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: Text('Cancel'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            if (int.tryParse(minuteController.text) != null) {
+                              try {
+                                await supabase.from('game_orders').insert({
+                                  'id_teamcomp': id,
+                                  'id_player_out': idSelectedPlayer,
+                                  'id_player_in': player.id,
+                                  // 'minute': int.parse(minuteController.text),
+                                  'minute': 45,
+                                });
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        'Successfully set substitution orders !'),
+                                  ),
+                                );
+                              } on PostgrestException catch (error) {
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        'POSTGRES ERROR: ' + error.message),
+                                  ),
+                                );
+                              } catch (error) {
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text('An unexpected error occurred.'),
+                                  ),
+                                );
+                              }
+                            } else {
                               scaffoldMessenger.showSnackBar(
                                 SnackBar(
-                                  content:
-                                      Text('POSTGRES ERROR: ' + error.message),
-                                ),
-                              );
-                            } catch (error) {
-                              scaffoldMessenger.showSnackBar(
-                                SnackBar(
-                                  content:
-                                      Text('An unexpected error occurred.'),
+                                  content: Text(
+                                      'The minute of substitution is not valid !'),
                                 ),
                               );
                             }
+                            idSelectedPlayer = null;
                           }
-                          idSelectedPlayer = null;
+                          Navigator.of(context).pop();
                         }
-                        Navigator.of(context).pop();
                       },
                     ),
 

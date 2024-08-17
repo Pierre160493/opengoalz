@@ -8,7 +8,6 @@ ThemeData getTheme(BuildContext context, bool isDark) {
   // Get the multiplier based on the screen width
   // double multiplier = screenWidth > maxWidth ? 1.0 : screenWidth / maxWidth;
   double multiplier = screenWidth > maxWidth ? 1.0 : 0.75;
-  print('Screen Multiplier: $multiplier');
 
   // Determine which text theme to use based on screen width
   TextTheme textTheme = getTextTheme(multiplier);

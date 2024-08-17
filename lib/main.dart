@@ -20,7 +20,7 @@ Future<void> main() async {
 
   // Check if the SUPABASE_KEY is null
   if (supabaseKey == null) {
-    print('SUPABASE_KEY not found in .env file.');
+    // print('SUPABASE_KEY not found in .env file.');
     return;
   }
 

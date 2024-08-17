@@ -10,7 +10,7 @@ extension TeamCompWidget on TeamComp {
           TabBar(
             tabs: [
               buildTabWithIcon(Icons.preview, 'TeamComp'),
-              buildTabWithIcon(Icons.reviews, 'Orders (${subs.length})'),
+              buildTabWithIcon(Icons.multiple_stop, 'Orders (${subs.length})'),
             ],
           ),
           Expanded(

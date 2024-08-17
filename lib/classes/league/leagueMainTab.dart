@@ -245,7 +245,6 @@ extension LeagueMainTab on League {
                               ),
                             );
                           } else if (response['id'] != null) {
-                            print(response['id']);
                             final idLowerLeague = response['id'];
                             Navigator.push(
                               context,
@@ -367,7 +366,6 @@ extension LeagueMainTab on League {
                               ),
                             );
                           } else if (response['id'] != null) {
-                            print(response['id']);
                             final idLowerLeague = response['id'];
                             Navigator.push(
                               context,
@@ -438,7 +436,6 @@ extension LeagueMainTab on League {
                       ),
                     );
                   } else if (response['id'] != null) {
-                    print(response['id']);
                     final idLowerLeague = response['id'];
                     Navigator.push(
                       context,
@@ -493,7 +490,6 @@ extension LeagueMainTab on League {
                       ),
                     );
                   } else if (response['id'] != null) {
-                    print(response['id']);
                     final idLowerLeague = response['id'];
                     Navigator.push(
                       context,
