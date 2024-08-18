@@ -57,6 +57,7 @@ const iconMails = Icons.email;
 const iconStamina = Icons.ev_station;
 // const iconBug = Icons.bug_report;
 const iconBug = Icons.error;
+const iconSuccessfulOperation = Icons.check_circle;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorIsMine = Colors.purple;

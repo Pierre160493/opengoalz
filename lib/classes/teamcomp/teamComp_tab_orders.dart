@@ -79,18 +79,18 @@ extension TabOrders on TeamComp {
                           ],
                         ),
                         Container(
-                          width: 36,
-                          height: 36,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.blueGrey,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            '${sub.minute}\'',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
+                            width: 36,
+                            height: 36,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.blueGrey,
+                              shape: BoxShape.circle,
+                            ),
+                            child: sub.minute == null
+                                ? Icon(Icons.all_inclusive)
+                                : Text('${sub.minute}\'',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)))
                       ],
                     ),
                     Column(
@@ -173,19 +173,25 @@ extension TabOrders on TeamComp {
                     : IconButton(
                         icon: Icon(Icons.delete),
                         onPressed: () async {
-                          if (await deleteFromDB(
-                                context: context,
-                                tableName: 'game_orders',
-                                data: {
-                                  'id': sub.id,
-                                },
-                              ) ==
-                              true) {
+                          /// Update the game order table by resetting column to NULL
+                          // if (await deleteFromDB(
+                          //       context: context,
+                          //       tableName: 'game_orders',
+                          //       data: {
+                          //         'id': sub.id,
+                          //       },
+                          //     ) ==
+                          //     true) {
+                          bool isOK = await operationInDB(
+                              context, 'DELETE', 'game_orders',
+                              criteria: {
+                                'id': sub.id,
+                              });
+                          if (isOK) {
                             showSnackBar(
                                 context,
                                 'The order has been successfully deleted',
                                 Icon(Icons.check_circle, color: Colors.green));
-                            ;
                           }
                         },
                       ),

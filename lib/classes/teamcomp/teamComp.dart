@@ -17,7 +17,7 @@ part 'teamComp_player_card.dart';
 
 class TeamComp {
   List<GameSub> subs = [];
-  int? idSelectedPlayer;
+  Player? selectedPlayerForSubstitution;
 
   TeamComp({
     required this.id,

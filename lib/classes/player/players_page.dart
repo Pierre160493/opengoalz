@@ -12,10 +12,10 @@ import '../../constants.dart';
 class PlayersPage extends StatefulWidget {
   final Map<String, List<Object>> inputCriteria;
   final bool
-      isReturningId; // Should the page return the id of the player clicked ?
+      isReturningPlayer; // Should the page return the id of the player clicked ?
 
   const PlayersPage(
-      {Key? key, required this.inputCriteria, this.isReturningId = false})
+      {Key? key, required this.inputCriteria, this.isReturningPlayer = false})
       : super(key: key);
 
   static Route<void> route(Map<String, List<int>> inputCriteria) {
@@ -237,7 +237,7 @@ class _PlayersPageState extends State<PlayersPage> {
                       ),
                     ],
                   ),
-                  drawer: (widget.isReturningId || players.length == 1)
+                  drawer: (widget.isReturningPlayer || players.length == 1)
                       ? null
                       : const AppDrawer(),
                   body: MaxWidthContainer(
@@ -251,9 +251,9 @@ class _PlayersPageState extends State<PlayersPage> {
                               final Player player = players[index];
                               return InkWell(
                                 onTap: () {
-                                  if (widget.isReturningId) {
-                                    Navigator.of(context).pop(player
-                                        .id); // Return the id of the player
+                                  if (widget.isReturningPlayer) {
+                                    Navigator.of(context).pop(
+                                        player); // Return the id of the player
                                   } else if (players.length > 1) {
                                     Navigator.push(
                                       context,
@@ -271,8 +271,7 @@ class _PlayersPageState extends State<PlayersPage> {
                                 },
                                 child: PlayerCard(
                                     player: player,
-                                    index:
-                                        players.length == 1 ? 0 : index + 1,
+                                    index: players.length == 1 ? 0 : index + 1,
                                     isExpanded:
                                         players.length == 1 ? true : false),
                               );

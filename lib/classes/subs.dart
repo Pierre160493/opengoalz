@@ -4,7 +4,7 @@ class GameSub {
   final int idTeamComp;
   final int idPlayerOut;
   final int idPlayerIn;
-  final int minute;
+  final int? minute;
   final int? condition;
   final int? minuteReal;
   final String? error;

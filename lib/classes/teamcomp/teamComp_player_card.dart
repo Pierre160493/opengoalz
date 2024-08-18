@@ -36,96 +36,125 @@ extension TeamCompPlayerCard on TeamComp {
                     ),
                   ),
                   actions: [
-                    // /// Swap player by opening Players Page
-                    // TextButton(
-                    //   child: Text('Swap'),
-                    //   onPressed: () async {
-                    //     final returnedId = await Navigator.push(
-                    //       context,
-                    //       PageRouteBuilder(
-                    //         pageBuilder:
-                    //             (context, animation, secondaryAnimation) {
-                    //           return PlayersPage(
-                    //             inputCriteria: {
-                    //               'Clubs': [idClub]
-                    //             },
-                    //             isReturningId: true,
-                    //           );
-                    //         },
-                    //         transitionsBuilder: (context, animation,
-                    //             secondaryAnimation, child) {
-                    //           return SlideTransition(
-                    //             position: Tween<Offset>(
-                    //               begin: const Offset(1.0, 0.0),
-                    //               end: Offset.zero,
-                    //             ).animate(animation),
-                    //             child: child,
-                    //           );
-                    //         },
-                    //       ),
-                    //     );
-
-                    //     /// Then we update the games_teamcomp table with the new player
-                    //     if (returnedId != null) {
-                    //       try {
-                    //         await supabase
-                    //             .from('games_teamcomp')
-                    //             .update({playerMap['database']: returnedId}).eq(
-                    //                 'id', id);
-                    //       } on PostgrestException catch (error) {
-                    //         // print(error.message);
-                    //         scaffoldMessenger.showSnackBar(
-                    //           SnackBar(
-                    //             content:
-                    //                 Text('POSTGRES ERROR: ' + error.message),
-                    //           ),
-                    //         );
-                    //       } catch (error) {
-                    //         scaffoldMessenger.showSnackBar(
-                    //           SnackBar(
-                    //             content: Text('An unexpected error occurred.'),
-                    //           ),
-                    //         );
-                    //       }
-                    //     }
-                    //     Navigator.of(context).pop();
-                    //   },
-                    // ),
-
                     /// Substitute player
                     TextButton(
-                      child: Text('Substitute'),
+                      child: Text(selectedPlayerForSubstitution == null
+                          ? 'Select ${player.firstName} ${player.lastName} for substitution'
+                          : 'Substitute with ${selectedPlayerForSubstitution!.firstName} ${selectedPlayerForSubstitution!.lastName}'),
                       onPressed: () async {
-                        if (idSelectedPlayer == null) {
-                          scaffoldMessenger.showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  'Which player do you wish to substitute ${player.firstName} ${player.lastName.toUpperCase()} with?'),
-                            ),
-                          );
-                          idSelectedPlayer = player.id;
+                        // If no player is selected, it mens this is the first player selected
+                        if (selectedPlayerForSubstitution == null) {
+                          showSnackBar(
+                              context,
+                              'Select the player you wish to substitute ${player.firstName} ${player.lastName} with ?',
+                              Icon(iconSuccessfulOperation,
+                                  color: Colors.green));
+                          // Set the idSelected Player as the selected player
+                          selectedPlayerForSubstitution = player;
                         } else {
-                          if (idSelectedPlayer == player.id) {
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    'You cannot substitute a player with himself !'),
-                              ),
-                            );
+                          /// Check player cannot be substituted with himself
+                          if (selectedPlayerForSubstitution!.id == player.id) {
+                            showSnackBar(
+                                context,
+                                'You cannot substitute a player with himself !',
+                                Icon(iconSuccessfulOperation,
+                                    color: Colors.green));
                           } else {
-                            /// Set the minute of substitution
-                            final minuteController = TextEditingController();
+                            /// Set the minute and condition of the substitution
+                            final TextEditingController minuteController =
+                                TextEditingController();
+                            final TextEditingController conditionController =
+                                TextEditingController();
                             await showDialog(
                               context: context,
                               builder: (context) {
                                 return AlertDialog(
-                                  title:
-                                      Text('Enter the minute of substitution'),
-                                  content: TextField(
-                                    controller: minuteController,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                        hintText: "Enter minute"),
+                                  title: Text(
+                                      'Enter the minute and condition for the substitution'),
+                                  content: Column(
+                                    children: [
+                                      /// Minute of the game when to substitute the player
+                                      ListTile(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              12), // Adjust border radius as needed
+                                          side: const BorderSide(
+                                            color:
+                                                Colors.blueGrey, // Border color
+                                          ),
+                                        ),
+                                        leading: Icon(
+                                          iconGames,
+                                          size: iconSizeMedium,
+                                        ),
+                                        title: Text(
+                                          'Minute of the game', // Replace with your title
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        subtitle: TextFormField(
+                                          controller: minuteController,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            hintText:
+                                                "Enter minute of the game when the substitution should take place",
+                                            hintStyle:
+                                                TextStyle(color: Colors.grey),
+                                          ),
+                                          validator: (value) {
+                                            if (value != null &&
+                                                int.tryParse(value) == null) {
+                                              return 'Invalid type (should be an integer)'; // Return an empty string to show the error without any message
+                                            }
+                                            return null;
+                                          },
+                                          autovalidateMode: AutovalidateMode
+                                              .onUserInteraction, // Validate whenever the user changes the value
+                                        ),
+                                      ),
+
+                                      /// Condition (goal difference) of the game when to substitute the player
+                                      ListTile(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              12), // Adjust border radius as needed
+                                          side: const BorderSide(
+                                            color:
+                                                Colors.blueGrey, // Border color
+                                          ),
+                                        ),
+                                        leading: Icon(
+                                          Icons.question_mark,
+                                          size: iconSizeMedium,
+                                        ),
+                                        title: Text(
+                                          'Score difference of the game', // Replace with your title
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        subtitle: TextFormField(
+                                          controller: conditionController,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            hintText:
+                                                "Enter the goal difference of the game when the substitution should take place",
+                                            hintStyle:
+                                                TextStyle(color: Colors.grey),
+                                          ),
+                                          validator: (value) {
+                                            if (value != null &&
+                                                int.tryParse(value) == null) {
+                                              return 'Invalid type (should be an integer)'; // Return an empty string to show the error without any message
+                                            }
+                                            return null;
+                                          },
+                                          autovalidateMode: AutovalidateMode
+                                              .onUserInteraction, // Validate whenever the user changes the value
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   actions: <Widget>[
                                     TextButton(
@@ -144,48 +173,48 @@ extension TeamCompPlayerCard on TeamComp {
                                 );
                               },
                             );
-                            if (int.tryParse(minuteController.text) != null) {
-                              try {
-                                await supabase.from('game_orders').insert({
-                                  'id_teamcomp': id,
-                                  'id_player_out': idSelectedPlayer,
-                                  'id_player_in': player.id,
-                                  // 'minute': int.parse(minuteController.text),
-                                  'minute': 45,
-                                });
-                                scaffoldMessenger.showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Successfully set substitution orders !'),
-                                  ),
-                                );
-                              } on PostgrestException catch (error) {
-                                scaffoldMessenger.showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'POSTGRES ERROR: ' + error.message),
-                                  ),
-                                );
-                              } catch (error) {
-                                scaffoldMessenger.showSnackBar(
-                                  SnackBar(
-                                    content:
-                                        Text('An unexpected error occurred.'),
-                                  ),
-                                );
-                              }
+                            if (!minuteController.text.isEmpty &&
+                                int.tryParse(minuteController.text) == null) {
+                              print(minuteController.text);
+                              showSnackBar(
+                                  context,
+                                  'The minute of substitution is not valid !',
+                                  Icon(iconBug, color: Colors.red));
+                            } else if (!conditionController.text.isEmpty &&
+                                int.tryParse(conditionController.text) ==
+                                    null) {
+                              showSnackBar(
+                                  context,
+                                  'The condition of substitution is not valid !',
+                                  Icon(iconBug, color: Colors.red));
                             } else {
-                              scaffoldMessenger.showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'The minute of substitution is not valid !'),
-                                ),
-                              );
+                              bool isOK = await operationInDB(
+                                  context, 'INSERT', 'game_orders',
+                                  data: {
+                                    'id_teamcomp': id,
+                                    'id_player_out':
+                                        selectedPlayerForSubstitution!.id,
+                                    'id_player_in': player.id,
+                                    'minute': minuteController.text.isEmpty
+                                        ? null
+                                        : int.parse(minuteController.text),
+                                    'condition': conditionController
+                                            .text.isEmpty
+                                        ? null
+                                        : int.parse(conditionController.text),
+                                  });
+                              if (isOK) {
+                                showSnackBar(
+                                    context,
+                                    'Successfully set new game order for ${playerMap['name']}',
+                                    Icon(iconSuccessfulOperation,
+                                        color: Colors.green));
+                              }
                             }
-                            idSelectedPlayer = null;
+                            selectedPlayerForSubstitution = null;
                           }
-                          Navigator.of(context).pop();
                         }
+                        Navigator.of(context).pop();
                       },
                     ),
 
@@ -193,22 +222,16 @@ extension TeamCompPlayerCard on TeamComp {
                     TextButton(
                       child: Text('Remove'),
                       onPressed: () async {
-                        /// Set null
-                        try {
-                          await supabase.from('games_teamcomp').update(
-                              {playerMap['database']: null}).eq('id', id);
-                        } on PostgrestException catch (error) {
-                          scaffoldMessenger.showSnackBar(
-                            SnackBar(
-                              content: Text('POSTGRES ERROR: ' + error.message),
-                            ),
-                          );
-                        } catch (error) {
-                          scaffoldMessenger.showSnackBar(
-                            SnackBar(
-                              content: Text('An unexpected error occurred.'),
-                            ),
-                          );
+                        bool isOK = await operationInDB(
+                            context, 'UPDATE', 'games_teamcomp',
+                            data: {playerMap['database']: null},
+                            criteria: {'id': id});
+                        if (isOK) {
+                          showSnackBar(
+                              context,
+                              'Successfully removed ${player.firstName} ${player.lastName} from the teamcomp',
+                              Icon(iconSuccessfulOperation,
+                                  color: Colors.green));
                         }
                         Navigator.of(context).pop();
                       },
@@ -230,8 +253,10 @@ extension TeamCompPlayerCard on TeamComp {
             width: width,
             height: width * 1.2,
             child: Card(
-              color:
-                  idSelectedPlayer == player.id ? Colors.amber : Colors.green,
+              color: selectedPlayerForSubstitution != null &&
+                      selectedPlayerForSubstitution!.id == player.id
+                  ? Colors.amber
+                  : Colors.green,
               elevation: 3.0,
               child: Column(
                 children: [
@@ -260,12 +285,6 @@ extension TeamCompPlayerCard on TeamComp {
                         size: iconSizeLarge,
                       ),
                       player.getPlayerNames(context),
-                      // Text(
-                      //   player.firstName,
-                      // ),
-                      // Text(
-                      //   player.lastName.toUpperCase(),
-                      // ),
                     ],
                   ),
                 ],
@@ -281,7 +300,7 @@ extension TeamCompPlayerCard on TeamComp {
         message: 'Add a player',
         child: InkWell(
           onTap: () async {
-            final returnedId = await Navigator.push(
+            Player? returnedPlayer = await Navigator.push(
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) {
@@ -289,7 +308,7 @@ extension TeamCompPlayerCard on TeamComp {
                     inputCriteria: {
                       'Clubs': [idClub]
                     },
-                    isReturningId: true,
+                    isReturningPlayer: true,
                   );
                 },
                 transitionsBuilder:
@@ -306,27 +325,18 @@ extension TeamCompPlayerCard on TeamComp {
             );
 
             /// Then we update the games_teamcomp table with the new player
-            if (returnedId != null) {
-              try {
-                await supabase
-                    .from('games_teamcomp')
-                    .update({playerMap['database']: returnedId}).eq('id', id);
-              } on PostgrestException catch (error) {
-                // print(error.message);
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text('POSTGRES ERROR: ' + error.message),
-                  ),
-                );
-              } catch (error) {
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text('An unexpected error occurred.'),
-                  ),
-                );
+            if (returnedPlayer != null) {
+              bool isOK = await operationInDB(
+                  context, 'UPDATE', 'games_teamcomp',
+                  data: {playerMap['database']: returnedPlayer.id},
+                  criteria: {'id': id});
+              if (isOK) {
+                showSnackBar(
+                    context,
+                    'Successfully set ${returnedPlayer.firstName} ${returnedPlayer.lastName} as ${playerMap['name']}',
+                    Icon(iconSuccessfulOperation, color: Colors.green));
               }
             }
-            // }
           },
           child: Container(
             color: Colors.blueGrey,
