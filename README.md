@@ -61,3 +61,7 @@ Handle injuries, subs and free kick
 ### Select followed (or favorite) clubs and players and access it from the UserPage (EASY)
 
 Make a table linking id_clubs or id_player to id_user (in profiles table)
+
+### Mode Solo like FM where you can advance at your speed
+
+Have more multiverses (can start becoming heavy for the db)

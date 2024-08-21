@@ -7,7 +7,7 @@ Future<bool> operationInDB(
     BuildContext context, String operationType, String tableName,
     {Map<String, Object?>? data, Map<String, Object>? criteria}) async {
   /// Check if data is present for the INSERT and UPDATE operation
-  if (['INSERT', 'UPDATE'].contains(operationType.toUpperCase())) {
+  if (['INSERT', 'UPDATE', 'FUNCTION'].contains(operationType.toUpperCase())) {
     if (data == null) {
       throw Exception(
           'Data is required for the ${operationType} operation in the operationInDB function');
@@ -29,6 +29,9 @@ Future<bool> operationInDB(
         break;
       case 'DELETE':
         await supabase.from(tableName).delete().match(criteria!);
+        break;
+      case 'FUNCTION':
+        await supabase.rpc(tableName, params: data!);
         break;
       default:
         throw Exception(

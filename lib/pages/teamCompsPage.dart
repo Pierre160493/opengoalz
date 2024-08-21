@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/subs.dart';
 import 'package:opengoalz/classes/teamcomp/teamComp.dart';
+import 'package:opengoalz/classes/teamcomp/teamComp_main_widget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -189,8 +190,40 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                       TabBar(
                         tabs: [
                           buildTabWithIcon(Icons.save, 'Defaults'),
-                          buildTabWithIcon(
-                              Icons.update, 'Season ${_seasonNumber}'),
+                          // buildTabWithIcon(
+                          //     Icons.update, 'Season ${_seasonNumber}'),
+                          buildTabWithIcon2(
+                              context,
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.update,
+                                  ),
+                                  SizedBox(width: 3),
+                                  Text('Season ${_seasonNumber}'),
+                                  // if (_seasonNumber > 1)
+                                  //   IconButton(
+                                  //     onPressed: () {
+                                  //       setState(() {
+                                  //         _seasonNumber -=
+                                  //             1; // Modify the state variable instead of the widget property
+                                  //       });
+                                  //     },
+                                  //     icon: Icon(Icons.arrow_circle_left,
+                                  //         size: iconSizeSmall),
+                                  //   ),
+                                  // IconButton(
+                                  //   onPressed: () {
+                                  //     setState(() {
+                                  //       _seasonNumber +=
+                                  //           1; // Modify the state variable instead of the widget property
+                                  //     });
+                                  //   },
+                                  //   icon: Icon(Icons.arrow_circle_right,
+                                  //       size: iconSizeSmall),
+                                  // ),
+                                ],
+                              )),
                         ],
                       ),
                       Expanded(
@@ -207,65 +240,41 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                     tabs: [
                                       ...List<Widget>.generate(
                                         club.defaultTeamComps.length,
-                                        (index) => buildTabWithIcon(
-                                            Icons.save,
-                                            // '${index + 1}: Default'),
-                                            club.defaultTeamComps[index].name),
+                                        (index) => buildTabWithIcon2(
+                                            context,
+                                            Row(
+                                              children: [
+                                                // Green OK, Red Not OK
+                                                Icon(
+                                                  Icons.save,
+                                                  color: club
+                                                              .defaultTeamComps[
+                                                                  index]
+                                                              .error ==
+                                                          null
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                ),
+                                                SizedBox(width: 3),
+                                                Text(club
+                                                    .defaultTeamComps[index]
+                                                    .name),
+                                              ],
+                                            )),
                                       ),
-                                      // IconButton(
-                                      //   icon: Icon(Icons.add),
-                                      //   onPressed: () async {
-                                      //     try {
-                                      //       var response = await supabase
-                                      //           .from('games_teamcomp')
-                                      //           .insert({
-                                      //         'id_club': club.id,
-                                      //         'season_number': 0,
-                                      //         'week_number':
-                                      //             club.defaultTeamComps.length +
-                                      //                 1,
-                                      //       });
-
-                                      //       if (response.error != null) {
-                                      //         ScaffoldMessenger.of(context)
-                                      //             .showSnackBar(
-                                      //           SnackBar(
-                                      //             content: Text(
-                                      //                 'Insert failed: ${response.error.message}'),
-                                      //             backgroundColor: Colors.red,
-                                      //           ),
-                                      //         );
-                                      //       } else {
-                                      //         ScaffoldMessenger.of(context)
-                                      //             .showSnackBar(
-                                      //           SnackBar(
-                                      //             content: Text(
-                                      //                 'Inserted successfully'),
-                                      //             backgroundColor: Colors.green,
-                                      //           ),
-                                      //         );
-                                      //       }
-                                      //     } catch (e) {
-                                      //       ScaffoldMessenger.of(context)
-                                      //           .showSnackBar(
-                                      //         SnackBar(
-                                      //           content: Text(
-                                      //               'An error occurred: $e'),
-                                      //           backgroundColor: Colors.red,
-                                      //         ),
-                                      //       );
-                                      //     }
-                                      //   },
-                                      // ),
                                     ],
                                   ),
                                   Expanded(
                                     child: TabBarView(
                                       children: List<Widget>.generate(
-                                        club.defaultTeamComps.length,
-                                        (index) => club.defaultTeamComps[index]
-                                            .getMainTeamCompWidget(context),
-                                      ),
+                                          club.defaultTeamComps.length,
+                                          (index) =>
+                                              // club.defaultTeamComps[index]
+                                              //     .getMainTeamCompWidget(context),
+                                              TeamCompWidget(
+                                                  teamComp:
+                                                      club.defaultTeamComps[
+                                                          index])),
                                     ),
                                   ),
                                 ],
@@ -281,16 +290,33 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                     isScrollable: true,
                                     tabs: List<Widget>.generate(
                                       club.teamComps.length,
-                                      (index) => Tab(text: '${index + 1}'),
+                                      (index) => Tab(
+                                        child: Text(
+                                          (index + 1).toString(),
+                                          style: TextStyle(
+                                              color:
+                                                  // If played, show default color, if error == null show green, else show red
+                                                  club.teamComps[index].isPlayed
+                                                      ? null
+                                                      : club.teamComps[index]
+                                                                  .error ==
+                                                              null
+                                                          ? Colors.green
+                                                          : Colors.red),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                   Expanded(
                                     child: TabBarView(
                                       children: List<Widget>.generate(
-                                        14,
-                                        (index) => club.teamComps[index]
-                                            .getMainTeamCompWidget(context),
-                                      ),
+                                          14,
+                                          (index) =>
+                                              // club.teamComps[index]
+                                              //     .getMainTeamCompWidget(context),
+                                              TeamCompWidget(
+                                                  teamComp:
+                                                      club.teamComps[index])),
                                     ),
                                   ),
                                 ],

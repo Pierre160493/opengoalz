@@ -13,3 +13,14 @@ Widget buildTabWithIcon(IconData icon, String text) {
     ),
   );
 }
+
+Widget buildTabWithIcon2(BuildContext context, Row row) {
+  return Tab(
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        row,
+      ],
+    ),
+  );
+}

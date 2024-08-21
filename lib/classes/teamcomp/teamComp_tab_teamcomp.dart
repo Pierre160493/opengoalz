@@ -17,8 +17,60 @@ extension TeamCompTab on TeamComp {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (error != null)
+              Text(
+                error!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            Row(
+              children: List.generate(7, (index) {
+                return IconButton(
+                  icon: Row(
+                    children: [
+                      Icon(Icons.save),
+                      Text((index + 1).toString()),
+                    ],
+                  ),
+                  onPressed: () async {
+                    bool isOK = await operationInDB(
+                        context, 'FUNCTION', 'teamcomps_copy_previous', data: {
+                      'inp_id_teamcomp': id + index,
+                      'inp_week_number': index + 1
+                    }); // Use index to modify id
+                    if (isOK) {
+                      showSnackBar(
+                          context,
+                          'The teamcomp has successfully being applied',
+                          Icon(Icons.check_circle, color: Colors.green));
+                    }
+                  },
+                );
+              }),
+            ),
+            // IconButton(
+            //   icon: Icon(Icons.save),
+            //   onPressed: () async {
+            //     // final data = await supabase.rpc('teamcomps_copy_previous',
+            //     //     params: {'inp_id_teamcomp': id});
+            //     bool isOK = await operationInDB(
+            //         context, 'FUNCTION', 'teamcomps_copy_previous',
+            //         data: {'inp_id_teamcomp': id});
+            //     if (isOK) {
+            //       showSnackBar(
+            //           context,
+            //           'The teamcomp has successfully being applied',
+            //           Icon(Icons.check_circle, color: Colors.green));
+            //     }
+            //   },
+            // ),
+            const SizedBox(height: 12.0), // Add spacing between rows
             _getStartingTeam(context, width),
-            const SizedBox(height: 16.0), // Add spacing between rows
+            const SizedBox(height: 12.0), // Add spacing between rows
             _getSubstitutes(context, width)
           ],
         ),

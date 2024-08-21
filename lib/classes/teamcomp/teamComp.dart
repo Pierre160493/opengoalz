@@ -7,10 +7,7 @@ import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/classes/subs.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/postgresql_requests.dart';
-import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-part 'teamComp_main_widget.dart';
 part 'teamComp_tab_teamcomp.dart';
 part 'teamComp_tab_orders.dart';
 part 'teamComp_player_card.dart';
@@ -28,7 +25,7 @@ class TeamComp {
     required this.name,
     required this.description,
     required this.isPlayed,
-    // required this.isValid,
+    required this.error,
   });
 
   final int id;
@@ -38,7 +35,7 @@ class TeamComp {
   final String name;
   final String description;
   final bool isPlayed;
-  // final bool isValid;
+  final String? error;
   final List<Map<String, dynamic>> players;
 
   static List<Map<String, dynamic>> defaultPlayers = [
@@ -205,7 +202,7 @@ class TeamComp {
       name: map['name'],
       description: map['description'],
       isPlayed: map['is_played'],
-      // isValid: map['is_valid'],
+      error: map['error'],
       players: players,
     );
   }
