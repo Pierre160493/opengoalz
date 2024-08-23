@@ -87,7 +87,7 @@ extension LeagueGamesTab on League {
                   Navigator.of(context).push(GamePage.route(game.id, 0));
                 },
                 // child: _buildGameDescription(game),
-                child: game.getGameDetails(context),
+                child: game.getGamePresentation(context),
               );
             },
             // leading: Text('test')

@@ -145,13 +145,40 @@ class _HomePageState extends State<GamePage> {
 
                 for (GameEvent event in game.events) {
                   if (event.idPlayer != null) {
-                    try {
-                      event.player = players
-                          .firstWhere((player) => player.id == event.idPlayer);
-                    } catch (e) {
-                      print('No player found for event: $event');
-                    }
+                    event.player = players
+                        .firstWhere((player) => player.id == event.idPlayer);
                   }
+                  if (event.idPlayer2 != null) {
+                    event.player2 = players
+                        .firstWhere((player) => player.id == event.idPlayer2);
+                  }
+                  if (event.idPlayer3 != null) {
+                    event.player3 = players
+                        .firstWhere((player) => player.id == event.idPlayer3);
+                  }
+                }
+                return game;
+              });
+        })
+        .switchMap((Game game) {
+          return supabase
+              .from('game_events_type')
+              .stream(primaryKey: ['id'])
+              .inFilter(
+                  'id',
+                  game.events
+                      .map((GameEvent event) => event.idEventType)
+                      .toList())
+              .map((maps) {
+                final eventTypeMap = {
+                  for (var map in maps) map['id']: map['description']
+                };
+                return eventTypeMap;
+              })
+              .map((eventTypeMap) {
+                for (GameEvent event in game.events) {
+                  event.description = eventTypeMap[event.idEventType] ??
+                      'ERROR: Description not found';
                 }
                 return game;
               });

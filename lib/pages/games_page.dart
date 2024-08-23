@@ -371,8 +371,8 @@ class _HomePageState extends State<GamesPage> {
                 },
                 // child: _buildGameDescription(game),
                 child:
-                    // game.getGameDetails(context, idClubSelected: widget.idClub),
-                    game.getGameDetails(context),
+                    // game.getGamePresentation(context, idClubSelected: widget.idClub),
+                    game.getGamePresentation(context),
               );
             },
             // leading: Text('test')
@@ -715,7 +715,7 @@ class _HomePageState extends State<GamesPage> {
                                 .push(GamePage.route(game.id, widget.idClub));
                           },
                           // child: _buildGameDescription(game),
-                          child: game.getGameDetails(context));
+                          child: game.getGamePresentation(context));
                     },
                     // leading: Text('test')
                   ),

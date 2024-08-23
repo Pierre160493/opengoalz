@@ -214,8 +214,7 @@ extension GameClassWidgetHelper on Game {
     );
   }
 
-  // Widget getGameDetails(BuildContext context, {int? idClubSelected = null}) {
-  Widget getGameDetails(BuildContext context) {
+  Widget getGamePresentation(BuildContext context) {
     return Card(
       elevation: 6,
       shape: RoundedRectangleBorder(
@@ -333,6 +332,45 @@ extension GameClassWidgetHelper on Game {
     );
   }
 
+  Widget getGameDetails(BuildContext context) {
+    final goalEvents = events
+        .where((GameEvent event) => event.eventType.toUpperCase() == 'GOAL')
+        .toList();
+
+    return Column(
+      children: [
+        getGamePresentation(context),
+        SizedBox(
+          height: 12,
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: goalEvents.length,
+            itemBuilder: (context, index) {
+              final goalEvent = goalEvents[index];
+              return ListTile(
+                leading:
+                    Text(goalEvent.getMinute(), style: TextStyle(fontSize: 16)),
+                title: Row(
+                  mainAxisAlignment: goalEvent.idClub == idClubLeft
+                      ? MainAxisAlignment.start
+                      : MainAxisAlignment.end,
+                  children: [
+                    if (goalEvent.idClub == idClubRight)
+                      Icon(Icons.sports_soccer_rounded),
+                    goalEvent.player!.getPlayerNameClickable(context),
+                    if (goalEvent.idClub == idClubLeft)
+                      Icon(Icons.sports_soccer_rounded),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget getGameReport(BuildContext context) {
     int leftClubScore = 0;
     int rightClubScore = 0;
@@ -360,7 +398,7 @@ extension GameClassWidgetHelper on Game {
               }
 
               // Update scores based on event type (assuming event type 1 is a goal)
-              if (event.idEventType == 1) {
+              if (event.eventType.toUpperCase() == 'GOAL') {
                 if (event.idClub == idClubLeft) {
                   leftClubScore++;
                 } else if (event.idClub == idClubRight) {
@@ -370,28 +408,20 @@ extension GameClassWidgetHelper on Game {
 
               return ListTile(
                 leading: Container(
-                  width: 100, // Fixed width to ensure alignment
+                  width: 120, // Fixed width to ensure alignment
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.blueGrey,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${event.gameMinute.toString()}\'',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
+                      Text(
+                        event.getMinute(),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
                       ),
-                      SizedBox(width: 10),
-                      if (event.idEventType == 1) // Conditionally display score
+                      // SizedBox(width: 10),
+                      if (event.eventType.toUpperCase() ==
+                          'GOAL') // Conditionally display score
                         Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Column(
@@ -400,8 +430,7 @@ extension GameClassWidgetHelper on Game {
                               Text(
                                 '$leftClubScore - $rightClubScore',
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                    fontWeight: FontWeight.bold, fontSize: 16),
                               ),
                             ],
                           ),
@@ -410,11 +439,34 @@ extension GameClassWidgetHelper on Game {
                   ),
                 ),
                 title: Row(
+                  mainAxisAlignment: event.idClub == idClubLeft
+                      ? MainAxisAlignment.start
+                      : MainAxisAlignment.end,
                   children: [
-                    event.idClub == idClubRight ? Spacer() : SizedBox(width: 6),
-                    event.getDescription(context),
+                    event.getEventPresentation(context),
                   ],
                 ),
+                subtitle:
+                    // Row(
+                    //   children: [
+                    //     if (event.idClub == idClubRight) SizedBox(width: 36),
+                    //     Expanded(
+                    //       child: Text(
+                    //         event.getEventDescription2(context),
+                    //         style: TextStyle(
+                    //             color: Colors.blueGrey,
+                    //             fontStyle: FontStyle.italic),
+                    //         textAlign: event.idClub == idClubLeft
+                    //             ? TextAlign.left
+                    //             : TextAlign.right, // Align text to the right
+                    //         maxLines: null, // Allow text to take up multiple lines
+                    //         overflow: TextOverflow.visible, // Make overflow visible
+                    //       ),
+                    //     ),
+                    //     if (event.idClub == idClubLeft) SizedBox(width: 36),
+                    //   ],
+                    // ),
+                    event.getEventDescription(context),
               );
             },
           ),

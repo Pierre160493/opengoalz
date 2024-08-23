@@ -8,14 +8,14 @@ extension LeagueStatsTab on League {
     // Count the goals and assists by each player
     for (Game game in games.where((game) => game.dateEnd != null)) {
       for (GameEvent event
-          in game.events.where((event) => event.idEventType == 1)) {
+          in game.events.where((event) => event.eventType.toUpperCase() == 'GOAL')) {
         if (event.idPlayer != null) {
           playerGoals[event.idPlayer!] =
               (playerGoals[event.idPlayer!] ?? 0) + 1;
         }
-        if (event.idPlayerSecond != null) {
-          playerAssists[event.idPlayerSecond!] =
-              (playerAssists[event.idPlayerSecond!] ?? 0) + 1;
+        if (event.idPlayer2 != null) {
+          playerAssists[event.idPlayer2!] =
+              (playerAssists[event.idPlayer2!] ?? 0) + 1;
         }
       }
     }

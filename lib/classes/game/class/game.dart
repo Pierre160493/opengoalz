@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
+import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/game_page.dart';
 

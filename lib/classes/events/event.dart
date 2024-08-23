@@ -4,33 +4,36 @@ import 'package:opengoalz/classes/player/players_page.dart';
 
 class GameEvent {
   Player? player;
-  Player? playerSecond;
-  Player? playerOpponent;
+  Player? player2;
+  Player? player3;
+  String description = 'Unknown event';
 
   final int id;
   final DateTime createdAt;
   final int idGame;
-  final int? idEventType;
+  final String eventType;
+  final int idEventType;
   final int? idPlayer;
   final int idClub;
-  final int? gameMinute;
+  final int gameMinute;
   final DateTime? dateEvent;
-  final int? gamePeriod;
-  final int? idPlayerSecond;
-  final int? idPlayerOpponent;
+  final int gamePeriod;
+  final int? idPlayer2;
+  final int? idPlayer3;
 
   GameEvent({
     required this.id,
     required this.createdAt,
     required this.idGame,
-    this.idEventType,
+    required this.eventType,
+    required this.idEventType,
     this.idPlayer,
     required this.idClub,
-    this.gameMinute,
+    required this.gameMinute,
     this.dateEvent,
-    this.gamePeriod,
-    this.idPlayerSecond,
-    this.idPlayerOpponent,
+    required this.gamePeriod,
+    this.idPlayer2,
+    this.idPlayer3,
   });
 
   factory GameEvent.fromMap(Map<String, dynamic> map) {
@@ -38,6 +41,7 @@ class GameEvent {
       id: map['id'],
       createdAt: DateTime.parse(map['created_at']),
       idGame: map['id_game'],
+      eventType: map['event_type'],
       idEventType: map['id_event_type'],
       idPlayer: map['id_player'],
       idClub: map['id_club'],
@@ -45,28 +49,66 @@ class GameEvent {
       dateEvent:
           map['date_event'] != null ? DateTime.parse(map['date_event']) : null,
       gamePeriod: map['game_period'],
-      idPlayerSecond: map['id_player_second'],
-      idPlayerOpponent: map['id_player_opponent'],
+      idPlayer2: map['id_player2'],
+      idPlayer3: map['id_player3'],
     );
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'created_at': createdAt.toIso8601String(),
-      'id_game': idGame,
-      'id_event_type': idEventType,
-      'id_player': idPlayer,
-      'id_club': idClub,
-      'game_minute': gameMinute,
-      'date_event': dateEvent?.toIso8601String(),
-      'game_period': gamePeriod,
-      'id_player_second': idPlayerSecond,
-      'id_player_opponent': idPlayerOpponent,
-    };
+  // Map<String, dynamic> toMap() {
+  //   return {
+  //     'id': id,
+  //     'created_at': createdAt.toIso8601String(),
+  //     'id_game': idGame,
+  //     'id_event_type': idEventType,
+  //     'id_player': idPlayer,
+  //     'id_club': idClub,
+  //     'game_minute': gameMinute,
+  //     'date_event': dateEvent?.toIso8601String(),
+  //     'game_period': gamePeriod,
+  //     'id_player_second': idPlayer2,
+  //     'id_player_opponent': idPlayer3,
+  //   };
+  // }
+
+  Widget getMinuteIcon() {
+    return Text(
+      '${gameMinute.toString()}\'',
+      // '120+12\'',
+      style: TextStyle(fontWeight: FontWeight.bold),
+    );
   }
 
-  Widget getDescription(BuildContext context) {
+  String getMinute() {
+    String minute = 'ERROR when trying to write the game minute';
+    if (gamePeriod == 1) {
+      if (gameMinute < 45) {
+        minute = gameMinute.toString();
+      } else {
+        minute = '45+${gameMinute - 45}';
+      }
+    } else if (gamePeriod == 2) {
+      if (gameMinute < 90) {
+        minute = gameMinute.toString();
+      } else {
+        minute = '90+${gameMinute - 90}';
+      }
+    } else if (gamePeriod == 3) {
+      if (gameMinute < 105) {
+        minute = gameMinute.toString();
+      } else {
+        minute = '105+${gameMinute - 105}';
+      }
+    } else if (gamePeriod == 4) {
+      if (gameMinute < 120) {
+        minute = gameMinute.toString();
+      } else {
+        minute = '120+${gameMinute - 120}';
+      }
+    }
+    return minute + '\'';
+  }
+
+  Widget getEventPresentation(BuildContext context) {
     String playerName = player == null
         ? 'Unknown player'
         : '${player!.firstName} ${player!.lastName.toUpperCase()}';
@@ -89,42 +131,113 @@ class GameEvent {
         style: TextStyle(
           color: Colors.blue, // Change color to indicate it's clickable
         ),
+        overflow: TextOverflow.ellipsis,
       ),
     );
 
-    switch (idEventType) {
-      case 1:
+    switch (eventType.toUpperCase()) {
+      case 'GOAL':
         return Row(
           children: [
             Icon(Icons.sports_soccer_rounded, color: Colors.green),
-            Text(' Fantastic goal by: '),
             playerInkWell,
           ],
         );
-      case 2:
+      case 'INJURY':
         return Row(
           children: [
-            Text('What an assist by '),
+            Icon(Icons.medical_services, color: Colors.red),
             playerInkWell,
           ],
         );
-      case 3:
+
+      case 'YELLOW CARD':
         return Row(
           children: [
-            Text('Yellow card for '),
+            Icon(Icons.turned_in, color: Colors.yellow),
             playerInkWell,
           ],
         );
-      case 4:
+      case 'OPPORTUNITY':
         return Row(
           children: [
             Icon(Icons.local_fire_department, color: Colors.red),
-            Text('Close shot from '),
+            playerInkWell,
+          ],
+        );
+      case 'GAME START': // Game start
+        return Row(
+          children: [
+            Text(
+              'Referee blows his whistle, let the game begin !',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        );
+      case 'HALF TIME': // Half time
+        return Row(
+          children: [
+            Text(
+              'Referee blows his whistle, first half is over !',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        );
+      case 'GAME END': // Game end
+        return Row(
+          children: [
+            Text(
+              'Referee blows his whistle, game is over !',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        );
+      case 'ORDER ERROR': // Order error
+        return Row(
+          children: [
+            Text(
+              'The manager got messed up, his order doesnt make sense and was scrapped',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        );
+      case 'SUBSTITUTION': // Substitution order
+        return Row(
+          children: [
+            Icon(Icons.swap_horiz),
             playerInkWell,
           ],
         );
       default:
-        return Text('Unknown event type');
+        return Text(
+          'Unknown event type',
+          overflow: TextOverflow.ellipsis,
+        );
     }
+  }
+
+  Widget getEventDescription(BuildContext context) {
+    return Row(
+      children: [Text(description)],
+    );
+  }
+
+  String getEventDescription2(BuildContext context) {
+    return description
+        .replaceAll(
+            '{player1}',
+            player == null
+                ? '[Unknown player]'
+                : '${player!.firstName} ${player!.lastName.toUpperCase()}')
+        .replaceAll(
+            '{player2}',
+            player2 == null
+                ? '[Unknown player]'
+                : '${player2!.firstName} ${player2!.lastName.toUpperCase()}')
+        .replaceAll(
+            '{opponent}',
+            player3 == null
+                ? '[Unknown player]'
+                : '${player3!.firstName} ${player3!.lastName.toUpperCase()}');
   }
 }
