@@ -62,3 +62,48 @@ void showSnackBar(BuildContext context, String message, Icon icon) {
     ),
   );
 }
+
+Future<bool> showConfirmationDialog(BuildContext context, String text) async {
+  return await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            // title: Text('Confirmation'),
+            content: Text(text),
+            actions: <Widget>[
+              TextButton(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                    ),
+                    SizedBox(width: 3.0),
+                    Text('Confirm'),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(true); // Return true
+                },
+              ),
+              TextButton(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.cancel,
+                      color: Colors.red,
+                    ),
+                    SizedBox(width: 3.0),
+                    Text('Cancel'),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(false); // Return false
+                },
+              ),
+            ],
+          );
+        },
+      ) ??
+      false;
+}

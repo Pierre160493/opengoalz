@@ -110,20 +110,20 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
             -- Calculate the expanses and revenues of the clubs
             UPDATE clubs SET
                 lis_tax = lis_tax ||
-                    FLOOR(lis_cash[array_length(lis_cash, 1)] * 0.01),
+                    GREATEST(0, FLOOR(lis_cash[array_length(lis_cash, 1)] * 0.01)),
                 lis_players_expanses = lis_players_expanses || 
                     (SELECT COALESCE(SUM(expanses), 0)
                         FROM players 
                         WHERE id_club = clubs.id),
                 lis_staff_expanses = lis_staff_expanses ||
                     staff_expanses,
-                staff_weight = (staff_weight + staff_expanses) * 0.5
+                staff_weight = LEAST(GREATEST((staff_weight + staff_expanses) * 0.5, 0), 5000)
             WHERE multiverse_speed = multiverse.speed;
 
             -- Update the clubs revenues and expanses in the list
             UPDATE clubs SET
                 lis_revenues = lis_revenues ||
-                    revenues,
+                    lis_sponsors[array_length(lis_sponsors, 1)],
                 lis_expanses = lis_expanses || (
                     lis_tax[array_length(lis_expanses, 1)] +
                     lis_players_expanses[array_length(lis_players_expanses, 1)] +
@@ -142,11 +142,11 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
             -- Update the leagues cash by paying club expanses and players salaries and cash last season
             UPDATE leagues SET
                 cash = cash + (
-                    SELECT SUM(lis_expanses[array_length(lis_expanses, 1)])
+                    SELECT COALESCE(SUM(lis_expanses[array_length(lis_expanses, 1)]), 0)
                     FROM clubs WHERE id_league = leagues.id
                     ),
                 cash_last_season = cash_last_season - (
-                    SELECT SUM(lis_revenues[array_length(lis_revenues, 1)])
+                    SELECT COALESCE(SUM(lis_revenues[array_length(lis_revenues, 1)]), 0)
                     FROM clubs WHERE id_league = leagues.id
                     )
             WHERE multiverse_speed = multiverse.speed
@@ -155,7 +155,17 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
             ------------------------------------------------------------------------------------------------------------------------------------------------
             ------------------------------------------------------------------------------------------------------------------------------------------------
             ------ Update players training points
-            UPDATE players SET training_points = training_points + 1 WHERE multiverse_speed = multiverse.speed;
+            UPDATE players
+                SET training_points = training_points + (
+                    CASE
+                        WHEN clubs.staff_weight <= 1000 THEN 0.25 + (clubs.staff_weight / 1000) * 0.5
+                        WHEN clubs.staff_weight > 1000 AND clubs.staff_weight <= 5000 THEN 0.75 + ((clubs.staff_weight - 1000) / 4000) * 0.25
+                        ELSE 1
+                    END
+                    )
+                FROM clubs
+                    WHERE players.id_club = clubs.id
+                    AND players.multiverse_speed = multiverse.speed;
 
             -- No need to populate the games if the season is not over yet
             IF multiverse.week_number >= 10 THEN
@@ -241,7 +251,7 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         season_number = season_number + 1,
                         id_league = id_league_next_season,
                         id_league_next_season = NULL,
-                        revenues = (
+                        lis_sponsors = lis_sponsors || (
                             (SELECT cash_last_season FROM leagues WHERE id = id_league) * 
                             CASE 
                                 WHEN pos_league = 1 THEN 0.20
@@ -260,7 +270,7 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
 
                     -- Update players
                     UPDATE players SET
-                        expanses = FLOOR(expanses + 100 + (keeper + defense + playmaking + passes + winger + scoring + freekick) * 0.5)
+                        expanses = FLOOR((expanses + 100 + keeper + defense + playmaking + passes + winger + scoring + freekick) * 0.5)
                         WHERE multiverse_speed = multiverse.speed;
 
                 END IF;
@@ -269,12 +279,13 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                 ------------------------------------------------------------------------------------------------------------------------------------------------
                 ------ Loop through the list of games that need to be played in the coming weeks
                 FOR game IN (
-                    SELECT * FROM games
+                    SELECT games.* FROM games
+                    JOIN games_description ON games.id_games_description = games_description.id
                         WHERE multiverse_speed = multiverse.speed
                         AND season_number = (SELECT season_number FROM multiverses WHERE speed = multiverse.speed)
-                        AND week_number >= (SELECT week_number FROM multiverses WHERE speed = multiverse.speed)
+                        AND games_description.week = (SELECT week_number FROM multiverses WHERE speed = multiverse.speed)
                         AND (id_club_left IS NULL OR id_club_right IS NULL)
-                        ORDER BY id
+                        ORDER BY games.id
                 ) LOOP
 
                     -- Try to populate the game with the clubs id

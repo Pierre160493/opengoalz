@@ -27,8 +27,34 @@ extension TeamCompTab on TeamComp {
                   color: Colors.red,
                 ),
               ),
-            Row(
-              children: List.generate(7, (index) {
+
+            /// Add a row of buttons to clean the teamcomp and apply the default teamcomp
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              IconButton(
+                icon: Row(
+                  children: [
+                    Icon(Icons.layers_clear, color: Colors.red),
+                  ],
+                ),
+                onPressed: () async {
+                  bool confirm = await showConfirmationDialog(
+                      context, 'Are you sure you want to clean the teamcomp?');
+
+                  if (!confirm) return;
+                  bool isOK = await operationInDB(
+                      context, 'FUNCTION', 'teamcomps_copy_previous', data: {
+                    'inp_id_teamcomp': id,
+                    'inp_season_number': -999
+                  }); // Use index to modify id
+                  if (isOK) {
+                    showSnackBar(
+                        context,
+                        'The teamcomp has successfully being cleaned',
+                        Icon(Icons.check_circle, color: Colors.green));
+                  }
+                },
+              ),
+              ...List.generate(7, (index) {
                 return IconButton(
                   icon: Row(
                     children: [
@@ -37,9 +63,13 @@ extension TeamCompTab on TeamComp {
                     ],
                   ),
                   onPressed: () async {
+                    bool confirm = await showConfirmationDialog(context,
+                        'Are you sure you want to apply the default ${index + 1} teamcomp to this teamcomp ?');
+
+                    if (!confirm) return;
                     bool isOK = await operationInDB(
                         context, 'FUNCTION', 'teamcomps_copy_previous', data: {
-                      'inp_id_teamcomp': id + index,
+                      'inp_id_teamcomp': id,
                       'inp_week_number': index + 1
                     }); // Use index to modify id
                     if (isOK) {
@@ -51,7 +81,7 @@ extension TeamCompTab on TeamComp {
                   },
                 );
               }),
-            ),
+            ]),
             // IconButton(
             //   icon: Icon(Icons.save),
             //   onPressed: () async {
