@@ -312,8 +312,6 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                       children: List<Widget>.generate(
                                           14,
                                           (index) =>
-                                              // club.teamComps[index]
-                                              //     .getMainTeamCompWidget(context),
                                               TeamCompWidget(
                                                   teamComp:
                                                       club.teamComps[index])),

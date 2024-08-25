@@ -3,6 +3,7 @@ import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/events/event.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/teamcomp/teamComp.dart';
+import 'package:opengoalz/classes/teamcomp/teamComp_main_widget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -279,10 +280,11 @@ class _HomePageState extends State<GamePage> {
                             .id)
                   Center(
                     child: Text(
-                        'Only the team manager can see the teamcomp before the game'),
+                        'Only the team manager can see the teamcomp before the game is played'),
                   )
                 else
-                  game.leftClub.teamComps[0].getTeamCompWidget(context),
+                  // game.leftClub.teamComps.first.getTeamCompWidget(context),
+                  TeamCompWidget(teamComp: game.leftClub.teamComps.first),
 
                 /// Right Club TeamComp
                 if (game.dateEnd == null &&
@@ -293,10 +295,11 @@ class _HomePageState extends State<GamePage> {
                             .id)
                   Center(
                     child: Text(
-                        'Only the team manager can see the teamcomp before the game'),
+                        'Only the team manager can see the teamcomp before the game is played'),
                   )
                 else
-                  game.rightClub.teamComps[0].getTeamCompWidget(context),
+                  // game.rightClub.teamComps.first.getTeamCompWidget(context),
+                  TeamCompWidget(teamComp: game.rightClub.teamComps.first),
               ],
             ),
           ),

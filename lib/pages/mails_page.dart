@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/mail.dart';
@@ -437,97 +435,150 @@ class _MailsPageState extends State<MailsPage> {
   }
 
   Widget _buildMailsList(List<Mail> mails) {
-    return ListView.builder(
-      itemCount: mails.length,
-      itemBuilder: (context, index) {
-        final mail = mails[index];
-        return ExpansionTile(
-          leading: IconButton(
-            icon: mail.isRead ? Icon(Icons.mark_email_read) : Icon(Icons.mail),
-            onPressed: () {
-              if (mail.isRead) {
-                updateMailStatus(context, [mail.id], {'is_read': false});
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('The mail has been set to unread')),
-                );
-              } else {
-                updateMailStatus(context, [mail.id], {'is_read': true});
-              }
-            },
-          ),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(mail.title),
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.favorite,
-                      color: mail.isFavorite ? Colors.red : Colors.blueGrey,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isNarrow =
+            constraints.maxWidth < maxWidth; // Adjust the threshold as needed
+
+        return ListView.builder(
+          itemCount: mails.length,
+          itemBuilder: (context, index) {
+            final mail = mails[index];
+            return ExpansionTile(
+              leading: isNarrow
+                  ? null
+                  : IconButton(
+                      icon: mail.isRead
+                          ? Icon(Icons.mark_email_read)
+                          : Icon(Icons.mail),
+                      onPressed: () {
+                        if (mail.isRead) {
+                          updateMailStatus(
+                              context, [mail.id], {'is_read': false});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content:
+                                    Text('The mail has been set to unread')),
+                          );
+                        } else {
+                          updateMailStatus(
+                              context, [mail.id], {'is_read': true});
+                        }
+                      },
                     ),
-                    onPressed: () {
-                      if (mail.isFavorite) {
-                        updateMailStatus(
-                            context, [mail.id], {'is_favorite': false});
-                      } else {
-                        updateMailStatus(
-                            context, [mail.id], {'is_favorite': true});
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      if (mail.dateDelete == null) {
-                        updateMailStatus(context, [
-                          mail.id
-                        ], {
-                          'date_delete': DateTime.now()
-                              .add(Duration(days: 7))
-                              .toIso8601String()
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                                  Text('The mail will be deleted in 7 days')),
-                        );
-                      } else {
-                        updateMailStatus(
-                            context, [mail.id], {'date_delete': null});
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  'The mail has been moved back to your inbox')),
-                        );
-                      }
-                    },
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (isNarrow)
+                    IconButton(
+                      icon: mail.isRead
+                          ? Icon(Icons.mark_email_read)
+                          : Icon(Icons.mail),
+                      onPressed: () {
+                        if (mail.isRead) {
+                          updateMailStatus(
+                              context, [mail.id], {'is_read': false});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content:
+                                    Text('The mail has been set to unread')),
+                          );
+                        } else {
+                          updateMailStatus(
+                              context, [mail.id], {'is_read': true});
+                        }
+                      },
+                    ),
+                  Text(mail.title),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.favorite,
+                          color: mail.isFavorite ? Colors.red : Colors.blueGrey,
+                        ),
+                        onPressed: () {
+                          if (mail.isFavorite) {
+                            updateMailStatus(
+                                context, [mail.id], {'is_favorite': false});
+                          } else {
+                            updateMailStatus(
+                                context, [mail.id], {'is_favorite': true});
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          if (mail.dateDelete == null) {
+                            updateMailStatus(context, [
+                              mail.id
+                            ], {
+                              'date_delete': DateTime.now()
+                                  .add(Duration(days: 7))
+                                  .toIso8601String()
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'The mail will be deleted in 7 days')),
+                            );
+                          } else {
+                            updateMailStatus(
+                                context, [mail.id], {'date_delete': null});
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'The mail has been moved back to your inbox')),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-          subtitle: Row(
-            children: [
-              Icon(Icons.calendar_month),
-              SizedBox(width: 3),
-              Text(
-                mail.createdAt.year == DateTime.now().year
-                    ? DateFormat('MMM dd, kk:mm').format(mail.createdAt)
-                    : DateFormat('MMM dd, yyyy, kk:mm').format(mail.createdAt),
+              subtitle: Row(
+                children: [
+                  Icon(Icons.calendar_month),
+                  SizedBox(width: 3),
+                  Text(
+                    mail.createdAt.year == DateTime.now().year
+                        ? DateFormat('MMM dd, kk:mm').format(mail.createdAt)
+                        : DateFormat('MMM dd, yyyy, kk:mm')
+                            .format(mail.createdAt),
+                  ),
+                  formSpacer,
+                  Expanded(
+                    child: Text(
+                      mail.message,
+                      style: TextStyle(
+                          fontStyle: FontStyle.italic, color: Colors.blueGrey),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(mail.message),
-            ),
-          ],
-          onExpansionChanged: (isExpanded) async {
-            if (isExpanded && !mail.isRead) {
-              updateMailStatus(context, [mail.id], {'is_read': true});
-            }
+              showTrailingIcon: isNarrow ? false : true,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    mail.message,
+                    style: TextStyle(
+                      color: Colors.blueGrey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+              onExpansionChanged: (isExpanded) async {
+                if (isExpanded && !mail.isRead) {
+                  updateMailStatus(context, [mail.id], {'is_read': true});
+                }
+              },
+            );
           },
         );
       },

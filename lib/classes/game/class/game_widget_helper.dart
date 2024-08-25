@@ -408,7 +408,7 @@ extension GameClassWidgetHelper on Game {
 
               return ListTile(
                 leading: Container(
-                  width: 120, // Fixed width to ensure alignment
+                  width: 80, // Fixed width to ensure alignment
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -417,7 +417,7 @@ extension GameClassWidgetHelper on Game {
                         style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16),
+                            fontSize: 12),
                       ),
                       // SizedBox(width: 10),
                       if (event.eventType.toUpperCase() ==
@@ -430,7 +430,7 @@ extension GameClassWidgetHelper on Game {
                               Text(
                                 '$leftClubScore - $rightClubScore',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
+                                    fontWeight: FontWeight.bold, fontSize: 12),
                               ),
                             ],
                           ),
@@ -446,27 +446,26 @@ extension GameClassWidgetHelper on Game {
                     event.getEventPresentation(context),
                   ],
                 ),
-                subtitle:
-                    // Row(
-                    //   children: [
-                    //     if (event.idClub == idClubRight) SizedBox(width: 36),
-                    //     Expanded(
-                    //       child: Text(
-                    //         event.getEventDescription2(context),
-                    //         style: TextStyle(
-                    //             color: Colors.blueGrey,
-                    //             fontStyle: FontStyle.italic),
-                    //         textAlign: event.idClub == idClubLeft
-                    //             ? TextAlign.left
-                    //             : TextAlign.right, // Align text to the right
-                    //         maxLines: null, // Allow text to take up multiple lines
-                    //         overflow: TextOverflow.visible, // Make overflow visible
-                    //       ),
-                    //     ),
-                    //     if (event.idClub == idClubLeft) SizedBox(width: 36),
-                    //   ],
-                    // ),
-                    event.getEventDescription(context),
+                subtitle: Row(
+                  children: [
+                    if (event.idClub == idClubRight) SizedBox(width: 36),
+                    Expanded(
+                      child: Text(
+                        event.getEventDescription2(context),
+                        style: TextStyle(
+                            color: Colors.blueGrey,
+                            fontStyle: FontStyle.italic),
+                        textAlign: event.idClub == idClubLeft
+                            ? TextAlign.left
+                            : TextAlign.right, // Align text to the right
+                        maxLines: null, // Allow text to take up multiple lines
+                        overflow: TextOverflow.visible, // Make overflow visible
+                      ),
+                    ),
+                    if (event.idClub == idClubLeft) SizedBox(width: 36),
+                  ],
+                ),
+                // event.getEventDescription(context),
               );
             },
           ),
