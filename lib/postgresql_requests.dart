@@ -39,11 +39,13 @@ Future<bool> operationInDB(
     }
     return true;
   } on PostgrestException catch (error) {
+    print('PostgreSQL ERROR: ${error.message}');
     showSnackBar(context, 'PostgreSQL ERROR: ${error.message}',
         Icon(Icons.report, color: Colors.red));
   } catch (error) {
-    showSnackBar(context, 'Unknown ERROR: Unexpected error occurred !',
-        Icon(Icons.error, color: Colors.red));
+    print('Unknown ERROR: $error');
+    showSnackBar(
+        context, 'Unknown ERROR: $error', Icon(Icons.error, color: Colors.red));
   }
   return false;
 }
