@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/game/class/game.dart';
 import 'package:opengoalz/classes/league/league.dart';
+import 'package:opengoalz/classes/mail.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/classes/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
@@ -25,6 +26,8 @@ class Club {
   List<TeamComp> defaultTeamComps = []; //List of the teamcomps of the club
   List<Game> games = []; //games of this club
   List<Player> players = []; // List of players of the club
+  List<Mail> clubMails = []; // List of mails for the club
+  List<Mail> userMails = []; // List of mails for the user of the club
   League? league; // League of the club
   int points = 0; // points of the club
   int victories = 0; // victories of the club

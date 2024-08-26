@@ -184,7 +184,7 @@ extension TabOrders on TeamComp {
                           //     true) {
                           bool isOK = await operationInDB(
                               context, 'DELETE', 'game_orders',
-                              criteria: {
+                              matchCriteria: {
                                 'id': sub.id,
                               });
                           if (isOK) {

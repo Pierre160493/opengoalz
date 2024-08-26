@@ -5,8 +5,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Function to insert a game sub into the database
 Future<bool> operationInDB(
-    BuildContext context, String operationType, String tableName,
-    {Map<String, Object?>? data, Map<String, Object>? criteria}) async {
+  BuildContext context,
+  String operationType,
+  String tableName, {
+  Map<String, Object?>? data,
+  Map<String, Object>? matchCriteria,
+  Map<String, List<dynamic>>? inFiltermatchCriteria,
+}) async {
   /// Check if data is present for the INSERT and UPDATE operation
   if (['INSERT', 'UPDATE', 'FUNCTION'].contains(operationType.toUpperCase())) {
     if (data == null) {
@@ -15,9 +20,9 @@ Future<bool> operationInDB(
     }
   }
   if (['UPDATE', 'DELETE'].contains(operationType.toUpperCase())) {
-    if (criteria == null) {
+    if (inFiltermatchCriteria == null && matchCriteria == null) {
       throw Exception(
-          'Criteria is required for the ${operationType} operation in the operationInDB function');
+          'matchCriteria is required for the ${operationType} operation in the operationInDB function');
     }
   }
   try {
@@ -26,10 +31,22 @@ Future<bool> operationInDB(
         await supabase.from(tableName).insert(data!);
         break;
       case 'UPDATE':
-        await supabase.from(tableName).update(data!).match(criteria!);
+        if (inFiltermatchCriteria == null) {
+          await supabase.from(tableName).update(data!).match(matchCriteria!);
+        } else {
+          await supabase.from(tableName).update(data!).inFilter(
+              inFiltermatchCriteria.entries.first.key,
+              inFiltermatchCriteria.entries.first.value);
+        }
         break;
       case 'DELETE':
-        await supabase.from(tableName).delete().match(criteria!);
+        if (inFiltermatchCriteria == null) {
+          await supabase.from(tableName).delete().match(matchCriteria!);
+        } else {
+          await supabase.from(tableName).delete().inFilter(
+              inFiltermatchCriteria.entries.first.key,
+              inFiltermatchCriteria.entries.first.value);
+        }
         break;
       case 'FUNCTION':
         await supabase.rpc(tableName, params: data!);
@@ -48,3 +65,55 @@ Future<bool> operationInDB(
   }
   return false;
 }
+
+// Future<bool> operationInDB(
+//     BuildContext context, String operationType, String tableName,
+//     {Map<String, Object?>? data,
+//     Map<String, Object>? matchCriteria,
+//     String? matchCriteriaXXX,
+//     List<dynamic>? matchCriterias}) async {
+//   /// Check if data is present for the INSERT and UPDATE operation
+//   if (['INSERT', 'UPDATE', 'FUNCTION'].contains(operationType.toUpperCase())) {
+//     if (data == null) {
+//       throw Exception(
+//           'Data is required for the ${operationType} operation in the operationInDB function');
+//     }
+//   }
+//   if (['UPDATE', 'DELETE'].contains(operationType.toUpperCase())) {
+//     if (matchCriteria == null) {
+//       throw Exception(
+//           'matchCriteria is required for the ${operationType} operation in the operationInDB function');
+//     }
+//   }
+//   try {
+//     switch (operationType.toUpperCase()) {
+//       case 'INSERT':
+//         await supabase.from(tableName).insert(data!);
+//         break;
+//       case 'UPDATE':
+//         // await supabase.from(tableName).update(data!).match(matchCriteria!);
+//         await supabase
+//             .from(tableName)
+//             .update(data!)
+//             .inFilter(matchCriteriaXXX!, matchCriterias!);
+//         break;
+//       case 'DELETE':
+//         await supabase.from(tableName).delete().match(matchCriteria!);
+//         break;
+//       case 'FUNCTION':
+//         await supabase.rpc(tableName, params: data!);
+//         break;
+//       default:
+//         throw Exception(
+//             'Invalid operation type in the operationInDB function: $operationType');
+//     }
+//     return true;
+//   } on PostgrestException catch (error) {
+//     print('PostgreSQL ERROR: ${error.message}');
+//     context.showSnackBarPostgreSQLError('PostgreSQL ERROR: ${error.message}');
+//   } catch (error) {
+//     print('Unknown ERROR: $error');
+//     context.showSnackBarError('Unknown ERROR: $error');
+//   }
+//   return false;
+// }

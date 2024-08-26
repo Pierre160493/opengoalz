@@ -164,7 +164,8 @@ class _ClubPageState extends State<ClubPage> {
                                 color: Colors.blueGrey, // Border color
                               ),
                             ),
-                            title: getUserName(context, club.userName),
+                            title:
+                                getUserName(context, userName: club.userName),
                             onTap: () async => {
                                   /// Reset the user to the user that is being visited
                                   await Provider.of<SessionProvider>(context,

@@ -30,7 +30,9 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             // leading: const Icon(icon_home), // Add the home icon
             // title: const Text('Home'),
-            title: Provider.of<SessionProvider>(context).user!.getUserName(),
+            title: Provider.of<SessionProvider>(context)
+                .user!
+                .getUserName(context),
             onTap: () {
               Navigator.push(
                 context,
@@ -74,7 +76,7 @@ class AppDrawer extends StatelessWidget {
           ), // Add the Stadium page
           buildDrawerOption(
             context,
-            icon_staff,
+            iconStaff,
             'Staff',
             StaffPage(idClub: selectedClub.id),
           ), // Add the Staff page

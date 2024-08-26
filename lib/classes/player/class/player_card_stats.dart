@@ -132,7 +132,7 @@ extension PlayerCardStats on Player {
         bool isOK = await operationInDB(context, 'UPDATE', 'players', data: {
           stat: min(value + 1, 100),
           'training_points': trainingPoints - 1,
-        }, criteria: {
+        }, matchCriteria: {
           'id': id
         });
         if (isOK) {

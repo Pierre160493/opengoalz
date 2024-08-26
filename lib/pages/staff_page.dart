@@ -58,7 +58,7 @@ class _StaffPageState extends State<StaffPage> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: Icon(icon_staff, size: iconSizeMedium),
+                    leading: Icon(iconStaff, size: iconSizeMedium),
                     title: Row(
                       children: [
                         Text('Staff expanses: '),

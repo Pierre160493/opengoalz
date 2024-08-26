@@ -219,7 +219,7 @@ extension TeamCompPlayerCard on TeamComp {
                         bool isOK = await operationInDB(
                             context, 'UPDATE', 'games_teamcomp',
                             data: {playerMap['database']: null},
-                            criteria: {'id': id});
+                            matchCriteria: {'id': id});
                         if (isOK) {
                           context.showSnackBar(
                               'Successfully removed ${player.firstName} ${player.lastName} from the teamcomp',
@@ -322,7 +322,7 @@ extension TeamCompPlayerCard on TeamComp {
               bool isOK = await operationInDB(
                   context, 'UPDATE', 'games_teamcomp',
                   data: {playerMap['database']: returnedPlayer.id},
-                  criteria: {'id': id});
+                  matchCriteria: {'id': id});
               if (isOK) {
                 context.showSnackBar(
                     'Successfully set ${returnedPlayer.firstName} ${returnedPlayer.lastName} as ${playerMap['name']}',

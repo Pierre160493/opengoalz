@@ -5,6 +5,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:provider/provider.dart';
 
 class GameUser {
@@ -38,14 +39,27 @@ class GameUser {
         createdAt = DateTime.parse(map['created_at']),
         idDefaultClub = map['id_default_club'];
 
-  Widget getUserName() {
+  Widget getUserName(BuildContext context) {
     return Row(
       children: [
         Icon(iconUser),
-        SizedBox(width: 3),
+        formSpacer3,
         Text(username),
-        Icon(isConnectedUser ? Icons.check_circle : Icons.portable_wifi_off,
-            color: isConnectedUser ? Colors.green : Colors.red),
+        formSpacer3,
+        // if (isConnectedUser)
+        // Icon(isConnectedUser ? Icons.check_circle : Icons.portable_wifi_off,
+        //     color: isConnectedUser ? Colors.green : Colors.red),
+        if (!isConnectedUser)
+          Tooltip(
+            message: 'Send Mail',
+            child: IconButton(
+              onPressed: () async {
+                sendMailDialog(context,
+                    username: username, idClub: selectedClub.id);
+              },
+              icon: Icon(Icons.quick_contacts_mail, size: iconSizeSmall),
+            ),
+          ),
       ],
     );
   }
@@ -62,62 +76,65 @@ class GameUser {
             ),
           );
         },
-        child: getUserName());
+        child: getUserName(context));
   }
 
   Widget returnToConnectedUserIconButton(BuildContext context) {
-    return IconButton(
-      onPressed: () async {
-        bool switchConfirmed = await showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Confirm Switch Profiles"),
-              content: Text("Return to your profile ?"),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    // Dismiss the dialog and return false to indicate cancellation
-                    Navigator.of(context).pop(false);
-                  },
-                  child: Text("Cancel"),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // Dismiss the dialog and return true to indicate confirmation
-                    Navigator.of(context).pop(true);
-                  },
-                  child: Text("Switch"),
-                ),
-              ],
-            );
-          },
-        );
+    return Tooltip(
+      message: 'Return to your profile',
+      child: IconButton(
+        onPressed: () async {
+          bool switchConfirmed = await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Confirm Switch Profiles"),
+                content: Text("Return to your profile ?"),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      // Dismiss the dialog and return false to indicate cancellation
+                      Navigator.of(context).pop(false);
+                    },
+                    child: Text("Cancel"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Dismiss the dialog and return true to indicate confirmation
+                      Navigator.of(context).pop(true);
+                    },
+                    child: Text("Switch"),
+                  ),
+                ],
+              );
+            },
+          );
 
-        // If switch is confirmed, proceed with switching
-        if (switchConfirmed == true) {
-          await Provider.of<SessionProvider>(context, listen: false)
-              .providerFetchUser(userId: supabase.auth.currentUser!.id);
+          // If switch is confirmed, proceed with switching
+          if (switchConfirmed == true) {
+            await Provider.of<SessionProvider>(context, listen: false)
+                .providerFetchUser(userId: supabase.auth.currentUser!.id);
 
-          /// Modify the app theme if the user is not the connected user
-          Provider.of<ThemeProvider>(context, listen: false)
-              .setOtherThemeWhenSelectedUserIsNotConnectedUser(
-                  Provider.of<SessionProvider>(context, listen: false)
-                          .user
-                          ?.isConnectedUser ??
-                      false);
+            /// Modify the app theme if the user is not the connected user
+            Provider.of<ThemeProvider>(context, listen: false)
+                .setOtherThemeWhenSelectedUserIsNotConnectedUser(
+                    Provider.of<SessionProvider>(context, listen: false)
+                            .user
+                            ?.isConnectedUser ??
+                        false);
 
-          /// Launch UserPage Page
-          Navigator.of(context)
-              .pushAndRemoveUntil(UserPage.route(), (route) => false);
-        }
-      },
-      icon: Icon(Icons.keyboard_return, size: iconSizeSmall),
+            /// Launch UserPage Page
+            Navigator.of(context)
+                .pushAndRemoveUntil(UserPage.route(), (route) => false);
+          }
+        },
+        icon: Icon(Icons.keyboard_return, size: iconSizeSmall),
+      ),
     );
   }
 }
 
-Widget getUserName(BuildContext context, String? userName) {
+Widget getUserName(BuildContext context, {String? userName, int? idClub}) {
   if (userName == null) {
     return Row(
       children: [
@@ -138,13 +155,28 @@ Widget getUserName(BuildContext context, String? userName) {
               .user
               ?.username) // If the user is the connected user
         Icon(Icons.check_circle, color: Colors.green),
+      if (userName !=
+          Provider.of<SessionProvider>(context)
+              .user
+              ?.username) // If the user is not the connected user
+        Tooltip(
+          message: 'Send Mail',
+          child: IconButton(
+            onPressed: () async {
+              // showSendMailDialog(context, user.selectedClub.id);
+              sendMailDialog(context, idClub: idClub, username: userName);
+            },
+            icon: Icon(Icons.quick_contacts_mail, size: iconSizeSmall),
+          ),
+        ),
     ],
   );
 }
 
-Widget getUserNameClickable(BuildContext context, String? userName) {
+Widget getUserNameClickable(BuildContext context,
+    {String? userName, int? idClub}) {
   if (userName == null) {
-    return getUserName(context, userName);
+    return getUserName(context, userName: userName);
   }
 
   return InkWell(
@@ -158,7 +190,7 @@ Widget getUserNameClickable(BuildContext context, String? userName) {
           ),
         );
       },
-      child: getUserName(context, userName));
+      child: getUserName(context, userName: userName));
 }
 
 // Widget getUserNameClickable2(BuildContext context, String? userName) {

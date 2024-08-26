@@ -7,8 +7,8 @@ extension LeagueStatsTab on League {
 
     // Count the goals and assists by each player
     for (Game game in games.where((game) => game.dateEnd != null)) {
-      for (GameEvent event
-          in game.events.where((event) => event.eventType.toUpperCase() == 'GOAL')) {
+      for (GameEvent event in game.events
+          .where((event) => event.eventType.toUpperCase() == 'GOAL')) {
         if (event.idPlayer != null) {
           playerGoals[event.idPlayer!] =
               (playerGoals[event.idPlayer!] ?? 0) + 1;
@@ -156,7 +156,8 @@ extension LeagueStatsTab on League {
             children: [
               players[entry.key]!.getClubNameWidget(context),
               if (players[entry.key]!.userName != null)
-                getUserNameClickable(context, players[entry.key]!.userName!),
+                getUserNameClickable(context,
+                    userName: players[entry.key]!.userName!),
             ],
           ),
 

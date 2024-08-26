@@ -5,12 +5,16 @@ import 'package:opengoalz/classes/gameUser.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/classes/player/player_card.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/pages/mails_page.dart';
 import 'package:opengoalz/pages/settings_page.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -116,59 +120,71 @@ class _UserPageState extends State<UserPage> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: user.getUserName(),
+        title: user.getUserName(context),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(SettingsPage.route());
-            },
-            icon: Icon(Icons.settings, size: iconSizeSmall),
+          Tooltip(
+            message: 'Open Settings Page',
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).push(SettingsPage.route());
+              },
+              icon: Icon(Icons.settings, size: iconSizeSmall),
+            ),
           ),
 
           /// Button depending if the user is the currently connected user
           user.isConnectedUser
               // If the user is the connected user, show the logout button
-              ? IconButton(
-                  onPressed: () async {
-                    bool logoutConfirmed = await showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text("Confirm Logout"),
-                          content: Text("Are you sure you want to log out?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                // Dismiss the dialog and return false to indicate cancellation
-                                Navigator.of(context).pop(false);
-                              },
-                              child: Text("Cancel"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                // Dismiss the dialog and return true to indicate confirmation
-                                Navigator.of(context).pop(true);
-                              },
-                              child: Text("Logout"),
-                            ),
-                          ],
-                        );
-                      },
-                    );
+              ? Tooltip(
+                  message: 'Logout',
+                  child: IconButton(
+                    onPressed: () async {
+                      bool logoutConfirmed =
+                          await context.showConfirmationDialog(
+                              'Are you sure you want to log out?');
 
-                    // If logout is confirmed, proceed with logout
-                    if (logoutConfirmed == true) {
-                      await supabase.auth.signOut();
-                      Navigator.of(context).pushAndRemoveUntil(
-                          LoginPage.route(), (route) => false);
-                    }
-                  },
-                  icon: Icon(Icons.logout, size: iconSizeSmall),
+                      // If logout is confirmed, proceed with logout
+                      if (logoutConfirmed == true) {
+                        await supabase.auth.signOut();
+                        Navigator.of(context).pushAndRemoveUntil(
+                            LoginPage.route(), (route) => false);
+                      }
+                    },
+                    icon: Icon(Icons.logout, size: iconSizeSmall),
+                  ),
                 )
               // If the user is not the connected user, show the switch button
               : Provider.of<SessionProvider>(context)
                   .user!
-                  .returnToConnectedUserIconButton(context)
+                  .returnToConnectedUserIconButton(context),
+          user.isConnectedUser
+              // Mail Page Button if the user is the connected user
+              ? Tooltip(
+                  message: 'Open Mails Page',
+                  child: IconButton(
+                    onPressed: () async {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                MailsPage(idClub: user.selectedClub.id)),
+                      );
+                    },
+                    icon: Icon(Icons.mail, size: iconSizeSmall),
+                  ),
+                )
+              // Send Mail Button if the user is not the connected user
+              : Tooltip(
+                  message: 'Send Mail',
+                  child: IconButton(
+                    onPressed: () async {
+                      sendMailDialog(context,
+                          idClub: user.selectedClub.id,
+                          username: user.username);
+                    },
+                    icon: Icon(Icons.quick_contacts_mail, size: iconSizeSmall),
+                  ),
+                ),
         ],
       ),
       drawer: const AppDrawer(),

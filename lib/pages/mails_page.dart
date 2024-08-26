@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/classes/club/club.dart';
+import 'package:opengoalz/classes/gameUser.dart';
 import 'package:opengoalz/classes/mail.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:rxdart/rxdart.dart';
 
 class MailsPage extends StatefulWidget {
   final int idClub;
@@ -21,36 +26,73 @@ class MailsPage extends StatefulWidget {
 }
 
 class _MailsPageState extends State<MailsPage> {
-  late Stream<List<Mail>> _mailsStream;
+  late Stream<Club> _clubStream;
 
   @override
   void initState() {
-    _mailsStream = supabase
-        .from('messages_mail')
+    _clubStream = supabase
+        // Fetch the club
+        .from('clubs')
         .stream(primaryKey: ['id'])
-        .eq('id_club', widget.idClub)
-        .map((maps) => maps.map((map) => Mail.fromMap(map)).toList());
+        .eq('id', widget.idClub)
+        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+        // Fetch its league
+        .switchMap((Club club) {
+          if (club.userName == null) {
+            Exception('The club does not have a username');
+          }
+          return supabase
+              .from('messages_mail')
+              .stream(primaryKey: ['id'])
+              .eq('username_to', club.userName!)
+              .order('created_at', ascending: false)
+              .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
+              .map((List<Mail> mails) {
+                club.userMails = mails;
+                return club;
+              });
+        })
+        .switchMap((Club club) {
+          return supabase
+              .from('messages_mail')
+              .stream(primaryKey: ['id'])
+              .eq('id_club_to', club.id)
+              .order('created_at', ascending: false)
+              .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
+              .map((List<Mail> mails) {
+                club.clubMails = mails;
+                return club;
+              });
+        });
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Mail>>(
-      stream: _mailsStream,
+    return StreamBuilder<Club>(
+      // stream: _mailsStream,
+      stream: _clubStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         }
-        List<Mail> mails =
-            snapshot.data!.where((mail) => mail.dateDelete == null).toList();
-        List<Mail> mailsToDelete =
-            snapshot.data!.where((mail) => mail.dateDelete != null).toList();
+        Club club = snapshot.data!;
+
+        List<Mail> clubMails =
+            club.clubMails.where((mail) => mail.dateDelete == null).toList();
+        List<Mail> clubMailsThrash =
+            club.clubMails.where((mail) => mail.dateDelete != null).toList();
+        List<Mail> userMails =
+            club.userMails.where((mail) => mail.dateDelete == null).toList();
+        List<Mail> userMailsThrash =
+            club.userMails.where((mail) => mail.dateDelete != null).toList();
+
         return Scaffold(
           appBar: AppBar(
-            title: Text('Mails (${mails.length})'),
+            title: Text('Mails (${clubMails.length}) (${userMails.length})'),
           ),
           drawer: const AppDrawer(),
           body: MaxWidthContainer(
@@ -60,16 +102,64 @@ class _MailsPageState extends State<MailsPage> {
                 children: [
                   TabBar(
                     tabs: [
-                      buildTabWithIcon(Icons.inbox, 'Inbox (${mails.length})'),
-                      buildTabWithIcon(Icons.auto_delete,
-                          'Thrash (${mailsToDelete.length})'),
+                      buildTabWithIcon(
+                          icon_club, 'Club Mails (${clubMails.length})'),
+                      buildTabWithIcon(
+                          iconUser, 'User Mails (${userMails.length})'),
                     ],
                   ),
                   Expanded(
                     child: TabBarView(
                       children: [
-                        _buildInbox(context, mails),
-                        _buildThrash(context, mailsToDelete),
+                        /// Club mails
+                        DefaultTabController(
+                          length: 2,
+                          child: Column(
+                            children: [
+                              TabBar(
+                                tabs: [
+                                  buildTabWithIcon(Icons.inbox,
+                                      'Inbox (${clubMails.length})'),
+                                  buildTabWithIcon(Icons.auto_delete,
+                                      'Thrash (${clubMailsThrash.length})'),
+                                ],
+                              ),
+                              Expanded(
+                                child: TabBarView(
+                                  children: [
+                                    _buildInbox(context, clubMails),
+                                    _buildThrash(context, clubMailsThrash),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        /// User mails
+                        DefaultTabController(
+                          length: 2,
+                          child: Column(
+                            children: [
+                              TabBar(
+                                tabs: [
+                                  buildTabWithIcon(Icons.inbox,
+                                      'Inbox (${userMails.length})'),
+                                  buildTabWithIcon(Icons.auto_delete,
+                                      'Thrash (${userMailsThrash.length})'),
+                                ],
+                              ),
+                              Expanded(
+                                child: TabBarView(
+                                  children: [
+                                    _buildInbox(context, userMails),
+                                    _buildThrash(context, userMailsThrash),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -99,155 +189,12 @@ class _MailsPageState extends State<MailsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            /// Mark all as read
-            InkWell(
-              onTap: () async {
-                bool? shouldUpdate = await showDialog<bool>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Confirmation'),
-                      content: Text(
-                          'Are you sure you want to mark all mails as read?'),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('Cancel'),
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                        TextButton(
-                          child: Text('OK'),
-                          onPressed: () {
-                            Navigator.of(context).pop(true);
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                if (shouldUpdate == true) {
-                  updateMailStatus(context,
-                      mails.map((mail) => mail.id).toList(), {'is_read': true});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('All mails has been set to read')),
-                  );
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: Row(
-                  children: [
-                    Icon(Icons.mark_email_read),
-                    SizedBox(width: 3),
-                    Text('Mark all as read'),
-                  ],
-                ),
-              ),
-            ),
-
-            /// Mark all as unread
-            InkWell(
-              onTap: () async {
-                bool? shouldUpdate = await showDialog<bool>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Confirmation'),
-                      content: Text(
-                          'Are you sure you want to mark all mails as unread?'),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('Cancel'),
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                        TextButton(
-                          child: Text('OK'),
-                          onPressed: () {
-                            Navigator.of(context).pop(true);
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                if (shouldUpdate == true) {
-                  updateMailStatus(
-                      context,
-                      mails.map((mail) => mail.id).toList(),
-                      {'is_read': false});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('All mails has been set to unread')),
-                  );
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: Row(
-                  children: [
-                    Icon(Icons.markunread),
-                    SizedBox(width: 3),
-                    Text('Mark all as unread'),
-                  ],
-                ),
-              ),
-            ),
-
-            /// Delete all
-            InkWell(
-              onTap: () async {
-                bool? shouldUpdate = await showDialog<bool>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Confirmation'),
-                      content:
-                          Text('Are you sure you want to delete all mails ?'),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('Cancel'),
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                        TextButton(
-                          child: Text('OK'),
-                          onPressed: () {
-                            Navigator.of(context).pop(true);
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                if (shouldUpdate == true) {
-                  updateMailStatus(
-                      context, mails.map((mail) => mail.id).toList(), {
-                    'date_delete':
-                        DateTime.now().add(Duration(days: 7)).toIso8601String()
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text('All mails will be deleted in 7 days')),
-                  );
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: Row(
-                  children: [
-                    Icon(Icons.delete),
-                    SizedBox(width: 3),
-                    Text('Delete all'),
-                  ],
-                ),
-              ),
-            ),
+            // Mark all as read
+            widgetManageMails(context, mails, operationType: 'markRead'),
+            // Mark all as unread
+            widgetManageMails(context, mails, operationType: 'markUnread'),
+            // Delete all
+            widgetManageMails(context, mails, operationType: 'delete'),
           ],
         ),
         // Expanded widget to make _buildMailsList take the remaining space
@@ -275,155 +222,12 @@ class _MailsPageState extends State<MailsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            /// Mark all as read
-            InkWell(
-              onTap: () async {
-                bool? shouldUpdate = await showDialog<bool>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Confirmation'),
-                      content: Text(
-                          'Are you sure you want to mark all mails as read?'),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('Cancel'),
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                        TextButton(
-                          child: Text('OK'),
-                          onPressed: () {
-                            Navigator.of(context).pop(true);
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                if (shouldUpdate == true) {
-                  updateMailStatus(context,
-                      mails.map((mail) => mail.id).toList(), {'is_read': true});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('All mails has been set to read')),
-                  );
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: Row(
-                  children: [
-                    Icon(Icons.mark_email_read),
-                    SizedBox(width: 3),
-                    Text('Mark all as read'),
-                  ],
-                ),
-              ),
-            ),
-
-            /// Mark all as unread
-            InkWell(
-              onTap: () async {
-                bool? shouldUpdate = await showDialog<bool>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Confirmation'),
-                      content: Text(
-                          'Are you sure you want to mark all mails as unread?'),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('Cancel'),
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                        TextButton(
-                          child: Text('OK'),
-                          onPressed: () {
-                            Navigator.of(context).pop(true);
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                if (shouldUpdate == true) {
-                  updateMailStatus(
-                      context,
-                      mails.map((mail) => mail.id).toList(),
-                      {'is_read': false});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('All mails has been set to unread')),
-                  );
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: Row(
-                  children: [
-                    Icon(Icons.markunread),
-                    SizedBox(width: 3),
-                    Text('Mark all as unread'),
-                  ],
-                ),
-              ),
-            ),
-
-            /// Undelete all
-            InkWell(
-              onTap: () async {
-                bool? shouldUpdate = await showDialog<bool>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Confirmation'),
-                      content: Text(
-                          'Are you sure you want to move back all mails to inbox ?'),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('Cancel'),
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                        TextButton(
-                          child: Text('OK'),
-                          onPressed: () {
-                            Navigator.of(context).pop(true);
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                if (shouldUpdate == true) {
-                  updateMailStatus(
-                      context,
-                      mails.map((mail) => mail.id).toList(),
-                      {'date_delete': null});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content:
-                            Text('All mails have been restored to the inbox')),
-                  );
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: Row(
-                  children: [
-                    Icon(Icons.delete),
-                    SizedBox(width: 3),
-                    Text('Restore all'),
-                  ],
-                ),
-              ),
-            ),
+            // Mark all as read
+            widgetManageMails(context, mails, operationType: 'markRead'),
+            // Mark all as unread
+            widgetManageMails(context, mails, operationType: 'markUnread'),
+            // Restore all
+            widgetManageMails(context, mails, operationType: 'restore'),
           ],
         ),
         // Expanded widget to make _buildMailsList take the remaining space
@@ -444,140 +248,245 @@ class _MailsPageState extends State<MailsPage> {
           itemCount: mails.length,
           itemBuilder: (context, index) {
             final mail = mails[index];
-            return ExpansionTile(
-              leading: isNarrow
-                  ? null
-                  : IconButton(
-                      icon: mail.isRead
-                          ? Icon(Icons.mark_email_read)
-                          : Icon(Icons.mail),
-                      onPressed: () {
-                        if (mail.isRead) {
-                          updateMailStatus(
-                              context, [mail.id], {'is_read': false});
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text('The mail has been set to unread')),
-                          );
-                        } else {
-                          updateMailStatus(
-                              context, [mail.id], {'is_read': true});
-                        }
-                      },
-                    ),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (isNarrow)
-                    IconButton(
-                      icon: mail.isRead
-                          ? Icon(Icons.mark_email_read)
-                          : Icon(Icons.mail),
-                      onPressed: () {
-                        if (mail.isRead) {
-                          updateMailStatus(
-                              context, [mail.id], {'is_read': false});
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text('The mail has been set to unread')),
-                          );
-                        } else {
-                          updateMailStatus(
-                              context, [mail.id], {'is_read': true});
-                        }
-                      },
-                    ),
-                  Text(mail.title),
-                  Row(
-                    children: [
+            return Container(
+              margin:
+                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueGrey),
+                borderRadius: BorderRadius.circular(8.0),
+                color: mail.isRead
+                    ? Colors.brown
+                    : null, // Background color based on read status
+              ),
+              child: ExpansionTile(
+                leading: isNarrow
+                    ? null
+                    : IconButton(
+                        icon: mail.isRead
+                            ? Icon(Icons.mark_email_read)
+                            : Icon(Icons.mail),
+                        onPressed: () async {
+                          if (mail.isRead) {
+                            bool isOk = await operationInDB(
+                                context, 'UPDATE', 'messages_mail',
+                                data: {
+                                  'is_read': false
+                                },
+                                matchCriteria: {
+                                  'id': mail.id,
+                                });
+                            if (isOk) {
+                              context.showSnackBar(
+                                  'The mail has been set to unread',
+                                  icon: Icon(Icons.mark_email_read,
+                                      color: Colors.green));
+                            }
+                          } else {
+                            await operationInDB(
+                                context, 'UPDATE', 'messages_mail',
+                                data: {
+                                  'is_read': true
+                                },
+                                matchCriteria: {
+                                  'id': mail.id,
+                                });
+                          }
+                        },
+                      ),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (isNarrow)
                       IconButton(
-                        icon: Icon(
-                          Icons.favorite,
-                          color: mail.isFavorite ? Colors.red : Colors.blueGrey,
+                        icon: mail.isRead
+                            ? Icon(Icons.mark_email_read)
+                            : Icon(Icons.mail),
+                        onPressed: () async {
+                          if (mail.isRead) {
+                            bool isOk = await operationInDB(
+                                context, 'UPDATE', 'messages_mail',
+                                data: {
+                                  'is_read': false
+                                },
+                                matchCriteria: {
+                                  'id': mail.id,
+                                });
+                            if (isOk) {
+                              context.showSnackBar(
+                                  'The mail has been set to unread',
+                                  icon: Icon(Icons.mark_email_read,
+                                      color: Colors.green));
+                            }
+                          } else {
+                            await operationInDB(
+                                context, 'UPDATE', 'messages_mail',
+                                data: {
+                                  'is_read': true,
+                                },
+                                matchCriteria: {
+                                  'id': mail.id,
+                                });
+                          }
+                        },
+                      ),
+                    Row(
+                      children: [
+                        Icon(Icons.send),
+                        formSpacer3,
+                        Text('From:'),
+                        formSpacer3,
+                        if (mail.userNameFrom != null)
+                          getUserNameClickable(context,
+                              userName: mail.userNameFrom),
+                        if (mail.userNameFrom == null)
+                          Row(
+                            children: [
+                              Icon(iconStaff),
+                              formSpacer3,
+                              Text(mail.senderRole!),
+                            ],
+                          ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        // Favorite button
+                        IconButton(
+                          icon: Icon(
+                            Icons.favorite,
+                            color:
+                                mail.isFavorite ? Colors.red : Colors.blueGrey,
+                          ),
+                          onPressed: () async {
+                            if (mail.isFavorite) {
+                              await operationInDB(
+                                  context, 'UPDATE', 'messages_mail',
+                                  data: {
+                                    'is_favorite': false,
+                                  },
+                                  matchCriteria: {
+                                    'id': mail.id,
+                                  });
+                            } else {
+                              await operationInDB(
+                                  context, 'UPDATE', 'messages_mail',
+                                  data: {
+                                    'is_favorite': true,
+                                  },
+                                  matchCriteria: {
+                                    'id': mail.id,
+                                  });
+                            }
+                          },
                         ),
-                        onPressed: () {
-                          if (mail.isFavorite) {
-                            updateMailStatus(
-                                context, [mail.id], {'is_favorite': false});
-                          } else {
-                            updateMailStatus(
-                                context, [mail.id], {'is_favorite': true});
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          if (mail.dateDelete == null) {
-                            updateMailStatus(context, [
-                              mail.id
-                            ], {
-                              'date_delete': DateTime.now()
-                                  .add(Duration(days: 7))
-                                  .toIso8601String()
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(
-                                      'The mail will be deleted in 7 days')),
-                            );
-                          } else {
-                            updateMailStatus(
-                                context, [mail.id], {'date_delete': null});
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(
-                                      'The mail has been moved back to your inbox')),
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              subtitle: Row(
-                children: [
-                  Icon(Icons.calendar_month),
-                  SizedBox(width: 3),
-                  Text(
-                    mail.createdAt.year == DateTime.now().year
-                        ? DateFormat('MMM dd, kk:mm').format(mail.createdAt)
-                        : DateFormat('MMM dd, yyyy, kk:mm')
-                            .format(mail.createdAt),
-                  ),
-                  formSpacer6,
-                  Expanded(
-                    child: Text(
-                      mail.message,
-                      style: TextStyle(
-                          fontStyle: FontStyle.italic, color: Colors.blueGrey),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                        // Delete button
+                        if (mail.dateDelete == null)
+                          IconButton(
+                            icon: Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                            onPressed: () async {
+                              bool isOk = await operationInDB(
+                                  context, 'UPDATE', 'messages_mail',
+                                  data: {
+                                    'date_delete': DateTime.now()
+                                        .add(Duration(days: 7))
+                                        .toIso8601String(),
+                                  },
+                                  matchCriteria: {
+                                    'id': mail.id,
+                                  });
+                              if (isOk) {
+                                context.showSnackBar(
+                                    'The mail will be deleted in 7 days',
+                                    icon: Icon(Icons.mark_email_read,
+                                        color: Colors.green));
+                              }
+                            },
+                          ),
+                        // Restore button
+                        if (mail.dateDelete != null)
+                          IconButton(
+                            icon: Icon(Icons.restore_from_trash),
+                            onPressed: () async {
+                              bool isOk = await operationInDB(
+                                  context, 'UPDATE', 'messages_mail',
+                                  data: {
+                                    'date_delete': null,
+                                  },
+                                  matchCriteria: {
+                                    'id': mail.id,
+                                  });
+                              if (isOk) {
+                                context.showSnackBar(
+                                    'The mail has been moved back to your inbox',
+                                    icon: Icon(Icons.mark_email_read,
+                                        color: Colors.green));
+                              }
+                            },
+                          ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              showTrailingIcon: isNarrow ? false : true,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    mail.message,
-                    style: TextStyle(
-                      color: Colors.blueGrey,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
+                  ],
                 ),
-              ],
-              onExpansionChanged: (isExpanded) async {
-                if (isExpanded && !mail.isRead) {
-                  updateMailStatus(context, [mail.id], {'is_read': true});
-                }
-              },
+                subtitle: Row(
+                  children: [
+                    Icon(Icons.label_important),
+                    Expanded(
+                      child: Tooltip(
+                        message: mail.title,
+                        child: Text(
+                          mail.title,
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.bold,
+                            // color: Colors.blueGrey
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ),
+                    formSpacer6,
+                    Icon(Icons.calendar_month),
+                    SizedBox(width: 3),
+                    Text(
+                      mail.createdAt.year == DateTime.now().year
+                          ? DateFormat('MMM dd, kk:mm').format(mail.createdAt)
+                          : DateFormat('MMM dd, yyyy, kk:mm')
+                              .format(mail.createdAt),
+                    ),
+                  ],
+                ),
+                showTrailingIcon: isNarrow ? false : true,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        mail.message,
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                onExpansionChanged: (isExpanded) async {
+                  if (isExpanded && !mail.isRead) {
+                    await operationInDB(context, 'UPDATE', 'messages_mail',
+                        data: {
+                          'is_read': true,
+                        },
+                        matchCriteria: {
+                          'id': mail.id,
+                        });
+                  }
+                },
+              ),
             );
           },
         );
@@ -585,17 +494,90 @@ class _MailsPageState extends State<MailsPage> {
     );
   }
 
-  Future<void> updateMailStatus(BuildContext context, List<int> mailIds,
-      Map<String, dynamic> updates) async {
-    try {
-      await supabase
-          .from('messages_mail')
-          .update(updates)
-          .inFilter('id', mailIds);
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating mail with ${updates}: $error')),
-      );
+  Widget widgetManageMails(
+    BuildContext context,
+    List<Mail> mails, {
+    required String operationType,
+  }) {
+    final String textMessage;
+    final String confirmationMessage;
+    final String successMessage;
+    final Map<String, dynamic>? data;
+    final Icon icon;
+
+    switch (operationType) {
+      case 'markRead':
+        textMessage = 'Mark all as read';
+        confirmationMessage =
+            'Are you sure you want to mark all mails as read ?';
+        successMessage = 'All ${mails.length} mails have been set to read';
+        icon = Icon(Icons.mark_email_read);
+        data = {'is_read': true};
+        break;
+      case 'markUnread':
+        textMessage = 'Mark all as unread';
+        confirmationMessage =
+            'Are you sure you want to mark all mails as unread ?';
+        successMessage = 'All ${mails.length} mails have been set to unread';
+        icon = Icon(Icons.markunread);
+        data = {'is_read': false};
+        break;
+      case 'delete':
+        textMessage = 'Delete all';
+        confirmationMessage =
+            'Are you sure you want to throw all mails in the thrash ?';
+        successMessage = 'All ${mails.length} mails will be deleted in 7 days';
+        icon = Icon(Icons.delete, color: Colors.red);
+        data = {
+          'date_delete': DateTime.now().add(Duration(days: 7)).toIso8601String()
+        };
+        break;
+      case 'restore':
+        textMessage = 'Restore all';
+        confirmationMessage =
+            'Are you sure you want to restore all mails from the thrash ?';
+        successMessage =
+            'All ${mails.length} mails have been restored from the thrash';
+        icon = Icon(Icons.restore_from_trash, color: Colors.green);
+        data = {'date_delete': null};
+        break;
+      default:
+        throw Exception('Invalid operation type: $operationType');
     }
+
+    return InkWell(
+      onTap: () async {
+        bool? shouldUpdate =
+            await context.showConfirmationDialog(confirmationMessage);
+
+        if (shouldUpdate == true) {
+          bool isOk;
+          isOk = await operationInDB(
+            context,
+            'UPDATE',
+            'messages_mail',
+            data: data,
+            inFiltermatchCriteria: {
+              'id': mails.map((mail) => mail.id).toList()
+            },
+          );
+
+          if (isOk) {
+            context.showSnackBar(successMessage,
+                icon: Icon(iconSuccessfulOperation, color: Colors.green));
+          }
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: Row(
+          children: [
+            icon,
+            SizedBox(width: 3),
+            Text(textMessage),
+          ],
+        ),
+      ),
+    );
   }
 }

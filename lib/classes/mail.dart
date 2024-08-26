@@ -1,10 +1,12 @@
 class Mail {
   final int id;
   final DateTime createdAt;
-  final int clubId;
+  final int idClubTo;
+  final String? usernameTo;
   final String title;
   final String message;
-  final String? userFromId;
+  final String? userNameFrom;
+  final String? senderRole;
   final bool isRead;
   final bool isFavorite;
   final DateTime? dateDelete;
@@ -12,10 +14,12 @@ class Mail {
   Mail({
     required this.id,
     required this.createdAt,
-    required this.clubId,
+    required this.idClubTo,
+    required this.usernameTo,
     required this.title,
     required this.message,
-    this.userFromId,
+    this.userNameFrom,
+    this.senderRole,
     required this.isRead,
     required this.isFavorite,
     this.dateDelete,
@@ -25,10 +29,12 @@ class Mail {
     return Mail(
       id: map['id'],
       createdAt: DateTime.parse(map['created_at']),
-      clubId: map['id_club'],
+      idClubTo: map['id_club_to'],
+      usernameTo: map['username_to'],
       title: map['title'],
       message: map['message'],
-      userFromId: map['id_user_from'],
+      userNameFrom: map['username_from'],
+      senderRole: map['sender_role'],
       isRead: map['is_read'],
       isFavorite: map['is_favorite'],
       dateDelete: map['date_delete'] != null
