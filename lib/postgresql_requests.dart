@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Function to insert a game sub into the database
@@ -40,72 +41,10 @@ Future<bool> operationInDB(
     return true;
   } on PostgrestException catch (error) {
     print('PostgreSQL ERROR: ${error.message}');
-    showSnackBar(context, 'PostgreSQL ERROR: ${error.message}',
-        Icon(Icons.report, color: Colors.red));
+    context.showSnackBarPostgreSQLError('PostgreSQL ERROR: ${error.message}');
   } catch (error) {
     print('Unknown ERROR: $error');
-    showSnackBar(
-        context, 'Unknown ERROR: $error', Icon(Icons.error, color: Colors.red));
+    context.showSnackBarError('Unknown ERROR: $error');
   }
   return false;
-}
-
-void showSnackBar(BuildContext context, String message, Icon icon) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Row(
-        children: [
-          icon,
-          SizedBox(width: 3.0),
-          Text(message),
-        ],
-      ),
-      showCloseIcon: true,
-    ),
-  );
-}
-
-Future<bool> showConfirmationDialog(BuildContext context, String text) async {
-  return await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            // title: Text('Confirmation'),
-            content: Text(text),
-            actions: <Widget>[
-              TextButton(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                    ),
-                    SizedBox(width: 3.0),
-                    Text('Confirm'),
-                  ],
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop(true); // Return true
-                },
-              ),
-              TextButton(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.cancel,
-                      color: Colors.red,
-                    ),
-                    SizedBox(width: 3.0),
-                    Text('Cancel'),
-                  ],
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop(false); // Return false
-                },
-              ),
-            ],
-          );
-        },
-      ) ??
-      false;
 }

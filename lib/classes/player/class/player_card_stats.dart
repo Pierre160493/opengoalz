@@ -136,43 +136,11 @@ extension PlayerCardStats on Player {
           'id': id
         });
         if (isOK) {
-          showSnackBar(
-              context,
+          context.showSnackBar(
               'Successfully updated player ${stat} stat! Hooray!',
-              Icon(Icons.check_circle, color: Colors.green));
+              icon: Icon(Icons.check_circle, color: Colors.green));
         }
         Navigator.of(context).pop();
-
-        // try {
-        //   await supabase.from('players').update({
-        //     stat: min(value + 1, 100),
-        //     'training_points': trainingPoints - 1,
-        //   }).match({'id': id});
-
-        //   ScaffoldMessenger.of(context).showSnackBar(
-        //     SnackBar(
-        //         content: Row(
-        //       children: [
-        //         Icon(Icons.celebration),
-        //         Text('Successfully updated player ${stat} stat! Hooray!'),
-        //       ],
-        //     )),
-        //   );
-        //   Navigator.of(context).pop();
-        // } on PostgrestException catch (error) {
-        //   ScaffoldMessenger.of(context).showSnackBar(
-        //     SnackBar(
-        //       content: Text(
-        //           'SUPABASE ERROR: When trying to update player ${stat} stat, got: ${error.message}'),
-        //     ),
-        //   );
-        // } catch (e) {
-        //   ScaffoldMessenger.of(context).showSnackBar(
-        //     SnackBar(
-        //         content: Text(
-        //             'UNKNOWN ERROR: When trying to update player ${stat} stat, got: $e')),
-        //   );
-        // }
       },
       child: Row(
         children: [

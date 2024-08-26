@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 
 import '../classes/message.dart';
 import '../classes/gameUser.dart';
@@ -171,9 +172,9 @@ class _MessageBarState extends State<_MessageBar> {
         'content': text,
       });
     } on PostgrestException catch (error) {
-      context.showErrorSnackBar(message: error.message);
-    } catch (_) {
-      context.showErrorSnackBar(message: unexpectedErrorMessage);
+      context.showSnackBarError(error.message);
+    } catch (error) {
+      context.showSnackBarError(error.toString());
     }
   }
 }

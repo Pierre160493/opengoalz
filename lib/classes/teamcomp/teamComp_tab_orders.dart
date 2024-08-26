@@ -188,10 +188,10 @@ extension TabOrders on TeamComp {
                                 'id': sub.id,
                               });
                           if (isOK) {
-                            showSnackBar(
-                                context,
+                            context.showSnackBar(
                                 'The order has been successfully deleted',
-                                Icon(Icons.check_circle, color: Colors.green));
+                                icon: Icon(iconSuccessfulOperation,
+                                    color: Colors.green));
                           }
                         },
                       ),

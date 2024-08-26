@@ -44,21 +44,18 @@ extension TeamCompPlayerCard on TeamComp {
                       onPressed: () async {
                         // If no player is selected, it mens this is the first player selected
                         if (selectedPlayerForSubstitution == null) {
-                          showSnackBar(
-                              context,
+                          context.showSnackBar(
                               'Select the player you wish to substitute ${player.firstName} ${player.lastName} with ?',
-                              Icon(iconSuccessfulOperation,
+                              icon: Icon(iconSuccessfulOperation,
                                   color: Colors.green));
                           // Set the idSelected Player as the selected player
                           selectedPlayerForSubstitution = player;
                         } else {
                           /// Check player cannot be substituted with himself
                           if (selectedPlayerForSubstitution!.id == player.id) {
-                            showSnackBar(
-                                context,
-                                'You cannot substitute a player with himself !',
-                                Icon(iconSuccessfulOperation,
-                                    color: Colors.green));
+                            context.showSnackBarError(
+                              'You cannot substitute a player with himself !',
+                            );
                           } else {
                             /// Set the minute and condition of the substitution
                             final TextEditingController minuteController =
@@ -176,17 +173,15 @@ extension TeamCompPlayerCard on TeamComp {
                             if (!minuteController.text.isEmpty &&
                                 int.tryParse(minuteController.text) == null) {
                               print(minuteController.text);
-                              showSnackBar(
-                                  context,
-                                  'The minute of substitution is not valid !',
-                                  Icon(iconBug, color: Colors.red));
+                              context.showSnackBarError(
+                                'The minute of substitution is not valid !',
+                              );
                             } else if (!conditionController.text.isEmpty &&
                                 int.tryParse(conditionController.text) ==
                                     null) {
-                              showSnackBar(
-                                  context,
-                                  'The condition of substitution is not valid !',
-                                  Icon(iconBug, color: Colors.red));
+                              context.showSnackBarError(
+                                'The condition of substitution is not valid !',
+                              );
                             } else {
                               bool isOK = await operationInDB(
                                   context, 'INSERT', 'game_orders',
@@ -204,10 +199,9 @@ extension TeamCompPlayerCard on TeamComp {
                                         : int.parse(conditionController.text),
                                   });
                               if (isOK) {
-                                showSnackBar(
-                                    context,
-                                    'Successfully set new game order for ${playerMap['name']}',
-                                    Icon(iconSuccessfulOperation,
+                                context.showSnackBar(
+                                    'Successfully set substitution of ${selectedPlayerForSubstitution!.firstName} ${selectedPlayerForSubstitution!.lastName} with ${player.firstName} ${player.lastName}',
+                                    icon: Icon(iconSuccessfulOperation,
                                         color: Colors.green));
                               }
                             }
@@ -227,10 +221,9 @@ extension TeamCompPlayerCard on TeamComp {
                             data: {playerMap['database']: null},
                             criteria: {'id': id});
                         if (isOK) {
-                          showSnackBar(
-                              context,
+                          context.showSnackBar(
                               'Successfully removed ${player.firstName} ${player.lastName} from the teamcomp',
-                              Icon(iconSuccessfulOperation,
+                              icon: Icon(iconSuccessfulOperation,
                                   color: Colors.green));
                         }
                         Navigator.of(context).pop();
@@ -331,10 +324,9 @@ extension TeamCompPlayerCard on TeamComp {
                   data: {playerMap['database']: returnedPlayer.id},
                   criteria: {'id': id});
               if (isOK) {
-                showSnackBar(
-                    context,
+                context.showSnackBar(
                     'Successfully set ${returnedPlayer.firstName} ${returnedPlayer.lastName} as ${playerMap['name']}',
-                    Icon(iconSuccessfulOperation, color: Colors.green));
+                    icon: Icon(iconSuccessfulOperation, color: Colors.green));
               }
             }
           },

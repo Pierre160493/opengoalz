@@ -94,7 +94,25 @@ class _UserPageState extends State<UserPage> {
 
   Widget _buildUserWidget(GameUser? user) {
     if (user == null) {
-      return const Center(child: Text('User not found'));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('User not found, please try again'),
+            formSpacer12,
+            ElevatedButton(
+              onPressed: () async {
+                await supabase.auth.signOut();
+                Navigator.of(context).pushAndRemoveUntil(
+                  LoginPage.route(),
+                  (route) => false,
+                );
+              },
+              child: const Text('Reset App'),
+            ),
+          ],
+        ),
+      );
     }
     return Scaffold(
       appBar: AppBar(

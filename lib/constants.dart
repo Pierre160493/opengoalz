@@ -16,13 +16,12 @@ const appBarTxt = appName;
 const preloader = Center(child: CircularProgressIndicator(color: Colors.green));
 
 /// Simple sized box to space out form elements
-const formSpacer = SizedBox(width: 16, height: 16);
+const formSpacer3 = SizedBox(width: 3, height: 3);
+const formSpacer6 = SizedBox(width: 6, height: 6);
+const formSpacer12 = SizedBox(width: 12, height: 12);
 
 /// Some padding for all the forms to use
 const formPadding = EdgeInsets.symmetric(vertical: 20, horizontal: 16);
-
-/// Error message to display the user when unexpected error occurs.
-const unexpectedErrorMessage = 'Unexpected error occurred.';
 
 const maxWidth = 600.0;
 
@@ -56,8 +55,9 @@ const iconTeamComp = Icons.grid_on;
 const iconMails = Icons.email;
 const iconStamina = Icons.ev_station;
 // const iconBug = Icons.bug_report;
-const iconBug = Icons.error;
+const iconError = Icons.error;
 const iconSuccessfulOperation = Icons.check_circle;
+const iconPostgreSQLError = Icons.report;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorIsMine = Colors.purple;
@@ -65,22 +65,3 @@ const Color colorIsMine = Colors.purple;
 double iconSizeSmall = 24.0;
 double iconSizeMedium = 30.0;
 double iconSizeLarge = 36.0;
-
-/// Set of extension methods to easily display a snackbar
-extension ShowSnackBar on BuildContext {
-  /// Displays a basic snackbar
-  void showSnackBar({
-    required String message,
-    Color backgroundColor = Colors.white,
-  }) {
-    ScaffoldMessenger.of(this).showSnackBar(SnackBar(
-      content: Text(message),
-      backgroundColor: backgroundColor,
-    ));
-  }
-
-  /// Displays a red snackbar indicating error
-  void showErrorSnackBar({required String message}) {
-    showSnackBar(message: message, backgroundColor: Colors.red);
-  }
-}

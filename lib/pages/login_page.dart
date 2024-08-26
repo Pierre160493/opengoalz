@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'user_page.dart';
 import 'register_page.dart';
 import '../constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -19,55 +20,70 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
-  bool _useEmail = true;
-  final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
+  final _inputController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedEmailOrUsername();
+  }
+
+  Future<void> _loadSavedEmailOrUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmailOrUsername = prefs.getString('emailOrUsername');
+    if (savedEmailOrUsername != null) {
+      _inputController.text = savedEmailOrUsername;
+    }
+  }
 
   Future<void> _signIn() async {
     setState(() {
       _isLoading = true;
     });
 
-    String email = _emailController.text;
+    String email = _inputController.text; // Email to be used for login
+    String? postgresError;
+    String? otherError;
 
-    if (!_useEmail) {
+    // If using email, check if it is not empty
+    if (!email.contains('@')) {
       try {
         // Fetch email associated with the username
-        Map<String, dynamic> response = await supabase
+        Map<String, dynamic>? response = await supabase
             .from('profiles')
             .select('email')
-            .eq('username', _usernameController.text)
-            .single();
+            .eq('username', _inputController.text)
+            .maybeSingle();
 
-        if (response['email'] == null) {
-          context.showErrorSnackBar(
-              message:
-                  'ERROR: Email not found for the user: ${_usernameController.text}');
-          setState(() {
-            _isLoading = false;
-          });
-          return;
+        if (response == null) {
+          postgresError = 'Username not found: ${_inputController.text}';
+        } else if (response['email'] == null) {
+          postgresError =
+              'Email not found for the user: ${_inputController.text}';
         } else {
           email = response['email'];
         }
       } on PostgrestException catch (error) {
-        context.showErrorSnackBar(
-            message:
-                'POSTGRES ERROR: Failed to fetch email for the username ==> ${error.code}: ${error.message}');
-        setState(() {
-          _isLoading = false;
-        });
-        return;
+        postgresError =
+            'POSTGRES ERROR: Failed to fetch email for the username ==> ${error.code}: ${error.message}';
       } catch (error) {
-        context.showErrorSnackBar(
-            message:
-                'UNKNOWN ERROR: Failed to fetch email for the username, try the email directly');
-        setState(() {
-          _isLoading = false;
-        });
-        return;
+        otherError =
+            'UNKNOWN ERROR: Failed to fetch email for the username, try the email directly';
       }
+    }
+
+    // If there was an error, show it and exit the function
+    if (otherError != null || postgresError != null) {
+      if (postgresError != null) {
+        context.showSnackBarPostgreSQLError(postgresError);
+      } else if (otherError != null) {
+        context.showSnackBarError(otherError);
+      }
+      setState(() {
+        _isLoading = false;
+      });
+      return;
     }
 
     try {
@@ -75,12 +91,17 @@ class _LoginPageState extends State<LoginPage> {
         email: email,
         password: _passwordController.text,
       );
+
+      // Save the email or username to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('emailOrUsername', _inputController.text);
+
       Navigator.of(context)
           .pushAndRemoveUntil(UserPage.route(), (route) => false);
     } on AuthException catch (error) {
-      context.showErrorSnackBar(message: error.message);
-    } catch (_) {
-      context.showErrorSnackBar(message: unexpectedErrorMessage);
+      context.showSnackBarError(error.message);
+    } catch (error) {
+      context.showSnackBarError('UNKNOWN ERROR: ${error}');
     }
     if (mounted) {
       setState(() {
@@ -91,8 +112,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _usernameController.dispose();
+    _inputController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -112,42 +132,32 @@ class _LoginPageState extends State<LoginPage> {
             Row(
               children: [
                 Expanded(
-                  child: _useEmail
-                      ? TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(labelText: 'Email'),
-                          keyboardType: TextInputType.emailAddress,
-                        )
-                      : TextFormField(
-                          controller: _usernameController,
-                          decoration:
-                              const InputDecoration(labelText: 'Username'),
-                        ),
-                ),
-                formSpacer,
-                Text(_useEmail ? 'Use Email' : 'Use Username'),
-                Switch(
-                  value: _useEmail,
-                  onChanged: (value) {
-                    setState(() {
-                      _useEmail = value;
-                    });
-                  },
-                ),
+                    child: TextFormField(
+                  controller: _inputController,
+                  decoration: InputDecoration(
+                    labelText: 'Email or Username',
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                )),
               ],
             ),
-            formSpacer,
+            formSpacer6,
             TextFormField(
               controller: _passwordController,
               decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
+              onFieldSubmitted: (value) {
+                if (!_isLoading) {
+                  _signIn();
+                }
+              },
             ),
-            formSpacer,
+            formSpacer6,
             ElevatedButton(
               onPressed: _isLoading ? null : _signIn,
               child: const Text('Login'),
             ),
-            formSpacer,
+            formSpacer6,
             TextButton(
               onPressed: () {
                 Navigator.of(context).push(RegisterPage.route());

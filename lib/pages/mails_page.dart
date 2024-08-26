@@ -548,7 +548,7 @@ class _MailsPageState extends State<MailsPage> {
                         : DateFormat('MMM dd, yyyy, kk:mm')
                             .format(mail.createdAt),
                   ),
-                  formSpacer,
+                  formSpacer6,
                   Expanded(
                     child: Text(
                       mail.message,

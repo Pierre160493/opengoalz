@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'user_page.dart';
@@ -43,9 +44,9 @@ class _RegisterPageState extends State<RegisterPage> {
       Navigator.of(context)
           .pushAndRemoveUntil(UserPage.route(), (route) => false);
     } on AuthException catch (error) {
-      context.showErrorSnackBar(message: error.message);
+      context.showSnackBarError(error.message);
     } catch (error) {
-      context.showErrorSnackBar(message: unexpectedErrorMessage);
+      context.showSnackBarError(error.toString());
     }
   }
 
@@ -74,7 +75,7 @@ class _RegisterPageState extends State<RegisterPage> {
               },
               keyboardType: TextInputType.emailAddress,
             ),
-            formSpacer,
+            formSpacer6,
             TextFormField(
               controller: _passwordController,
               obscureText: true,
@@ -91,7 +92,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 return null;
               },
             ),
-            formSpacer,
+            formSpacer6,
             TextFormField(
               controller: _usernameController,
               decoration: const InputDecoration(
@@ -108,12 +109,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 return null;
               },
             ),
-            formSpacer,
+            formSpacer6,
             ElevatedButton(
               onPressed: _isLoading ? null : _signUp,
               child: const Text('Register'),
             ),
-            formSpacer,
+            formSpacer6,
             TextButton(
               onPressed: () {
                 Navigator.of(context).push(LoginPage.route());

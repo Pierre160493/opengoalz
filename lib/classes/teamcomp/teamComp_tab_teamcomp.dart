@@ -42,7 +42,7 @@ extension TeamCompTab on TeamComp {
                         ],
                       ),
                       onPressed: () async {
-                        bool confirm = await showConfirmationDialog(context,
+                        bool confirm = await context.showConfirmationDialog(
                             'Are you sure you want to clean the teamcomp?');
 
                         if (!confirm) return;
@@ -53,10 +53,10 @@ extension TeamCompTab on TeamComp {
                               'inp_season_number': -999
                             }); // Use index to modify id
                         if (isOK) {
-                          showSnackBar(
-                              context,
+                          context.showSnackBar(
                               'The teamcomp has successfully being cleaned',
-                              Icon(Icons.check_circle, color: Colors.green));
+                              icon: Icon(iconSuccessfulOperation,
+                                  color: Colors.green));
                         }
                       },
                     ),
@@ -69,7 +69,7 @@ extension TeamCompTab on TeamComp {
                           ],
                         ),
                         onPressed: () async {
-                          bool confirm = await showConfirmationDialog(context,
+                          bool confirm = await context.showConfirmationDialog(
                               'Are you sure you want to apply the default ${index + 1} teamcomp to this teamcomp ?');
 
                           if (!confirm) return;
@@ -80,10 +80,10 @@ extension TeamCompTab on TeamComp {
                                 'inp_week_number': index + 1
                               }); // Use index to modify id
                           if (isOK) {
-                            showSnackBar(
-                                context,
+                            context.showSnackBar(
                                 'The teamcomp has successfully being applied',
-                                Icon(Icons.check_circle, color: Colors.green));
+                                icon: Icon(iconSuccessfulOperation,
+                                    color: Colors.green));
                           }
                         },
                       );
@@ -103,7 +103,7 @@ extension TeamCompTab on TeamComp {
             //       showSnackBar(
             //           context,
             //           'The teamcomp has successfully being applied',
-            //           Icon(Icons.check_circle, color: Colors.green));
+            //           Icon(iconSuccessfulOperation, color: Colors.green));
             //     }
             //   },
             // ),

@@ -6,6 +6,7 @@ import 'package:opengoalz/classes/player/player_card.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/classes/subs.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 
 part 'teamComp_tab_teamcomp.dart';
