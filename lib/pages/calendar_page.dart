@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/multiverse.dart';
 import 'package:opengoalz/widgets/multiverse_row_widget.dart';
@@ -46,30 +47,40 @@ class _CalendarPageState extends State<CalendarPage> {
               .map((maps) => maps.map((map) => Multiverse.fromMap(map)).first)
               .map((Multiverse multiverse) {
                 club.multiverse = multiverse;
-                _eventGames = [
-                  {
-                    multiverse.dateSeasonStart:
-                        'Launch of the season ${multiverse.seasonNumber}, First Game'
-                  },
-                  {
-                    multiverse.dateSeasonEnd.add(Duration(days: 1)):
-                        'Second Game'
-                  },
-                ];
-                if ((24 * 7 / multiverse.speed).remainder(1) != 0) {
+
+                // Reset the event games
+                _eventGames = [];
+
+                // Try to calculate the hours between games depening on the speed of the multiverse
+                int hoursBetweenGames;
+                try {
+                  hoursBetweenGames = 24 * 7 ~/ multiverse.speed;
+                  print(hoursBetweenGames);
+                } catch (e) {
                   throw Exception(
-                      'The result of the division is not an integer when calculating the hours between games');
+                      'Error converting division result to int: $e');
                 }
-                int hoursBetweenGames = (24 * 7 / multiverse.speed) as int;
-                for (int i = multiverse.seasonNumber + 1; i == 1; i--) {
+
+                /// Generate the events for the calendar
+                // Loop through the seasons
+                for (int i = multiverse.seasonNumber + 1; i >= 1; i--) {
+                  print('Season $i');
+                  _eventGames.add({
+                    multiverse.dateSeasonStart.add(Duration(
+                            hours: (hoursBetweenGames * 14) * (i - 1))):
+                        'Launch of the season ${i}'
+                  });
+                  // Loop through the games of the season
                   for (int j = 0; j < 14; j++) {
+                    print('Season ${i} Game ${j + 1}');
                     _eventGames.add({
-                      multiverse.dateSeasonStart
-                              .add(Duration(hours: hoursBetweenGames * j)):
+                      multiverse.dateSeasonStart.add(Duration(
+                              hours: hoursBetweenGames * (((i - 1) * 14) + j))):
                           'Season ${i} Game ${j + 1}'
                     });
-                  }
-                }
+                  } // End loop through the games of the season
+                } // End loop through the seasons
+                print(_eventGames);
                 _selectedEvents = _getEventsOfSelectedDay(_selectedDay);
                 return club;
               });
@@ -101,6 +112,7 @@ class _CalendarPageState extends State<CalendarPage> {
               title: Row(
                 children: [
                   Text('Calendar'),
+                  formSpacer6,
                   multiverseWidget(club.multiverse!.speed),
                 ],
               ),
@@ -146,6 +158,10 @@ class _CalendarPageState extends State<CalendarPage> {
           lastDay: DateTime.utc(2030, 3, 14),
           focusedDay: _focusedDay,
           calendarFormat: _calendarFormat,
+          availableCalendarFormats: {
+            CalendarFormat.month: 'Month',
+            CalendarFormat.week: 'Week',
+          },
           selectedDayPredicate: (day) {
             return isSameDay(_selectedDay, day);
           },
@@ -172,6 +188,25 @@ class _CalendarPageState extends State<CalendarPage> {
                 .map((event) => event.values.first)
                 .toList();
           },
+          // calendarBuilders: CalendarBuilders(
+          //   markerBuilder: (context, day, events) {
+          //     if (events.isNotEmpty) {
+          //       return Center(
+          //         child: Container(
+          //           decoration: BoxDecoration(
+          //             color: Colors.blueGrey,
+          //             shape: BoxShape.circle,
+          //           ),
+          //           child: Text(
+          //             events.length.toString(),
+          //             style: TextStyle(color: Colors.white),
+          //           ),
+          //         ),
+          //       );
+          //     }
+          //     return const SizedBox.shrink();
+          //   },
+          // ),
           calendarStyle: CalendarStyle(
             tableBorder: const TableBorder(
               horizontalInside: BorderSide(color: Colors.blueGrey),
@@ -182,10 +217,10 @@ class _CalendarPageState extends State<CalendarPage> {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.red),
             ),
-            outsideDecoration: BoxDecoration(
-              color: Colors.brown,
-              shape: BoxShape.circle,
-            ),
+            // outsideDecoration: BoxDecoration(
+            //   color: Colors.brown,
+            //   shape: BoxShape.circle,
+            // ),
             todayDecoration: BoxDecoration(
               color: Colors.blueGrey,
               shape: BoxShape.circle,
@@ -204,6 +239,7 @@ class _CalendarPageState extends State<CalendarPage> {
             itemBuilder: (context, index) {
               print(_selectedEvents);
               final Map<DateTime, String> event = _selectedEvents[index];
+
               return ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -212,7 +248,20 @@ class _CalendarPageState extends State<CalendarPage> {
                     color: Colors.blueGrey, // Border color
                   ),
                 ),
-                title: Text(event.values.first),
+                title: Row(
+                  children: [
+                    Icon(Icons.sports_soccer),
+                    formSpacer3,
+                    Text(event.values.first),
+                  ],
+                ),
+                subtitle: Row(
+                  children: [
+                    const Icon(Icons.calendar_today),
+                    formSpacer3,
+                    Text(DateFormat('d MMM, HH:mm').format(event.keys.first)),
+                  ],
+                ),
               );
             },
           ),
