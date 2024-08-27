@@ -75,7 +75,7 @@ class _ClubPageState extends State<ClubPage> {
   Widget build(BuildContext context) {
     return StreamBuilder<Club>(
       stream: _clubStream,
-      builder: (context, snapshot) {
+      builder: (context, AsyncSnapshot<Club> snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
