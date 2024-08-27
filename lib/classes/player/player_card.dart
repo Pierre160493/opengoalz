@@ -116,7 +116,8 @@ class _PlayerCardState extends State<PlayerCard>
               children: [
                 getClubNameClickable(
                     context, widget.player.club, widget.player.idClub),
-                multiverseWidget(widget.player.multiverseSpeed),
+                multiverseWidgetClickable(
+                    context, widget.player.multiverseSpeed),
               ],
             ),
             // subtitle: Text(
@@ -256,7 +257,8 @@ class _PlayerCardState extends State<PlayerCard>
               children: [
                 getClubNameClickable(
                     context, widget.player.club, widget.player.idClub),
-                multiverseWidget(widget.player.multiverseSpeed),
+                multiverseWidgetClickable(
+                    context, widget.player.multiverseSpeed),
               ],
             ),
           ),

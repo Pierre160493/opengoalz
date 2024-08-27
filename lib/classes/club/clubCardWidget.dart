@@ -44,7 +44,7 @@ extension ClubCardWidget on Club {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 getRankingWidget(context),
-                multiverseWidget(multiverseSpeed),
+                multiverseWidgetClickable(context, multiverseSpeed),
               ],
             ),
           ),

@@ -58,6 +58,7 @@ const iconStamina = Icons.ev_station;
 const iconError = Icons.error;
 const iconSuccessfulOperation = Icons.check_circle;
 const iconPostgreSQLError = Icons.report;
+const iconAnnouncement = Icons.campaign_outlined;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorIsMine = Colors.purple;

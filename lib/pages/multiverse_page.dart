@@ -1,5 +1,4 @@
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/club/club.dart';
 import 'package:opengoalz/classes/multiverse.dart';
 import 'package:opengoalz/widgets/multiverse_row_widget.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -8,24 +7,23 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
-import 'package:rxdart/rxdart.dart';
 
-class CalendarPage extends StatefulWidget {
-  final int idClub;
-  const CalendarPage({Key? key, required this.idClub}) : super(key: key);
+class MultiversePage extends StatefulWidget {
+  final int speed;
+  const MultiversePage({Key? key, required this.speed}) : super(key: key);
 
-  static Route<void> route(int idClub) {
+  static Route<void> route(int speed) {
     return MaterialPageRoute(
-      builder: (context) => CalendarPage(idClub: idClub),
+      builder: (context) => MultiversePage(speed: speed),
     );
   }
 
   @override
-  State<CalendarPage> createState() => _CalendarPageState();
+  State<MultiversePage> createState() => _MultiversePageState();
 }
 
-class _CalendarPageState extends State<CalendarPage> {
-  late final Stream<Club> _clubStream;
+class _MultiversePageState extends State<MultiversePage> {
+  late final Stream<Multiverse> _multiverseStream;
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
@@ -34,56 +32,45 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   void initState() {
-    _clubStream = supabase
-        .from('clubs')
-        .stream(primaryKey: ['id'])
-        .eq('id', widget.idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
-        .switchMap((Club club) {
-          return supabase
-              .from('multiverses')
-              .stream(primaryKey: ['speed'])
-              .eq('speed', club.multiverseSpeed)
-              .map((maps) => maps.map((map) => Multiverse.fromMap(map)).first)
-              .map((Multiverse multiverse) {
-                club.multiverse = multiverse;
+    _multiverseStream = supabase
+        .from('multiverses')
+        .stream(primaryKey: ['speed'])
+        .map((maps) => maps.map((map) => Multiverse.fromMap(map)).first)
+        .map((Multiverse multiverse) {
+          // Reset the event games
+          _eventGames = [];
 
-                // Reset the event games
-                _eventGames = [];
+          // Try to calculate the hours between games depening on the speed of the multiverse
+          int hoursBetweenGames;
+          try {
+            hoursBetweenGames = 24 * 7 ~/ multiverse.speed;
+            print(hoursBetweenGames);
+          } catch (e) {
+            throw Exception('Error converting division result to int: $e');
+          }
 
-                // Try to calculate the hours between games depening on the speed of the multiverse
-                int hoursBetweenGames;
-                try {
-                  hoursBetweenGames = 24 * 7 ~/ multiverse.speed;
-                  print(hoursBetweenGames);
-                } catch (e) {
-                  throw Exception(
-                      'Error converting division result to int: $e');
-                }
-
-                /// Generate the events for the calendar
-                // Loop through the seasons
-                for (int i = multiverse.seasonNumber + 1; i >= 1; i--) {
-                  print('Season $i');
-                  _eventGames.add({
-                    multiverse.dateSeasonStart.add(Duration(
-                            hours: (hoursBetweenGames * 14) * (i - 1))):
-                        'Launch of the season ${i}'
-                  });
-                  // Loop through the games of the season
-                  for (int j = 0; j < 14; j++) {
-                    print('Season ${i} Game ${j + 1}');
-                    _eventGames.add({
-                      multiverse.dateSeasonStart.add(Duration(
-                              hours: hoursBetweenGames * (((i - 1) * 14) + j))):
-                          'Season ${i} Game ${j + 1}'
-                    });
-                  } // End loop through the games of the season
-                } // End loop through the seasons
-                print(_eventGames);
-                _selectedEvents = _getEventsOfSelectedDay(_selectedDay);
-                return club;
+          /// Generate the events for the calendar
+          // Loop through the seasons
+          for (int i = multiverse.seasonNumber + 1; i >= 1; i--) {
+            print('Season $i');
+            _eventGames.add({
+              multiverse.dateSeasonStart
+                      .add(Duration(hours: (hoursBetweenGames * 14) * (i - 1))):
+                  'Launch of the season ${i}'
+            });
+            // Loop through the games of the season
+            for (int j = 0; j < 14; j++) {
+              print('Season ${i} Game ${j + 1}');
+              _eventGames.add({
+                multiverse.dateSeasonStart.add(Duration(
+                        hours: hoursBetweenGames * (((i - 1) * 14) + j))):
+                    'Season ${i} Game ${j + 1}'
               });
+            } // End loop through the games of the season
+          } // End loop through the seasons
+          print(_eventGames);
+          _selectedEvents = _getEventsOfSelectedDay(_selectedDay);
+          return multiverse;
         });
 
     super.initState();
@@ -98,41 +85,43 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: _clubStream,
-      builder: (context, AsyncSnapshot<Club> snapshot) {
+      stream: _multiverseStream,
+      builder: (context, AsyncSnapshot<Multiverse> snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         } else {
           // Club club = snapshot.data!;
-          Club club = snapshot.data!;
+          Multiverse multiverse = snapshot.data!;
           return Scaffold(
             appBar: AppBar(
               title: Row(
                 children: [
-                  Text('Calendar'),
+                  Text('Multiverse'),
                   formSpacer6,
-                  multiverseWidgetClickable(context, club.multiverse!.speed),
+                  multiverseWidget(context, multiverse.speed),
                 ],
               ),
             ),
             drawer: const AppDrawer(),
             body: MaxWidthContainer(
               child: DefaultTabController(
-                length: 1, // The number of tabs
+                length: 2, // The number of tabs
                 child: Column(
                   children: [
                     TabBar(
                       tabs: [
-                        buildTabWithIcon(iconCalendar, 'Real Calendar'),
-                        // buildTabWithIcon(iconHistory, 'History'),
+                        buildTabWithIcon(
+                            iconAnnouncement, 'Multiverse ${multiverse.speed}'),
+                        buildTabWithIcon(iconCalendar, 'Calendar'),
                       ],
                     ),
                     Expanded(
                       child: TabBarView(
                         children: [
-                          _getCalendar(context, club.multiverse),
+                          _getMultiversePresentation(context, multiverse),
+                          _getCalendar(context, multiverse),
                         ],
                       ),
                     ),
@@ -143,6 +132,56 @@ class _CalendarPageState extends State<CalendarPage> {
           );
         }
       },
+    );
+  }
+
+  Widget _getMultiversePresentation(
+      BuildContext context, Multiverse? multiverse) {
+    if (multiverse == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return ListView(
+      children: [
+        ListTile(
+          title: multiverseWidget(context, multiverse.speed),
+          subtitle: Text(
+            'Number of games per week',
+            style: TextStyle(
+              fontStyle: FontStyle.italic,
+              color: Colors.blueGrey,
+            ),
+          ),
+        ),
+        ListTile(
+          leading: Icon(Icons.calendar_today),
+          title: Text('Season Number'),
+          subtitle: Text(multiverse.seasonNumber.toString()),
+        ),
+        ListTile(
+          leading: Icon(Icons.date_range),
+          title: Text('Season Start Date'),
+          subtitle:
+              Text(DateFormat('yyyy-MM-dd').format(multiverse.dateSeasonStart)),
+        ),
+        ListTile(
+          leading: Icon(Icons.date_range),
+          title: Text('Season End Date'),
+          subtitle:
+              Text(DateFormat('yyyy-MM-dd').format(multiverse.dateSeasonEnd)),
+        ),
+        ListTile(
+          leading: Icon(Icons.calendar_view_week),
+          title: Text('Week Number'),
+          subtitle: Text(multiverse.weekNumber.toString()),
+        ),
+        ListTile(
+          leading: Icon(Icons.attach_money),
+          title: Text('Cash Printed'),
+          subtitle: Text(NumberFormat.currency(symbol: '\$')
+              .format(multiverse.cashPrinted)),
+        ),
+      ],
     );
   }
 
@@ -188,25 +227,6 @@ class _CalendarPageState extends State<CalendarPage> {
                 .map((event) => event.values.first)
                 .toList();
           },
-          // calendarBuilders: CalendarBuilders(
-          //   markerBuilder: (context, day, events) {
-          //     if (events.isNotEmpty) {
-          //       return Center(
-          //         child: Container(
-          //           decoration: BoxDecoration(
-          //             color: Colors.blueGrey,
-          //             shape: BoxShape.circle,
-          //           ),
-          //           child: Text(
-          //             events.length.toString(),
-          //             style: TextStyle(color: Colors.white),
-          //           ),
-          //         ),
-          //       );
-          //     }
-          //     return const SizedBox.shrink();
-          //   },
-          // ),
           calendarStyle: CalendarStyle(
             tableBorder: const TableBorder(
               horizontalInside: BorderSide(color: Colors.blueGrey),
@@ -217,10 +237,6 @@ class _CalendarPageState extends State<CalendarPage> {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.red),
             ),
-            // outsideDecoration: BoxDecoration(
-            //   color: Colors.brown,
-            //   shape: BoxShape.circle,
-            // ),
             todayDecoration: BoxDecoration(
               color: Colors.blueGrey,
               shape: BoxShape.circle,
@@ -237,7 +253,6 @@ class _CalendarPageState extends State<CalendarPage> {
           child: ListView.builder(
             itemCount: _selectedEvents.length,
             itemBuilder: (context, index) {
-              print(_selectedEvents);
               final Map<DateTime, String> event = _selectedEvents[index];
 
               return ListTile(
