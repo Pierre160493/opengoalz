@@ -10,7 +10,7 @@ ThemeData getTheme(BuildContext context, bool isDark) {
   double multiplier = screenWidth > maxWidth ? 1.0 : 0.75;
 
   // Determine which text theme to use based on screen width
-  TextTheme textTheme = getTextTheme(multiplier);
+  TextTheme textTheme = getTextTheme(multiplier, isDark);
 
   // Base theme, light or dark
   final baseTheme = isDark ? ThemeData.dark() : ThemeData.light();
@@ -22,7 +22,10 @@ ThemeData getTheme(BuildContext context, bool isDark) {
 }
 
 // Function to generate TextTheme with a size multiplier
-TextTheme getTextTheme(double multiplier) {
+TextTheme getTextTheme(double multiplier, bool isDark) {
+  // Define the default text color based on the theme
+  Color defaultTextColor = isDark ? Colors.white : Colors.black;
+
   /// Modify the icons size based on the multiplier
   iconSizeSmall = 24 * multiplier;
   iconSizeMedium = 30 * multiplier;
@@ -30,20 +33,24 @@ TextTheme getTextTheme(double multiplier) {
 
   /// Set the font sizes based on the multiplier
   return TextTheme(
-    displayLarge: TextStyle(fontSize: 96 * multiplier),
-    displayMedium: TextStyle(fontSize: 60 * multiplier),
-    displaySmall: TextStyle(fontSize: 48 * multiplier),
-    headlineLarge: TextStyle(fontSize: 48 * multiplier),
-    headlineMedium: TextStyle(fontSize: 34 * multiplier),
-    headlineSmall: TextStyle(fontSize: 24 * multiplier),
-    titleLarge: TextStyle(fontSize: 20 * multiplier),
-    titleMedium: TextStyle(fontSize: 16 * multiplier),
-    titleSmall: TextStyle(fontSize: 14 * multiplier),
-    bodySmall: TextStyle(fontSize: 12 * multiplier),
-    bodyMedium: TextStyle(fontSize: 14 * multiplier),
-    bodyLarge: TextStyle(fontSize: 16 * multiplier),
-    labelSmall: TextStyle(fontSize: 10 * multiplier),
-    labelMedium: TextStyle(fontSize: 12 * multiplier),
-    labelLarge: TextStyle(fontSize: 14 * multiplier),
+    displayLarge: TextStyle(fontSize: 96 * multiplier, color: defaultTextColor),
+    displayMedium:
+        TextStyle(fontSize: 60 * multiplier, color: defaultTextColor),
+    displaySmall: TextStyle(fontSize: 48 * multiplier, color: defaultTextColor),
+    headlineLarge:
+        TextStyle(fontSize: 48 * multiplier, color: defaultTextColor),
+    headlineMedium:
+        TextStyle(fontSize: 34 * multiplier, color: defaultTextColor),
+    headlineSmall:
+        TextStyle(fontSize: 24 * multiplier, color: defaultTextColor),
+    titleLarge: TextStyle(fontSize: 20 * multiplier, color: defaultTextColor),
+    titleMedium: TextStyle(fontSize: 16 * multiplier, color: defaultTextColor),
+    titleSmall: TextStyle(fontSize: 14 * multiplier, color: defaultTextColor),
+    bodySmall: TextStyle(fontSize: 12 * multiplier, color: defaultTextColor),
+    bodyMedium: TextStyle(fontSize: 14 * multiplier, color: defaultTextColor),
+    bodyLarge: TextStyle(fontSize: 16 * multiplier, color: defaultTextColor),
+    labelSmall: TextStyle(fontSize: 10 * multiplier, color: defaultTextColor),
+    labelMedium: TextStyle(fontSize: 12 * multiplier, color: defaultTextColor),
+    labelLarge: TextStyle(fontSize: 14 * multiplier, color: defaultTextColor),
   );
 }

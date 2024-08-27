@@ -8,7 +8,6 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/pages/mails_page.dart';
 import 'package:opengoalz/pages/settings_page.dart';
-import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/classes/player/players_page.dart';
@@ -35,8 +34,10 @@ class UserPage extends StatefulWidget {
 
 class _UserPageState extends State<UserPage> {
   late Stream<GameUser> _userStream;
+
   @override
   void initState() {
+    super.initState();
     if (widget.userName != null) {
       _userStream = supabase
           .from('profiles')
@@ -51,7 +52,6 @@ class _UserPageState extends State<UserPage> {
                 .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
                 .map((List<Club> clubs) {
                   user.clubs = clubs;
-
                   return user;
                 });
           })
@@ -67,8 +67,6 @@ class _UserPageState extends State<UserPage> {
                 });
           });
     }
-
-    super.initState();
   }
 
   @override
@@ -78,9 +76,11 @@ class _UserPageState extends State<UserPage> {
         stream: _userStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return Center(child: Text('User not found, please try again'));
           }
           GameUser user = snapshot.data!;
           return _buildUserWidget(user);
@@ -131,34 +131,7 @@ class _UserPageState extends State<UserPage> {
               icon: Icon(Icons.settings, size: iconSizeSmall),
             ),
           ),
-
-          /// Button depending if the user is the currently connected user
           user.isConnectedUser
-              // If the user is the connected user, show the logout button
-              ? Tooltip(
-                  message: 'Logout',
-                  child: IconButton(
-                    onPressed: () async {
-                      bool logoutConfirmed =
-                          await context.showConfirmationDialog(
-                              'Are you sure you want to log out?');
-
-                      // If logout is confirmed, proceed with logout
-                      if (logoutConfirmed == true) {
-                        await supabase.auth.signOut();
-                        Navigator.of(context).pushAndRemoveUntil(
-                            LoginPage.route(), (route) => false);
-                      }
-                    },
-                    icon: Icon(Icons.logout, size: iconSizeSmall),
-                  ),
-                )
-              // If the user is not the connected user, show the switch button
-              : Provider.of<SessionProvider>(context)
-                  .user!
-                  .returnToConnectedUserIconButton(context),
-          user.isConnectedUser
-              // Mail Page Button if the user is the connected user
               ? Tooltip(
                   message: 'Open Mails Page',
                   child: IconButton(
@@ -173,7 +146,6 @@ class _UserPageState extends State<UserPage> {
                     icon: Icon(Icons.mail, size: iconSizeSmall),
                   ),
                 )
-              // Send Mail Button if the user is not the connected user
               : Tooltip(
                   message: 'Send Mail',
                   child: IconButton(
@@ -185,12 +157,32 @@ class _UserPageState extends State<UserPage> {
                     icon: Icon(Icons.quick_contacts_mail, size: iconSizeSmall),
                   ),
                 ),
+          user.isConnectedUser
+              ? Tooltip(
+                  message: 'Logout',
+                  child: IconButton(
+                    onPressed: () async {
+                      bool logoutConfirmed =
+                          await context.showConfirmationDialog(
+                              'Are you sure you want to log out?');
+                      if (logoutConfirmed == true) {
+                        await supabase.auth.signOut();
+                        Navigator.of(context).pushAndRemoveUntil(
+                            LoginPage.route(), (route) => false);
+                      }
+                    },
+                    icon: Icon(Icons.logout, size: iconSizeSmall),
+                  ),
+                )
+              : Provider.of<SessionProvider>(context)
+                  .user!
+                  .returnToConnectedUserIconButton(context),
         ],
       ),
       drawer: const AppDrawer(),
       body: MaxWidthContainer(
           child: DefaultTabController(
-        length: 3, // The number of tabs
+        length: 3,
         child: Column(
           children: [
             TabBar(
@@ -268,7 +260,6 @@ class _UserPageState extends State<UserPage> {
                     ),
                   );
                 },
-                // child: player.getPlayerCard(context, index),
                 child: PlayerCard(
                     player: player,
                     index: user.players.length == 1 ? 0 : index + 1,
