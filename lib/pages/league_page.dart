@@ -34,7 +34,8 @@ class _RankingPageState extends State<LeaguePage> {
 
   @override
   void initState() {
-    print('League: widget.idSelectedClub= ' + widget.idSelectedClub.toString());
+    super.initState();
+
     // Fetch the league data
     _leagueStream = supabase
         .from('leagues')
@@ -198,8 +199,6 @@ class _RankingPageState extends State<LeaguePage> {
                 return league;
               });
         });
-
-    super.initState();
   }
 
   @override

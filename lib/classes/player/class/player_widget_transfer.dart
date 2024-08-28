@@ -20,7 +20,7 @@ extension PlayerWidgetTransfer on Player {
       ),
       child: ExpansionTile(
         leading: Icon(
-          icon_transfers,
+          iconTransfers,
           size: 30,
           color: Colors.green,
         ),

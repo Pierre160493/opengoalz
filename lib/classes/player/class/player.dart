@@ -143,4 +143,67 @@ class Player {
             winger) /
         7.0;
   }
+
+  dynamic getPropertyValue(String propertyName) {
+    switch (propertyName) {
+      case 'id':
+        return id;
+      case 'created_at':
+        return created_at;
+      case 'idClub':
+        return idClub;
+      case 'userName':
+        return userName;
+      case 'firstName':
+        return firstName;
+      case 'lastName':
+        return lastName;
+      case 'surName':
+        return surName;
+      case 'shirtNumber':
+        return shirtNumber;
+      case 'dateBirth':
+        return dateBirth;
+      case 'multiverseSpeed':
+        return multiverseSpeed;
+      case 'idCountry':
+        return idCountry;
+      case 'expanses':
+        return expanses;
+      case 'trainingPoints':
+        return trainingPoints;
+      case 'keeper':
+        return keeper;
+      case 'defense':
+        return defense;
+      case 'playmaking':
+        return playmaking;
+      case 'passes':
+        return passes;
+      case 'scoring':
+        return scoring;
+      case 'freekick':
+        return freekick;
+      case 'winger':
+        return winger;
+      case 'dateEndInjury':
+        return dateEndInjury;
+      case 'dateFiring':
+        return dateFiring;
+      case 'dateSell':
+        return dateSell;
+      case 'dateArrival':
+        return dateArrival;
+      case 'stamina':
+        return stamina;
+      case 'form':
+        return form;
+      case 'experience':
+        return experience;
+      case 'notes':
+        return notes;
+      default:
+        throw ArgumentError('Property not found');
+    }
+  }
 }

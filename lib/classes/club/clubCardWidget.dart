@@ -38,7 +38,7 @@ extension ClubCardWidget on Club {
             ),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [getClubName(context), getLastResultsWidget()],
+              children: [getClubName(context), getLastResultsWidget(context)],
             ),
             subtitle: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

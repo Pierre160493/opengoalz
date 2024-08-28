@@ -18,14 +18,14 @@ extension PlayerWidgetsActions on Player {
             const PopupMenuItem<String>(
               value: 'Sell',
               child: ListTile(
-                leading: Icon(icon_transfers),
+                leading: Icon(iconTransfers),
                 title: Text('Sell'),
               ),
             ),
             const PopupMenuItem<String>(
               value: 'Fire',
               child: ListTile(
-                leading: Icon(Icons.exit_to_app),
+                leading: Icon(iconLeaveClub),
                 title: Text('Fire'),
               ),
             )

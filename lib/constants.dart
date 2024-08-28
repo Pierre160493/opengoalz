@@ -33,12 +33,13 @@ const icon_fans = Icons.campaign_outlined;
 const icon_stadium = Icons.stadium_outlined;
 const iconStaff = Icons.engineering_outlined;
 const icon_scouts = Icons.camera_indoor_outlined;
-const icon_medics = Icons.healing;
+const iconInjury = Icons.healing;
 const icon_players = Icons.diversity_3;
-const icon_transfers = Icons.currency_exchange;
+const iconTransfers = Icons.currency_exchange;
 const iconGames = Icons.event;
 const iconCalendar = Icons.calendar_month;
 const iconNotes = Icons.event_note;
+const iconLeaveClub = Icons.door_sliding;
 // const icon_league = Icons.emoji_events_outlined;
 const icon_league = Icons.format_list_numbered;
 const iconTraining = Icons.query_stats;
@@ -59,6 +60,7 @@ const iconError = Icons.error;
 const iconSuccessfulOperation = Icons.check_circle;
 const iconPostgreSQLError = Icons.report;
 const iconAnnouncement = Icons.campaign_outlined;
+const iconShirt = Icons.checkroom;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorIsMine = Colors.purple;

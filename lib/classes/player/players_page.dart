@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/classes/player/players_sorting_function.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/classes/club/club.dart';
@@ -125,116 +127,34 @@ class _PlayersPageState extends State<PlayersPage> {
               return Scaffold(
                   appBar: AppBar(
                     title: players.length == 1
-                        ? Text(
-                            '${players.last.firstName} ${players.last.lastName.toUpperCase()}')
+                        // If only 1 player, show his name as title
+                        ? players.first.getPlayerNames(context)
+                        // Else show the number of players on the page
                         : Text(
                             '${players.length} Players',
                           ),
-                    elevation: 0,
                     actions: [
+                      // Navigate to previous page
+                      goBackIconButton(context),
+                      // Search for a player
+                      Tooltip(
+                        message: 'Search for a player',
+                        child: IconButton(
+                          onPressed: () {
+                            // Add your action here
+                          },
+                          icon: Icon(Icons.search),
+                        ),
+                      ),
+                      // Open the order and filter drawer
+                      // filterAndOrderPlayersButton(players),
                       IconButton(
-                        onPressed: () {
-                          // Add your action here
-                        },
-                        icon: Icon(Icons.search),
-                      ),
-                      PopupMenuButton<String>(
-                        // icon: Icons.filter_alt_outlined,
-                        itemBuilder: (BuildContext context) =>
-                            <PopupMenuEntry<String>>[
-                          PopupMenuItem<String>(
-                              // value: 'sort_by_title',
-                              child: Row(
-                            children: [
-                              Icon(
-                                Icons.sort,
-                                color: Colors.green,
-                                size: iconSizeMedium,
-                              ),
-                              Text(' Sort Players By',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  )),
-                            ],
-                          )),
-                          const PopupMenuDivider(),
-                          PopupMenuItem<String>(
-                            value: 'age_asc',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.cake_outlined,
-                                  color: Colors.green,
-                                ),
-                                Text(' Age '),
-                                Icon(Icons.arrow_outward_outlined),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem<String>(
-                            value: 'age_desc',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.cake_outlined,
-                                  color: Colors.green,
-                                ),
-                                Text(' Age '),
-                                Icon(Icons.arrow_downward),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem<String>(
-                            value: 'last_name',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.sort_by_alpha_outlined,
-                                  color: Colors.green,
-                                ),
-                                Text(' Last Name'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem<String>(
-                            value: 'first_name',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.sort_by_alpha_outlined,
-                                  color: Colors.green,
-                                ),
-                                Text(' First Name'),
-                              ],
-                            ),
-                          ),
-                          // Add other sorting options here
-                        ],
-                        onSelected: (String value) {
-                          // Handle the selected option
-                          if (value == 'age_asc') {
-                            setState(() {
-                              players.sort(
-                                  (a, b) => b.dateBirth.compareTo(a.dateBirth));
-                            });
-                          } else if (value == 'age_desc') {
-                            setState(() {
-                              players.sort(
-                                  (a, b) => a.dateBirth.compareTo(b.dateBirth));
-                            });
-                          } else if (value == 'last_name') {
-                            setState(() {
-                              players.sort(
-                                  (a, b) => a.lastName.compareTo(b.lastName));
-                            });
-                          } else if (value == 'first_name') {
-                            setState(() {
-                              players.sort(
-                                  (a, b) => a.firstName.compareTo(b.firstName));
-                            });
-                          } // Add other options as needed
-                        },
-                      ),
+                          tooltip: 'Sort players by...',
+                          onPressed: () {
+                            showSortingOptions(context, setState, players);
+                          },
+                          // icon: Icon(Icons.sort)),
+                          icon: Icon(Icons.align_horizontal_left_rounded)),
                     ],
                   ),
                   drawer: (widget.isReturningPlayer || players.length == 1)
@@ -285,4 +205,69 @@ class _PlayersPageState extends State<PlayersPage> {
           }
         });
   }
+
+  // void showSortingOptions(BuildContext context, List<Player> players) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return ListView(
+  //         padding: EdgeInsets.zero,
+  //         children: <Widget>[
+  //           DrawerHeader(
+  //             decoration: BoxDecoration(
+  //               color: Colors.blue,
+  //             ),
+  //             child: Text(
+  //               'Sort Options',
+  //               style: TextStyle(
+  //                 color: Colors.white,
+  //                 fontSize: 24,
+  //               ),
+  //             ),
+  //           ),
+  //           ListTile(
+  //             leading: Icon(Icons.cake_outlined),
+  //             title: Text('Age Ascending'),
+  //             onTap: () {
+  //               setState(() {
+  //                 players.sort((a, b) => a.dateBirth.compareTo(b.dateBirth));
+  //               });
+  //               Navigator.pop(context);
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: Icon(Icons.cake_outlined),
+  //             title: Text('Age Descending'),
+  //             onTap: () {
+  //               setState(() {
+  //                 players.sort((a, b) => b.dateBirth.compareTo(a.dateBirth));
+  //               });
+  //               Navigator.pop(context);
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: Icon(Icons.sort_by_alpha_outlined),
+  //             title: Text('Last Name'),
+  //             onTap: () {
+  //               setState(() {
+  //                 players.sort((a, b) => a.lastName.compareTo(b.lastName));
+  //               });
+  //               Navigator.pop(context);
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: Icon(Icons.sort_by_alpha_outlined),
+  //             title: Text('First Name'),
+  //             onTap: () {
+  //               setState(() {
+  //                 players.sort((a, b) => a.firstName.compareTo(b.firstName));
+  //               });
+  //               Navigator.pop(context);
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 }
