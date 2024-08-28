@@ -5,7 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final supabase = Supabase.instance.client;
 
 /// App Name
-const appName = 'OpenGoalZ';
+// const appName = 'OpenGoalZ';
+const appName = 'BenchWarmer Manager';
 
 /// App Bar Text
 // const appBarTxt = '$appName: The Open Source Football Manager Game';
