@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/pages/login_page.dart';
@@ -21,19 +22,53 @@ class SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _redirect() async {
+    print('Redirecting to the appropriate page');
     await Future.delayed(Duration
         .zero); // await for for the widget to mount, otherwise app freezes
 
     if (supabase.auth.currentSession == null) {
+      print('############ supabase.auth.currentSession is null');
       Navigator.of(context)
           .pushAndRemoveUntil(LoginPage.route(), (route) => false);
     } else {
-      ///
-      await Provider.of<SessionProvider>(context, listen: false)
-          .providerFetchUser(userId: supabase.auth.currentUser!.id);
+      print('############ supabase.auth.currentSession is not null');
+      // Fetch the user from the database
+      try {
+        await Provider.of<SessionProvider>(context, listen: false)
+            .providerFetchUser(context, userId: supabase.auth.currentUser!.id);
 
-      Navigator.of(context)
-          .pushAndRemoveUntil(UserPage.route(), (route) => false);
+        print('############ User found, try to launch UserPage');
+        Navigator.of(context)
+            .pushAndRemoveUntil(UserPage.route(), (route) => false);
+      } catch (error) {
+        print('############ User not found, redirecting to LoginPage');
+        print('# ${error.toString()}');
+        // Handle the case where the user is not found
+
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('User not found. Redirecting to login page.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+
+        context.showSnackBarError('User not found. Redirecting to login page.');
+
+        await supabase.auth.signOut(); // Sign out the user
+        Navigator.of(context)
+            .pushAndRemoveUntil(LoginPage.route(), (route) => false);
+      }
     }
   }
 

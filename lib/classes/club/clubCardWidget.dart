@@ -21,7 +21,7 @@ extension ClubCardWidget on Club {
               backgroundColor: (id ==
                       Provider.of<SessionProvider>(context)
                           .user!
-                          .selectedClub
+                          .selectedClub!
                           .id)
                   ? Colors.green
                   : Colors.blueGrey,
@@ -48,7 +48,7 @@ extension ClubCardWidget on Club {
               ],
             ),
           ),
-          if (id == Provider.of<SessionProvider>(context).user!.selectedClub.id)
+          if (id == Provider.of<SessionProvider>(context).user!.selectedClub!.id)
             Column(
               children: [
                 const SizedBox(height: 6),

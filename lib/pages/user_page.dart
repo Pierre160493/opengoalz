@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/classes/profile.dart';
 import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/gameUser.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/classes/player/player_card.dart';
 import 'package:opengoalz/constants.dart';
@@ -14,6 +14,7 @@ import 'package:opengoalz/classes/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
+import 'package:opengoalz/widgets/userListOfClubsWidget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -33,7 +34,7 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
-  late Stream<GameUser> _userStream;
+  late Stream<Profile> _userStream;
 
   @override
   void initState() {
@@ -43,8 +44,8 @@ class _UserPageState extends State<UserPage> {
           .from('profiles')
           .stream(primaryKey: ['id'])
           .eq('username', widget.userName as Object)
-          .map((maps) => maps.map((map) => GameUser.fromMap(map)).first)
-          .switchMap((GameUser user) {
+          .map((maps) => maps.map((map) => Profile.fromMap(map)).first)
+          .switchMap((Profile user) {
             return supabase
                 .from('clubs')
                 .stream(primaryKey: ['id'])
@@ -55,7 +56,7 @@ class _UserPageState extends State<UserPage> {
                   return user;
                 });
           })
-          .switchMap((GameUser user) {
+          .switchMap((Profile user) {
             return supabase
                 .from('players')
                 .stream(primaryKey: ['id'])
@@ -72,7 +73,7 @@ class _UserPageState extends State<UserPage> {
   @override
   Widget build(BuildContext context) {
     if (widget.userName != null) {
-      return StreamBuilder<GameUser>(
+      return StreamBuilder<Profile>(
         stream: _userStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -80,23 +81,23 @@ class _UserPageState extends State<UserPage> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData) {
-            return Center(child: Text('User not found, please try again'));
+            return Center(child: Text('User not found'));
           }
-          GameUser user = snapshot.data!;
+          Profile user = snapshot.data!;
           return _buildUserWidget(user);
         },
       );
     } else {
       return Consumer<SessionProvider>(
         builder: (context, sessionProvider, child) {
-          GameUser? user = sessionProvider.user;
+          Profile? user = sessionProvider.user;
           return _buildUserWidget(user);
         },
       );
     }
   }
 
-  Widget _buildUserWidget(GameUser? user) {
+  Widget _buildUserWidget(Profile? user) {
     if (user == null) {
       return Center(
         child: Column(
@@ -140,7 +141,7 @@ class _UserPageState extends State<UserPage> {
                         context,
                         MaterialPageRoute(
                             builder: (context) =>
-                                MailsPage(idClub: user.selectedClub.id)),
+                                MailsPage(idClub: user.selectedClub!.id)),
                       );
                     },
                     icon: Icon(Icons.mail, size: iconSizeSmall),
@@ -151,7 +152,7 @@ class _UserPageState extends State<UserPage> {
                   child: IconButton(
                     onPressed: () async {
                       sendMailDialog(context,
-                          idClub: user.selectedClub.id,
+                          idClub: user.selectedClub!.id,
                           username: user.username);
                     },
                     icon: Icon(Icons.quick_contacts_mail, size: iconSizeSmall),
@@ -187,16 +188,27 @@ class _UserPageState extends State<UserPage> {
           children: [
             TabBar(
               tabs: [
-                buildTabWithIcon(icon_club, 'Clubs (${user.clubs.length})'),
                 buildTabWithIcon(
-                    icon_players, 'Players (${user.players.length})'),
+                    icon_club,
+                    user.clubs.length == 0
+                        ? 'No club yet'
+                        : user.clubs.length == 1
+                            ? '1 Club'
+                            : '${user.clubs.length} clubs'),
+                buildTabWithIcon(
+                    icon_players,
+                    user.players.length == 0
+                        ? 'No player yet'
+                        : user.players.length == 1
+                            ? '1 player'
+                            : '${user.players.length} players'),
                 buildTabWithIcon(Icons.description, 'User'),
               ],
             ),
             Expanded(
               child: TabBarView(
                 children: [
-                  _clubListWidget(context, user),
+                  clubListWidget(context, user),
                   _playerListWidget(context, user),
                   Column(
                     children: [
@@ -215,27 +227,7 @@ class _UserPageState extends State<UserPage> {
     );
   }
 
-  Widget _clubListWidget(BuildContext context, GameUser user) {
-    if (user.clubs.isEmpty) {
-      return const Center(child: Text('No clubs found'));
-    }
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        Expanded(
-          child: ListView.builder(
-            itemCount: user.clubs.length,
-            itemBuilder: (context, index) {
-              final Club club = user.clubs[index];
-              return club.getClubCard(context, index);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _playerListWidget(BuildContext context, GameUser user) {
+  Widget _playerListWidget(BuildContext context, Profile user) {
     if (user.players.isEmpty) {
       return const Center(child: Text('No players found'));
     }

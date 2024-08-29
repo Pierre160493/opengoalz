@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/gameUser.dart';
+import 'package:opengoalz/classes/profile.dart';
 import 'package:opengoalz/classes/mail.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';

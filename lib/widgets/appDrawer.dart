@@ -22,8 +22,17 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Club selectedClub =
+    // Get the selected club
+    Club? selectedClub =
         Provider.of<SessionProvider>(context).user!.selectedClub;
+
+    if (selectedClub == null) {
+      return const Drawer(
+        child: Center(
+          child: Text('No club selected'),
+        ),
+      );
+    }
 
     return Drawer(
       child: ListView(

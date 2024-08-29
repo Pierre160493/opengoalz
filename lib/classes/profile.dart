@@ -8,36 +8,58 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:provider/provider.dart';
 
-class GameUser {
+class Profile {
   bool isConnectedUser = false; // True if the profile is the connected user
-  late Club selectedClub; // Selected club of the profile
+  Club? selectedClub; // Selected club of the profile
   List<Club> clubs = []; // List of clubs belonging to the profile
   int? idDefaultClub; // ID of the default club
   List<Player> players = []; // List of players belonging to the profile
 
-  GameUser({
+  Profile({
     required this.id,
     required this.username,
     required this.createdAt,
     this.idDefaultClub,
+    this.lastUsernameUpdate,
+    // this.email,
+    required this.numberClubsAvailable,
+    required this.numberPlayersAvailable,
   });
 
-  /// User ID of the profile
-  final String id;
-
-  /// Username of the profile
+  final String id; // User ID of the profile stored in the auth.users table
   final String username;
-
-  /// Date and time when the profile was created
   final DateTime createdAt;
+  final DateTime? lastUsernameUpdate;
+  // final String? email;
+  final int numberClubsAvailable;
+  final int numberPlayersAvailable;
 
-  GameUser.fromMap(Map<String, dynamic> map, {String? connectedUserId})
+  Profile.fromMap(Map<String, dynamic> map, {String? connectedUserId})
       : id = map['uuid_user'],
         isConnectedUser =
             connectedUserId != null && map['uuid_user'] == connectedUserId,
         username = map['username'],
         createdAt = DateTime.parse(map['created_at']),
-        idDefaultClub = map['id_default_club'];
+        idDefaultClub = map['id_default_club'],
+        lastUsernameUpdate = map['last_username_update'] != null
+            ? DateTime.parse(map['last_username_update'])
+            : null,
+        // email = map['email'],
+        numberClubsAvailable = map['number_clubs_available'] ?? 1,
+        numberPlayersAvailable = map['number_players_available'] ?? 1;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uuid_user': id,
+      'username': username,
+      'created_at': createdAt.toIso8601String(),
+      'id_default_club': idDefaultClub,
+      'last_username_update': lastUsernameUpdate?.toIso8601String(),
+      // 'email': email,
+      'number_clubs_available': numberClubsAvailable,
+      'number_players_available': numberPlayersAvailable,
+    };
+  }
 
   Widget getUserName(BuildContext context) {
     return Row(
@@ -55,7 +77,7 @@ class GameUser {
             child: IconButton(
               onPressed: () async {
                 sendMailDialog(context,
-                    username: username, idClub: selectedClub.id);
+                    username: username, idClub: selectedClub!.id);
               },
               icon: Icon(Icons.quick_contacts_mail, size: iconSizeSmall),
             ),
@@ -113,7 +135,8 @@ class GameUser {
           // If switch is confirmed, proceed with switching
           if (switchConfirmed == true) {
             await Provider.of<SessionProvider>(context, listen: false)
-                .providerFetchUser(userId: supabase.auth.currentUser!.id);
+                .providerFetchUser(context,
+                    userId: supabase.auth.currentUser!.id);
 
             /// Modify the app theme if the user is not the connected user
             Provider.of<ThemeProvider>(context, listen: false)
@@ -192,32 +215,3 @@ Widget getUserNameClickable(BuildContext context,
       },
       child: getUserName(context, userName: userName));
 }
-
-// Widget getUserNameClickable2(BuildContext context, String? userName) {
-//   if (userName == null) {
-//     return Row(
-//       children: [
-//         Icon(iconUser),
-//         Text(' No User'),
-//       ],
-//     );
-//   }
-
-//   return StreamBuilder<GameUser>(
-//     stream: supabase
-//         .from('profiles')
-//         .stream(primaryKey: ['id'])
-//         .eq('username', userName)
-//         .map((maps) => maps.map((map) => GameUser.fromMap(map)).first),
-//     builder: (context, snapshot) {
-//       if (snapshot.connectionState == ConnectionState.waiting) {
-//         return CircularProgressIndicator();
-//       } else if (snapshot.hasError) {
-//         return Text('ERROR: ${snapshot.error}');
-//       } else {
-//         final user = snapshot.data!;
-//         return user.getUserNameClickable(context);
-//       }
-//     },
-//   );
-// }

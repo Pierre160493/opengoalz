@@ -276,7 +276,7 @@ class _HomePageState extends State<GamePage> {
                     game.leftClub.id !=
                         Provider.of<SessionProvider>(context)
                             .user!
-                            .selectedClub
+                            .selectedClub!
                             .id)
                   Center(
                     child: Text(
@@ -291,7 +291,7 @@ class _HomePageState extends State<GamePage> {
                     game.rightClub.id !=
                         Provider.of<SessionProvider>(context)
                             .user!
-                            .selectedClub
+                            .selectedClub!
                             .id)
                   Center(
                     child: Text(

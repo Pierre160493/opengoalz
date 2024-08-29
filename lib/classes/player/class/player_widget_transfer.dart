@@ -46,7 +46,7 @@ extension PlayerWidgetTransfer on Player {
               ),
             ),
             if (idClub !=
-                Provider.of<SessionProvider>(context).user!.selectedClub.id)
+                Provider.of<SessionProvider>(context).user!.selectedClub!.id)
               IconButton(
                 icon: Icon(
                   Icons.arrow_circle_up_outlined,
@@ -242,7 +242,7 @@ extension PlayerWidgetTransfer on Player {
                 ),
               ),
               Text(
-                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub.lisCash.last)}'),
+                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.lisCash.last)}'),
             ],
           ),
           actions: <Widget>[
@@ -272,12 +272,12 @@ extension PlayerWidgetTransfer on Player {
                     'id_club':
                         Provider.of<SessionProvider>(context, listen: false)
                             .user!
-                            .selectedClub
+                            .selectedClub!
                             .id,
                     'name_club':
                         Provider.of<SessionProvider>(context, listen: false)
                             .user!
-                            .selectedClub
+                            .selectedClub!
                             .name,
                   });
 

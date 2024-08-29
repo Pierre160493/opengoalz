@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 
 import '../classes/message.dart';
-import '../classes/gameUser.dart';
+import '../classes/profile.dart';
 import '../constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timeago/timeago.dart';
@@ -27,7 +27,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   late final Stream<List<Message>> _messagesStream;
-  final Map<String, GameUser> _profileCache = {};
+  final Map<String, Profile> _profileCache = {};
 
   @override
   void initState() {
@@ -48,7 +48,7 @@ class _ChatPageState extends State<ChatPage> {
     }
     final data =
         await supabase.from('profiles').select().eq('id', profileId).single();
-    final profile = GameUser.fromMap(data);
+    final profile = Profile.fromMap(data);
     setState(() {
       _profileCache[profileId] = profile;
     });
@@ -187,7 +187,7 @@ class _ChatBubble extends StatelessWidget {
   }) : super(key: key);
 
   final Message message;
-  final GameUser? profile;
+  final Profile? profile;
 
   @override
   Widget build(BuildContext context) {

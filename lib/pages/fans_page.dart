@@ -48,7 +48,7 @@ class _FansPageState extends State<FansPage> {
       appBar: AppBar(
           title: Text(Provider.of<SessionProvider>(context)
               .user!
-              .selectedClub
+              .selectedClub!
               .name)),
       // CustomAppBar(clubStream: _clubStream),
       // drawer: AppDrawer(clubStream: _clubStream),
@@ -60,7 +60,7 @@ class _FansPageState extends State<FansPage> {
           children: [
             const SizedBox(height: 16),
             // Text(
-            //   'Hello ${Provider.of<SessionProvider>(context).user!.selectedClub.username} !',
+            //   'Hello ${Provider.of<SessionProvider>(context).user!.selectedClub!.username} !',
             //   style: const TextStyle(fontSize: 24),
             // ),
             const SizedBox(height: 16),

@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/gameUser.dart';
+import 'package:opengoalz/classes/profile.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
 import 'package:opengoalz/classes/club/club.dart';

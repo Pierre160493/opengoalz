@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/gameUser.dart';
+import 'package:opengoalz/classes/profile.dart';
 import 'package:opengoalz/classes/league/league.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
@@ -170,7 +170,7 @@ class _ClubPageState extends State<ClubPage> {
                                   /// Reset the user to the user that is being visited
                                   await Provider.of<SessionProvider>(context,
                                           listen: false)
-                                      .providerFetchUser(
+                                      .providerFetchUser(context,
                                           userName: club.userName),
 
                                   /// Modify the app theme if the user is not the connected user

@@ -128,7 +128,7 @@ extension PlayerWidgetsActions on Player {
                     'id_club':
                         Provider.of<SessionProvider>(context, listen: false)
                             .user!
-                            .selectedClub
+                            .selectedClub!
                             .id,
                   });
                   scaffoldMessenger.showSnackBar(

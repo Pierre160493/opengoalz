@@ -84,12 +84,7 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
           // ),
           title: Row(
             children: [
-              CountryFlag.fromCountryCode(
-                shape: Rectangle(),
-                country['iso2'],
-                width: 36,
-                height: 24,
-              ),
+              getCountryFlag(country['iso2']),
               Text(
                 country['name'],
                 // style: TextStyle(
@@ -116,5 +111,14 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
         );
       }
     },
+  );
+}
+
+Widget getCountryFlag(String countryCode) {
+  return CountryFlag.fromCountryCode(
+    shape: Rectangle(),
+    countryCode,
+    width: 36,
+    height: 24,
   );
 }

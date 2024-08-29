@@ -100,7 +100,7 @@ class _PlayerCardState extends State<PlayerCard>
                         (Player player) => player.id == widget.player.id) ||
                     Provider.of<SessionProvider>(context)
                             .user!
-                            .selectedClub
+                            .selectedClub!
                             .id ==
                         widget.player.idClub)
                   Row(
@@ -230,7 +230,7 @@ class _PlayerCardState extends State<PlayerCard>
                         (Player player) => player.id == widget.player.id) ||
                     Provider.of<SessionProvider>(context)
                             .user!
-                            .selectedClub
+                            .selectedClub!
                             .id ==
                         widget.player.idClub)
                   Row(

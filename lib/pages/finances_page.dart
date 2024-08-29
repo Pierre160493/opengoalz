@@ -70,10 +70,10 @@ class _FinancesPageState extends State<FinancesPage> {
                   children: [
                     _getFinances(Provider.of<SessionProvider>(context)
                         .user!
-                        .selectedClub),
+                        .selectedClub!),
                     _getFinancesHistory(Provider.of<SessionProvider>(context)
                         .user!
-                        .selectedClub),
+                        .selectedClub!),
                   ],
                 ),
               ),

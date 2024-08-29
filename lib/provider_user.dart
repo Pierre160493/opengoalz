@@ -1,16 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/gameUser.dart';
+import 'package:opengoalz/classes/profile.dart';
 import 'package:opengoalz/classes/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/handleFatalError.dart';
 import 'package:rxdart/rxdart.dart';
 
 class SessionProvider extends ChangeNotifier {
-  GameUser? user;
+  Profile? user;
 
   /// Initialize the user
-  void providerInitUser(GameUser user) {
+  void providerInitUser(Profile user) {
     this.user = user;
     notifyListeners();
   }
@@ -33,8 +34,8 @@ class SessionProvider extends ChangeNotifier {
   }
 
   /// Fetch the user from the database
-  Future<void> providerFetchUser(
-      {String? userId = null, String? userName = null}) {
+  Future<void> providerFetchUser(BuildContext context,
+      {String? userId, String? userName}) async {
     assert(userId != null || userName != null,
         'User ID or username must be provided');
     Completer<void> completer = Completer();
@@ -42,47 +43,67 @@ class SessionProvider extends ChangeNotifier {
     String key = userId != null ? 'uuid_user' : 'username';
     String value = (userId ?? userName)!;
 
-    supabase
-        .from('profiles')
-        .stream(primaryKey: ['id'])
-        .eq(key, value)
-        .map((maps) => maps
-            .map((map) => GameUser.fromMap(map,
-                connectedUserId: supabase.auth.currentUser!.id))
-            .first)
-        .switchMap((GameUser user) {
-          return supabase
-              .from('clubs')
-              .stream(primaryKey: ['id'])
-              .eq('username', user.username)
-              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
-              .map((List<Club> clubs) {
-                user.clubs = clubs;
-                if (user.idDefaultClub != null)
-                  providerSetSelectedClub(user.idDefaultClub!);
-                else {
-                  user.selectedClub = user.clubs.first;
-                }
-                return user;
-              });
-        })
-        .switchMap((GameUser user) {
-          return supabase
-              .from('players')
-              .stream(primaryKey: ['id'])
-              .eq('username', user.username)
-              .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
-              .map((List<Player> players) {
-                user.players = players;
-                return user;
-              });
-        })
-        .listen((GameUser user) {
-          providerInitUser(user);
-          if (!completer.isCompleted) {
-            completer.complete();
-          }
-        });
+    try {
+      await supabase
+          .from('profiles')
+          .stream(primaryKey: ['id'])
+          .eq(key, value)
+          .map((maps) {
+            // If the user is not found, throw an exception
+            if (maps.isEmpty) {
+              throw Exception(
+                  'User ${userName != null ? 'with username [$userName]' : 'with id [$userId]'} not found');
+            }
+            return maps
+                .map((map) => Profile.fromMap(map,
+                    connectedUserId: supabase.auth.currentUser!.id))
+                .first;
+          })
+          .switchMap((Profile user) {
+            return supabase
+                .from('clubs')
+                .stream(primaryKey: ['id'])
+                .eq('username', user.username)
+                .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+                .map((List<Club> clubs) {
+                  user.clubs = clubs;
+                  if (user.idDefaultClub != null) {
+                    providerSetSelectedClub(user.idDefaultClub!);
+                    // } else {
+                    //   user.selectedClub = user.clubs.first;
+                  }
+                  return user;
+                });
+          })
+          .switchMap((Profile user) {
+            return supabase
+                .from('players')
+                .stream(primaryKey: ['id'])
+                .eq('username', user.username)
+                .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+                .map((List<Player> players) {
+                  user.players = players;
+                  return user;
+                });
+          })
+          .listen((Profile user) {
+            providerInitUser(user);
+            if (!completer.isCompleted) {
+              completer.complete();
+            }
+          });
+    } catch (error) {
+      await handleFatalError(context, error.toString());
+      if (!completer.isCompleted) {
+        completer.completeError(error);
+      }
+    }
+    print('User fetched');
+    print('User fetched');
+    print('User fetched');
+    print('User fetched');
+    print('User fetched');
+    print('User fetched');
 
     return completer.future;
   }

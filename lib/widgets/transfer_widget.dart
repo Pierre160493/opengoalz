@@ -60,7 +60,7 @@ class PlayerTransferTile extends StatelessWidget {
               ),
             ),
             if (player.idClub !=
-                Provider.of<SessionProvider>(context).user!.selectedClub.id)
+                Provider.of<SessionProvider>(context).user!.selectedClub!.id)
               IconButton(
                 icon: Icon(
                   Icons.arrow_circle_up_outlined,
@@ -259,7 +259,7 @@ class PlayerTransferTile extends StatelessWidget {
                 ),
               ),
               Text(
-                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub.lisCash.last)}'),
+                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.lisCash.last)}'),
             ],
           ),
           actions: <Widget>[
@@ -289,12 +289,12 @@ class PlayerTransferTile extends StatelessWidget {
                     'id_club':
                         Provider.of<SessionProvider>(context, listen: false)
                             .user!
-                            .selectedClub
+                            .selectedClub!
                             .id,
                     'name_club':
                         Provider.of<SessionProvider>(context, listen: false)
                             .user!
-                            .selectedClub
+                            .selectedClub!
                             .name,
                   });
 
