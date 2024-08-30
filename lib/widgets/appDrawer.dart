@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/club/club.dart';
+import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/calendar_page.dart';
 import 'package:opengoalz/pages/mails_page.dart';
@@ -13,7 +13,7 @@ import 'package:opengoalz/pages/finances_page.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
-import 'package:opengoalz/classes/player/players_page.dart';
+import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:provider/provider.dart';
 

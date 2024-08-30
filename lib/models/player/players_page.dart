@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/player/players_sorting_function.dart';
+import 'package:opengoalz/models/player/players_sorting_function.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/transfer_bid.dart';
+import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/classes/player/player_card.dart';
+import 'package:opengoalz/models/player/player_card.dart';
 import 'class/player.dart';
 import '../../constants.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/country.dart';
-import 'package:opengoalz/classes/profile.dart';
+import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/country.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/countries_page.dart';
 
 Widget clubListWidget(BuildContext context, Profile user) {
@@ -43,9 +43,7 @@ Widget clubListWidget(BuildContext context, Profile user) {
 }
 
 Future<void> _assignClub(BuildContext context) async {
-
   // Ask the mutliverse speed to the user
-  
 
   Country? selectedCountry = await Navigator.push<Country>(
     context,

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/models/player/class/player.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';

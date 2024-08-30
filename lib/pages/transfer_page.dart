@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/transfer_bid.dart';
+import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/classes/player/class/player.dart';
-import 'package:opengoalz/classes/player/players_page.dart';
+import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';

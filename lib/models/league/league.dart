@@ -1,12 +1,12 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/profile.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/events/event.dart';
-import 'package:opengoalz/classes/game/class/game.dart';
-import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/events/event.dart';
+import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/league_page.dart';

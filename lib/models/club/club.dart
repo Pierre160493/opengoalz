@@ -2,20 +2,20 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/game/class/game.dart';
-import 'package:opengoalz/classes/league/league.dart';
-import 'package:opengoalz/classes/mail.dart';
-import 'package:opengoalz/classes/multiverse.dart';
-import 'package:opengoalz/classes/player/players_page.dart';
-import 'package:opengoalz/classes/teamcomp/teamComp.dart';
+import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/league/league.dart';
+import 'package:opengoalz/models/mail.dart';
+import 'package:opengoalz/models/multiverse/multiverse.dart';
+import 'package:opengoalz/models/multiverse/multiverse_widget.dart';
+import 'package:opengoalz/models/player/players_page.dart';
+import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/club_page.dart';
-import 'package:opengoalz/classes/player/class/player.dart';
-import 'package:opengoalz/widgets/multiverse_row_widget.dart';
+import 'package:opengoalz/models/player/class/player.dart';
 import 'package:provider/provider.dart';
 
 part 'clubWidgetHelper.dart';
@@ -45,7 +45,7 @@ class Club {
   Club({
     required this.id,
     required this.createdAt,
-    required this.multiverseSpeed,
+    required this.idMultiverse,
     required this.idLeague,
     required this.userName,
     required this.name,
@@ -70,7 +70,7 @@ class Club {
 
   final int id;
   final DateTime createdAt;
-  final int multiverseSpeed;
+  final int idMultiverse;
   final int idLeague;
   final String? userName;
   final String name;
@@ -100,7 +100,7 @@ class Club {
         isCurrentlySelected =
             idSelectedClub == map['id'], // Is the club selected
         createdAt = DateTime.parse(map['created_at']),
-        multiverseSpeed = map['multiverse_speed'],
+        idMultiverse = map['id_multiverse'],
         idLeague = map['id_league'],
         userName = map['username'],
         name = map['name_club'],

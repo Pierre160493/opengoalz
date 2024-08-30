@@ -21,8 +21,8 @@ extension ClubCardWidget on Club {
               backgroundColor: (id ==
                       Provider.of<SessionProvider>(context)
                           .user!
-                          .selectedClub!
-                          .id)
+                          .selectedClub
+                          ?.id)
                   ? Colors.green
                   : Colors.blueGrey,
               child: Text(
@@ -38,17 +38,21 @@ extension ClubCardWidget on Club {
             ),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [getClubName(context), getLastResultsWidget(context)],
+              children: [
+                getClubName(context),
+                getLastResultsWidget(context),
+              ],
             ),
             subtitle: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 getRankingWidget(context),
-                multiverseWidgetClickable(context, multiverseSpeed),
+                getMultiverseWidget(context, idMultiverse),
               ],
             ),
           ),
-          if (id == Provider.of<SessionProvider>(context).user!.selectedClub!.id)
+          if (id ==
+              Provider.of<SessionProvider>(context).user!.selectedClub?.id)
             Column(
               children: [
                 const SizedBox(height: 6),

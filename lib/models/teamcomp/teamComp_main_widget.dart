@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/teamcomp/teamComp.dart';
+import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
 class TeamCompWidget extends StatefulWidget {

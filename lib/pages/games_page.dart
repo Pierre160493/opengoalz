@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/teamcomp/teamComp.dart';
+import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:opengoalz/classes/game/class/game.dart';
+import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/teamcomp/teamComp.dart';
+import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:rxdart/rxdart.dart';
 

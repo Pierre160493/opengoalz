@@ -1,4 +1,4 @@
-import 'package:opengoalz/classes/country.dart';
+import 'package:opengoalz/models/country.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';

@@ -12,7 +12,7 @@ extension ClubWidgetHelper on Club {
 
     /// If the club is currently selected
     bool isSelected =
-        Provider.of<SessionProvider>(context).user!.selectedClub!.id == id;
+        Provider.of<SessionProvider>(context).user!.selectedClub?.id == id;
     Text text = Text(
       name,
       style: TextStyle(

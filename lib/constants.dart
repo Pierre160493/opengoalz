@@ -62,6 +62,7 @@ const iconSuccessfulOperation = Icons.check_circle;
 const iconPostgreSQLError = Icons.report;
 const iconAnnouncement = Icons.campaign_outlined;
 const iconShirt = Icons.checkroom;
+const iconMultiverseSpeed = Icons.speed;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorIsMine = Colors.purple;

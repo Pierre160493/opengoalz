@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/multiverse.dart';
-import 'package:opengoalz/widgets/multiverse_row_widget.dart';
+import 'package:opengoalz/models/multiverse/multiverse.dart';
+import 'package:opengoalz/models/multiverse/multiverse_widget_extension.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
@@ -9,12 +9,12 @@ import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
 class MultiversePage extends StatefulWidget {
-  final int speed;
-  const MultiversePage({Key? key, required this.speed}) : super(key: key);
+  final int id;
+  const MultiversePage({Key? key, required this.id}) : super(key: key);
 
-  static Route<void> route(int speed) {
+  static Route<void> route(int id) {
     return MaterialPageRoute(
-      builder: (context) => MultiversePage(speed: speed),
+      builder: (context) => MultiversePage(id: id),
     );
   }
 
@@ -34,7 +34,7 @@ class _MultiversePageState extends State<MultiversePage> {
   void initState() {
     _multiverseStream = supabase
         .from('multiverses')
-        .stream(primaryKey: ['speed'])
+        .stream(primaryKey: ['id'])
         .map((maps) => maps.map((map) => Multiverse.fromMap(map)).first)
         .map((Multiverse multiverse) {
           // Reset the event games
@@ -100,7 +100,8 @@ class _MultiversePageState extends State<MultiversePage> {
                 children: [
                   Text('Multiverse'),
                   formSpacer6,
-                  multiverseWidget(context, multiverse.speed),
+                  // multiverseWidget(context, multiverse.speed),
+                  // multiverseWidget(context, multiverse.speed),
                 ],
               ),
             ),
@@ -144,7 +145,7 @@ class _MultiversePageState extends State<MultiversePage> {
     return ListView(
       children: [
         ListTile(
-          title: multiverseWidget(context, multiverse.speed),
+          title: multiverse.getWidget(context),
           subtitle: Text(
             'Number of games per week',
             style: TextStyle(

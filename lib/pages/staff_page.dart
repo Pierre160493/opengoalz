@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/club/club.dart';
+import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';

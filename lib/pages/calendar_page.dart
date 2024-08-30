@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/multiverse.dart';
-import 'package:opengoalz/widgets/multiverse_row_widget.dart';
+import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/multiverse/multiverse.dart';
+import 'package:opengoalz/models/multiverse/multiverse_widget.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
@@ -42,8 +42,8 @@ class _CalendarPageState extends State<CalendarPage> {
         .switchMap((Club club) {
           return supabase
               .from('multiverses')
-              .stream(primaryKey: ['speed'])
-              .eq('speed', club.multiverseSpeed)
+              .stream(primaryKey: ['id'])
+              .eq('id', club.idMultiverse)
               .map((maps) => maps.map((map) => Multiverse.fromMap(map)).first)
               .map((Multiverse multiverse) {
                 club.multiverse = multiverse;
@@ -113,7 +113,8 @@ class _CalendarPageState extends State<CalendarPage> {
                 children: [
                   Text('Calendar'),
                   formSpacer6,
-                  multiverseWidgetClickable(context, club.multiverse!.speed),
+                  // club.multiverse.getWidget(context)
+                  getMultiverseWidget(context, club.idMultiverse),
                 ],
               ),
             ),

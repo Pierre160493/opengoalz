@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/subs.dart';
-import 'package:opengoalz/classes/teamcomp/teamComp.dart';
-import 'package:opengoalz/classes/teamcomp/teamComp_main_widget.dart';
+import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/subs.dart';
+import 'package:opengoalz/models/teamcomp/teamComp.dart';
+import 'package:opengoalz/models/teamcomp/teamComp_main_widget.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';

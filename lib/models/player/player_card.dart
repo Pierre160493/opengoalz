@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/classes/club/getClubNameWidget.dart';
+import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/multiverse/multiverse_widget.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
-import 'package:opengoalz/widgets/multiverse_row_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'class/player.dart';
@@ -116,8 +116,7 @@ class _PlayerCardState extends State<PlayerCard>
               children: [
                 getClubNameClickable(
                     context, widget.player.club, widget.player.idClub),
-                multiverseWidgetClickable(
-                    context, widget.player.multiverseSpeed),
+                getMultiverseWidget(context, widget.player.idMultiverse),
               ],
             ),
             // subtitle: Text(
@@ -257,8 +256,7 @@ class _PlayerCardState extends State<PlayerCard>
               children: [
                 getClubNameClickable(
                     context, widget.player.club, widget.player.idClub),
-                multiverseWidgetClickable(
-                    context, widget.player.multiverseSpeed),
+                getMultiverseWidget(context, widget.player.idMultiverse),
               ],
             ),
           ),

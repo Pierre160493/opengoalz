@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/profile.dart';
-import 'package:opengoalz/classes/league/league.dart';
-import 'package:opengoalz/classes/player/class/player.dart';
+import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/profile.dart';
+import 'package:opengoalz/models/league/league.dart';
+import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/classes/player/players_page.dart';
+import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/provider_theme_app.dart';

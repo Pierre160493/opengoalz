@@ -6,14 +6,14 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/classes/club/club.dart';
-import 'package:opengoalz/classes/club/getClubNameWidget.dart';
-import 'package:opengoalz/classes/transfer_bid.dart';
+import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/club/getClubNameWidget.dart';
+import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/classes/player/players_page.dart';
+import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -43,7 +43,8 @@ class Player {
     required this.surName,
     required this.shirtNumber,
     required this.dateBirth,
-    required this.multiverseSpeed,
+    required this.idMultiverse,
+    required this.multiverseSpeed2,
     required this.idCountry,
     required this.expanses,
     required this.trainingPoints,
@@ -73,7 +74,8 @@ class Player {
   final String? surName;
   final int? shirtNumber;
   final DateTime dateBirth;
-  final int multiverseSpeed;
+  final int idMultiverse;
+  final int multiverseSpeed2;
   final int? idCountry; //Shouldn't be nullable
   final int expanses;
   final double trainingPoints;
@@ -103,7 +105,8 @@ class Player {
         surName = map['surname'],
         shirtNumber = map['shirt_number'],
         dateBirth = DateTime.parse(map['date_birth']),
-        multiverseSpeed = map['multiverse_speed'],
+        idMultiverse = map['id_multiverse'],
+        multiverseSpeed2 = map['multiverse_speed'],
         idCountry = map['id_country'],
         expanses = map['expanses'],
         trainingPoints = (map['training_points'] as num).toDouble(),
@@ -130,7 +133,7 @@ class Player {
 
   double get age {
     return DateTime.now().difference(dateBirth).inDays /
-        (14 * 7 / multiverseSpeed); //14 weeks of 7 days per season
+        (14 * 7 / multiverseSpeed2); //14 weeks of 7 days per season
   }
 
   double get stats_average {
@@ -164,8 +167,10 @@ class Player {
         return shirtNumber;
       case 'dateBirth':
         return dateBirth;
-      case 'multiverseSpeed':
-        return multiverseSpeed;
+      case 'idMmultiverse':
+        return idMultiverse;
+      case 'multiverseSpeed2':
+        return multiverseSpeed2;
       case 'idCountry':
         return idCountry;
       case 'expanses':
