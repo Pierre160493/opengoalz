@@ -51,6 +51,8 @@ class SessionProvider extends ChangeNotifier {
           .map((maps) {
             // If the user is not found, throw an exception
             if (maps.isEmpty) {
+              handleFatalError(context,
+                  'User ${userName != null ? 'with username [$userName]' : 'with id [$userId]'} not found');
               throw Exception(
                   'User ${userName != null ? 'with username [$userName]' : 'with id [$userId]'} not found');
             }

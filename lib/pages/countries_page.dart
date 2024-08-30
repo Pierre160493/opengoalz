@@ -5,7 +5,6 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
-import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
 class CountriesPage extends StatefulWidget {
   const CountriesPage({Key? key}) : super(key: key);

@@ -62,10 +62,17 @@ const iconSuccessfulOperation = Icons.check_circle;
 const iconPostgreSQLError = Icons.report;
 const iconAnnouncement = Icons.campaign_outlined;
 const iconShirt = Icons.checkroom;
-const iconMultiverseSpeed = Icons.speed;
+// const iconMultiverseSpeed = Icons.speed;
+const iconMultiverseSpeed = Icons.shutter_speed;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorIsMine = Colors.purple;
+
+/// Text Styles
+const TextStyle italicBlueGreyTextStyle = TextStyle(
+  fontStyle: FontStyle.italic,
+  color: Colors.blueGrey,
+);
 
 double iconSizeSmall = 24.0;
 double iconSizeMedium = 30.0;

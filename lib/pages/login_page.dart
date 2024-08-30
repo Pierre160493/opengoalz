@@ -110,6 +110,23 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _resetPassword() async {
+    final email = _inputController.text;
+    if (email.isEmpty) {
+      context.showSnackBarError('Please enter your email');
+      return;
+    }
+
+    try {
+      await supabase.auth.resetPasswordForEmail(email);
+      context.showSnackBar('Password reset email sent');
+    } on AuthException catch (error) {
+      context.showSnackBarError(error.message);
+    } catch (error) {
+      context.showSnackBarError('UNKNOWN ERROR: ${error}');
+    }
+  }
+
   @override
   void dispose() {
     _inputController.dispose();
@@ -163,7 +180,12 @@ class _LoginPageState extends State<LoginPage> {
                 Navigator.of(context).push(RegisterPage.route());
               },
               child: const Text('I don\'t have an account'),
-            )
+            ),
+            formSpacer6,
+            TextButton(
+              onPressed: _resetPassword,
+              child: const Text('Forgot Password?'),
+            ),
           ],
         ),
       ),

@@ -23,7 +23,7 @@ Widget getMultiverseWidget(BuildContext context, int idMultiverse) {
         return Center(child: Text('Error: ${snapshot.error}'));
       } else if (snapshot.hasData && snapshot.data != null) {
         return snapshot.data!
-            .getWidget(context); // Display the multiverse widget
+            .getWidgetClickable(context); // Display the multiverse widget
       } else {
         return Center(child: Text('No data available'));
       }

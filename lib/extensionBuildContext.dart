@@ -26,6 +26,12 @@ extension ShowSnackBar on BuildContext {
   }
 
   /// Displays a red snackbar indicating error
+  void showSnackBarSuccess(String message, {Icon? icon = null}) {
+    icon ??= Icon(iconSuccessfulOperation, color: Colors.green);
+    showSnackBar(message, icon: icon);
+  }
+
+  /// Displays a red snackbar indicating error
   void showSnackBarError(String message, {Icon? icon = null}) {
     // icon ??= Icon(iconError, color: Colors.red);
     icon ??= Icon(iconError);
