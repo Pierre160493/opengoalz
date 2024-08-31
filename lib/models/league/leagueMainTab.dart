@@ -1,7 +1,7 @@
 part of 'league.dart';
 
 extension LeagueMainTab on League {
-  Widget leagueMainTab(BuildContext context) {
+  Widget leagueMainTab(BuildContext context, {isReturningBotClub = false}) {
     return Column(
       children: [
         SizedBox(height: 6),
