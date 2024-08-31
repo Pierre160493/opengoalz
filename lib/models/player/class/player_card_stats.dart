@@ -136,9 +136,8 @@ extension PlayerCardStats on Player {
           'id': id
         });
         if (isOK) {
-          context.showSnackBar(
-              'Successfully updated player ${stat} stat! Hooray!',
-              icon: Icon(Icons.check_circle, color: Colors.green));
+          context.showSnackBarSuccess(
+              'Successfully updated player ${stat} stat! Hooray!');
         }
         Navigator.of(context).pop();
       },

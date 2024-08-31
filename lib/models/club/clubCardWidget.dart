@@ -36,6 +36,7 @@ extension ClubCardWidget on Club {
                 color: Colors.blueGrey, // Border color
               ),
             ),
+            hoverColor: Colors.brown,
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

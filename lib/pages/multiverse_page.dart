@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverse_widget_extension.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -49,7 +50,6 @@ class _MultiversePageState extends State<MultiversePage> {
             int hoursBetweenGames;
             try {
               hoursBetweenGames = 24 * 7 ~/ multiverse.speed;
-              print(hoursBetweenGames);
             } catch (e) {
               throw Exception('Error converting division result to int: $e');
             }
@@ -64,7 +64,6 @@ class _MultiversePageState extends State<MultiversePage> {
               });
               // Loop through the games of the season
               for (int j = 0; j < 14; j++) {
-                print('Season ${i} Game ${j + 1}');
                 _eventGames.add({
                   multiverse.dateSeasonStart.add(Duration(
                           hours: hoursBetweenGames * (((i - 1) * 14) + j))):
@@ -113,72 +112,167 @@ class _MultiversePageState extends State<MultiversePage> {
                     _selectedMultiverse!.getWidget(),
                 ],
               ),
-              actions: [
-                PopupMenuButton<Multiverse>(
-                  tooltip: 'Switch multiverse',
-                  icon: const Icon(Icons.swap_vert_circle),
-                  onSelected: (Multiverse selectedMultiverse) {
-                    setState(() {
-                      _selectedMultiverse = selectedMultiverse;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) {
-                    return multiverses.map((Multiverse multiverse) {
-                      return PopupMenuItem<Multiverse>(
-                        value: multiverse,
-                        // child: Text('Multiverse ${multiverse.speed}x'),
-                        child: ListTile(
-                            leading: CircleAvatar(
-                                child: Text(multiverse.speed.toString())),
-                            title: Text(
-                                'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber}'),
-                            subtitle: Text(
-                                'Number of active clubs: ${multiverse.cashPrinted}',
-                                style: italicBlueGreyTextStyle)),
-                      );
-                    }).toList();
-                  },
-                ),
-              ],
             ),
+            floatingActionButton:
+                widget.isReturningMultiverse && _selectedMultiverse != null
+                    ? FloatingActionButton(
+                        tooltip: 'Select this multiverse',
+                        onPressed: () async {
+                          if (await context.showConfirmationDialog(
+                                  'Are you sure you want to select the multiverse with speed ${_selectedMultiverse!.speed} ?') ==
+                              true) {
+                            /// CLose the page and return the selected multiverse
+                            Navigator.pop(context, _selectedMultiverse);
+                          }
+                        },
+                        child: Icon(Icons.check),
+                      )
+                    : null,
 
             // drawer: const AppDrawer(),
             body: MaxWidthContainer(
-              child: _selectedMultiverse == null
-                  ? const Center(child: Text('Select a multiverse'))
-                  : DefaultTabController(
-                      length: 2, // The number of tabs
-                      child: Column(
-                        children: [
-                          TabBar(
-                            tabs: [
-                              buildTabWithIcon(iconAnnouncement,
-                                  'Multiverse ${_selectedMultiverse!.speed}'),
-                              buildTabWithIcon(iconCalendar, 'Calendar'),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              children: [
-                                _getMultiversePresentation(
-                                    context, _selectedMultiverse),
-                                _getCalendar(context, _selectedMultiverse),
-                              ],
+                child: DefaultTabController(
+              length: 2, // The number of outer tabs
+              child: Column(
+                children: [
+                  TabBar(
+                    tabs: [
+                      buildTabWithIcon(Icons.ballot,
+                          'All Multiverses (${multiverses.length})'),
+                      _selectedMultiverse == null
+                          ? buildTabWithIcon2(
+                              context,
+                              Row(children: [
+                                Icon(
+                                  Icons.cancel,
+                                  color: Colors.red,
+                                ),
+                                formSpacer3,
+                                Text('No Multiverse Selected')
+                              ]),
+                            )
+                          : buildTabWithIcon2(
+                              context,
+                              Row(children: [
+                                Icon(iconSuccessfulOperation,
+                                    color: Colors.green),
+                                formSpacer3,
+                                Text('Multiverse ${_selectedMultiverse!.speed}')
+                              ]),
+                            )
+                    ],
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        // First tab content
+                        Column(
+                          children: [
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: multiverses.length,
+                                itemBuilder: (context, index) {
+                                  Multiverse multiverse = multiverses[index];
+                                  return ListTile(
+                                    leading: Icon(iconMultiverseSpeed,
+                                        color: _selectedMultiverse == multiverse
+                                            ? Colors.green
+                                            : null),
+                                    // CircleAvatar(
+                                    //   child: Text(multiverse.speed.toString()),
+                                    //   backgroundColor:
+                                    //       _selectedMultiverse == multiverse
+                                    //           ? Colors.green
+                                    //           : Colors.blueGrey,
+                                    // ),
+                                    // title: Text(
+                                    //     'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber}'),
+                                    // subtitle: Text(
+                                    //   'Number of active clubs: ${NumberFormat('#,##0').format(multiverse.cashPrinted)}',
+                                    //   style: italicBlueGreyTextStyle,
+                                    // ),
+                                    title: Text(
+                                        '${multiverse.speed} Games per week'),
+                                    subtitle: Text(
+                                        'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber}',
+                                        style: italicBlueGreyTextStyle),
+
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          24), // Adjust border radius as needed
+                                      side: const BorderSide(
+                                        color: Colors.blueGrey, // Border color
+                                      ),
+                                    ),
+                                    trailing:
+                                        widget.isReturningMultiverse == true
+                                            ? IconButton(
+                                                onPressed: () async {
+                                                  setState(() {
+                                                    _selectedMultiverse =
+                                                        multiverse;
+                                                  });
+                                                  if (await context
+                                                          .showConfirmationDialog(
+                                                              'Are you sure you want to select the multiverse with speed ${_selectedMultiverse!.speed} ?') ==
+                                                      true) {
+                                                    /// CLose the page and return the selected multiverse
+                                                    Navigator.pop(context,
+                                                        _selectedMultiverse);
+                                                  }
+                                                },
+                                                tooltip:
+                                                    'Select this multiverse for the club creation',
+                                                icon: Icon(Icons.reply),
+                                              )
+                                            : null,
+                                    hoverColor: Colors.brown,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedMultiverse = multiverse;
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                        // Second tab content
+                        _selectedMultiverse == null
+                            ? const Center(
+                                child: Text('No multiverse selected'))
+                            : DefaultTabController(
+                                length: 2, // The number of inner tabs
+                                child: Column(
+                                  children: [
+                                    TabBar(
+                                      tabs: [
+                                        buildTabWithIcon(iconAnnouncement,
+                                            'Multiverse ${_selectedMultiverse!.speed}'),
+                                        buildTabWithIcon(
+                                            iconCalendar, 'Calendar'),
+                                      ],
+                                    ),
+                                    Expanded(
+                                      child: TabBarView(
+                                        children: [
+                                          _getMultiversePresentation(
+                                              context, _selectedMultiverse),
+                                          _getCalendar(
+                                              context, _selectedMultiverse),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                      ],
                     ),
-            ),
-            floatingActionButton: widget.isReturningMultiverse
-                ? FloatingActionButton(
-                    tooltip: 'Select this multiverse',
-                    onPressed: () {
-                      Navigator.pop(context, _selectedMultiverse);
-                    },
-                    child: Icon(Icons.check),
-                  )
-                : null,
+                  ),
+                ],
+              ),
+            )),
           );
         }
       },

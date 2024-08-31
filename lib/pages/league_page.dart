@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/models/events/event.dart';
@@ -9,19 +8,27 @@ import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
-
 import '../constants.dart';
 
 class LeaguePage extends StatefulWidget {
-  final int idLeague; // Add idLeague as an input parameter
-  final int? idSelectedClub; // Add idClub as an input parameter
-  const LeaguePage({Key? key, required this.idLeague, this.idSelectedClub})
-      : super(key: key);
+  final int idLeague;
+  final int? idSelectedClub;
+  final bool isReturningBotClub;
 
-  static Route<void> route(int idLeague, {int? idClub}) {
-    return MaterialPageRoute<void>(
-      builder: (context) =>
-          LeaguePage(idLeague: idLeague, idSelectedClub: idClub),
+  const LeaguePage({
+    Key? key,
+    required this.idLeague,
+    this.idSelectedClub,
+    this.isReturningBotClub = false,
+  }) : super(key: key);
+
+  static Route<Club?> route(int idLeague, {int? idClub, bool isReturningBotClub = false}) {
+    return MaterialPageRoute<Club?>(
+      builder: (context) => LeaguePage(
+        idLeague: idLeague,
+        idSelectedClub: idClub,
+        isReturningBotClub: isReturningBotClub,
+      ),
     );
   }
 
@@ -40,7 +47,7 @@ class _RankingPageState extends State<LeaguePage> {
     _leagueStream = supabase
         .from('leagues')
         .stream(primaryKey: ['id'])
-        .eq('id', widget.idLeague) // Access idLeague via widget
+        .eq('id', widget.idLeague)
         .map((maps) => maps
             .map((map) =>
                 League.fromMap(map, idSelectedClub: widget.idSelectedClub))
@@ -50,7 +57,7 @@ class _RankingPageState extends State<LeaguePage> {
               .from('games')
               .stream(primaryKey: ['id'])
               .eq('id_league', league.id)
-              .order('date_start', ascending: true) // Order by date_start
+              .order('date_start', ascending: true)
               .map((maps) => maps
                   .map((map) => Game.fromMap(map, widget.idSelectedClub))
                   .toList())
@@ -58,8 +65,7 @@ class _RankingPageState extends State<LeaguePage> {
                 league.games = games
                     .where(
                         (Game game) => game.seasonNumber == league.seasonNumber)
-                    .toList(); // Add all the games of this league
-                // league.games.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+                    .toList();
                 return league;
               });
         })
@@ -72,12 +78,10 @@ class _RankingPageState extends State<LeaguePage> {
                   league.games
                       .map((game) => [game.idClubLeft, game.idClubRight])
                       .expand((element) => element)
-                      .where((element) =>
-                          element != null) // Filter out null values
+                      .where((element) => element != null)
                       .toSet()
                       .toList()
-                      .cast<int>() // Cast to List<int>
-                  )
+                      .cast<int>())
               .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((clubs) {
                 league.clubs = clubs;
@@ -94,7 +98,6 @@ class _RankingPageState extends State<LeaguePage> {
                         (club) => club.id == game.idClubRight,
                         orElse: () => throw Exception(
                             'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
-                    ;
                   }
                 }
                 return league;
@@ -133,7 +136,6 @@ class _RankingPageState extends State<LeaguePage> {
                       .where((GameEvent event) => event.idGame == game.id)
                       .toList();
                   if (game.dateEnd != null) {
-                    // Update the goals scored and points of the clubs
                     league.clubs
                         .firstWhere((club) => club.id == game.idClubLeft)
                         .goalsScored += game.scoreLeft!;
@@ -146,9 +148,7 @@ class _RankingPageState extends State<LeaguePage> {
                     league.clubs
                         .firstWhere((club) => club.id == game.idClubRight)
                         .goalsScored += game.scoreRight!;
-                    // Update the points of the clubs
                     if (game.scoreLeft! > game.scoreRight!) {
-                      // Left victory
                       league.clubs
                           .firstWhere((club) => club.id == game.idClubLeft)
                           .points += 3;
@@ -159,7 +159,6 @@ class _RankingPageState extends State<LeaguePage> {
                           .firstWhere((club) => club.id == game.idClubRight)
                           .defeats += 1;
                     } else if (game.scoreLeft! < game.scoreRight!) {
-                      // Right Victory
                       league.clubs
                           .firstWhere((club) => club.id == game.idClubLeft)
                           .defeats += 1;
@@ -170,7 +169,6 @@ class _RankingPageState extends State<LeaguePage> {
                           .firstWhere((club) => club.id == game.idClubRight)
                           .points += 3;
                     } else {
-                      // Draw
                       league.clubs
                           .firstWhere((club) => club.id == game.idClubLeft)
                           .draws += 1;
@@ -186,7 +184,6 @@ class _RankingPageState extends State<LeaguePage> {
                     }
                   }
                 }
-                // order league clubs by number of points
                 league.clubs.sort((a, b) {
                   int compare = b.points.compareTo(a.points);
                   if (compare != 0) {
@@ -204,54 +201,52 @@ class _RankingPageState extends State<LeaguePage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<League>(
-        stream: _leagueStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text('ERROR: ${snapshot.error}'),
-            );
-          } else {
-            League league = snapshot.data!;
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(
-                    'L${league.level.toString()}.${league.number.toString()} of ${league.continent}'),
-              ),
-              drawer: const AppDrawer(),
-              body: MaxWidthContainer(
-                child: DefaultTabController(
-                  length: 3,
-                  child: Column(
-                    children: [
-                      TabBar(
-                        tabs: [
-                          buildTabWithIcon(
-                              Icons.format_list_numbered, 'Rankings'),
-                          buildTabWithIcon(Icons.event, 'Games'),
-                          buildTabWithIcon(Icons.query_stats, 'Stats'),
-                          // buildTab(Icons.wechat, 'Chat'),
-                        ],
-                      ),
-                      Expanded(
-                          child: TabBarView(
+      stream: _leagueStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text('ERROR: ${snapshot.error}'),
+          );
+        } else {
+          League league = snapshot.data!;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                  'L${league.level.toString()}.${league.number.toString()} of ${league.continent}'),
+            ),
+            drawer: const AppDrawer(),
+            body: MaxWidthContainer(
+              child: DefaultTabController(
+                length: 3,
+                child: Column(
+                  children: [
+                    TabBar(
+                      tabs: [
+                        buildTabWithIcon(Icons.format_list_numbered, 'Rankings'),
+                        buildTabWithIcon(Icons.event, 'Games'),
+                        buildTabWithIcon(Icons.query_stats, 'Stats'),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
                         children: [
-                          league.leagueMainTab(context),
+                          league.leagueMainTab(context, isReturningBotClub: widget.isReturningBotClub),
                           league.leagueGamesTab(context),
                           league.leagueStatsTab(context),
-                          // Center(
-                          //     child: Text('League Chat (Not yet implemented)')),
                         ],
-                      )),
-                    ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          }
-        });
+            ),
+          );
+        }
+      },
+    );
   }
 }
