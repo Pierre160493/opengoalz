@@ -6,11 +6,7 @@ import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/countries_page.dart';
-import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
-import 'package:opengoalz/postgresql_requests.dart';
-import 'package:opengoalz/provider_user.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Widget clubListWidget(BuildContext context, Profile user) {
@@ -105,9 +101,9 @@ Future<void> _assignClub(BuildContext context) async {
     final data = await supabase
         .from('leagues')
         .select('id')
-        // .eq('id_multiverse', selectedMultiverse.id)
-        // .eq('continent', selectedCountry.selectedContinent!)
-        // .gt('level', 2) // Cannot select a league with level 1 or 2
+        .eq('id_multiverse', selectedMultiverse.id)
+        .eq('continent', selectedCountry.selectedContinent!)
+        .order('level', ascending: false)
         // .order('random()')
         .limit(1)
         .select();
