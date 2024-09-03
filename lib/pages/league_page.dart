@@ -22,7 +22,8 @@ class LeaguePage extends StatefulWidget {
     this.isReturningBotClub = false,
   }) : super(key: key);
 
-  static Route<Club?> route(int idLeague, {int? idClub, bool isReturningBotClub = false}) {
+  static Route<Club?> route(int idLeague,
+      {int? idClub, bool isReturningBotClub = false}) {
     return MaterialPageRoute<Club?>(
       builder: (context) => LeaguePage(
         idLeague: idLeague,
@@ -53,6 +54,7 @@ class _RankingPageState extends State<LeaguePage> {
                 League.fromMap(map, idSelectedClub: widget.idSelectedClub))
             .first)
         .switchMap((League league) {
+          print('testICI_league');
           return supabase
               .from('games')
               .stream(primaryKey: ['id'])
@@ -66,6 +68,7 @@ class _RankingPageState extends State<LeaguePage> {
                     .where(
                         (Game game) => game.seasonNumber == league.seasonNumber)
                     .toList();
+                print('testICI_games');
                 return league;
               });
         })
@@ -100,6 +103,7 @@ class _RankingPageState extends State<LeaguePage> {
                             'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
                   }
                 }
+                print('testICI_clubs');
                 return league;
               });
         })
@@ -226,7 +230,8 @@ class _RankingPageState extends State<LeaguePage> {
                   children: [
                     TabBar(
                       tabs: [
-                        buildTabWithIcon(Icons.format_list_numbered, 'Rankings'),
+                        buildTabWithIcon(
+                            Icons.format_list_numbered, 'Rankings'),
                         buildTabWithIcon(Icons.event, 'Games'),
                         buildTabWithIcon(Icons.query_stats, 'Stats'),
                       ],
@@ -234,7 +239,8 @@ class _RankingPageState extends State<LeaguePage> {
                     Expanded(
                       child: TabBarView(
                         children: [
-                          league.leagueMainTab(context, isReturningBotClub: widget.isReturningBotClub),
+                          league.leagueMainTab(context,
+                              isReturningBotClub: widget.isReturningBotClub),
                           league.leagueGamesTab(context),
                           league.leagueStatsTab(context),
                         ],

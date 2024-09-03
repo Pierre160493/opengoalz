@@ -167,12 +167,15 @@ extension LeagueMainTab on League {
                         ),
                       ],
                     ),
-                    // onTap: () {
-                    //   Navigator.push(
-                    //     context,
-                    //     ClubPage.route(club.id),
-                    //   );
-                    // },
+                    onTap: () {
+                      if (isReturningBotClub) {
+                        Navigator.pop(context, club.id);
+                      } else
+                        Navigator.push(
+                          context,
+                          ClubPage.route(club.id),
+                        );
+                    },
                     trailing: CircleAvatar(
                       backgroundColor: Colors.grey,
                       child: Text(

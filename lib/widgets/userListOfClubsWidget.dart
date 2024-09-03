@@ -6,7 +6,11 @@ import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/countries_page.dart';
+import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
+import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/provider_user.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Widget clubListWidget(BuildContext context, Profile user) {
@@ -95,8 +99,8 @@ Future<void> _assignClub(BuildContext context) async {
     }
   }
 
+  /// Club selection by choosing from the leagues of the selected continent
   int? idRandomLeague;
-
   try {
     final data = await supabase
         .from('leagues')
@@ -110,30 +114,41 @@ Future<void> _assignClub(BuildContext context) async {
     print('data here');
     print(data);
 
-    idRandomLeague = 1;
+    // Fetch the id of the league
+    idRandomLeague = data[0]['id'] as int;
   } on PostgrestException catch (error) {
     context.showSnackBarPostgreSQLError(error.message);
     return;
   } catch (error) {
-    context.showSnackBarError('Unknown ERROR: $error');
+    context.showSnackBarError('ERROR: $error');
     return;
   }
 
-  print('Selected country: ${selectedCountry.name}');
+  print('Selected country: Name= ${selectedCountry.name}');
+  print('Selected country: Continents= ${selectedCountry.continents}');
+  print(
+      'Selected country: SelectedContinent= ${selectedCountry.selectedContinent}');
+  print('idRandomLeague= ' + idRandomLeague.toString());
   // Show the League Page to pick a bot club
-  // Club? selectedClub = await Navigator.push<Club?>(
-  //   context,
-  //   LeaguePage.route(idRandomLeague, isReturningBotClub: true),
-  // );
+  Club? selectedClub = await Navigator.push<Club?>(
+    context,
+    LeaguePage.route(idRandomLeague, isReturningBotClub: true),
+  );
+
+  // Check that the club is not null
+  if (selectedClub == null) {
+    context.showSnackBarError('No club selected, club selection aborted');
+    return;
+  }
 
   // // Update the club in the database
-  // bool isOK = await operationInDB(context, 'UPDATE', 'clubs', data: {
-  //   'username': Provider.of<SessionProvider>(context).user!.username,
-  // }, matchCriteria: {
-  //   'id': '1'
-  // });
-  // if (isOK) {
-  //   context.showSnackBarSuccess(
-  //       'You are now the happy owner of a new club in ${selectedCountry.name} in the continent: ${selectedCountry.selectedContinent} !');
-  // }
+  bool isOK = await operationInDB(context, 'UPDATE', 'clubs', data: {
+    'username': Provider.of<SessionProvider>(context).user!.username,
+  }, matchCriteria: {
+    'id': selectedClub.id,
+  });
+  if (isOK) {
+    context.showSnackBarSuccess(
+        'You are now the happy owner of a new club in ${selectedCountry.name} in the continent: ${selectedCountry.selectedContinent} !');
+  }
 }
