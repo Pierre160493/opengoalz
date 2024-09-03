@@ -59,18 +59,39 @@ extension LeagueMainTab on League {
                         color: Colors.blueGrey, // Border color
                       ),
                     ),
-                    leading: CircleAvatar(
-                      backgroundColor: index == 0
-                          ? Colors.yellow
-                          : index == 1
-                              ? Colors.grey
-                              : index == 2
-                                  ? Colors.amber
-                                  : Colors
-                                      .blue, // Set the background color of the circleAvatar
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(color: Colors.black),
+                    leading: Tooltip(
+                      message: index == 0 // First club
+                          ? level == 1
+                              ? 'Plays International League'
+                              : 'Plays First Barrage Games'
+                          : index == 1 // Second club
+                              ? level == 1
+                                  ? 'Plays Second International League'
+                                  : 'Plays Second Barrage Game against 3rd of the opposite league'
+                              : index == 2 // Third club
+                                  ? level == 1
+                                      ? 'Plays Third International League'
+                                      : 'Plays Second Barrage Game against 2nd of the opposite league'
+                                  : index == 3 // Fourth club
+                                      ? 'Plays Against Winner of Second Barrage Games of lower leagues'
+                                      : index == 4 // Fifth club
+                                          ? 'Plays Against Loser of First Barrage Games of lower leagues'
+                                          : index == 5 // Sixth  and last club
+                                              ? 'Plays Against Winner of First Barrage Games of lower leagues'
+                                              : 'Plays Against Winner of First Barrage Games of lower leagues',
+                      child: CircleAvatar(
+                        backgroundColor: index == 0
+                            ? Colors.yellow
+                            : index == 1
+                                ? Colors.grey
+                                : index == 2
+                                    ? Colors.amber
+                                    : Colors
+                                        .blue, // Set the background color of the circleAvatar
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
                     ),
                     title: Row(
@@ -167,14 +188,21 @@ extension LeagueMainTab on League {
                         ),
                       ],
                     ),
-                    onTap: () {
+                    onTap: () async {
+                      /// If the page must return a CLub, return the clicked club
                       if (isReturningBotClub) {
-                        Navigator.pop(context, club.id);
-                      } else
-                        Navigator.push(
-                          context,
-                          ClubPage.route(club.id),
-                        );
+                        if (await context.showConfirmationDialog(
+                                'Are you sure you want to select this club ?') ==
+                            true) {
+                          Navigator.pop(context, club);
+                          return;
+                        }
+                      }
+                      // else
+                      //   Navigator.push(
+                      //     context,
+                      //     ClubPage.route(club.id),
+                      //   );
                     },
                     trailing: CircleAvatar(
                       backgroundColor: Colors.grey,
@@ -267,7 +295,7 @@ extension LeagueMainTab on League {
                           final response = await supabase
                               .from('leagues')
                               .select('id')
-                              .eq('multiverse_speed', multiverseSpeed)
+                              .eq('id_multiverse', idMultiverse)
                               .eq('season_number', seasonNumber)
                               .eq('continent', continent)
                               .eq('level', level)
@@ -388,7 +416,7 @@ extension LeagueMainTab on League {
                           final response = await supabase
                               .from('leagues')
                               .select('id')
-                              .eq('multiverse_speed', multiverseSpeed)
+                              .eq('id_multiverse', idMultiverse)
                               .eq('season_number', seasonNumber)
                               .eq('continent', continent)
                               .eq('level', level)

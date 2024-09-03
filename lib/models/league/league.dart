@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/club_page.dart';
 import 'package:rxdart/rxdart.dart';
@@ -25,7 +26,7 @@ class League {
 
   League({
     required this.id,
-    required this.multiverseSpeed,
+    required this.idMultiverse,
     required this.seasonNumber,
     required this.continent,
     required this.level,
@@ -35,7 +36,7 @@ class League {
   });
 
   final int id;
-  final int multiverseSpeed;
+  final int idMultiverse;
   final int seasonNumber;
   final String continent;
   final int level;
@@ -46,7 +47,7 @@ class League {
   League.fromMap(Map<String, dynamic> map,
       {this.idSelectedClub}) // Add idSelectedClub as an optional parameter
       : id = map['id'],
-        multiverseSpeed = map['multiverse_speed'],
+        idMultiverse = map['id_multiverse'],
         seasonNumber = map['season_number'],
         continent = map['continent'],
         level = map['level'],

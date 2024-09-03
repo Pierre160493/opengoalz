@@ -111,8 +111,6 @@ Future<void> _assignClub(BuildContext context) async {
         // .order('random()')
         .limit(1)
         .select();
-    print('data here');
-    print(data);
 
     // Fetch the id of the league
     idRandomLeague = data[0]['id'] as int;
@@ -123,12 +121,6 @@ Future<void> _assignClub(BuildContext context) async {
     context.showSnackBarError('ERROR: $error');
     return;
   }
-
-  print('Selected country: Name= ${selectedCountry.name}');
-  print('Selected country: Continents= ${selectedCountry.continents}');
-  print(
-      'Selected country: SelectedContinent= ${selectedCountry.selectedContinent}');
-  print('idRandomLeague= ' + idRandomLeague.toString());
   // Show the League Page to pick a bot club
   Club? selectedClub = await Navigator.push<Club?>(
     context,
@@ -143,7 +135,9 @@ Future<void> _assignClub(BuildContext context) async {
 
   // // Update the club in the database
   bool isOK = await operationInDB(context, 'UPDATE', 'clubs', data: {
-    'username': Provider.of<SessionProvider>(context).user!.username,
+    'username':
+        Provider.of<SessionProvider>(context, listen: false).user!.username,
+    'id_country': selectedCountry.id,
   }, matchCriteria: {
     'id': selectedClub.id,
   });

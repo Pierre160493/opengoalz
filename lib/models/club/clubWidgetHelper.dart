@@ -26,7 +26,12 @@ extension ClubWidgetHelper on Club {
       maxLines: 1,
       softWrap: false,
     );
-    Icon icon = Icon(isSelected ? icon_home : Icons.sports_soccer_outlined);
+    // Icon icon = Icon(isSelected ? icon_home : Icons.sports_soccer_outlined);
+    Icon icon = Icon(isSelected
+        ? icon_home
+        : userName == null
+            ? iconBot
+            : Icons.sports_soccer_outlined);
 
     return Row(
       children: [

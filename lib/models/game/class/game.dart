@@ -28,7 +28,7 @@ class Game {
     required this.isLeague,
     required this.isFriendly,
     required this.idLeague,
-    required this.multiverseSpeed,
+    required this.idMultiverse,
     required this.seasonNumber,
     required this.isRelegation,
     required this.posLeftClub,
@@ -58,7 +58,7 @@ class Game {
   final bool isLeague;
   final bool isFriendly;
   final int? idLeague;
-  final int multiverseSpeed;
+  final int idMultiverse;
   final int seasonNumber;
   final bool isRelegation;
   final int? posLeftClub;
@@ -100,7 +100,7 @@ class Game {
       isLeague: map['is_league'] ?? false,
       isFriendly: map['is_friendly'] ?? false,
       idLeague: map['id_league'],
-      multiverseSpeed: map['multiverse_speed'],
+      idMultiverse: map['id_multiverse'],
       seasonNumber: map['season_number'],
       isRelegation: map['is_relegation'] ?? false,
       posLeftClub: map['pos_club_left'],
