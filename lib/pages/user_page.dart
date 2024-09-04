@@ -16,6 +16,7 @@ import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:opengoalz/widgets/userListOfClubsWidget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:opengoalz/widgets/userListOfPlayersWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -209,7 +210,7 @@ class _UserPageState extends State<UserPage> {
               child: TabBarView(
                 children: [
                   clubListWidget(context, user),
-                  _playerListWidget(context, user),
+                  playerListWidget(context, user),
                   Column(
                     children: [
                       const SizedBox(height: 12),
@@ -227,40 +228,57 @@ class _UserPageState extends State<UserPage> {
     );
   }
 
-  Widget _playerListWidget(BuildContext context, Profile user) {
-    if (user.players.isEmpty) {
-      return const Center(child: Text('No players found'));
-    }
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        Expanded(
-          child: ListView.builder(
-            itemCount: user.players.length,
-            itemBuilder: (context, index) {
-              final Player player = user.players[index];
-              return InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PlayersPage(
-                        inputCriteria: {
-                          'Players': [player.id]
-                        },
-                      ),
-                    ),
-                  );
-                },
-                child: PlayerCard(
-                    player: player,
-                    index: user.players.length == 1 ? 0 : index + 1,
-                    isExpanded: user.players.length == 1 ? true : false),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _playerListWidget(BuildContext context, Profile user) {
+  //   if (user.players.isEmpty) {
+  //     return ListTile(
+  //     leading: const Icon(Icons.cancel, color: Colors.red),
+  //     title: const Text('You dont have any club yet'),
+  //     subtitle: const Text(
+  //         'Create a club to start your aventure and show your skills !',
+  //         style:
+  //             TextStyle(color: Colors.blueGrey, fontStyle: FontStyle.italic)),
+  //     trailing: IconButton(
+  //       tooltip: 'Get a club',
+  //       icon: const Icon(
+  //         Icons.add,
+  //         color: Colors.green,
+  //       ),
+  //       onPressed: () {
+  //         _assignPlayer(context);
+  //       },
+  //     ),
+  //   );
+  //   }
+  //   return Column(
+  //     children: [
+  //       const SizedBox(height: 12),
+  //       Expanded(
+  //         child: ListView.builder(
+  //           itemCount: user.players.length,
+  //           itemBuilder: (context, index) {
+  //             final Player player = user.players[index];
+  //             return InkWell(
+  //               onTap: () {
+  //                 Navigator.push(
+  //                   context,
+  //                   MaterialPageRoute(
+  //                     builder: (context) => PlayersPage(
+  //                       inputCriteria: {
+  //                         'Players': [player.id]
+  //                       },
+  //                     ),
+  //                   ),
+  //                 );
+  //               },
+  //               child: PlayerCard(
+  //                   player: player,
+  //                   index: user.players.length == 1 ? 0 : index + 1,
+  //                   isExpanded: user.players.length == 1 ? true : false),
+  //             );
+  //           },
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 }
