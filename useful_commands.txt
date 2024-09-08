@@ -1,3 +1,5 @@
 flutter run -d windows
 
 flutter pub get
+
+.\pg_dump_schema.ps1 
