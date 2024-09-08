@@ -3,14 +3,12 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/player_card.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/pages/mails_page.dart';
 import 'package:opengoalz/pages/settings_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
-import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
@@ -92,6 +90,10 @@ class _UserPageState extends State<UserPage> {
       return Consumer<SessionProvider>(
         builder: (context, sessionProvider, child) {
           Profile? user = sessionProvider.user;
+          print('User: $user');
+          if (user == null) {
+            print('User is null: $user');
+          }
           return _buildUserWidget(user);
         },
       );

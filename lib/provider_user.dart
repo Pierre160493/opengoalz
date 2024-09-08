@@ -19,14 +19,16 @@ class SessionProvider extends ChangeNotifier {
   /// Set the selected club of the user
   void providerSetSelectedClub(int idClub) {
     Club? selectedClub;
+    print('Before Club Loop: user!.clubs');
     for (Club club in user!.clubs) {
+      print('First Club Loop');
       if (club.id == idClub) {
         selectedClub = club;
         break;
       }
     }
     if (selectedClub == null) {
-      throw Exception('Club not found');
+      // throw Exception('Club not found');
     } else {
       user!.selectedClub = selectedClub;
     }
@@ -49,6 +51,7 @@ class SessionProvider extends ChangeNotifier {
           .stream(primaryKey: ['id'])
           .eq(key, value)
           .map((maps) {
+            print('Before User');
             // If the user is not found, throw an exception
             if (maps.isEmpty) {
               handleFatalError(context,
@@ -62,6 +65,7 @@ class SessionProvider extends ChangeNotifier {
                 .first;
           })
           .switchMap((Profile user) {
+            print('Before Clubs');
             return supabase
                 .from('clubs')
                 .stream(primaryKey: ['id'])
@@ -69,15 +73,15 @@ class SessionProvider extends ChangeNotifier {
                 .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
                 .map((List<Club> clubs) {
                   user.clubs = clubs;
-                  if (user.idDefaultClub != null) {
-                    providerSetSelectedClub(user.idDefaultClub!);
-                    // } else {
-                    //   user.selectedClub = user.clubs.first;
-                  }
+                  // if (user.idDefaultClub != null) {
+                  //   providerSetSelectedClub(user.idDefaultClub!);
+                  // }
+                  print('After Clubs');
                   return user;
                 });
           })
           .switchMap((Profile user) {
+            print('Before User2');
             return supabase
                 .from('players')
                 .stream(primaryKey: ['id'])
@@ -100,12 +104,6 @@ class SessionProvider extends ChangeNotifier {
         completer.completeError(error);
       }
     }
-    print('User fetched');
-    print('User fetched');
-    print('User fetched');
-    print('User fetched');
-    print('User fetched');
-    print('User fetched');
 
     return completer.future;
   }

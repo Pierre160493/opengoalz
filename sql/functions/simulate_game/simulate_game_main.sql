@@ -184,6 +184,10 @@ BEGIN
 
                 ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
                 loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
+--IF game.id = 1 THEN
+--RAISE NOTICE 'loc_minute_game= %', loc_minute_game;
+--RAISE NOTICE 'loc_array_team_weights_left= %', loc_array_team_weights_left;
+--END IF;
                 loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
 
                 -- Probability of left team opportunity
@@ -226,7 +230,7 @@ BEGIN
                     SELECT * INTO loc_rec_tmp_event FROM game_events WHERE id = loc_id_event;
 
                     -- Update the score
-                    IF loc_rec_tmp_event.id_event_type = 1 THEN -- Goal
+                    IF loc_rec_tmp_event.event_type = 'goal' THEN -- Goal
                         IF loc_rec_tmp_event.id_club = game.id_club_left THEN
                             loc_score_left := loc_score_left + 1;
                         ELSE
@@ -302,9 +306,9 @@ BEGIN
             WHERE id = game.id_club_right;
 
         -- Insert messages
-        INSERT INTO messages_mail (id_club, title, message) VALUES
-            (game.id_club_left, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right),
-            (game.id_club_right, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+        INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
+            (game.id_club_left, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach'),
+            (game.id_club_right, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach');
 
     -- Right team wins
     ELSEIF loc_score_left < loc_score_right THEN
@@ -316,9 +320,9 @@ BEGIN
             WHERE id = game.id_club_right;
 
         -- Insert messages
-        INSERT INTO messages_mail (id_club, title, message) VALUES
-            (game.id_club_left, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right),
-            (game.id_club_right, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+        INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
+            (game.id_club_left, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach'),
+            (game.id_club_right, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach');
 
     -- Draw
     ELSE
@@ -327,9 +331,9 @@ BEGIN
             WHERE id IN (game.id_club_left, game.id_club_right);
 
         -- Insert messages
-        INSERT INTO messages_mail (id_club, title, message) VALUES
-            (game.id_club_left, 'Draw for game in week' || game.week_number, 'We drew the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right),
-            (game.id_club_right, 'Draw for game in week ' || game.week_number, 'We drew the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right);
+        INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
+            (game.id_club_left, 'Draw for game in week' || game.week_number, 'We drew the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach'),
+            (game.id_club_right, 'Draw for game in week ' || game.week_number, 'We drew the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach');
 
     END IF;
 
