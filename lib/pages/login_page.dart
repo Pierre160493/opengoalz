@@ -26,7 +26,8 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   final _inputController = TextEditingController();
-  final _passwordController = TextEditingController(text: 'defaultPassword');
+  // final _passwordController = TextEditingController(text: 'defaultPassword');
+  final _passwordController = TextEditingController();
 
   @override
   void initState() {

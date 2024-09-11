@@ -27,11 +27,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController(text: 'opengoalz@pm.com');
-  final _usernameController = TextEditingController(text: 'testAccount');
-  final _passwordController = TextEditingController(text: 'defaultPassword');
-  final _confirmPasswordController =
-      TextEditingController(text: 'defaultPassword');
+  // final _emailController = TextEditingController(text: 'opengoalz@pm.com');
+  // final _usernameController = TextEditingController(text: 'testAccount');
+  // final _passwordController = TextEditingController(text: 'defaultPassword');
+  // final _confirmPasswordController =
+  //     TextEditingController(text: 'defaultPassword');
+  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void initState() {

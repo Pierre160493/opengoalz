@@ -12,9 +12,8 @@ import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
-import 'package:opengoalz/widgets/userListOfClubsWidget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
-import 'package:opengoalz/widgets/userListOfPlayersWidget.dart';
+import 'package:opengoalz/widgets/userPageListOfClubsAndPlayers.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -212,10 +211,26 @@ class _UserPageState extends State<UserPage> {
                   playerListWidget(context, user),
                   Column(
                     children: [
-                      const SizedBox(height: 12),
-                      Text('Username: ${user.username}'),
-                      Text(
-                          'Since: ${DateFormat.yMMMMd('en_US').format(user.createdAt)}'),
+                      formSpacer6,
+                      ListTile(
+                        leading: Icon(
+                          Icons.person,
+                          size: iconSizeMedium,
+                        ),
+                        title: Text('Username: ${user.username}'),
+                        subtitle: Row(
+                          children: [
+                            Icon(Icons.timer),
+                            Text(
+                              'Since: ${DateFormat.yMMMMd('en_US').format(user.createdAt)}',
+                              style: TextStyle(
+                                color: Colors.blueGrey,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ],
