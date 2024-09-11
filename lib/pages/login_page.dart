@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:provider/provider.dart';
 import 'user_page.dart';
 import 'register_page.dart';
 import '../constants.dart';
@@ -8,11 +10,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({Key? key, this.username}) : super(key: key);
 
-  static Route<void> route() {
-    return MaterialPageRoute(builder: (context) => const LoginPage());
+  static Route<void> route({String? username}) {
+    return MaterialPageRoute(
+        builder: (context) => LoginPage(username: username));
   }
+
+  final String? username;
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -21,12 +26,18 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   final _inputController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _passwordController = TextEditingController(text: 'defaultPassword');
 
   @override
   void initState() {
     super.initState();
-    _loadSavedEmailOrUsername();
+    if (widget.username != null) {
+      // If username is passed as argument, prewrite it
+      _inputController.text = widget.username!;
+    } else {
+      // Otherwise we check if there is a saved email or username in the shared preferences
+      _loadSavedEmailOrUsername();
+    }
   }
 
   Future<void> _loadSavedEmailOrUsername() async {
@@ -95,6 +106,12 @@ class _LoginPageState extends State<LoginPage> {
       // Save the email or username to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('emailOrUsername', _inputController.text);
+
+      // Fetch user data and initialize SessionProvider
+      final sessionProvider =
+          Provider.of<SessionProvider>(context, listen: false);
+      await sessionProvider.providerFetchUser(context,
+          userId: supabase.auth.currentUser!.id);
 
       Navigator.of(context)
           .pushAndRemoveUntil(UserPage.route(), (route) => false);
@@ -170,21 +187,44 @@ class _LoginPageState extends State<LoginPage> {
               },
             ),
             formSpacer6,
-            ElevatedButton(
-              onPressed: _isLoading ? null : _signIn,
-              child: const Text('Login'),
-            ),
+            if (_isLoading) const LinearProgressIndicator(),
+            if (!_isLoading)
+              ElevatedButton(
+                onPressed: _isLoading ? null : _signIn,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.login),
+                    formSpacer6,
+                    const Text('Login'),
+                  ],
+                ),
+              ),
             formSpacer6,
             TextButton(
               onPressed: () {
                 Navigator.of(context).push(RegisterPage.route());
               },
-              child: const Text('I don\'t have an account'),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.person_add),
+                  formSpacer6,
+                  const Text('I don\'t have an account'),
+                ],
+              ),
             ),
             formSpacer6,
             TextButton(
               onPressed: _resetPassword,
-              child: const Text('Forgot Password?'),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.lock_open),
+                  formSpacer6,
+                  const Text('Forgot Password ?'),
+                ],
+              ),
             ),
           ],
         ),

@@ -91,9 +91,6 @@ class _UserPageState extends State<UserPage> {
         builder: (context, sessionProvider, child) {
           Profile? user = sessionProvider.user;
           print('User: $user');
-          if (user == null) {
-            print('User is null: $user');
-          }
           return _buildUserWidget(user);
         },
       );

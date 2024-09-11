@@ -45,6 +45,7 @@ Widget playerListWidget(BuildContext context, Profile user) {
             final Player player = user.players[index];
             return InkWell(
               onTap: () {
+                print('Player tapped');
                 Navigator.push(
                   context,
                   MaterialPageRoute(

@@ -3,7 +3,6 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'user_page.dart';
 import 'login_page.dart';
 import '../constants.dart';
 
@@ -23,15 +22,16 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final bool _isLoading = false;
+  bool _isLoading = false;
   bool _passwordsMatch = false;
 
   final _formKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController(text: 'opengoalz@pm.com');
+  final _usernameController = TextEditingController(text: 'testAccount');
+  final _passwordController = TextEditingController(text: 'defaultPassword');
+  final _confirmPasswordController =
+      TextEditingController(text: 'defaultPassword');
 
   @override
   void initState() {
@@ -48,8 +48,18 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _signUp() async {
+    // context.showSnackBar(
+    //   'Creating account, please wait a few seconds...',
+    //   icon: Icon(Icons.hourglass_top),
+    // );
+    setState(() {
+      _isLoading = true;
+    });
     final isValid = _formKey.currentState!.validate();
     if (!isValid) {
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
     final email = _emailController.text;
@@ -63,13 +73,16 @@ class _RegisterPageState extends State<RegisterPage> {
       context.showSnackBarSuccess(
           'Please check your email to verify your account and start playing !');
       // Navigate back to the login page
-      Navigator.of(context)
-          .pushAndRemoveUntil(LoginPage.route(), (route) => false);
+      Navigator.of(context).pushAndRemoveUntil(
+          LoginPage.route(username: username), (route) => false);
     } on AuthException catch (error) {
       context.showSnackBarError(error.message);
     } catch (error) {
       context.showSnackBarError(error.toString());
     }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -109,6 +122,23 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               formSpacer6,
               TextFormField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  label: Text('Username'),
+                ),
+                validator: (val) {
+                  if (val == null || val.isEmpty) {
+                    return 'Required';
+                  }
+                  final isValid = RegExp(r'^[A-Za-z0-9_]{3,24}$').hasMatch(val);
+                  if (!isValid) {
+                    return '3-24 long with alphanumeric or underscore';
+                  }
+                  return null;
+                },
+              ),
+              formSpacer6,
+              TextFormField(
                 controller: _passwordController,
                 obscureText: true,
                 decoration: const InputDecoration(
@@ -144,35 +174,56 @@ class _RegisterPageState extends State<RegisterPage> {
                   }
                   return null;
                 },
-              ),
-              formSpacer6,
-              TextFormField(
-                controller: _usernameController,
-                decoration: const InputDecoration(
-                  label: Text('Username'),
-                ),
-                validator: (val) {
-                  if (val == null || val.isEmpty) {
-                    return 'Required';
+                onFieldSubmitted: (value) {
+                  if (!_isLoading) {
+                    _signUp();
                   }
-                  final isValid = RegExp(r'^[A-Za-z0-9_]{3,24}$').hasMatch(val);
-                  if (!isValid) {
-                    return '3-24 long with alphanumeric or underscore';
-                  }
-                  return null;
                 },
               ),
               formSpacer6,
-              ElevatedButton(
-                onPressed: _isLoading ? null : _signUp,
-                child: const Text('Register'),
-              ),
+              if (_isLoading)
+                ElevatedButton(
+                  onPressed: null,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // const SizedBox(
+                      //   width: 24,
+                      //   height: 24,
+                      //   child: CircularProgressIndicator(),
+                      // ),
+                      CircularProgressIndicator(),
+                      formSpacer6,
+                      const Text(
+                          'Creating account, please wait a few seconds...'),
+                    ],
+                  ),
+                ),
+              if (!_isLoading)
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _signUp,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.login),
+                      formSpacer6,
+                      const Text('Register'),
+                    ],
+                  ),
+                ),
               formSpacer6,
               TextButton(
                 onPressed: () {
                   Navigator.of(context).push(LoginPage.route());
                 },
-                child: const Text('I already have an account'),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.arrow_back_rounded),
+                    formSpacer6,
+                    const Text('I already have an account'),
+                  ],
+                ),
               )
             ],
           ),

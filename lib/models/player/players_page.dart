@@ -39,6 +39,8 @@ class _PlayersPageState extends State<PlayersPage> {
   void initState() {
     super.initState();
 
+    print('Before Stream');
+    print(widget.inputCriteria);
     // Stream to fetch players
     if (widget.inputCriteria.containsKey('Clubs')) {
       _playerStream = supabase
@@ -54,6 +56,7 @@ class _PlayersPageState extends State<PlayersPage> {
           .inFilter('id', widget.inputCriteria['Players']!)
           .order('date_birth', ascending: true)
           .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
+      print('After Stream players');
     } else if (widget.inputCriteria.containsKey('Countries')) {
       throw ArgumentError('Not implemented yet');
     } else {
@@ -62,21 +65,38 @@ class _PlayersPageState extends State<PlayersPage> {
 
     // Stream to fetch clubs from the list of clubs in the players list
     _clubStream = _playerStream.switchMap((players) {
-      final clubIds = players.map((player) => player.idClub).toSet().toList();
+      // final clubIds = players.map((player) => player.idClub).toSet().toList();
+      final clubIds = players
+          .map((player) => player.idClub)
+          .where((id) => id != null)
+          .toSet()
+          .toList();
+
+      if (clubIds.isEmpty) {
+        print('Empty Club Stream');
+        return Stream.value([]);
+      }
+
       return supabase
           .from('clubs')
           .stream(primaryKey: ['id'])
           .inFilter('id', clubIds.cast<Object>())
-          .map((maps) => maps.map((map) => Club.fromMap(map)).toList());
+          .map((maps) => maps
+              .map((map) => Club.fromMap(map))
+              .toList()); // Handle empty stream
     });
     // Combine player and club streams
-    _playerStream =
-        _playerStream.switchMap((players) => _clubStream.map((clubs) {
-              for (var player in players) {
+    _playerStream = _playerStream
+        .switchMap((players) => _clubStream.map((List<Club> clubs) {
+              print('Before Player Stream');
+              print('Clubs: $clubs');
+              for (var player
+                  in players.where((player) => player.idClub != null)) {
                 final clubData =
-                    clubs.firstWhere((club) => club.id == player.idClub);
+                    clubs.firstWhere((Club club) => club.id == player.idClub);
                 player.club = clubData;
               }
+              print('After Player Stream');
               return players;
             }));
 
