@@ -157,14 +157,12 @@ class _PlayersPageState extends State<PlayersPage> {
                       // Navigate to previous page
                       goBackIconButton(context),
                       // Search for a player
-                      Tooltip(
-                        message: 'Search for a player',
-                        child: IconButton(
-                          onPressed: () {
-                            // Add your action here
-                          },
-                          icon: Icon(Icons.search),
-                        ),
+                      IconButton(
+                        tooltip: 'Search for a player',
+                        onPressed: () {
+                          // Add your action here
+                        },
+                        icon: Icon(Icons.search),
                       ),
                       // Open the order and filter drawer
                       // filterAndOrderPlayersButton(players),

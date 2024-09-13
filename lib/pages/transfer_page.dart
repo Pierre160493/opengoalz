@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/searchTransferDialogBox.dart';
 import 'package:provider/provider.dart';
 
 import '../constants.dart';
@@ -68,11 +70,6 @@ class _TransferPageState extends State<TransferPage>
             );
           } else {
             final List<Player> players = snapshot.data ?? [];
-            // if (players.isEmpty) {
-            //   return const Center(
-            //     child: Text('ERROR: No players found'),
-            //   );
-            // } else {
             final List<Player> playersSell = players.where((player) {
               return player.idClub == widget.idClub;
             }).toList();
@@ -88,61 +85,42 @@ class _TransferPageState extends State<TransferPage>
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  // bottom: TabBar(
-                  //   controller: _tabController,
-                  //   tabs: [
-                  //     Tab(text: 'Sell (${playersSell.length})'),
-                  //     Tab(text: 'Buy (${playersBuy.length})'),
-                  //   ],
-                  // ),
+                  actions: [
+                    IconButton(
+                      tooltip: 'Search for a player',
+                      onPressed: () {
+                        // _showSearchPlayerDialog(context);
+                        // AssignPlayerOrClubDialog();
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AssignPlayerOrClubDialog();
+                          },
+                        );
+                      },
+                      icon: Icon(Icons.search),
+                    ),
+                  ],
                 ),
                 drawer: AppDrawer(),
                 body: MaxWidthContainer(
                   child: Column(
                     children: [
-                      RichText(
-                        text: TextSpan(
-                          text: 'Cash: ',
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: Provider.of<SessionProvider>(context)
-                                  .user!.selectedClub!
-                                  .lisCash.last
-                                  .toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Provider.of<SessionProvider>(context)
-                                            .user!.selectedClub!
-                                            .lisCash.last >
-                                        0
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      RichText(
-                        text: TextSpan(
-                          text: 'Available cash: ',
-                          style: const TextStyle(fontSize: 18),
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: Provider.of<SessionProvider>(context)
-                                  .user!.selectedClub!
-                                  .lisCash.last
-                                  .toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Provider.of<SessionProvider>(context)
-                                            .user!.selectedClub!
-                                            .lisCash.last >
-                                        0
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
-                            ),
-                          ],
+                      ListTile(
+                        leading: Icon(iconMoney, color: Colors.green),
+                        title: Text(NumberFormat.decimalPattern().format(
+                          Provider.of<SessionProvider>(context)
+                              .user!
+                              .selectedClub!
+                              .lisCash
+                              .last,
+                        )),
+                        subtitle: Text(
+                          'Available cash',
+                          style: TextStyle(
+                            color: Colors.blueGrey,
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                       ),
                       TabBar(
@@ -224,6 +202,56 @@ class _TransferPageState extends State<TransferPage>
           ),
         )
       ],
+    );
+  }
+
+  void _showSearchPlayerDialog(BuildContext context) {
+    double selectedAge = 15.0;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Search Players'),
+          content: Column(
+            children: [
+              Text('This is where the search functionality will go.'),
+              Slider(
+                value: selectedAge,
+                min: 15.0,
+                max: 35.0,
+                divisions: 200,
+                label: selectedAge.toStringAsFixed(1),
+                onChanged: (double value) {
+                  setState(() {
+                    selectedAge = value;
+                  });
+                },
+              ),
+              Text(
+                'Selected Age: ${selectedAge.toStringAsFixed(1)}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Search'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
