@@ -109,7 +109,12 @@ class _CountriesPageState extends State<CountriesPage> {
             };
           })();
 
-          _selectedContinent ??= countriesByContinent.keys.first;
+          // Check if _selectedContinent is in countriesByContinent.keys
+          if (_selectedContinent == null ||
+              !countriesByContinent.keys.contains(_selectedContinent)) {
+            _selectedContinent = countriesByContinent.keys.first;
+          }
+          print('Selected continent: $_selectedContinent');
 
           return Scaffold(
             appBar: AppBar(

@@ -24,11 +24,12 @@ class SessionProvider extends ChangeNotifier {
       print('First Club Loop');
       if (club.id == idClub) {
         selectedClub = club;
+        print('Selected Club Set: ${selectedClub.id}: ${selectedClub.name}');
         break;
       }
     }
     if (selectedClub == null) {
-      // throw Exception('Club not found');
+      throw Exception('Club not found');
     } else {
       user!.selectedClub = selectedClub;
     }

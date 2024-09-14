@@ -18,32 +18,6 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Widget clubListWidget(BuildContext context, Profile user) {
-  // If user has no club, show the ListTile with possibility of creating a club
-  if (user.clubs.isEmpty) {
-    return ListTile(
-      leading: const Icon(Icons.cancel, color: Colors.red),
-      title: const Text('You dont have any club yet'),
-      subtitle: const Text(
-          'Create a club to start your aventure and show your skills !',
-          style:
-              TextStyle(color: Colors.blueGrey, fontStyle: FontStyle.italic)),
-      trailing: IconButton(
-        tooltip: 'Get a club',
-        icon: const Icon(
-          Icons.add,
-          color: Colors.green,
-        ),
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AssignPlayerOrClubDialog(isClub: true);
-            },
-          );
-        },
-      ),
-    );
-  }
   return Column(
     children: [
       formSpacer6,
@@ -56,8 +30,9 @@ Widget clubListWidget(BuildContext context, Profile user) {
         ],
       ),
       formSpacer6,
-      Expanded(
+      Flexible(
         child: ListView.builder(
+          shrinkWrap: true,
           itemCount: user.clubs.length,
           itemBuilder: (context, index) {
             final Club club = user.clubs[index];
@@ -65,41 +40,45 @@ Widget clubListWidget(BuildContext context, Profile user) {
           },
         ),
       ),
+      if (user.numberClubsAvailable > user.clubs.length)
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(24), // Adjust border radius as needed
+            side: const BorderSide(
+              color: Colors.blueGrey, // Border color
+            ),
+          ),
+          leading: const Icon(Icons.add_home_work, color: Colors.green),
+          title: Text(user.clubs.length == 0
+              ? 'You dont have any club yet'
+              : 'Get an additional club'),
+          subtitle: Text(
+              user.clubs.length == 0
+                  ? 'Create a club to start your aventure and show your skills !'
+                  : 'Get an additional club to show your skills',
+              style: TextStyle(
+                  color: Colors.blueGrey, fontStyle: FontStyle.italic)),
+          onTap: () => showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AssignPlayerOrClubDialog(isClub: true);
+            },
+          ),
+        ),
     ],
   );
 }
 
 Widget playerListWidget(BuildContext context, Profile user) {
   // If user has no club, show the ListTile with possibility of creating a club
-  if (user.players.isEmpty) {
-    return ListTile(
-      leading: const Icon(Icons.cancel, color: Colors.red),
-      title: const Text('You dont have any players yet'),
-      subtitle: const Text('Create a player to start his career !',
-          style:
-              TextStyle(color: Colors.blueGrey, fontStyle: FontStyle.italic)),
-      trailing: IconButton(
-        tooltip: 'Get a player',
-        icon: const Icon(
-          Icons.add,
-          color: Colors.green,
-        ),
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AssignPlayerOrClubDialog(isClub: false);
-            },
-          );
-        },
-      ),
-    );
-  }
+
   return Column(
     children: [
       const SizedBox(height: 12),
-      Expanded(
+      Flexible(
         child: ListView.builder(
+          shrinkWrap: true,
           itemCount: user.players.length,
           itemBuilder: (context, index) {
             final Player player = user.players[index];
@@ -125,6 +104,33 @@ Widget playerListWidget(BuildContext context, Profile user) {
           },
         ),
       ),
+      if (user.numberPlayersAvailable > user.players.length)
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(24), // Adjust border radius as needed
+            side: const BorderSide(
+              color: Colors.blueGrey, // Border color
+            ),
+          ),
+          leading: Icon(
+              user.players.length > 1
+                  ? Icons.person_add_alt_1
+                  : Icons.group_add,
+              color: Colors.green),
+          title: Text(user.players.length == 0
+              ? 'You dont have any players yet'
+              : 'Get an additional player'),
+          subtitle: const Text('Create a player and start his amazing career !',
+              style: TextStyle(
+                  color: Colors.blueGrey, fontStyle: FontStyle.italic)),
+          onTap: () => showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AssignPlayerOrClubDialog(isClub: false);
+            },
+          ),
+        ),
     ],
   );
 }
@@ -389,7 +395,29 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
               }, matchCriteria: {
                 'id': selectedClub!.id,
               });
+              print('isOK: $isOK');
+              // if (isOK) {
+              //   print('Club updated');
+              //   Provider.of<SessionProvider>(context, listen: false)
+              //       .providerSetSelectedClub(selectedClub!.id);
+              //   print('Club updated');
+              //   context.showSnackBarSuccess(
+              //       'You are now the happy owner of a new club in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
+              //   Navigator.of(context).pop();
+              // }
               if (isOK) {
+                print('Club updated, refreshing user data');
+
+                // Fetch updated user data after updating the club
+                await Provider.of<SessionProvider>(context, listen: false)
+                    .providerFetchUser(context,
+                        userId: supabase.auth.currentUser!.id);
+
+                print(' ===> final setting of selected club');
+                Provider.of<SessionProvider>(context, listen: false)
+                    .providerSetSelectedClub(selectedClub!.id);
+
+                print('***** FIN !!!');
                 context.showSnackBarSuccess(
                     'You are now the happy owner of a new club in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
                 Navigator.of(context).pop();

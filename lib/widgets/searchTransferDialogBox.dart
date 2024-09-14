@@ -9,12 +9,10 @@ import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/pages/countries_page.dart';
-import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AssignPlayerOrClubDialog extends StatefulWidget {
   AssignPlayerOrClubDialog();

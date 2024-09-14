@@ -17,12 +17,17 @@ BEGIN
         RAISE EXCEPTION 'You can not have an additional club assigned to you';
     END IF;
 
+    ------ Set default club if it's the only club
+    IF (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) = 0 THEN
+        UPDATE profiles SET id_default_club = NEW.id WHERE username = NEW.username;
+    END IF;
+
     ------ Check that it's the last level league of the continent
     IF (
         SELECT level FROM leagues WHERE id = NEW.id_league) <>
         (SELECT max(LEVEL) FROM leagues WHERE continent = NEW.continent AND id_multiverse = NEW.id_multiverse)
     THEN
-        RAISE EXCEPTION 'You can not assign a user to a league that is not of the last level';
+        --RAISE EXCEPTION 'You can not assign a user to a league that is not of the last level';
     END IF;
 
     -- Log history
@@ -40,6 +45,8 @@ BEGIN
   
     -- Release the players
     UPDATE players SET id_club = NULL WHERE id_club = NEW.id;
+
+
 
     -- Reset the default teamcomps of the club to NULL everywhere
     FOR teamcomp IN
@@ -65,7 +72,7 @@ BEGIN
         AND leagues.level = (
             SELECT MAX(level)
             FROM leagues
-            WHERE leagues.id_multiverse = clubs.id_multiverse
+            WHERE leagues.id_multiverse = NEW.id_multiverse
             )
         AND clubs.username IS NULL) = 0)
     THEN
@@ -73,7 +80,8 @@ BEGIN
         FOR league IN (
             SELECT * FROM leagues WHERE
                 id_multiverse = NEW.id_multiverse AND
-                id NOT IN (SELECT id_upper_league FROM leagues WHERE id_multiverse = multiverse.id
+                level > 0 AND
+                id NOT IN (SELECT id_upper_league FROM leagues WHERE id_multiverse = NEW.id_multiverse
                     AND id_upper_league IS NOT NULL))
         LOOP
             PERFORM leagues_create_lower_leagues(
@@ -81,7 +89,7 @@ BEGIN
         END LOOP;
 
         -- Reset the week number of the multiverse to simulate the games
-        UPDATE multiverses SET week_number = 1 WHERE id = multiverse.id;
+        UPDATE multiverses SET week_number = 1 WHERE id = NEW.id_multiverse;
 
         -- Handle the season by simulating the games
         PERFORM handle_season_main();

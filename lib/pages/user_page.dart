@@ -213,9 +213,15 @@ class _UserPageState extends State<UserPage> {
                     children: [
                       formSpacer6,
                       ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              24), // Adjust border radius as needed
+                          side: const BorderSide(
+                            color: Colors.blueGrey, // Border color
+                          ),
+                        ),
                         leading: Icon(
                           Icons.person,
-                          size: iconSizeMedium,
                         ),
                         title: Text('Username: ${user.username}'),
                         subtitle: Row(
@@ -230,6 +236,86 @@ class _UserPageState extends State<UserPage> {
                             ),
                           ],
                         ),
+                      ),
+
+                      /// Club tile
+                      ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              24), // Adjust border radius as needed
+                          side: BorderSide(
+                            color: user.numberClubsAvailable > user.clubs.length
+                                ? Colors.green
+                                : Colors.blueGrey, // Border color
+                          ),
+                        ),
+                        leading: Icon(
+                          icon_club,
+                        ),
+                        title: Text(
+                            'Number of Club${user.clubs.length > 1 ? 's' : ''}: ${user.clubs.length}/${user.numberClubsAvailable}'),
+                        subtitle: Text(
+                          'Number of clubs / number of available clubs',
+                          style: TextStyle(
+                            color: Colors.blueGrey,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        onTap: () {
+                          /// If the user has less clubs than the number of clubs available, show the dialog
+                          if (user.numberClubsAvailable > user.clubs.length) {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AssignPlayerOrClubDialog(isClub: true);
+                              },
+                            );
+                          } else {
+                            context.showSnackBarError(
+                                'You cannot have any additional club');
+                          }
+                        },
+                      ),
+
+                      /// Player tile
+                      ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              24), // Adjust border radius as needed
+                          side: BorderSide(
+                            color: user.numberPlayersAvailable >
+                                    user.players.length
+                                ? Colors.green
+                                : Colors.blueGrey, // Border color
+                          ),
+                        ),
+                        leading: Icon(
+                          icon_players,
+                        ),
+                        title: Text(
+                            'Number of Player${user.players.length > 1 ? 's' : ''}: ${user.players.length}/${user.numberPlayersAvailable}'),
+                        subtitle: Text(
+                          'Number of players / number of available players',
+                          style: TextStyle(
+                            color: Colors.blueGrey,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        onTap: () {
+                          /// If the user has less clubs than the number of clubs available, show the dialog
+                          if (user.numberPlayersAvailable >
+                              user.players.length) {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AssignPlayerOrClubDialog(isClub: false);
+                              },
+                            );
+                          } else {
+                            context.showSnackBarError(
+                                'You cannot have any additional player');
+                          }
+                        },
                       ),
                     ],
                   ),

@@ -118,12 +118,12 @@ class _MultiversePageState extends State<MultiversePage> {
                     ? FloatingActionButton(
                         tooltip: 'Select this multiverse',
                         onPressed: () async {
-                          if (await context.showConfirmationDialog(
-                                  'Are you sure you want to select the multiverse with speed ${_selectedMultiverse!.speed} ?') ==
-                              true) {
-                            /// CLose the page and return the selected multiverse
-                            Navigator.pop(context, _selectedMultiverse);
-                          }
+                          // if (await context.showConfirmationDialog(
+                          //         'Are you sure you want to select the multiverse with speed ${_selectedMultiverse!.speed} ?') ==
+                          //     true) {
+                          //   /// CLose the page and return the selected multiverse
+                          // }
+                          Navigator.pop(context, _selectedMultiverse);
                         },
                         child: Icon(Icons.check),
                       )
@@ -204,28 +204,28 @@ class _MultiversePageState extends State<MultiversePage> {
                                         color: Colors.blueGrey, // Border color
                                       ),
                                     ),
-                                    trailing:
-                                        widget.isReturningMultiverse == true
-                                            ? IconButton(
-                                                onPressed: () async {
-                                                  setState(() {
-                                                    _selectedMultiverse =
-                                                        multiverse;
-                                                  });
-                                                  if (await context
-                                                          .showConfirmationDialog(
-                                                              'Are you sure you want to select the multiverse with speed ${_selectedMultiverse!.speed} ?') ==
-                                                      true) {
-                                                    /// CLose the page and return the selected multiverse
-                                                    Navigator.pop(context,
-                                                        _selectedMultiverse);
-                                                  }
-                                                },
-                                                tooltip:
-                                                    'Select this multiverse for the club creation',
-                                                icon: Icon(Icons.reply),
-                                              )
-                                            : null,
+                                    trailing: widget.isReturningMultiverse ==
+                                            true
+                                        ? IconButton(
+                                            onPressed: () async {
+                                              setState(() {
+                                                _selectedMultiverse =
+                                                    multiverse;
+                                              });
+                                              // if (await context
+                                              //         .showConfirmationDialog(
+                                              //             'Are you sure you want to select the multiverse with speed ${_selectedMultiverse!.speed} ?') ==
+                                              //     true) {
+                                              //   /// CLose the page and return the selected multiverse
+                                              // }
+                                              Navigator.pop(
+                                                  context, _selectedMultiverse);
+                                            },
+                                            tooltip:
+                                                'Select this multiverse for the club creation',
+                                            icon: Icon(Icons.reply),
+                                          )
+                                        : null,
                                     hoverColor: Colors.brown,
                                     onTap: () {
                                       setState(() {
