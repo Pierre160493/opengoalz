@@ -11,20 +11,20 @@ class SessionProvider extends ChangeNotifier {
   Profile? user;
 
   /// Initialize the user
-  void providerInitUser(Profile user) {
-    this.user = user;
+  void providerInitUser(Profile userInput) {
+    user = userInput;
+    if (user!.idDefaultClub != null) {
+      providerSetSelectedClub(user!.idDefaultClub!);
+    }
     notifyListeners();
   }
 
   /// Set the selected club of the user
   void providerSetSelectedClub(int idClub) {
     Club? selectedClub;
-    print('Before Club Loop: user!.clubs');
     for (Club club in user!.clubs) {
-      print('First Club Loop');
       if (club.id == idClub) {
         selectedClub = club;
-        print('Selected Club Set: ${selectedClub.id}: ${selectedClub.name}');
         break;
       }
     }
@@ -74,9 +74,7 @@ class SessionProvider extends ChangeNotifier {
                 .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
                 .map((List<Club> clubs) {
                   user.clubs = clubs;
-                  // if (user.idDefaultClub != null) {
-                  //   providerSetSelectedClub(user.idDefaultClub!);
-                  // }
+
                   print('After Clubs');
                   return user;
                 });

@@ -24,16 +24,16 @@ class AssignPlayerOrClubDialog extends StatefulWidget {
 class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
   Multiverse? selectedMultiverse;
   Country? selectedCountry;
-  Club? selectedClub;
   final TextEditingController clubNameController = TextEditingController();
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController lastNameController = TextEditingController();
   final double minAge = 15.0;
   final double maxAge = 35.0;
   late double selectedMinAge;
   late double selectedMaxAge;
   DateTime? minDateBirth;
   DateTime? maxDateBirth;
+
+  // New state variables for stat selection
+  Map<String, RangeValues> selectedStats = {};
 
   @override
   void initState() {
@@ -118,8 +118,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                                 Icon(iconSuccessfulOperation,
                                     color: Colors.green),
                                 formSpacer3,
-                                Text(
-                                    'Multiverse: ${selectedMultiverse!.speed}'),
+                                Text('Multiverse: ${selectedMultiverse!.name}'),
                               ],
                             ),
                     ),
@@ -273,6 +272,78 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                         updateMaxAgeAndBirthDate(values.end, 0);
                       },
                     ),
+                    // New section for selecting player stats
+                    // New section for selecting player stats
+                    Column(
+                      children: [
+                        DropdownButton<String>(
+                          hint: Text('Select Stat Category'),
+                          items: [
+                            'keeper',
+                            'defense',
+                            'passes',
+                            'playmaking',
+                            'winger',
+                            'scoring',
+                            'freekick'
+                          ].map((String category) {
+                            return DropdownMenuItem<String>(
+                              value: category,
+                              child: Text(category),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            if (newValue != null &&
+                                !selectedStats.containsKey(newValue)) {
+                              setState(() {
+                                selectedStats[newValue] = RangeValues(0, 100);
+                              });
+                            }
+                          },
+                        ),
+                        ...selectedStats.entries.map((entry) {
+                          return Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                      '${entry.key.toUpperCase()} [${entry.value.start} - ${entry.value.end}]'),
+                                  IconButton(
+                                      tooltip:
+                                          'Remove the ${entry.key.toUpperCase()} criteria',
+                                      onPressed: () {
+                                        setState(() {
+                                          selectedStats.remove(entry.key);
+                                        });
+                                      },
+                                      icon: Icon(Icons.delete_forever,
+                                          color: Colors.red)),
+                                ],
+                              ),
+                              RangeSlider(
+                                values: entry.value,
+                                min: 0,
+                                max: 100,
+                                divisions: 1000,
+                                labels: RangeLabels(
+                                  entry.value.start.toString(),
+                                  entry.value.end.toString(),
+                                ),
+                                onChanged: (RangeValues values) {
+                                  setState(() {
+                                    selectedStats[entry.key] = RangeValues(
+                                        (values.start * 10).round() / 10,
+                                        (values.end * 10).round() / 10);
+                                  });
+                                },
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ],
+                    ),
                   ],
                 ),
               ],
@@ -323,22 +394,20 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
               }
 
               // Update the club in the database
-              bool isOK =
-                  await operationInDB(context, 'INSERT', 'players', data: {
-                'username': Provider.of<SessionProvider>(context, listen: false)
-                    .user!
-                    .username,
-                'id_country': selectedCountry!.id,
-                'id_multiverse': selectedMultiverse!.id,
-                'first_name': firstNameController.text,
-                'last_name': lastNameController.text,
-                'date_birth': minDateBirth!.toIso8601String(),
-              });
-              if (isOK) {
-                context.showSnackBarSuccess(
-                    'You now incarne a new player in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
-                Navigator.of(context).pop();
-              }
+              // bool isOK =
+              //     await operationInDB(context, 'INSERT', 'players', data: {
+              //   'username': Provider.of<SessionProvider>(context, listen: false)
+              //       .user!
+              //       .username,
+              //   'id_country': selectedCountry!.id,
+              //   'id_multiverse': selectedMultiverse!.id,
+              //   'date_birth': minDateBirth!.toIso8601String(),
+              // });
+              // if (isOK) {
+              //   context.showSnackBarSuccess(
+              //       'You now incarne a new player in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
+              //   Navigator.of(context).pop();
+              // }
             },
             child: Text('Search Players'),
           ),

@@ -195,7 +195,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                         Icon(iconSuccessfulOperation, color: Colors.green),
                         formSpacer3,
                         Text(
-                            'Selected Multiverse: ${selectedMultiverse!.speed}'),
+                            'Selected Multiverse: ${selectedMultiverse!.name}'),
                       ],
                     ),
             ),
@@ -396,28 +396,8 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                 'id': selectedClub!.id,
               });
               print('isOK: $isOK');
-              // if (isOK) {
-              //   print('Club updated');
-              //   Provider.of<SessionProvider>(context, listen: false)
-              //       .providerSetSelectedClub(selectedClub!.id);
-              //   print('Club updated');
-              //   context.showSnackBarSuccess(
-              //       'You are now the happy owner of a new club in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
-              //   Navigator.of(context).pop();
-              // }
+
               if (isOK) {
-                print('Club updated, refreshing user data');
-
-                // Fetch updated user data after updating the club
-                await Provider.of<SessionProvider>(context, listen: false)
-                    .providerFetchUser(context,
-                        userId: supabase.auth.currentUser!.id);
-
-                print(' ===> final setting of selected club');
-                Provider.of<SessionProvider>(context, listen: false)
-                    .providerSetSelectedClub(selectedClub!.id);
-
-                print('***** FIN !!!');
                 context.showSnackBarSuccess(
                     'You are now the happy owner of a new club in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
                 Navigator.of(context).pop();
@@ -445,7 +425,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                 return;
               }
 
-              // Update the club in the database
+              // Insert the player in the database
               bool isOK =
                   await operationInDB(context, 'INSERT', 'players', data: {
                 'username': Provider.of<SessionProvider>(context, listen: false)

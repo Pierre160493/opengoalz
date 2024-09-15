@@ -157,7 +157,7 @@ class _MultiversePageState extends State<MultiversePage> {
                                 Icon(iconSuccessfulOperation,
                                     color: Colors.green),
                                 formSpacer3,
-                                Text('Multiverse ${_selectedMultiverse!.speed}')
+                                Text(_selectedMultiverse!.name)
                               ]),
                             )
                     ],
@@ -191,8 +191,25 @@ class _MultiversePageState extends State<MultiversePage> {
                                     //   'Number of active clubs: ${NumberFormat('#,##0').format(multiverse.cashPrinted)}',
                                     //   style: italicBlueGreyTextStyle,
                                     // ),
-                                    title: Text(
-                                        '${multiverse.speed} Games per week'),
+                                    title: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Tooltip(
+                                          message: 'Name of the multiverse',
+                                          child: Text(
+                                            multiverse.name,
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                        Tooltip(
+                                          message: 'Number of games per weak',
+                                          child: Text(
+                                              'Speed: ${multiverse.speed}'),
+                                        )
+                                      ],
+                                    ),
                                     subtitle: Text(
                                         'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber}',
                                         style: italicBlueGreyTextStyle),
@@ -249,7 +266,7 @@ class _MultiversePageState extends State<MultiversePage> {
                                     TabBar(
                                       tabs: [
                                         buildTabWithIcon(iconAnnouncement,
-                                            'Multiverse ${_selectedMultiverse!.speed}'),
+                                            _selectedMultiverse!.name),
                                         buildTabWithIcon(
                                             iconCalendar, 'Calendar'),
                                       ],
@@ -289,7 +306,22 @@ class _MultiversePageState extends State<MultiversePage> {
       children: [
         ListTile(
           leading: Icon(iconMultiverseSpeed),
-          title: Text('${multiverse.speed} Games per week'),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Tooltip(
+                message: 'Name of the multiverse',
+                child: Text(
+                  multiverse.name,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Tooltip(
+                message: 'Number of games per weak',
+                child: Text('Speed: ${multiverse.speed}'),
+              )
+            ],
+          ),
           subtitle: Text('Days per season: ${14 * 7 / multiverse.speed}',
               style: italicBlueGreyTextStyle),
         ),

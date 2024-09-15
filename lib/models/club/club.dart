@@ -45,6 +45,7 @@ class Club {
   Club({
     required this.id,
     required this.createdAt,
+    required this.userSince,
     required this.idMultiverse,
     required this.idLeague,
     required this.userName,
@@ -70,6 +71,7 @@ class Club {
 
   final int id;
   final DateTime createdAt;
+  final DateTime? userSince;
   final int idMultiverse;
   final int idLeague;
   final String? userName;
@@ -100,6 +102,9 @@ class Club {
         isCurrentlySelected =
             idSelectedClub == map['id'], // Is the club selected
         createdAt = DateTime.parse(map['created_at']),
+        userSince = map['user_since'] != null
+            ? DateTime.parse(map['user_since'])
+            : null,
         idMultiverse = map['id_multiverse'],
         idLeague = map['id_league'],
         userName = map['username'],

@@ -166,6 +166,13 @@ class _ClubPageState extends State<ClubPage> {
                             ),
                             title:
                                 getUserName(context, userName: club.userName),
+                            subtitle: club.userSince == null
+                                ? null
+                                : Text(
+                                    'Since: ' +
+                                        DateFormat.yMMMMd('en_US')
+                                            .format(club.userSince!),
+                                  ),
                             onTap: () async => {
                                   /// Reset the user to the user that is being visited
                                   await Provider.of<SessionProvider>(context,
@@ -220,9 +227,6 @@ class _ClubPageState extends State<ClubPage> {
                           ), // Icon to indicate players
                           title: Text(
                             'Number of players: ${club.players.length}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
                           ),
                         ),
 

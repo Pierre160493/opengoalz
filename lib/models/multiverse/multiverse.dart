@@ -2,6 +2,7 @@ import 'package:opengoalz/constants.dart';
 
 class Multiverse {
   final int id;
+  final String name;
   final int speed;
   final int seasonNumber;
   final DateTime dateSeasonStart;
@@ -11,6 +12,7 @@ class Multiverse {
 
   Multiverse({
     required this.id,
+    required this.name,
     required this.speed,
     required this.seasonNumber,
     required this.dateSeasonStart,
@@ -22,6 +24,7 @@ class Multiverse {
   factory Multiverse.fromMap(Map<String, dynamic> map) {
     return Multiverse(
       id: map['id'],
+      name: map['name'],
       speed: map['speed'],
       seasonNumber: map['season_number'],
       dateSeasonStart: DateTime.parse(map['date_season_start']),
