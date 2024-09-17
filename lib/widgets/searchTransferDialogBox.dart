@@ -5,12 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions.dart';
-import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/pages/countries_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
-import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 
@@ -31,15 +29,47 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
   late double selectedMaxAge;
   DateTime? minDateBirth;
   DateTime? maxDateBirth;
+  PlayerStatus selectedStatus = PlayerStatus.transferList;
 
   // New state variables for stat selection
-  Map<String, RangeValues> selectedStats = {};
+  Map<String, RangeValues?> selectedStats = {
+    'keeper': null,
+    'defense': null,
+    'passes': null,
+    'playmaking': null,
+    'winger': null,
+    'scoring': null,
+    'freekick': null,
+  };
 
   @override
   void initState() {
     super.initState();
-    selectedMinAge = minAge;
+    fetchDefaultMultiverse();
+
     selectedMaxAge = maxAge;
+    updateMinAgeAndBirthDate(minAge, 0);
+    updateMaxAgeAndBirthDate(maxAge, 0);
+  }
+
+  Future<void> fetchDefaultMultiverse() async {
+    final selectedClub =
+        Provider.of<SessionProvider>(context, listen: false).user?.selectedClub;
+
+    if (selectedClub == null) {
+      context.showSnackBarError(
+          'No club selected, cannot fetch default multiverse');
+      return;
+    }
+
+    try {
+      final multiverse = await Multiverse.fromId(selectedClub.idMultiverse);
+      setState(() {
+        selectedMultiverse = multiverse;
+      });
+    } catch (e) {
+      context.showSnackBarError('Failed to fetch default multiverse');
+    }
   }
 
   void updateMinAgeAndBirthDate(double value, double offset) {
@@ -90,329 +120,543 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 /// Select the multiverse
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        selectedMultiverse = await Navigator.push<Multiverse>(
-                          context,
-                          MultiversePage.route(
-                            1,
-                            isReturningMultiverse: true,
-                          ),
-                        );
-                        updateMinAgeAndBirthDate(selectedMinAge, 0);
-                        updateMaxAgeAndBirthDate(selectedMaxAge, 0);
-                      },
-                      child: selectedMultiverse == null
-                          ? Row(
-                              children: [
-                                Icon(iconError, color: Colors.red),
-                                formSpacer3,
-                                Text('Select Multiverse'),
-                              ],
-                            )
-                          : Row(
-                              children: [
-                                Icon(iconSuccessfulOperation,
-                                    color: Colors.green),
-                                formSpacer3,
-                                Text('Multiverse: ${selectedMultiverse!.name}'),
-                              ],
-                            ),
-                    ),
-
-                    /// Reset the selected multiverse with a button
-                    if (selectedMultiverse != null)
-                      IconButton(
-                          tooltip: 'Reset the selected multiverse',
-                          onPressed: () {
-                            setState(() {
-                              selectedMultiverse = null;
-                            });
-                          },
-                          icon: Icon(Icons.delete_forever, color: Colors.red)),
-                  ],
+                MultiverseSelector(
+                  selectedMultiverse: selectedMultiverse,
+                  onMultiverseSelected: (multiverse) {
+                    setState(() {
+                      selectedMultiverse = multiverse;
+                      updateMinAgeAndBirthDate(selectedMinAge, 0);
+                      updateMaxAgeAndBirthDate(selectedMaxAge, 0);
+                    });
+                  },
+                  onMultiverseReset: () {
+                    setState(() {
+                      selectedMultiverse = null;
+                    });
+                  },
                 ),
 
                 /// Select the country
-                ElevatedButton(
-                  onPressed: () async {
-                    selectedCountry = await Navigator.push<Country>(
-                      context,
-                      CountriesPage.route(),
-                    );
-                    setState(() {});
+                CountrySelector(
+                  selectedCountry: selectedCountry,
+                  onCountrySelected: (country) {
+                    setState(() {
+                      selectedCountry = country;
+                    });
                   },
-                  child: selectedCountry == null
-                      ? Row(
-                          children: [
-                            Icon(Icons.settings_suggest, color: Colors.orange),
-                            formSpacer3,
-                            Text('Select Country'),
-                          ],
-                        )
-                      : Row(
-                          children: [
-                            Icon(iconSuccessfulOperation, color: Colors.green),
-                            formSpacer3,
-                            Text('Selected Country: ${selectedCountry!.name}'),
-                          ],
-                        ),
+                  onCountryReset: () {
+                    setState(() {
+                      selectedCountry = null;
+                    });
+                  },
                 ),
 
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            updateMinAgeAndBirthDate(selectedMinAge, -1);
-                          },
-                          icon: Icon(
-                            Icons.keyboard_double_arrow_down,
-                            color: selectedMinAge <= minAge ? Colors.red : null,
-                          ),
-                          tooltip: 'Lower min age by 1',
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            updateMaxAgeAndBirthDate(selectedMinAge, -0.1);
-                          },
-                          icon: Icon(
-                            Icons.keyboard_arrow_down,
-                            color: selectedMinAge <= minAge ? Colors.red : null,
-                          ),
-                          tooltip: 'Lower min age by 0.1',
-                        ),
-                        Tooltip(
-                            message:
-                                'Minimum Age: ${selectedMinAge} [${minDateBirth != null ? DateFormat('MMMM d, yyyy').format(minDateBirth!) : 'Select multiverse for date of birth'}]',
-                            child: Text('Min Age: $selectedMinAge')),
-                        IconButton(
-                          onPressed: () {
-                            updateMinAgeAndBirthDate(selectedMinAge, 0.1);
-                          },
-                          icon: Icon(
-                            Icons.keyboard_arrow_up,
-                            color: selectedMinAge >= maxAge ? Colors.red : null,
-                          ),
-                          tooltip: 'Increase min age by 0.1',
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            updateMinAgeAndBirthDate(selectedMinAge, 1.0);
-                          },
-                          icon: Icon(
-                            Icons.keyboard_double_arrow_up,
-                            color: selectedMinAge >= maxAge ? Colors.red : null,
-                          ),
-                          tooltip: 'Increase min age by 1',
-                        ),
-                      ],
+                /// Select the player status (all, transfer list, free player)
+                StatusSelector(
+                  selectedStatus: selectedStatus,
+                  onStatusSelected: (status) {
+                    setState(() {
+                      selectedStatus = status;
+                    });
+                  },
+                ),
+
+                /// Select the age range
+                _buildAgeSelector(),
+
+                /// Select the stats
+                ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      side: BorderSide(color: Colors.green, width: 2.0),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            updateMaxAgeAndBirthDate(selectedMaxAge, -1);
-                          },
-                          icon: Icon(Icons.keyboard_double_arrow_down,
-                              color:
-                                  selectedMaxAge <= minAge ? Colors.red : null),
-                          tooltip: 'Lower max age by 1',
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            updateMaxAgeAndBirthDate(selectedMaxAge, -0.1);
-                          },
-                          icon: Icon(Icons.keyboard_arrow_down,
-                              color:
-                                  selectedMaxAge <= minAge ? Colors.red : null),
-                          tooltip: 'Lower max age by 0.1',
-                        ),
-                        Tooltip(
-                            message:
-                                'Maximum Age: ${selectedMaxAge} [${maxDateBirth != null ? DateFormat('MMMM d, yyyy').format(maxDateBirth!) : 'Select multiverse for date of birth'}]',
-                            child: Text('Max Age: $selectedMaxAge')),
-                        IconButton(
-                          onPressed: () {
-                            updateMaxAgeAndBirthDate(selectedMaxAge, 0.1);
-                          },
-                          icon: Icon(
-                            Icons.keyboard_arrow_up,
-                            color: selectedMaxAge >= maxAge ? Colors.red : null,
-                          ),
-                          tooltip: 'Increase max age by 0.1',
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            updateMaxAgeAndBirthDate(selectedMaxAge, 1.0);
-                          },
-                          icon: Icon(
-                            Icons.keyboard_double_arrow_up,
-                            color: selectedMaxAge >= maxAge ? Colors.red : null,
-                          ),
-                          tooltip: 'Increase max age by 1',
-                        ),
-                      ],
-                    ),
-                    RangeSlider(
-                      values: RangeValues(selectedMinAge, selectedMaxAge),
-                      min: minAge,
-                      max: maxAge,
-                      divisions: (maxAge - minAge).toInt() * 10,
-                      labels: RangeLabels(selectedMinAge.toStringAsFixed(1),
-                          selectedMaxAge.toStringAsFixed(1)),
-                      onChanged: (RangeValues values) {
-                        updateMinAgeAndBirthDate(values.start, 0);
-                        updateMaxAgeAndBirthDate(values.end, 0);
-                      },
-                    ),
-                    // New section for selecting player stats
-                    // New section for selecting player stats
-                    Column(
-                      children: [
-                        DropdownButton<String>(
-                          hint: Text('Select Stat Category'),
-                          items: [
-                            'keeper',
-                            'defense',
-                            'passes',
-                            'playmaking',
-                            'winger',
-                            'scoring',
-                            'freekick'
-                          ].map((String category) {
-                            return DropdownMenuItem<String>(
-                              value: category,
-                              child: Text(category),
+                    title: ElevatedButton(
+                      onPressed: () async {
+                        // Filter the stats to include only those that are null
+                        List<String> availableStats = selectedStats.entries
+                            .where((entry) => entry.value == null)
+                            .map((entry) => entry.key)
+                            .toList();
+
+                        String? selectedStat = await showDialog<String>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Select Stat'),
+                              content: SingleChildScrollView(
+                                child: ListBody(
+                                  children: availableStats.map((String stat) {
+                                    return ListTile(
+                                      title: Text(
+                                          stat.substring(0, 1).toUpperCase() +
+                                              stat.substring(1)),
+                                      onTap: () {
+                                        Navigator.of(context).pop(stat);
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
                             );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null &&
-                                !selectedStats.containsKey(newValue)) {
-                              setState(() {
-                                selectedStats[newValue] = RangeValues(0, 100);
-                              });
-                            }
                           },
-                        ),
-                        ...selectedStats.entries.map((entry) {
+                        );
+
+                        if (selectedStat != null &&
+                            selectedStats[selectedStat] == null) {
+                          setState(() {
+                            selectedStats[selectedStat] = RangeValues(0, 100);
+                          });
+                        }
+                        print(selectedStats);
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Icons.query_stats, color: Colors.green),
+                          formSpacer6,
+                          Text('Select stats'),
+                        ],
+                      ),
+                    ),
+                    subtitle: Column(
+                      children: [
+                        ...selectedStats.entries
+                            .where((entry) => entry.value != null)
+                            .map((entry) {
                           return Column(
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                      '${entry.key.toUpperCase()} [${entry.value.start} - ${entry.value.end}]'),
-                                  IconButton(
-                                      tooltip:
-                                          'Remove the ${entry.key.toUpperCase()} criteria',
-                                      onPressed: () {
-                                        setState(() {
-                                          selectedStats.remove(entry.key);
-                                        });
-                                      },
-                                      icon: Icon(Icons.delete_forever,
-                                          color: Colors.red)),
-                                ],
-                              ),
-                              RangeSlider(
-                                values: entry.value,
-                                min: 0,
-                                max: 100,
-                                divisions: 1000,
-                                labels: RangeLabels(
-                                  entry.value.start.toString(),
-                                  entry.value.end.toString(),
+                              ListTile(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  side: BorderSide(
+                                      color: Colors.green, width: 1.0),
                                 ),
-                                onChanged: (RangeValues values) {
-                                  setState(() {
-                                    selectedStats[entry.key] = RangeValues(
-                                        (values.start * 10).round() / 10,
-                                        (values.end * 10).round() / 10);
-                                  });
-                                },
+                                title: Text(
+                                    '${entry.key[0].toUpperCase()}${entry.key.substring(1)} [${entry.value!.start} - ${entry.value!.end}]'),
+                                subtitle: RangeSlider(
+                                  values: entry.value!,
+                                  min: 0,
+                                  max: 100,
+                                  divisions: 200,
+                                  labels: RangeLabels(
+                                    entry.value!.start.toString(),
+                                    entry.value!.end.toString(),
+                                  ),
+                                  onChanged: (RangeValues values) {
+                                    setState(() {
+                                      selectedStats[entry.key] = RangeValues(
+                                          (values.start * 10).round() / 10,
+                                          (values.end * 10).round() / 10);
+                                    });
+                                  },
+                                ),
+                                trailing: IconButton(
+                                  tooltip:
+                                      'Remove the ${entry.key.toUpperCase()} criteria',
+                                  onPressed: () {
+                                    setState(() {
+                                      selectedStats[entry.key] = null;
+                                    });
+                                  },
+                                  icon: Icon(Icons.delete_forever,
+                                      color: Colors.red),
+                                ),
                               ),
                             ],
                           );
                         }).toList(),
                       ],
-                    ),
-                  ],
-                ),
+                    )),
               ],
             ),
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              // Check if all the required fields are filled
-              if (selectedMultiverse == null) {
-                context.showSnackBarError(
-                    'No multiverse selected, player search aborted');
-                return;
-              }
-              if (selectedCountry == null) {
-                context.showSnackBarError(
-                    'No country selected, player search aborted');
-                return;
-              }
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Row(
+                  children: [
+                    Icon(Icons.cancel, color: Colors.red),
+                    formSpacer3,
+                    Text('Cancel'),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  // Check if all the required fields are filled
+                  if (selectedMultiverse == null) {
+                    context.showSnackBarError(
+                        'No multiverse selected, cannot search players');
+                    return;
+                  }
 
-              if (selectedCountry!.selectedContinent == null) {
-                context.showSnackBarError(
-                    'ERROR: No continent selected, player creation aborted');
-                return;
-              }
-              if (selectedCountry!.selectedContinent == 'Others') {
-                context.showSnackBarError(
-                    'Cannot select country from continent "Others", player creation aborted');
-                return;
-              }
-              if (minDateBirth == null) {
-                context.showSnackBarError(
-                    'Cannot select date of birth, player creation aborted');
-                return;
-              }
-              if (await context.showConfirmationDialog(
-                      'Are you sure you want to create a player from ${selectedCountry!.name} ?') !=
-                  true) {
-                context.showSnackBarError('Player creation aborted');
-                return;
-              }
+                  if (minDateBirth == null || maxDateBirth == null) {
+                    context.showSnackBarError(
+                        'Cannot select date of birth, player creation aborted');
+                    return;
+                  }
 
-              // Update the club in the database
-              // bool isOK =
-              //     await operationInDB(context, 'INSERT', 'players', data: {
-              //   'username': Provider.of<SessionProvider>(context, listen: false)
-              //       .user!
-              //       .username,
-              //   'id_country': selectedCountry!.id,
-              //   'id_multiverse': selectedMultiverse!.id,
-              //   'date_birth': minDateBirth!.toIso8601String(),
-              // });
-              // if (isOK) {
-              //   context.showSnackBarSuccess(
-              //       'You now incarne a new player in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
-              //   Navigator.of(context).pop();
-              // }
-            },
-            child: Text('Search Players'),
+                  // Update the club in the database
+                  // bool isOK =
+                  //     await operationInDB(context, 'INSERT', 'players', data: {
+                  //   'username': Provider.of<SessionProvider>(context, listen: false)
+                  //       .user!
+                  //       .username,
+                  //   'id_country': selectedCountry!.id,
+                  //   'id_multiverse': selectedMultiverse!.id,
+                  //   'date_birth': minDateBirth!.toIso8601String(),
+                  // });
+                  // if (isOK) {
+                  //   context.showSnackBarSuccess(
+                  //       'You now incarne a new player in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
+                  //   Navigator.of(context).pop();
+                  // }
+                },
+                child: Row(
+                  children: [
+                    Icon(Icons.person_search, color: Colors.green),
+                    formSpacer3,
+                    Text('Search Players'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       );
     });
+  }
+
+  Widget _buildAgeSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green, width: 2.0),
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: ExpansionTile(
+        title: Row(
+          children: [
+            Text(
+              'Age Range:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            formSpacer12,
+            Text('[' +
+                selectedMinAge.toString() +
+                ' - ' +
+                selectedMaxAge.toString() +
+                ']'),
+          ],
+        ),
+        subtitle: RangeSlider(
+          values: RangeValues(selectedMinAge, selectedMaxAge),
+          min: minAge,
+          max: maxAge,
+          divisions: (maxAge - minAge).toInt() * 10,
+          labels: RangeLabels(selectedMinAge.toStringAsFixed(1),
+              selectedMaxAge.toStringAsFixed(1)),
+          onChanged: (RangeValues values) {
+            updateMinAgeAndBirthDate(values.start, 0);
+            updateMaxAgeAndBirthDate(values.end, 0);
+          },
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Column(
+              children: [
+                // Select player minimum age
+                _buildAgeAdjustmentRow(
+                  currentAge: selectedMinAge,
+                  minAge: minAge,
+                  maxAge: maxAge,
+                  dateOfBirth: minDateBirth,
+                  label: 'Min',
+                  updateAge: updateMinAgeAndBirthDate,
+                ),
+                // Select player maximum age
+                _buildAgeAdjustmentRow(
+                  currentAge: selectedMaxAge,
+                  minAge: minAge,
+                  maxAge: maxAge,
+                  dateOfBirth: maxDateBirth,
+                  label: 'Max',
+                  updateAge: updateMaxAgeAndBirthDate,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget _buildAgeAdjustmentRow({
+  required double currentAge,
+  required double minAge,
+  required double maxAge,
+  required DateTime? dateOfBirth,
+  required String label,
+  required Function(double, double) updateAge,
+}) {
+  return ListTile(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12.0),
+      side: BorderSide(color: Colors.green, width: 1.0),
+    ),
+    title: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        IconButton(
+          onPressed: () {
+            updateAge(currentAge, -1);
+          },
+          icon: Icon(
+            Icons.keyboard_double_arrow_down,
+            color: currentAge <= minAge ? Colors.red : null,
+          ),
+          tooltip: 'Lower $label age by 1',
+        ),
+        IconButton(
+          onPressed: () {
+            updateAge(currentAge, -0.1);
+          },
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            color: currentAge <= minAge ? Colors.red : null,
+          ),
+          tooltip: 'Lower $label age by 0.1',
+        ),
+        Tooltip(
+          message:
+              '$label Age: $currentAge [${dateOfBirth != null ? DateFormat('MMMM d, yyyy').format(dateOfBirth) : 'Select multiverse for date of birth'}]',
+          child: Text('$label Age: $currentAge'),
+        ),
+        IconButton(
+          onPressed: () {
+            updateAge(currentAge, 0.1);
+          },
+          icon: Icon(
+            Icons.keyboard_arrow_up,
+            color: currentAge >= maxAge ? Colors.red : null,
+          ),
+          tooltip: 'Increase $label age by 0.1',
+        ),
+        IconButton(
+          onPressed: () {
+            updateAge(currentAge, 1.0);
+          },
+          icon: Icon(
+            Icons.keyboard_double_arrow_up,
+            color: currentAge >= maxAge ? Colors.red : null,
+          ),
+          tooltip: 'Increase $label age by 1',
+        ),
+      ],
+    ),
+  );
+}
+
+class MultiverseSelector extends StatelessWidget {
+  final Multiverse? selectedMultiverse;
+  final Function(Multiverse?) onMultiverseSelected;
+  final Function() onMultiverseReset;
+
+  MultiverseSelector({
+    required this.selectedMultiverse,
+    required this.onMultiverseSelected,
+    required this.onMultiverseReset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        side: BorderSide(
+            color: selectedMultiverse == null ? Colors.red : Colors.green,
+            width: 2.0),
+      ),
+      title: ElevatedButton(
+        onPressed: () async {
+          final multiverse = await Navigator.push<Multiverse>(
+            context,
+            MultiversePage.route(
+              1,
+              isReturningMultiverse: true,
+            ),
+          );
+          onMultiverseSelected(multiverse);
+        },
+        child: selectedMultiverse == null
+            ? Row(
+                children: [
+                  Icon(iconError, color: Colors.red),
+                  formSpacer6,
+                  Text('Select Multiverse'),
+                ],
+              )
+            : Row(
+                children: [
+                  Icon(iconSuccessfulOperation, color: Colors.green),
+                  formSpacer6,
+                  Text('Multiverse: ${selectedMultiverse!.name}'),
+                ],
+              ),
+      ),
+      trailing: selectedMultiverse == null
+          ? null
+          : IconButton(
+              tooltip: 'Reset the selected multiverse',
+              onPressed: onMultiverseReset,
+              icon: Icon(Icons.delete_forever, color: Colors.red),
+            ),
+    );
+  }
+}
+
+class CountrySelector extends StatelessWidget {
+  final Country? selectedCountry;
+  final Function(Country?) onCountrySelected;
+  final Function() onCountryReset;
+
+  CountrySelector({
+    required this.selectedCountry,
+    required this.onCountrySelected,
+    required this.onCountryReset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        side: BorderSide(
+            color: selectedCountry == null ? Colors.orange : Colors.green,
+            width: 2.0),
+      ),
+      title: ElevatedButton(
+        onPressed: () async {
+          final country = await Navigator.push<Country>(
+            context,
+            CountriesPage.route(),
+          );
+          onCountrySelected(country);
+        },
+        child: selectedCountry == null
+            ? Row(
+                children: [
+                  Icon(Icons.settings_suggest, color: Colors.orange),
+                  formSpacer6,
+                  Text('Country: Any'),
+                ],
+              )
+            : Row(
+                children: [
+                  Icon(iconSuccessfulOperation, color: Colors.green),
+                  formSpacer6,
+                  Text('Country: ${selectedCountry!.name}'),
+                ],
+              ),
+      ),
+      trailing: selectedCountry == null
+          ? null
+          : IconButton(
+              tooltip: 'Reset the selected country',
+              onPressed: onCountryReset,
+              icon: Icon(Icons.delete_forever, color: Colors.red),
+            ),
+    );
+  }
+}
+
+enum PlayerStatus { all, transferList, freePlayer }
+
+class StatusSelector extends StatefulWidget {
+  final PlayerStatus selectedStatus;
+  final Function(PlayerStatus) onStatusSelected;
+
+  StatusSelector({
+    required this.selectedStatus,
+    required this.onStatusSelected,
+  });
+
+  @override
+  _StatusSelectorState createState() => _StatusSelectorState();
+}
+
+class _StatusSelectorState extends State<StatusSelector> {
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        side: BorderSide(color: Colors.green, width: 2.0),
+      ),
+      title: ElevatedButton(
+        onPressed: () async {
+          showDialog<PlayerStatus>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Select Player Status'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: PlayerStatus.values.map((PlayerStatus status) {
+                    return RadioListTile<PlayerStatus>(
+                      title: _statusRow(status),
+                      value: status,
+                      groupValue: widget.selectedStatus,
+                      onChanged: (PlayerStatus? value) {
+                        if (value != null) {
+                          Navigator.of(context).pop(value);
+                        }
+                      },
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ).then((PlayerStatus? value) {
+            if (value != null) {
+              setState(() {
+                widget.onStatusSelected(value);
+              });
+            }
+          });
+        },
+        child: _statusRow(widget.selectedStatus),
+      ),
+    );
+  }
+
+  Widget _statusRow(PlayerStatus status) {
+    Widget icon;
+    Widget text;
+    switch (status) {
+      case PlayerStatus.all:
+        icon = Icon(Icons.join_full, color: Colors.green);
+        text = Text('All');
+      case PlayerStatus.transferList:
+        icon = Icon(iconTransfers, color: Colors.green);
+        text = Text('Transfer List');
+      case PlayerStatus.freePlayer:
+        icon = Icon(Icons.wallet_giftcard, color: Colors.green);
+        text = Text('Free Player');
+      default:
+        icon = Icon(iconError, color: Colors.red);
+        text = Text('Unknown');
+    }
+    return Row(children: [
+      icon,
+      formSpacer6,
+      text,
+    ]);
   }
 }

@@ -98,7 +98,7 @@ class _TransferPageState extends State<TransferPage>
                           },
                         );
                       },
-                      icon: Icon(Icons.search),
+                      icon: Icon(Icons.person_search),
                     ),
                   ],
                 ),
