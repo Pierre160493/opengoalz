@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/players_page.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 
 class GameEvent {
   Player? player;
@@ -120,9 +121,8 @@ class GameEvent {
             context,
             MaterialPageRoute(
               builder: (context) => PlayersPage(
-                inputCriteria: {
-                  'Players': [player!.id]
-                },
+                playerSearchCriterias:
+                    PlayerSearchCriterias(idPlayer: [player!.id]),
               ),
             ));
       },

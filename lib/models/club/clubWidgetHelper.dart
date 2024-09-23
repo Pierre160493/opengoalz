@@ -150,10 +150,8 @@ extension ClubWidgetHelper on Club {
               context,
               MaterialPageRoute(
                 builder: (context) => PlayersPage(
-                    // idClub: club.id_club,
-                    inputCriteria: {
-                      'Clubs': [id]
-                    }),
+                  playerSearchCriterias: PlayerSearchCriterias(idClub: [id]),
+                ),
               ),
             );
           },

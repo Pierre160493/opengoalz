@@ -42,9 +42,7 @@ extension PlayerWidgetsHelper on Player {
               context,
               MaterialPageRoute(
                 builder: (context) => PlayersPage(
-                  inputCriteria: {
-                    'Players': [id]
-                  },
+                  playerSearchCriterias: PlayerSearchCriterias(idPlayer: [id]),
                 ),
               ),
             );

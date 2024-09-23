@@ -8,6 +8,7 @@ import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/player_card.dart';
 import 'package:opengoalz/models/player/players_page.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/countries_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
@@ -89,9 +90,8 @@ Widget playerListWidget(BuildContext context, Profile user) {
                   context,
                   MaterialPageRoute(
                     builder: (context) => PlayersPage(
-                      inputCriteria: {
-                        'Players': [player.id]
-                      },
+                      playerSearchCriterias:
+                          PlayerSearchCriterias(idPlayer: [player.id]),
                     ),
                   ),
                 );

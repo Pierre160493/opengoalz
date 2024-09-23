@@ -365,7 +365,7 @@ class _UserPageState extends State<UserPage> {
   //                   MaterialPageRoute(
   //                     builder: (context) => PlayersPage(
   //                       inputCriteria: {
-  //                         'Players': [player.id]
+  //                         'id_player': [player.id]
   //                       },
   //                     ),
   //                   ),

@@ -298,10 +298,8 @@ extension TeamCompPlayerCard on TeamComp {
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) {
                   return PlayersPage(
-                    inputCriteria: {
-                      'Clubs': [idClub]
-                    },
-                    isReturningPlayer: true,
+                    playerSearchCriterias:
+                        PlayerSearchCriterias(idClub: [idClub]),
                   );
                 },
                 transitionsBuilder:

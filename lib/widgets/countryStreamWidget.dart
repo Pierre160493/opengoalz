@@ -85,11 +85,15 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
           title: Row(
             children: [
               getCountryFlag(country['iso2']),
-              Text(
-                country['name'],
-                // style: TextStyle(
-                //   fontWeight: FontWeight.bold,
-                // ),
+              formSpacer3,
+              Expanded(
+                child: Text(
+                  country['name'],
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/models/player/class/player.dart';
@@ -208,10 +209,11 @@ class _ClubPageState extends State<ClubPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      PlayersPage(inputCriteria: {
-                                        'Clubs': [club.id]
-                                      })),
+                                builder: (context) => PlayersPage(
+                                  playerSearchCriterias:
+                                      PlayerSearchCriterias(idClub: [club.id]),
+                                ),
+                              ),
                             );
                           },
                           shape: RoundedRectangleBorder(

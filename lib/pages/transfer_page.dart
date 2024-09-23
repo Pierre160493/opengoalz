@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/models/player/class/player.dart';
@@ -87,16 +88,28 @@ class _TransferPageState extends State<TransferPage>
                   ),
                   actions: [
                     IconButton(
-                      tooltip: 'Search for a player',
+                      tooltip: 'Search for players',
                       onPressed: () {
-                        // _showSearchPlayerDialog(context);
-                        // AssignPlayerOrClubDialog();
-                        showDialog(
+                        showDialog<PlayerSearchCriterias>(
                           context: context,
                           builder: (BuildContext context) {
-                            return AssignPlayerOrClubDialog();
+                            return playerSearchDialogBox(
+                              inputPlayerSearchCriterias:
+                                  PlayerSearchCriterias(),
+                            );
                           },
-                        );
+                        ).then((playerSearchCriterias) {
+                          if (playerSearchCriterias != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PlayersPage(
+                                  playerSearchCriterias: playerSearchCriterias,
+                                ),
+                              ),
+                            );
+                          }
+                        });
                       },
                       icon: Icon(Icons.person_search),
                     ),
@@ -165,9 +178,9 @@ class _TransferPageState extends State<TransferPage>
                       context,
                       MaterialPageRoute(
                         builder: (context) => PlayersPage(
-                          inputCriteria: {
-                            'Players': [player.id]
-                          },
+                          playerSearchCriterias: PlayerSearchCriterias(
+                            idPlayer: [player.id],
+                          ),
                         ),
                       ),
                     );

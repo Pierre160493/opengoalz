@@ -8,6 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/pages/calendar_page.dart';
 import 'package:opengoalz/pages/mails_page.dart';
 import 'package:opengoalz/pages/staff_page.dart';
@@ -97,13 +98,15 @@ class AppDrawer extends StatelessWidget {
           //     context, icon_medics, 'Medics'), // Add the Medics page
           buildDrawerTitle('Main Team'), // Add the Main Team page
           buildDrawerOption(
-              context,
-              icon_players,
-              // 'Players (${selectedClub.player_count})',
-              'Players',
-              PlayersPage(inputCriteria: {
-                'Clubs': [selectedClub.id]
-              })), // Add the Players page
+            context,
+            icon_players,
+            // 'Players (${selectedClub.player_count})',
+            'Players',
+            PlayersPage(
+              playerSearchCriterias:
+                  PlayerSearchCriterias(idClub: [selectedClub.id]),
+            ),
+          ), // Add the Players page
           buildDrawerOption(context, iconTransfers, 'Transfers',
               TransferPage(idClub: selectedClub.id)), // Add the Transfers page
           buildDrawerOption(context, iconGames, 'Games',

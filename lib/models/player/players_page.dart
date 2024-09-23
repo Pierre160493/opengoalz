@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/players_sorting_function.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/searchTransferDialogBox.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
@@ -12,17 +14,20 @@ import 'class/player.dart';
 import '../../constants.dart';
 
 class PlayersPage extends StatefulWidget {
-  final Map<String, List<Object>> inputCriteria;
+  final PlayerSearchCriterias playerSearchCriterias;
   final bool
       isReturningPlayer; // Should the page return the id of the player clicked ?
 
   const PlayersPage(
-      {Key? key, required this.inputCriteria, this.isReturningPlayer = false})
+      {Key? key,
+      required this.playerSearchCriterias,
+      this.isReturningPlayer = false})
       : super(key: key);
 
-  static Route<void> route(Map<String, List<int>> inputCriteria) {
+  static Route<void> route(PlayerSearchCriterias playerSearchCriterias) {
     return MaterialPageRoute(
-      builder: (context) => PlayersPage(inputCriteria: inputCriteria),
+      builder: (context) =>
+          PlayersPage(playerSearchCriterias: playerSearchCriterias),
     );
   }
 
@@ -34,34 +39,79 @@ class _PlayersPageState extends State<PlayersPage> {
   late Stream<List<Player>> _playerStream;
   late Stream<List<Club>> _clubStream;
   late Stream<List<TransferBid>> _transferBids;
+  late PlayerSearchCriterias _currentSearchCriterias;
 
   @override
   void initState() {
     super.initState();
 
-    print('Before Stream');
-    print(widget.inputCriteria);
-    // Stream to fetch players
-    if (widget.inputCriteria.containsKey('Clubs')) {
-      _playerStream = supabase
-          .from('players')
-          .stream(primaryKey: ['id'])
-          .inFilter('id_club', widget.inputCriteria['Clubs']!)
-          .order('date_birth', ascending: true)
-          .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
-    } else if (widget.inputCriteria.containsKey('Players')) {
-      _playerStream = supabase
-          .from('players')
-          .stream(primaryKey: ['id'])
-          .inFilter('id', widget.inputCriteria['Players']!)
-          .order('date_birth', ascending: true)
-          .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
-      print('After Stream players');
-    } else if (widget.inputCriteria.containsKey('Countries')) {
-      throw ArgumentError('Not implemented yet');
+    _currentSearchCriterias = widget.playerSearchCriterias;
+    _initializeStreams();
+  }
+
+  void _initializeStreams() {
+    print('Before Player Stream');
+    print(_currentSearchCriterias);
+
+    String filterColumn;
+    List<int> filterList;
+
+    /// Check the input criteria and set the filter column and list
+    if (_currentSearchCriterias.idPlayer != null) {
+      filterColumn = 'id';
+      filterList = _currentSearchCriterias.idPlayer!;
+    } else if (_currentSearchCriterias.idClub != null) {
+      filterColumn = 'id_club';
+      filterList = _currentSearchCriterias.idClub!;
+    } else if (_currentSearchCriterias.countries != null) {
+      filterColumn = 'id_country';
+      filterList = _currentSearchCriterias.countries!
+          .map((country) => country.id)
+          .toList();
+    } else if (_currentSearchCriterias.multiverse != null) {
+      filterColumn = 'id_multiverse';
+      filterList = [_currentSearchCriterias.multiverse!.id];
     } else {
       throw ArgumentError('Invalid input type');
     }
+
+    // Stream to fetch players
+    _playerStream = supabase
+        .from('players')
+        .stream(primaryKey: ['id'])
+        .inFilter(filterColumn, filterList)
+        .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+        .map((players) {
+          // Apply additional filtering
+          players = players.where((Player player) {
+            if (_currentSearchCriterias.idClub != null) {
+              if (!_currentSearchCriterias.idClub!.contains(player.idClub)) {
+                return false;
+              }
+            }
+            // if (_currentSearchCriterias.countries !=null) {
+            //   if (!widget.playerSearchCriterias.countries!.map(toElement)
+            //       .contains(player.idCountry)) {
+            //     return false;
+            //   }
+            // }
+
+            /// If the age range is set, filter the players based on the age range
+            if (player.age < _currentSearchCriterias.selectedMinAge ||
+                player.age > _currentSearchCriterias.selectedMaxAge) {
+              return false;
+            }
+
+            return true;
+          }).toList();
+
+          // Apply ordering
+          players.sort((Player a, Player b) {
+            return a.dateBirth.compareTo(b.dateBirth);
+          });
+
+          return players;
+        });
 
     // Stream to fetch clubs from the list of clubs in the players list
     _clubStream = _playerStream.switchMap((players) {
@@ -156,13 +206,29 @@ class _PlayersPageState extends State<PlayersPage> {
                     actions: [
                       // Navigate to previous page
                       goBackIconButton(context),
-                      // Search for a player
+                      // Search for a player only if the input criteria is not a simple case
+
                       IconButton(
-                        tooltip: 'Search for a player',
+                        tooltip: 'Modify Search Criterias',
                         onPressed: () {
-                          // Add your action here
+                          showDialog<PlayerSearchCriterias>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return playerSearchDialogBox(
+                                inputPlayerSearchCriterias:
+                                    _currentSearchCriterias,
+                              );
+                            },
+                          ).then((playerSearchCriterias) {
+                            if (playerSearchCriterias != null) {
+                              setState(() {
+                                _currentSearchCriterias = playerSearchCriterias;
+                                _initializeStreams();
+                              });
+                            }
+                          });
                         },
-                        icon: Icon(Icons.search),
+                        icon: Icon(Icons.person_search),
                       ),
                       // Open the order and filter drawer
                       // filterAndOrderPlayersButton(players),
@@ -197,9 +263,9 @@ class _PlayersPageState extends State<PlayersPage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PlayersPage(
-                                          inputCriteria: {
-                                            'Players': [player.id]
-                                          },
+                                          playerSearchCriterias:
+                                              PlayerSearchCriterias(
+                                                  idPlayer: [player.id]),
                                         ),
                                       ),
                                     );
