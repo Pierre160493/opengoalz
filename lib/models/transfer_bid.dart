@@ -23,6 +23,6 @@ class TransferBid {
         amount = map['amount'],
         idClub = map['id_club'],
         idPlayer = map['id_player'],
-        nameClub = map['name_club'],
+        nameClub = map['name'],
         countBid = map['count_bid'];
 }

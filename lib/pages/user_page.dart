@@ -222,7 +222,7 @@ class _UserPageState extends State<UserPage> {
                           ),
                         ),
                         leading: Icon(
-                          Icons.person,
+                          iconUser,
                         ),
                         title: Text('Username: ${user.username}'),
                         subtitle: Row(

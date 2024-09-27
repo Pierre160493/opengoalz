@@ -9,6 +9,7 @@ DECLARE
     league RECORD; -- Record for the leagues loop
     club RECORD; -- Record for the clubs loop
     game RECORD; -- Record for the game loop
+    player RECORD; -- Record for the player selection
     loc_interval_1_week INTERVAL; -- Interval time for a week in this multiverse
     bool_week_advanced bool := FALSE; -- If the the function has to be called again because a full week has being played and so passed to the next one
     bool_league_game_played bool; -- If a game from the league was played, recalculate the rankings
@@ -19,13 +20,12 @@ BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------ Loop through all multiverses
     FOR multiverse IN (SELECT * FROM multiverses) LOOP
-RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number %', multiverse.speed, multiverse.season_number, multiverse.week_number;
 
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------ Loop through all leagues
         FOR league IN (
-            SELECT * FROM leagues WHERE multiverse_speed = multiverse.speed)
+            SELECT * FROM leagues WHERE id_multiverse = multiverse.id)
         LOOP
 
             -- Set to FALSE by default
@@ -97,7 +97,7 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
         ------ If all games from the current week have been played
         IF NOT EXISTS (
             SELECT 1 FROM games
-            WHERE multiverse_speed = multiverse.speed
+            WHERE id_multiverse = multiverse.id
             AND season_number = multiverse.season_number
             AND week_number = multiverse.week_number
             AND date_end IS NULL
@@ -108,9 +108,51 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
             ------------------------------------------------------------------------------------------------------------------------------------------------
             ------ Handle revenues, expanses (tax, salaries, staff)
             -- Calculate the expanses and revenues of the clubs
+
+            -- Handle clubs that are in debt
+            FOR club IN
+                (SELECT * FROM clubs
+                    WHERE id_multiverse = multiverse.id
+                    AND cash < 0)
+            LOOP
+                IF club.staff_expanses != 0 THEN
+                    -- Set staff expanses to 0
+                    UPDATE clubs SET staff_expanses = 0 WHERE id = club.id;
+
+                    INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
+                        (club.id, 'Negative Cash Balance: Staff not payed', 'The club is in debt (available cash: ' || club.cash || ') for week ' || multiverse.week_number || '. The staff will not be payed this week. Be careful, is the situation is not corrected next week, a random player will be fired to help correct the situation', 'Financial Advisor');
+
+                ELSE
+
+RAISE NOTICE 'Club in debt: % %', club.id, club.name;
+
+                    -- Select a random player to be fired
+                    SELECT * INTO player
+                    FROM players
+                    WHERE id_club = club.id
+                    AND date_sell IS NULL
+                    AND date_firing IS NULL
+                    ORDER BY RANDOM()
+                    LIMIT 1;
+
+RAISE NOTICE 'Player to fire: % % %', player.id, player.first_name, player.last_name;
+
+                    -- Update the date_firing for the selected player
+                    UPDATE players
+                        SET date_firing = (now() + INTERVAL '5 days')
+                        WHERE id = player.id;
+
+                    -- Insert a message with the player's name
+                    INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
+                        (club.id, 'Negative Cash Balance: ' || player.first_name || ' ' || UPPER(player.last_name) || ' Fired', 'The club is in debt (available cash: ' || club.cash || ') for week ' || multiverse.week_number || '. ' || player.first_name || ' ' || UPPER(player.last_name) || ' will be fired this week in order to help correct the situation', 'Financial Advisor');
+
+                END IF;
+
+            END LOOP; -- End of the loop through clubs
+
             UPDATE clubs SET
                 lis_tax = lis_tax ||
-                    GREATEST(0, FLOOR(lis_cash[array_length(lis_cash, 1)] * 0.01)),
+                    GREATEST(0, FLOOR(cash * 0.01)),
                 lis_players_expanses = lis_players_expanses || 
                     (SELECT COALESCE(SUM(expanses), 0)
                         FROM players 
@@ -118,7 +160,7 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
                 lis_staff_expanses = lis_staff_expanses ||
                     staff_expanses,
                 staff_weight = LEAST(GREATEST((staff_weight + staff_expanses) * 0.5, 0), 5000)
-            WHERE multiverse_speed = multiverse.speed;
+            WHERE id_multiverse = multiverse.id;
 
             -- Update the clubs revenues and expanses in the list
             UPDATE clubs SET
@@ -129,15 +171,15 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
                     lis_players_expanses[array_length(lis_players_expanses, 1)] +
                     lis_staff_expanses[array_length(lis_staff_expanses, 1)]
                     )
-            WHERE multiverse_speed = multiverse.speed;
+            WHERE id_multiverse = multiverse.id;
 
-            -- Update the clubs cash
+            -- Update the club's cash
             UPDATE clubs SET
-                lis_cash = lis_cash ||
-                    lis_cash[array_length(lis_cash, 1)] +
+                lis_cash = lis_cash || cash, -- Store cash history
+                cash = cash +
                     lis_revenues[array_length(lis_revenues, 1)] -
                     lis_expanses[array_length(lis_expanses, 1)]
-            WHERE multiverse_speed = multiverse.speed;
+            WHERE id_multiverse = multiverse.id;
 
             -- Update the leagues cash by paying club expanses and players salaries and cash last season
             UPDATE leagues SET
@@ -149,23 +191,22 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
                     SELECT COALESCE(SUM(lis_revenues[array_length(lis_revenues, 1)]), 0)
                     FROM clubs WHERE id_league = leagues.id
                     )
-            WHERE multiverse_speed = multiverse.speed
+            WHERE id_multiverse = multiverse.id
             AND level > 0;
 
             ------------------------------------------------------------------------------------------------------------------------------------------------
             ------------------------------------------------------------------------------------------------------------------------------------------------
-            ------ Update players training points
+            ------ Update players training points based on the staff weight of the club
             UPDATE players
                 SET training_points = training_points + (
                     CASE
                         WHEN clubs.staff_weight <= 1000 THEN 0.25 + (clubs.staff_weight / 1000) * 0.5
-                        WHEN clubs.staff_weight > 1000 AND clubs.staff_weight <= 5000 THEN 0.75 + ((clubs.staff_weight - 1000) / 4000) * 0.25
-                        ELSE 1
+                        ELSE 0.75 + ((clubs.staff_weight - 1000) / 4000) * 0.25
                     END
                     )
                 FROM clubs
                     WHERE players.id_club = clubs.id
-                    AND players.multiverse_speed = multiverse.speed;
+                    AND players.id_multiverse = multiverse.id;
 
             -- No need to populate the games if the season is not over yet
             IF multiverse.week_number >= 10 THEN
@@ -174,10 +215,10 @@ RAISE NOTICE '****** HANDLE SEASON MAIN: Start multiverse % season % week number
                 ------------------------------------------------------------------------------------------------------------------------------------------------
                 ------ Handle the 10th week of the season
                 IF multiverse.week_number = 10 THEN
-RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
+
                     -- Update the normal leagues to say that they are finished
                     UPDATE leagues SET is_finished = TRUE
-                        WHERE multiverse_speed = multiverse.speed
+                        WHERE id_multiverse = multiverse.id
                         AND level > 0;
 /*
                     -- Update the clubs from the top level leagues that finished 1st, 2nd and 3rd (they stay in the same position)
@@ -186,7 +227,7 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         id_league_next_season = id_league
                         WHERE id_league IN (
                             SELECT id FROM leagues
-                                WHERE multiverse_speed = multiverse.speed
+                                WHERE id_multiverse = multiverse.id
                                 AND level = 1
                         )
                         AND pos_league <= 3;
@@ -205,28 +246,28 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                     UPDATE clubs SET
                         pos_league_next_season = pos_league,
                         id_league_next_season = id_league
-                        WHERE multiverse_speed = multiverse.speed;
+                        WHERE id_multiverse = multiverse.id;
 
                 ------------------------------------------------------------------------------------------------------------------------------------------------
                 ------------------------------------------------------------------------------------------------------------------------------------------------
                 ------ Handle the 13th week of the season ==> Intercontinental Cup Leagues are finished
                 ELSEIF multiverse.week_number = 13 THEN
-RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
+--RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
 
                     -- Update the normal leagues to say that they are finished
                     UPDATE leagues SET is_finished = TRUE
-                        WHERE multiverse_speed = multiverse.speed
+                        WHERE id_multiverse = multiverse.id
                         AND level = 0;
 
                 ------------------------------------------------------------------------------------------------------------------------------------------------
                 ------------------------------------------------------------------------------------------------------------------------------------------------
                 ------ Handle the 15th week of the season ==> Season is over, start a new one
                 ELSEIF multiverse.week_number = 14 THEN
-RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
+RAISE NOTICE '**** PGGGHANDLE SEASON MAIN: Multiverse [%] week_number % handling', multiverse.speed, multiverse.week_number;
 
                     -- Generate the games_teamcomp and the games of the next season
                     PERFORM handle_season_generate_games_and_teamcomps(
-                        inp_multiverse_speed := multiverse.speed,
+                        inp_id_multiverse := multiverse.speed,
                         inp_season_number := multiverse.season_number + 2,
                         inp_date_start := multiverse.date_season_end + loc_interval_1_week * 14);
 
@@ -236,15 +277,15 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         date_season_end = date_season_end + loc_interval_1_week * 14,
                         season_number = season_number + 1,
                         week_number = 0
-                    WHERE speed = multiverse.speed;
+                    WHERE id = multiverse.id;
 
                     -- Update leagues
                     UPDATE leagues SET
                         season_number = season_number + 1,
-                        is_finished = FALSE,
+                        is_finished = NULL,
                         cash_last_season = (cash / 1400) * 1400,
                         cash = cash - (cash / 1400) * 1400
-                        WHERE multiverse_speed = multiverse.speed;
+                        WHERE id_multiverse = multiverse.id;
 
                     -- Update clubs
                     UPDATE clubs SET
@@ -266,28 +307,28 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
                         pos_league = pos_league_next_season,
                         pos_league_next_season = NULL,
                         league_points = 0
-                        WHERE multiverse_speed = multiverse.speed;
+                        WHERE id_multiverse = multiverse.id;
 
                     -- Update players
                     UPDATE players SET
                         expanses = FLOOR((expanses + 100 + keeper + defense + playmaking + passes + winger + scoring + freekick) * 0.5)
-                        WHERE multiverse_speed = multiverse.speed;
+                        WHERE id_multiverse = multiverse.id;
 
                 END IF;
 
                 ------------------------------------------------------------------------------------------------------------------------------------------------
                 ------------------------------------------------------------------------------------------------------------------------------------------------
-                ------ Loop through the list of games that need to be played in the coming weeks
+                ------ Loop through the list of games that can be populated
                 FOR game IN (
                     SELECT games.* FROM games
                     JOIN games_description ON games.id_games_description = games_description.id
-                        WHERE multiverse_speed = multiverse.speed
+                        WHERE id_multiverse = multiverse.id
                         AND season_number = (SELECT season_number FROM multiverses WHERE speed = multiverse.speed)
-                        AND games_description.week = (SELECT week_number FROM multiverses WHERE speed = multiverse.speed)
+                        AND games_description.week_number = (SELECT week_number FROM multiverses WHERE id = multiverse.id)
                         AND (id_club_left IS NULL OR id_club_right IS NULL)
                         ORDER BY games.id
                 ) LOOP
-
+raise notice 'Populate Game %', game.id;
                     -- Try to populate the game with the clubs id
                     PERFORM handle_season_populate_game(game.id);
                 END LOOP; -- End of the game loop
@@ -297,7 +338,9 @@ RAISE NOTICE '**** HANDLE SEASON MAIN: Multiverse [%] week_number % handling', m
             ------------------------------------------------------------------------------------------------------------------------------------------------
             ------------------------------------------------------------------------------------------------------------------------------------------------
             ------ Update the week number of the multiverse and call the function again
-            UPDATE multiverses SET week_number = week_number + 1 WHERE speed = multiverse.speed;
+RAISE NOTICE '****** HANDLE SEASON MAIN: End handling multiverse % with speed % season % week number %', multiverse.id, multiverse.speed, multiverse.season_number, multiverse.week_number;
+
+            UPDATE multiverses SET week_number = week_number + 1 WHERE id = multiverse.id;
 
             -- Set this to TRUE to run another loop of simulate_games at the end of this function
             bool_week_advanced := TRUE;

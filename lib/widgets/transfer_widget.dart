@@ -291,11 +291,10 @@ class PlayerTransferTile extends StatelessWidget {
                             .user!
                             .selectedClub!
                             .id,
-                    'name_club':
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub!
-                            .name,
+                    'name': Provider.of<SessionProvider>(context, listen: false)
+                        .user!
+                        .selectedClub!
+                        .name,
                   });
 
                   if (date_sell.isAfter(player.dateSell!)) {

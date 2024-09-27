@@ -319,24 +319,7 @@ extension PlayerWidgetsHelper on Player {
       title: Row(
         children: [
           Icon(iconAge, size: iconSize),
-          Text(
-            age.truncate().toString(),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            ' & ',
-          ),
-          Text(
-            (age - age.truncate()).floor().toString(),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            ' days',
-          ),
+          getAgeStringRow(age, multiverseSpeed),
         ],
       ),
       subtitle: Row(

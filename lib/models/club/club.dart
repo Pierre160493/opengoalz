@@ -52,6 +52,7 @@ class Club {
     required this.userName,
     required this.name,
     required this.staffExpanses,
+    required this.cash,
     required this.lisCash,
     required this.lisRevenues,
     required this.lisSponsors,
@@ -78,6 +79,7 @@ class Club {
   final String? userName;
   final String name;
   final int staffExpanses;
+  final int cash;
   final List<int> lisCash;
   final List<int> lisRevenues;
   final List<int> lisSponsors;
@@ -109,8 +111,9 @@ class Club {
         idMultiverse = map['id_multiverse'],
         idLeague = map['id_league'],
         userName = map['username'],
-        name = map['name_club'],
+        name = map['name'],
         staffExpanses = map['staff_expanses'],
+        cash = map['cash'],
         lisCash = List<int>.from(map['lis_cash']),
         lisRevenues = List<int>.from(map['lis_revenues']),
         lisSponsors = List<int>.from(map['lis_sponsors']),

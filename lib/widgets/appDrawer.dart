@@ -68,11 +68,38 @@ class AppDrawer extends StatelessWidget {
               CalendarPage(idClub: selectedClub.id)), // Add the finances page
           buildDrawerOption(context, iconMails, 'Mails',
               MailsPage(idClub: selectedClub.id)), // Add the finances page
-          buildDrawerOption(
-              context,
+          // buildDrawerOption(
+          //     context,
+          //     icon_finance,
+          //     'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.cash)} €',
+          //     FinancesPage(idClub: selectedClub.id)), // Add the finances page
+          ListTile(
+            leading: Icon(
               icon_finance,
-              'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.lisCash.last)} €',
-              FinancesPage(idClub: selectedClub.id)), // Add the finances page
+              size: iconSizeMedium,
+            ),
+            title: Text(
+              'Finances',
+            ),
+            subtitle: Row(
+              children: [
+                Icon(iconMoney),
+                formSpacer6,
+                Text(
+                  NumberFormat.decimalPattern().format(selectedClub.cash),
+                  style: TextStyle(
+                    color: selectedClub.cash >= 0 ? Colors.green : Colors.red,
+                  ),
+                ),
+              ],
+            ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FinancesPage(idClub: selectedClub.id),
+              ),
+            ),
+          ),
           buildDrawerOption(
               context,
               icon_fans,

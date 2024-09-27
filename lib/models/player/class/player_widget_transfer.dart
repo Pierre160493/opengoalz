@@ -274,7 +274,7 @@ extension PlayerWidgetTransfer on Player {
                             .user!
                             .selectedClub!
                             .id,
-                    'name_club':
+                    'name':
                         Provider.of<SessionProvider>(context, listen: false)
                             .user!
                             .selectedClub!

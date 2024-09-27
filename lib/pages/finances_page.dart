@@ -87,39 +87,69 @@ class _FinancesPageState extends State<FinancesPage> {
   Widget _getFinances(Club club) {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
-      child: Center(
-        child: DataTable(
-          columns: [
-            DataColumn(
-              label: buildTabWithIcon(Icons.trending_up, 'Revenues'),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(
+              icon_finance,
+              size: iconSizeMedium,
             ),
-            DataColumn(
-                label: buildTabWithIcon(Icons.trending_down, 'Expanses')),
-          ],
-          rows: [
-            DataRow(cells: [
-              DataCell(_getDataCellRow(
-                  'Sponsors', club.lisSponsors.last, Colors.green)),
-              DataCell(_getDataCellRow(
-                  'Salaries', club.lisPlayersExpanses.last, Colors.red)),
-            ]),
-            DataRow(cells: [
-              DataCell(Text('')),
-              DataCell(_getDataCellRow(
-                  'Staff', club.lisStaffExpanses.last, Colors.red)),
-            ]),
-            DataRow(cells: [
-              DataCell(Text('')),
-              DataCell(_getDataCellRow('Taxes', club.lisTax.last, Colors.red)),
-            ]),
-            DataRow(cells: [
-              DataCell(_getDataCellRow(
-                  'Total', club.lisRevenues.last, Colors.green)),
-              DataCell(
-                  _getDataCellRow('Total', club.lisExpanses.last, Colors.red)),
-            ]),
-          ],
-        ),
+            title: Row(
+              children: [
+                Text(
+                  NumberFormat.decimalPattern().format(club.cash),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: club.cash > 0 ? Colors.green : Colors.red),
+                ),
+                formSpacer6,
+                Icon(iconMoney)
+              ],
+            ),
+            subtitle: Text(
+              'Available Cash',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.blueGrey,
+              ),
+            ),
+          ),
+          Center(
+            child: DataTable(
+              columns: [
+                DataColumn(
+                  label: buildTabWithIcon(Icons.trending_up, 'Revenues'),
+                ),
+                DataColumn(
+                    label: buildTabWithIcon(Icons.trending_down, 'Expanses')),
+              ],
+              rows: [
+                DataRow(cells: [
+                  DataCell(_getDataCellRow(
+                      'Sponsors', club.lisSponsors.last, Colors.green)),
+                  DataCell(_getDataCellRow(
+                      'Salaries', club.lisPlayersExpanses.last, Colors.red)),
+                ]),
+                DataRow(cells: [
+                  DataCell(Text('')),
+                  DataCell(_getDataCellRow(
+                      'Staff', club.lisStaffExpanses.last, Colors.red)),
+                ]),
+                DataRow(cells: [
+                  DataCell(Text('')),
+                  DataCell(
+                      _getDataCellRow('Taxes', club.lisTax.last, Colors.red)),
+                ]),
+                DataRow(cells: [
+                  DataCell(_getDataCellRow(
+                      'Total', club.lisRevenues.last, Colors.green)),
+                  DataCell(_getDataCellRow(
+                      'Total', club.lisExpanses.last, Colors.red)),
+                ]),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

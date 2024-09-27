@@ -33,9 +33,11 @@ extension PlayerCardHistory on Player {
                     final item = historyData[index];
                     final DateTime dateEvent =
                         DateTime.parse(item['created_at']);
+                    // final double ageEvent =
+                    //     dateEvent.difference(dateBirth).inDays /
+                    //         (14 * 7 / multiverseSpeed);
                     final double ageEvent =
-                        dateEvent.difference(dateBirth).inDays /
-                            (14 * 7 / multiverseSpeed2);
+                        calculateAge(dateEvent, multiverseSpeed);
                     return ListTile(
                       title: Text(
                         item['description'],
