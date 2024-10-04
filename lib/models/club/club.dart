@@ -104,9 +104,9 @@ class Club {
             false, // Set isUser to true if the club id is in myClubsIds
         isCurrentlySelected =
             idSelectedClub == map['id'], // Is the club selected
-        createdAt = DateTime.parse(map['created_at']),
+        createdAt = DateTime.parse(map['created_at']).toLocal(),
         userSince = map['user_since'] != null
-            ? DateTime.parse(map['user_since'])
+            ? DateTime.parse(map['user_since']).toLocal()
             : null,
         idMultiverse = map['id_multiverse'],
         idLeague = map['id_league'],

@@ -37,6 +37,7 @@ const icon_scouts = Icons.camera_indoor_outlined;
 const iconInjury = Icons.healing;
 const icon_players = Icons.group;
 const iconTransfers = Icons.currency_exchange;
+const iconFreePlayer = Icons.lock_person_outlined;
 const iconGames = Icons.event;
 const iconCalendar = Icons.calendar_month;
 const iconNotes = Icons.event_note;
@@ -57,6 +58,7 @@ const iconTeamComp = Icons.grid_on;
 const iconMails = Icons.email;
 const iconStamina = Icons.ev_station;
 // const iconBug = Icons.bug_report;
+const iconCancel = Icons.cancel;
 const iconError = Icons.error;
 const iconSuccessfulOperation = Icons.check_circle;
 const iconPostgreSQLError = Icons.report;
@@ -64,12 +66,13 @@ const iconAnnouncement = Icons.campaign_outlined;
 const iconShirt = Icons.checkroom;
 // const iconMultiverseSpeed = Icons.speed;
 const iconMultiverseSpeed = Icons.shutter_speed;
+const iconCountries = Icons.public;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorIsMine = Colors.purple;
 
 /// Text Styles
-const TextStyle italicBlueGreyTextStyle = TextStyle(
+const TextStyle styleItalicBlueGrey = TextStyle(
   fontStyle: FontStyle.italic,
   color: Colors.blueGrey,
 );

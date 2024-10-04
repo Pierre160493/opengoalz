@@ -39,10 +39,10 @@ class Profile {
         isConnectedUser =
             connectedUserId != null && map['uuid_user'] == connectedUserId,
         username = map['username'],
-        createdAt = DateTime.parse(map['created_at']),
+        createdAt = DateTime.parse(map['created_at']).toLocal(),
         idDefaultClub = map['id_default_club'],
         lastUsernameUpdate = map['last_username_update'] != null
-            ? DateTime.parse(map['last_username_update'])
+            ? DateTime.parse(map['last_username_update']).toLocal()
             : null,
         // email = map['email'],
         numberClubsAvailable = map['number_clubs_available'] ?? 1,

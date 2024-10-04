@@ -23,7 +23,7 @@ class GameSub {
 
   GameSub.fromMap(Map<String, dynamic> map)
       : id = map['id'],
-        createdAt = DateTime.parse(map['created_at']),
+        createdAt = DateTime.parse(map['created_at']).toLocal(),
         idTeamComp = map['id_teamcomp'],
         idPlayerOut = map['id_player_out'],
         idPlayerIn = map['id_player_in'],

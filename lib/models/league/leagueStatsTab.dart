@@ -154,7 +154,9 @@ extension LeagueStatsTab on League {
           subtitle: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              players[entry.key]!.getClubNameWidget(context),
+              // players[entry.key]!.getClubNameWidget(context),
+              getClubNameClickable(context, players[entry.key]!.club,
+                  players[entry.key]!.idClub),
               if (players[entry.key]!.userName != null)
                 getUserNameClickable(context,
                     userName: players[entry.key]!.userName!),

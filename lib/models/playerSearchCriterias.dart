@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/functions.dart';
+import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -11,26 +12,25 @@ class PlayerSearchCriterias {
   List<int>? idPlayer;
   List<int>? idClub;
   Multiverse? multiverse;
-  List<Country>? countries;
+  List<Country> countries = [];
   bool onTransferList = false;
-  bool isFreePlayer = false;
+  // bool isFreePlayer = false;
   double defaultMinAge = 15;
   double defaultMaxAge = 35;
   double selectedMinAge = 15;
   double selectedMaxAge = 35;
   DateTime? minDateBirth;
   DateTime? maxDateBirth;
-  // PlayerStatus? selectedStatus;
   Map<String, RangeValues?> stats;
 
   PlayerSearchCriterias({
     this.idPlayer,
     this.idClub,
     this.multiverse,
-    this.countries,
     // this.selectedStatus,
     Map<String, RangeValues?>? stats,
-  }) : stats = stats ??
+  })  : countries = [],
+        stats = stats ??
             {
               'keeper': null,
               'defense': null,
@@ -43,11 +43,10 @@ class PlayerSearchCriterias {
 
   Map<String, dynamic> toMap() {
     return {
-      if (idPlayer != null) 'id_player': idPlayer,
-      if (idClub != null) 'id_club': idClub,
+      'id_player': idPlayer,
+      'id_club': idClub,
       if (multiverse != null) 'id_multiverse': multiverse!.id,
-      if (countries != null)
-        'id_country': countries!.map((country) => country.id).toList(),
+      'id_country': countries.map((country) => country.id).toList(),
       'min_age': selectedMinAge,
       'max_age': selectedMaxAge,
       // if (selectedStatus != null) 'selected_status': selectedStatus,
@@ -98,7 +97,9 @@ class PlayerSearchCriterias {
 
     if (multiverse != null) {
       minDateBirth = calculateDateBirth(selectedMinAge, multiverse!.speed);
+      print('Minimum Age: $selectedMinAge ==> $minDateBirth');
       maxDateBirth = calculateDateBirth(selectedMaxAge, multiverse!.speed);
+      print('Maximum Age: $selectedMaxAge ==> $maxDateBirth');
     } else {
       minDateBirth = null;
       maxDateBirth = null;
@@ -208,5 +209,62 @@ class PlayerSearchCriterias {
       tooltip:
           '${offset > 0 ? 'Increase' : 'Lower'} ${isMin ? 'min' : 'max'} age by ${offset.abs()}',
     );
+  }
+
+  Future<List<int>> fetchPlayerIds() async {
+    // Build the query
+    var query = supabase.from('players').select('id');
+
+    // Apply filters based on the criteria
+    if (idPlayer != null && idPlayer!.isNotEmpty) {
+      query = query.inFilter('id', idPlayer!);
+    }
+
+    if (idClub != null && idClub!.isNotEmpty) {
+      query = query.inFilter('id_club', idClub!);
+    }
+
+    if (multiverse != null) {
+      query = query.eq('id_multiverse', multiverse!.id);
+    }
+
+    if (countries.isNotEmpty) {
+      query = query.inFilter(
+          'id_country', countries.map((country) => country.id).toList());
+    }
+
+    if (onTransferList) {
+      query = query.gte('date_bid_end', DateTime.now().toIso8601String());
+    }
+
+    if (minDateBirth != null) {
+      query = query.lte('date_birth', minDateBirth!.toIso8601String());
+    }
+    if (maxDateBirth != null) {
+      query = query.gte('date_birth', maxDateBirth!.toIso8601String());
+    }
+
+    /// Stats filtering
+    if (stats.isNotEmpty) {
+      for (var entry in stats.entries) {
+        var statName = entry.key;
+        var range = entry.value;
+
+        // Check if the player's stat is within the specified range
+        if (range != null) {
+          query = query.gte(statName, range.start);
+          query = query.lte(statName, range.end);
+        }
+      }
+    }
+
+    // Fetch the data from the database
+    final data = await query; // Now query includes the filter if it was applied
+
+    // Extract the IDs and add them to the playerIds list
+    List<int> playerIds =
+        (data as List).map((item) => item['id'] as int).toList();
+
+    return playerIds;
   }
 }

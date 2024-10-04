@@ -40,7 +40,7 @@ class GameEvent {
   factory GameEvent.fromMap(Map<String, dynamic> map) {
     return GameEvent(
       id: map['id'],
-      createdAt: DateTime.parse(map['created_at']),
+      createdAt: DateTime.parse(map['created_at']).toLocal(),
       idGame: map['id_game'],
       eventType: map['event_type'],
       idEventType: map['id_event_type'],
@@ -48,7 +48,7 @@ class GameEvent {
       idClub: map['id_club'],
       gameMinute: map['game_minute'],
       dateEvent:
-          map['date_event'] != null ? DateTime.parse(map['date_event']) : null,
+          map['date_event'] != null ? DateTime.parse(map['date_event']).toLocal() : null,
       gamePeriod: map['game_period'],
       idPlayer2: map['id_player2'],
       idPlayer3: map['id_player3'],

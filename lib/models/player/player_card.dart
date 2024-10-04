@@ -292,13 +292,12 @@ class _PlayerCardState extends State<PlayerCard>
                                 context, widget.player.idCountry),
                             widget.player.getAvgStatsWidget(),
                             widget.player.getExpansesWidget(context),
-                            if (widget.player.transferBids.length > 0 &&
-                                widget.player.dateSell!.isAfter(DateTime.now()))
-                              widget.player.playerTransferWidget(context),
+                            // if (widget.player.transferBids.length > 0 &&
+                            //     widget.player.dateBidEnd!
+                            //         .isAfter(DateTime.now()))
+                            //   widget.player.playerTransferWidget(context),
                             if (widget.player.dateEndInjury != null)
                               widget.player.getInjuryWidget(),
-                            if (widget.player.dateFiring != null)
-                              widget.player.getFiringRow(),
                           ],
                         ),
                       ),

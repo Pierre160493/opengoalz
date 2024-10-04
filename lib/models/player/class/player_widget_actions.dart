@@ -13,30 +13,29 @@ extension PlayerWidgetsActions on Player {
               title: Text('Open Player\'s Page'),
             ),
           ),
-        if (dateSell == null)
-          if (dateFiring == null) ...[
-            const PopupMenuItem<String>(
-              value: 'Sell',
-              child: ListTile(
-                leading: Icon(iconTransfers),
-                title: Text('Sell'),
-              ),
+        if (dateBidEnd == null) ...[
+          const PopupMenuItem<String>(
+            value: 'Sell',
+            child: ListTile(
+              leading: Icon(iconTransfers),
+              title: Text('Sell'),
             ),
-            const PopupMenuItem<String>(
-              value: 'Fire',
-              child: ListTile(
-                leading: Icon(iconLeaveClub),
-                title: Text('Fire'),
-              ),
-            )
-          ] else
-            const PopupMenuItem<String>(
-              value: 'Unfire',
-              child: ListTile(
-                leading: Icon(Icons.cancel),
-                title: Text('Unfire'),
-              ),
+          ),
+          const PopupMenuItem<String>(
+            value: 'Fire',
+            child: ListTile(
+              leading: Icon(iconLeaveClub),
+              title: Text('Fire'),
             ),
+          )
+        ] else
+          const PopupMenuItem<String>(
+            value: 'Unfire',
+            child: ListTile(
+              leading: Icon(Icons.cancel),
+              title: Text('Unfire'),
+            ),
+          ),
         // Add more PopupMenuItems for additional actions
       ],
       onSelected: (String value) {
@@ -53,10 +52,10 @@ extension PlayerWidgetsActions on Player {
             );
             break;
           case 'Sell':
-            _SellPlayer(context); // Sell Player
+            _SellPlayer(context, false); // Sell Player
             break;
           case 'Fire':
-            _FirePlayer(context); // Fire Player
+            _SellPlayer(context, true); // Fire Player
             break;
           case 'Unfire':
             _UnFirePlayer(context); // Unfire Player
@@ -68,31 +67,100 @@ extension PlayerWidgetsActions on Player {
     );
   }
 
-  Future<void> _SellPlayer(BuildContext context) async {
+  Future<void> _SellPlayer(BuildContext context, bool firePlayer) async {
     final TextEditingController _priceController =
         TextEditingController(text: '0'); // Initialize with default value
-
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    DateTime selectedDate =
+        DateTime.now().add(Duration(days: 7)); // Default to now + 7 days
+    TimeOfDay selectedTime = TimeOfDay.now(); // Default to current time
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Put to transfer list'),
+          title: Text(
+              '${firePlayer ? 'Fire' : 'Sell'} ${firstName} ${lastName.toUpperCase()}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Enter the starting price for ${firstName} ${lastName.toUpperCase()}',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _priceController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Start price',
+              if (firePlayer == false) ...[
+                ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    side: BorderSide(color: Colors.blueGrey, width: 1.0),
+                  ),
+                  leading: Icon(iconMoney),
+                  title: TextFormField(
+                    controller: _priceController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter
+                          .digitsOnly, // Allow only digits
+                    ],
+                    decoration: InputDecoration(
+                      labelText: 'Start price',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a price';
+                      }
+                      final int? price = int.tryParse(value);
+                      if (price == null) {
+                        return 'Please enter a valid integer';
+                      }
+                      return null;
+                    },
+                  ),
+                  subtitle: Text(
+                    'Enter the starting price',
+                    style: TextStyle(
+                        color: Colors.blueGrey, fontStyle: FontStyle.italic),
+                  ),
                 ),
+                formSpacer6
+              ],
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  side: BorderSide(color: Colors.blueGrey, width: 1.0),
+                ),
+                leading: Icon(iconCalendar),
+                title: Text(
+                  DateFormat('EEE dd MMM HH:mm').format(selectedDate),
+                ),
+                subtitle: Text(
+                  'Date and time when the bid will end',
+                  style: TextStyle(
+                      color: Colors.blueGrey, fontStyle: FontStyle.italic),
+                ),
+                onTap: () async {
+                  final DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime.now().add(Duration(days: 3)),
+                    lastDate: DateTime.now().add(Duration(days: 14)),
+                  );
+                  if (pickedDate != null) {
+                    final TimeOfDay? pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: selectedTime,
+                      initialEntryMode: TimePickerEntryMode.input,
+                    );
+                    if (pickedTime != null) {
+                      selectedDate = DateTime(
+                        pickedDate.year,
+                        pickedDate.month,
+                        pickedDate.day,
+                        pickedTime.hour,
+                        pickedTime.minute,
+                      );
+                      selectedTime = pickedTime;
+                    }
+                  }
+                },
               ),
             ],
           ),
@@ -102,7 +170,13 @@ extension PlayerWidgetsActions on Player {
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: const Text('Cancel'),
+              child: Row(
+                children: [
+                  Icon(iconCancel, color: Colors.red),
+                  formSpacer3,
+                  Text('Cancel'),
+                ],
+              ),
             ),
 
             /// Confirm button
@@ -120,36 +194,49 @@ extension PlayerWidgetsActions on Player {
                     );
                     return;
                   }
-                  await supabase.from('transfers_bids').insert({
-                    'amount': minimumPrice,
-                    'id_player': id,
-                    'id_club':
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub!
-                            .id,
+                  if (firePlayer) {
+                    minimumPrice = -1;
+                  }
+
+                  // Validate the selected date
+                  if (selectedDate
+                          .isBefore(DateTime.now().add(Duration(days: 3))) ||
+                      selectedDate
+                          .isAfter(DateTime.now().add(Duration(days: 14)))) {
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Please select a valid date between 3 and 14 days from now'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Call the transfers_new_transfer function
+                  await supabase.rpc('transfers_new_transfer', params: {
+                    'inp_id_player': id,
+                    'inp_amount': minimumPrice,
+                    'inp_date_bid_end': selectedDate.toIso8601String(),
                   });
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          '${firstName} ${lastName.toUpperCase()} has been put to transfer list'),
-                    ),
-                  );
+
+                  context.showSnackBarSuccess(
+                      '${firstName} ${lastName.toUpperCase()} ' +
+                          (firePlayer
+                              ? 'has been put to transfer list and will be fired if no bids are received'
+                              : 'has been put to transfer list'));
                 } on PostgrestException catch (error) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(error.message),
-                    ),
-                  );
+                  context.showSnackBarPostgreSQLError(error.message);
                 } catch (error) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text('An unexpected error occurred.'),
-                    ),
-                  );
+                  context.showSnackBarError(error.toString());
                 }
               },
-              child: const Text('Confirm'),
+              child: Row(
+                children: [
+                  Icon(iconSuccessfulOperation, color: Colors.green),
+                  formSpacer3,
+                  Text('Confirm'),
+                ],
+              ),
             ),
           ],
         );

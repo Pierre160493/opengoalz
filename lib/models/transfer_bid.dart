@@ -19,10 +19,10 @@ class TransferBid {
 
   TransferBid.fromMap(Map<String, dynamic> map)
       : id = map['id'],
-        createdAt = DateTime.parse(map['created_at']),
+        createdAt = DateTime.parse(map['created_at']).toLocal(),
         amount = map['amount'],
         idClub = map['id_club'],
         idPlayer = map['id_player'],
-        nameClub = map['name'],
+        nameClub = map['name_club'],
         countBid = map['count_bid'];
 }

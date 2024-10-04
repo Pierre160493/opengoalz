@@ -41,7 +41,7 @@ class Country {
       continents: continents,
       isActive: map['is_active'],
       activatedAt: map['activated_at'] != null
-          ? DateTime.parse(map['activated_at'])
+          ? DateTime.parse(map['activated_at']).toLocal()
           : null,
     );
   }

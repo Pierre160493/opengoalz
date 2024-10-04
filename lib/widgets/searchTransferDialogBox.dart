@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
@@ -45,22 +46,7 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 /// Select the multiverse
-                // MultiverseSelector(
-                //   selectedMultiverse: playerSearchCriterias.multiverse,
-                //   onMultiverseSelected: (multiverse) {
-                //     setState(() {
-                //       playerSearchCriterias.multiverse = multiverse;
 
-                //       playerSearchCriterias.updateAgeAndBirthDate(true);
-                //       playerSearchCriterias.updateAgeAndBirthDate(false);
-                //     });
-                //   },
-                //   onMultiverseReset: () {
-                //     setState(() {
-                //       playerSearchCriterias.multiverse = null;
-                //     });
-                //   },
-                // ),
                 ListTile(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0),
@@ -118,22 +104,67 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                 ),
 
                 /// Select the country
-                CountrySelector(
-                  selectedCountry: playerSearchCriterias.countries?.first,
-                  onCountrySelected: (Country? country) {
-                    setState(() {
-                      if (country == null) {
-                        playerSearchCriterias.countries = null;
-                      } else {
-                        playerSearchCriterias.countries = [country];
+
+                ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    side: BorderSide(color: Colors.green, width: 2.0),
+                  ),
+                  title: ElevatedButton(
+                    onPressed: () async {
+                      // Filter the stats to include only those that are null
+                      final country = await Navigator.push<Country>(
+                        context,
+                        CountriesPage.route(),
+                      );
+                      if (country != null) {
+                        setState(() {
+                          playerSearchCriterias.countries.add(country);
+                        });
                       }
-                    });
-                  },
-                  onCountryReset: () {
-                    setState(() {
-                      playerSearchCriterias.countries = null;
-                    });
-                  },
+                    },
+                    child: Row(
+                      children: [
+                        Icon(iconCountries, color: Colors.green),
+                        formSpacer6,
+                        Text(playerSearchCriterias.countries.isEmpty
+                            ? 'Select a country'
+                            : 'Add a country'),
+                      ],
+                    ),
+                  ),
+                  subtitle: Column(
+                    children: [
+                      if (playerSearchCriterias.countries.isNotEmpty)
+                        formSpacer3,
+                      ...playerSearchCriterias.countries.map((Country country) {
+                        return Column(
+                          children: [
+                            ListTile(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                                side:
+                                    BorderSide(color: Colors.green, width: 1.0),
+                              ),
+                              title: Text('${country.name}'),
+                              trailing: IconButton(
+                                tooltip:
+                                    'Remove ${country.name} from the search criteria',
+                                onPressed: () {
+                                  setState(() {
+                                    playerSearchCriterias.countries
+                                        .remove(country);
+                                  });
+                                },
+                                icon: Icon(Icons.delete_forever,
+                                    color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ],
+                  ),
                 ),
 
                 /// Select the player status (all, transfer list, free player)
@@ -145,6 +176,65 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                 //     });
                 //   },
                 // ),
+                ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    side: BorderSide(color: Colors.green, width: 2.0),
+                  ),
+                  title: Row(
+                    children: [
+                      Icon(Icons.signpost, color: Colors.green),
+                      formSpacer6,
+                      Text('Player Status'),
+                    ],
+                  ),
+                  subtitle: Column(
+                    children: [
+                      ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          side: BorderSide(color: Colors.green, width: 1.0),
+                        ),
+                        title: Row(
+                          children: [
+                            Icon(iconTransfers, color: Colors.green),
+                            formSpacer6,
+                            Text('On Transfer List'),
+                          ],
+                        ),
+                        trailing: Switch(
+                          value: playerSearchCriterias.onTransferList,
+                          onChanged: (bool value) {
+                            setState(() {
+                              playerSearchCriterias.onTransferList = value;
+                            });
+                          },
+                        ),
+                      ),
+                      // ListTile(
+                      //   shape: RoundedRectangleBorder(
+                      //     borderRadius: BorderRadius.circular(12.0),
+                      //     side: BorderSide(color: Colors.green, width: 1.0),
+                      //   ),
+                      //   title: Row(
+                      //     children: [
+                      //       Icon(Icons.logout, color: Colors.green),
+                      //       formSpacer6,
+                      //       Text('Free Player'),
+                      //     ],
+                      //   ),
+                      //   trailing: Switch(
+                      //     value: playerSearchCriterias.isFreePlayer,
+                      //     onChanged: (bool value) {
+                      //       setState(() {
+                      //         playerSearchCriterias.isFreePlayer = value;
+                      //       });
+                      //     },
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                ),
 
                 /// Select the age range
                 playerSearchCriterias.ageSelector(context, setState),
@@ -276,24 +366,77 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                   ],
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  // Check if all the required fields are filled
-                  if (playerSearchCriterias.multiverse == null) {
-                    context.showSnackBarError(
-                        'No multiverse selected, cannot search players');
-                    return;
-                  }
+              FutureBuilder<List<int>>(
+                future: playerSearchCriterias.fetchPlayerIds(),
+                builder: (context, snapshot) {
+                  bool tooManyResults =
+                      snapshot.hasData && snapshot.data!.length > 999;
+                  return TextButton(
+                    onPressed: () {
+                      if (tooManyResults) {
+                        context.showSnackBarError(
+                            'Too many results. Please add more filters to narrow down the search.');
+                        return;
+                      }
 
-                  Navigator.of(context).pop(playerSearchCriterias);
+                      // Check if all the required fields are filled
+                      if (playerSearchCriterias.multiverse == null) {
+                        context.showSnackBarError(
+                            'No multiverse selected, cannot search players');
+                        return;
+                      }
+
+                      // playerSearchCriterias.fetchPlayerIds();
+
+                      Navigator.of(context).pop(playerSearchCriterias);
+                    },
+                    child: Row(
+                      children: [
+                        // if (snapshot.connectionState == ConnectionState.waiting)
+                        //   CircularProgressIndicator(),
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) ...[
+                          LoadingIndicator(),
+                        ] else if (snapshot.hasError) ...[
+                          Row(
+                            children: [
+                              Icon(iconError, color: Colors.red),
+                              formSpacer3,
+                              Text('Error fetching players'),
+                            ],
+                          ),
+                        ] else if (snapshot.hasData) ...[
+                          Tooltip(
+                            message: tooManyResults
+                                ? 'Too many results. Please add more filters to narrow down the search.'
+                                : 'Search for players',
+                            child: Row(
+                              children: [
+                                Icon(Icons.person_search,
+                                    color: tooManyResults
+                                        ? Colors.red
+                                        : Colors.green),
+                                formSpacer3,
+                                Text('Search '),
+                                Text(
+                                  tooManyResults
+                                      ? '999+'
+                                      : snapshot.data!.length.toString(),
+                                  style: TextStyle(
+                                    color: tooManyResults
+                                        ? Colors.red
+                                        : Colors.green,
+                                  ),
+                                ),
+                                Text(' Players'),
+                              ],
+                            ),
+                          ),
+                        ]
+                      ],
+                    ),
+                  );
                 },
-                child: Row(
-                  children: [
-                    Icon(Icons.person_search, color: Colors.green),
-                    formSpacer3,
-                    Text('Search Players'),
-                  ],
-                ),
               ),
             ],
           ),
@@ -303,115 +446,47 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
   }
 }
 
-class MultiverseSelector extends StatelessWidget {
-  final Multiverse? selectedMultiverse;
-  final Function(Multiverse?) onMultiverseSelected;
-  final Function() onMultiverseReset;
-
-  MultiverseSelector({
-    required this.selectedMultiverse,
-    required this.onMultiverseSelected,
-    required this.onMultiverseReset,
-  });
-
+class LoadingIndicator extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(
-            color: selectedMultiverse == null ? Colors.red : Colors.green,
-            width: 2.0),
-      ),
-      title: ElevatedButton(
-        onPressed: () async {
-          final multiverse = await Navigator.push<Multiverse>(
-            context,
-            MultiversePage.route(
-              1,
-              isReturningMultiverse: true,
-            ),
-          );
-          onMultiverseSelected(multiverse);
-        },
-        child: selectedMultiverse == null
-            ? Row(
-                children: [
-                  Icon(iconError, color: Colors.red),
-                  formSpacer6,
-                  Text('Select Multiverse'),
-                ],
-              )
-            : Row(
-                children: [
-                  Icon(iconSuccessfulOperation, color: Colors.green),
-                  formSpacer6,
-                  Text('Multiverse: ${selectedMultiverse!.name}'),
-                ],
-              ),
-      ),
-      trailing: selectedMultiverse == null
-          ? null
-          : IconButton(
-              tooltip: 'Reset the selected multiverse',
-              onPressed: onMultiverseReset,
-              icon: Icon(Icons.delete_forever, color: Colors.red),
-            ),
-    );
-  }
+  _LoadingIndicatorState createState() => _LoadingIndicatorState();
 }
 
-class CountrySelector extends StatelessWidget {
-  final Country? selectedCountry;
-  final Function(Country?) onCountrySelected;
-  final Function() onCountryReset;
+class _LoadingIndicatorState extends State<LoadingIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
 
-  CountrySelector({
-    required this.selectedCountry,
-    required this.onCountrySelected,
-    required this.onCountryReset,
-  });
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(
-            color: selectedCountry == null ? Colors.orange : Colors.green,
-            width: 2.0),
-      ),
-      title: ElevatedButton(
-        onPressed: () async {
-          final country = await Navigator.push<Country>(
-            context,
-            CountriesPage.route(),
-          );
-          onCountrySelected(country);
-        },
-        child: selectedCountry == null
-            ? Row(
-                children: [
-                  Icon(Icons.settings_suggest, color: Colors.orange),
-                  formSpacer6,
-                  Text('Country: Any'),
-                ],
-              )
-            : Row(
-                children: [
-                  Icon(iconSuccessfulOperation, color: Colors.green),
-                  formSpacer6,
-                  Text('Country: ${selectedCountry!.name}'),
-                ],
-              ),
-      ),
-      trailing: selectedCountry == null
-          ? null
-          : IconButton(
-              tooltip: 'Reset the selected country',
-              onPressed: onCountryReset,
-              icon: Icon(Icons.delete_forever, color: Colors.red),
-            ),
+    return Row(
+      children: [
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Transform.rotate(
+              angle: _controller.value * 2.0 * pi,
+              child: child,
+            );
+          },
+          child: Icon(Icons.hourglass_empty, color: Colors.green),
+        ),
+        SizedBox(width: 8),
+        Text('Pre loading players'),
+      ],
     );
   }
 }

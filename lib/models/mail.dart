@@ -28,7 +28,7 @@ class Mail {
   factory Mail.fromMap(Map<String, dynamic> map) {
     return Mail(
       id: map['id'],
-      createdAt: DateTime.parse(map['created_at']),
+      createdAt: DateTime.parse(map['created_at']).toLocal(),
       idClubTo: map['id_club_to'],
       usernameTo: map['username_to'],
       title: map['title'],
@@ -38,7 +38,7 @@ class Mail {
       isRead: map['is_read'],
       isFavorite: map['is_favorite'],
       dateDelete: map['date_delete'] != null
-          ? DateTime.parse(map['date_delete'])
+          ? DateTime.parse(map['date_delete']).toLocal()
           : null,
     );
   }

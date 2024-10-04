@@ -101,6 +101,7 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
             children: [
               // Icon(Icons.language, size: iconSizeSmall),
               Icon(Icons.public, size: iconSizeSmall),
+              formSpacer3,
               Text(country['continent'],
                   style: TextStyle(
                       fontStyle: FontStyle.italic, color: Colors.blueGrey)),

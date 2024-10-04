@@ -27,8 +27,8 @@ class Multiverse {
       name: map['name'],
       speed: map['speed'],
       seasonNumber: map['season_number'],
-      dateSeasonStart: DateTime.parse(map['date_season_start']),
-      dateSeasonEnd: DateTime.parse(map['date_season_end']),
+      dateSeasonStart: DateTime.parse(map['date_season_start']).toLocal(),
+      dateSeasonEnd: DateTime.parse(map['date_season_end']).toLocal(),
       weekNumber: map['week_number'],
       cashPrinted: map['cash_printed'],
     );

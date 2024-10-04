@@ -28,6 +28,6 @@ class Message {
   })  : id = map['id'],
         profileId = map['profile_id'],
         content = map['content'],
-        createdAt = DateTime.parse(map['created_at']),
+        createdAt = DateTime.parse(map['created_at']).toLocal(),
         isMine = myUserId == map['profile_id'];
 }

@@ -53,141 +53,76 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  /// get the club name
-  Widget getClubNameWidget(BuildContext context) {
-    return getClubNameClickable(context, club, idClub);
-
-    // if (idClub == null) {
-    //   return Row(
-    //     children: [
-    //       Icon(
-    //         Icons.fireplace_outlined,
-    //         size: icon_size, // Adjust icon size as needed
-    //         color: Colors.green, // Adjust icon color as needed
-    //       ),
-    //       Text(
-    //         'Free Player',
-    //         style: TextStyle(
-    //           fontWeight: FontWeight.bold,
-    //         ),
-    //       ),
-    //     ],
-    //   );
-    // } else {
-    //   return Row(
-    //     children: [
-    //       // Icon(
-    //       //   icon_club,
-    //       //   size: icon_size, // Adjust icon size as needed
-    //       //   color: Colors.green, // Adjust icon color as needed
-    //       // ),
-    //       if (club == null)
-    //         Text(
-    //           'ERROR: Club of this player wasn\'t found',
-    //           style: TextStyle(
-    //             fontWeight: FontWeight.bold,
-    //           ),
-    //         )
-    //       else
-    //         club!.getClubNameClickable(context),
-    //     ],
-    //   );
-    // }
-  }
-
-  /// get the username of the player
-  // Widget getUserNameWidget() {
-  //   if (userName == null) {
-  //     return Row(
-  //       children: [
-  //         Icon(
-  //           Icons.error,
-  //         ),
-  //         Text(
-  //           'No User',
-  //           style: TextStyle(
-  //             fontWeight: FontWeight.bold,
-  //           ),
-  //         ),
-  //       ],
-  //     );
-  //   }
-  //   return Row(
-  //     children: [
-  //       Icon(
-  //         Icons.android_outlined,
-  //         color: Colors.green, // Adjust icon color as needed
-  //       ),
-  //       Text(
-  //         userName!,
-  //         style: TextStyle(
-  //           fontWeight: FontWeight.bold,
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
   /// Returns the status of the player (on transfer list, being fired, injured, etc...)
   Widget getStatusRow() {
-    DateTime currentDate = DateTime.now();
+    DateTime currentDate = DateTime.now().toLocal();
     return Row(
       children: [
-        if (dateSell != null)
-          Stack(
-            children: [
-              const Icon(
-                Icons.monetization_on,
-                color: Colors.green,
-                size: 30,
-              ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Text(
-                  dateSell!
-                      .difference(currentDate)
-                      .inDays
-                      .toString(), // Change the number as needed
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontWeight: FontWeight.bold,
+        if (dateBidEnd != null) ...[
+          if (idClub == null)
+            Tooltip(
+              message: 'Free Player',
+              child: Stack(
+                children: [
+                  Icon(
+                    iconFreePlayer,
+                    color: Colors.green,
+                    size: iconSizeMedium,
                   ),
-                ),
-              ),
-            ],
-          ),
-        if (dateFiring != null)
-          Stack(
-            children: [
-              const Icon(
-                Icons.exit_to_app,
-                color: Colors.red,
-                size: 30,
-              ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Text(
-                  dateFiring!
-                      .difference(currentDate)
-                      .inDays
-                      .toString(), // Change the number as needed
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontWeight: FontWeight.bold,
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Text(
+                      dateBidEnd!
+                          .difference(currentDate)
+                          .inDays
+                          .toString(), // Change the number as needed
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          if (idClub != null)
+            Tooltip(
+              message:
+                  // 'Transfer List [${dateBidEnd!.difference(currentDate).inDays == 0 ? dateBidEnd!.difference(currentDate).inHours : dateBidEnd!.difference(currentDate).inDays} ${dateBidEnd!.difference(currentDate).inDays == 0 ? 'hours' : 'days'}]',
+                  'Transfer deadline: ${DateFormat('EEE d \'at\' H:mm').format(dateBidEnd!)}',
+              child: Stack(
+                children: [
+                  Icon(
+                    iconTransfers,
+                    color: Colors.red,
+                    size: iconSizeMedium,
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Text(
+                      dateBidEnd!
+                          .difference(currentDate)
+                          .inDays
+                          .toString(), // Change the number as needed
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
         if (dateEndInjury != null)
           Stack(
             children: [
-              const Icon(
+              Icon(
                 Icons.local_hospital,
                 color: Colors.red,
-                size: 30,
+                size: iconSizeMedium,
               ),
               Positioned(
                 top: 0,
@@ -234,10 +169,10 @@ extension PlayerWidgetsHelper on Player {
                   Expanded(child: getExpansesWidget(context)),
                 ],
               ),
-              if (transferBids.length > 0 && dateSell!.isAfter(DateTime.now()))
+              if (transferBids.length > 0 &&
+                  dateBidEnd!.isAfter(DateTime.now()))
                 playerTransferWidget(context),
               if (dateEndInjury != null) getInjuryWidget(),
-              if (dateFiring != null) getFiringRow(),
             ],
           );
         } else {
@@ -248,56 +183,14 @@ extension PlayerWidgetsHelper on Player {
               getCountryNameWidget(context, idCountry),
               getAvgStatsWidget(),
               getExpansesWidget(context),
-              if (transferBids.length > 0 && dateSell!.isAfter(DateTime.now()))
+              if (transferBids.length > 0 &&
+                  dateBidEnd!.isAfter(DateTime.now()))
                 playerTransferWidget(context),
               if (dateEndInjury != null) getInjuryWidget(),
-              if (dateFiring != null) getFiringRow(),
             ],
           );
         }
       },
-    );
-  }
-
-  Widget getFiringRow() {
-    return Row(
-      children: [
-        Icon(Icons.exit_to_app, color: Colors.green),
-        StreamBuilder<int>(
-          stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
-          builder: (context, snapshot) {
-            final remainingTime = dateFiring!.difference(DateTime.now());
-            final daysLeft = remainingTime.inDays;
-            final hoursLeft = remainingTime.inHours.remainder(24);
-            final minutesLeft = remainingTime.inMinutes.remainder(60);
-            final secondsLeft = remainingTime.inSeconds.remainder(60);
-
-            return RichText(
-              text: TextSpan(
-                text: ' Will be fired in: ',
-                style: const TextStyle(),
-                children: [
-                  if (daysLeft > 0) // Conditionally include days left
-                    TextSpan(
-                      text: '$daysLeft d, ',
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  TextSpan(
-                    text: '$hoursLeft h, $minutesLeft m, $secondsLeft s',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
     );
   }
 
@@ -324,7 +217,8 @@ extension PlayerWidgetsHelper on Player {
       ),
       subtitle: Row(
         children: [
-          Icon(Icons.calendar_month, size: iconSize),
+          Icon(Icons.event, size: iconSize),
+          formSpacer3,
           Text(DateFormat('dd MMMM yyyy').format(dateBirth),
               style: TextStyle(
                   fontStyle: FontStyle.italic, color: Colors.blueGrey)),
@@ -368,6 +262,7 @@ extension PlayerWidgetsHelper on Player {
             iconMoney,
             size: iconSize, // Adjust icon size as needed
           ),
+          formSpacer3,
           Text(
             expanses.toString(),
             // style: TextStyle(

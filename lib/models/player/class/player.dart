@@ -1,14 +1,12 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/functions.dart';
+import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/club/club.dart';
-import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
@@ -17,6 +15,7 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
+import 'package:opengoalz/widgets/playerTransferBidDialogBox.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart'
@@ -29,7 +28,6 @@ part 'player_card_details.dart';
 part 'player_card_stats.dart';
 part 'player_card_history.dart';
 part 'player_expanses_history.dart';
-// part 'player_card_widget.dart';
 
 class Player {
   Club? club;
@@ -58,8 +56,7 @@ class Player {
     required this.freekick,
     required this.winger,
     required this.dateEndInjury,
-    required this.dateFiring,
-    required this.dateSell,
+    required this.dateBidEnd,
     required this.dateArrival,
     required this.stamina,
     required this.form,
@@ -89,8 +86,7 @@ class Player {
   final double freekick;
   final double winger;
   final DateTime? dateEndInjury;
-  final DateTime? dateFiring;
-  final DateTime? dateSell;
+  final DateTime? dateBidEnd;
   final DateTime dateArrival;
   final double stamina;
   final double form;
@@ -99,14 +95,14 @@ class Player {
 
   Player.fromMap(Map<String, dynamic> map)
       : id = map['id'],
-        created_at = DateTime.parse(map['created_at']),
+        created_at = DateTime.parse(map['created_at']).toLocal(),
         idClub = map['id_club'],
         userName = map['username'],
         firstName = map['first_name'],
         lastName = map['last_name'],
         surName = map['surname'],
         shirtNumber = map['shirt_number'],
-        dateBirth = DateTime.parse(map['date_birth']),
+        dateBirth = DateTime.parse(map['date_birth']).toLocal(),
         idMultiverse = map['id_multiverse'],
         multiverseSpeed = map['multiverse_speed'],
         idCountry = map['id_country'],
@@ -123,14 +119,12 @@ class Player {
         form = (map['form'] as num).toDouble(),
         experience = (map['experience'] as num).toDouble(),
         dateEndInjury = map['date_end_injury'] != null
-            ? DateTime.parse(map['date_end_injury'])
+            ? DateTime.parse(map['date_end_injury']).toLocal()
             : null,
-        dateFiring = map['date_firing'] != null
-            ? DateTime.parse(map['date_firing'])
+        dateBidEnd = map['date_bid_end'] != null
+            ? DateTime.parse(map['date_bid_end']).toLocal()
             : null,
-        dateSell =
-            map['date_sell'] != null ? DateTime.parse(map['date_sell']) : null,
-        dateArrival = DateTime.parse(map['date_arrival']),
+        dateArrival = DateTime.parse(map['date_arrival']).toLocal(),
         notes = map['notes'];
 
   double get age {
@@ -194,10 +188,8 @@ class Player {
         return winger;
       case 'dateEndInjury':
         return dateEndInjury;
-      case 'dateFiring':
-        return dateFiring;
-      case 'dateSell':
-        return dateSell;
+      case 'dateBidEnd':
+        return dateBidEnd;
       case 'dateArrival':
         return dateArrival;
       case 'stamina':

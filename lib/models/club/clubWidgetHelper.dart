@@ -74,6 +74,25 @@ extension ClubWidgetHelper on Club {
     );
   }
 
+  Widget getCashListTile() {
+    return ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        side: BorderSide(
+            color: cash >= 0 ? Colors.green : Colors.red, width: 2.0),
+      ),
+      leading: Icon(icon_finance, color: cash >= 0 ? Colors.green : Colors.red),
+      title: Text(
+        NumberFormat.currency(symbol: '', decimalDigits: 0).format(cash),
+        style: TextStyle(color: cash >= 0 ? Colors.green : Colors.red),
+      ),
+      subtitle: Text(
+        'Available cash',
+        style: styleItalicBlueGrey,
+      ),
+    );
+  }
+
   Widget getRankingWidget(BuildContext context) {
     return InkWell(
       onTap: () {

@@ -189,7 +189,7 @@ class _MultiversePageState extends State<MultiversePage> {
                                     //     'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber}'),
                                     // subtitle: Text(
                                     //   'Number of active clubs: ${NumberFormat('#,##0').format(multiverse.cashPrinted)}',
-                                    //   style: italicBlueGreyTextStyle,
+                                    //   style: styleItalicBlueGrey,
                                     // ),
                                     title: Row(
                                       mainAxisAlignment:
@@ -212,7 +212,7 @@ class _MultiversePageState extends State<MultiversePage> {
                                     ),
                                     subtitle: Text(
                                         'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber}',
-                                        style: italicBlueGreyTextStyle),
+                                        style: styleItalicBlueGrey),
 
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
@@ -323,13 +323,13 @@ class _MultiversePageState extends State<MultiversePage> {
             ],
           ),
           subtitle: Text('Days per season: ${14 * 7 / multiverse.speed}',
-              style: italicBlueGreyTextStyle),
+              style: styleItalicBlueGrey),
         ),
         ListTile(
             leading: Icon(Icons.calendar_today),
             title: Text('Currently playing season ${multiverse.seasonNumber}'),
             subtitle: Text('Week ${multiverse.weekNumber}',
-                style: italicBlueGreyTextStyle)),
+                style: styleItalicBlueGrey)),
         ListTile(
           leading: Icon(Icons.date_range),
           title: Text(
@@ -337,13 +337,13 @@ class _MultiversePageState extends State<MultiversePage> {
           subtitle: Text(
               // 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} days with ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays * multiverse.speed / 7} games left',
               'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} days',
-              style: italicBlueGreyTextStyle),
+              style: styleItalicBlueGrey),
         ),
         ListTile(
           leading: Icon(iconMoney),
           title: Text(NumberFormat('#,##0').format(multiverse.cashPrinted)),
           subtitle: Text('Amount of money printed in the multiverse',
-              style: italicBlueGreyTextStyle),
+              style: styleItalicBlueGrey),
         ),
       ],
     );
