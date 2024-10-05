@@ -36,7 +36,9 @@ class PlayersPage extends StatefulWidget {
 }
 
 class _PlayersPageState extends State<PlayersPage> {
-  late Stream<List<Player>> _playerStream = Stream.value([]);
+  final StreamController<List<Player>> _playerStreamController =
+      StreamController<List<Player>>();
+  late Stream<List<Player>> _playerStream;
   late Stream<List<Club>> _clubStream = Stream.value([]);
   late Stream<List<TransferBid>> _transferBids = Stream.value([]);
   late PlayerSearchCriterias _currentSearchCriterias;
@@ -46,241 +48,132 @@ class _PlayersPageState extends State<PlayersPage> {
     super.initState();
 
     _currentSearchCriterias = widget.playerSearchCriterias;
+    _playerStream = _playerStreamController.stream;
     _initializeStreams();
   }
 
   Future<void> _initializeStreams() async {
-    List<int> playerIds = await _currentSearchCriterias.fetchPlayerIds();
+    try {
+      List<int> playerIds = await _currentSearchCriterias.fetchPlayerIds();
+      print('Fetched player IDs: $playerIds');
 
-    print(playerIds);
-
-    _playerStream = supabase
-        .from('players')
-        .stream(primaryKey: ['id'])
-        .inFilter('id', playerIds)
-        .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
-
-    // final data = await supabase
-    //         .from('players')
-    //         .select('id')
-    //         .inFilter('id_multiverse', [1, 2, 3])
-    //     // .inFilter('id', [1, 2])
-    //     ;
-    // print(data);
-    // List<int> playerIds = data.map((item) => item['id'] as int).toList();
-
-    // print('Number of players: ' + playerIds.length.toString());
-    // print(playerIds);
-
-    // String filterColumn;
-    // List<int> filterList;
-
-    // /// Check the input criteria and set the filter column and list
-    // if (_currentSearchCriterias.idPlayer != null) {
-    //   filterColumn = 'id';
-    //   filterList = _currentSearchCriterias.idPlayer!;
-    // } else if (_currentSearchCriterias.idClub != null) {
-    //   filterColumn = 'id_club';
-    //   filterList = _currentSearchCriterias.idClub!;
-    // } else if (_currentSearchCriterias.countries.isNotEmpty) {
-    //   filterColumn = 'id_country';
-    //   filterList = _currentSearchCriterias.countries
-    //       .map((country) => country.id)
-    //       .toList();
-    // } else if (_currentSearchCriterias.onTransferList == true) {
-    //   filterColumn = 'date_bid_end';
-    //   filterList = [];
-    //   // } else if (_currentSearchCriterias.isFreePlayer == true) {
-    //   //   filterColumn = 'date_bid_end';
-    //   //   filterList = [];
-    // } else if (_currentSearchCriterias.multiverse != null) {
-    //   filterColumn = 'id_multiverse';
-    //   filterList = [_currentSearchCriterias.multiverse!.id];
-    // } else {
-    //   throw Exception('No filter criteria found');
-    // }
-
-    // print('Player Search Criterias: $filterColumn');
-
-    // // Stream to fetch players
-    // if (filterColumn == 'date_bid_end') {
-    //   _playerStream = supabase
-    //       .from('players')
-    //       .stream(primaryKey: ['id'])
-    //       .gt(
-    //           'date_bid_end',
-    //           DateTime.now()
-    //               .toIso8601String()) // Filter where date_bid_end is greater than now
-    //       .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
-    // } else {
-    //   _playerStream = supabase
-    //       .from('players')
-    //       .stream(primaryKey: ['id'])
-    //       .inFilter(filterColumn, filterList)
-    //       .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
-    // }
-
-    // print('Player Search Criterias: $filterColumn');
-
-    // // Stream to fetch players
-    // _playerStream = _playerStream.map((players) {
-    //   // Apply additional filtering
-    //   players = players.where((Player player) {
-    //     // if (player.id == 1) {
-    //     //   //5098
-    //     //   print('Player ID: ${player.id}');
-    //     //   print('Player Date Bid End: ${player.dateBidEnd}');
-    //     //   print('Player idClub: ${player.idClub}');
-    //     // }
-
-    //     /// Filter with the Club ID
-    //     if (_currentSearchCriterias.idClub != null) {
-    //       if (!_currentSearchCriterias.idClub!.contains(player.idClub)) {
-    //         return false;
-    //       }
-    //     }
-
-    //     /// Filter with the countries
-    //     if (widget.playerSearchCriterias.countries.isNotEmpty) {
-    //       if (!widget.playerSearchCriterias.countries
-    //           .map((country) => country.id)
-    //           .contains(player.idCountry)) {
-    //         return false;
-    //       }
-    //     }
-
-    //     /// Filter with the multiverse
-    //     if (_currentSearchCriterias.multiverse != null) {
-    //       if (player.idMultiverse != _currentSearchCriterias.multiverse!.id) {
-    //         return false;
-    //       }
-    //     }
-
-    //     /// Filter with the player status
-
-    //     if (_currentSearchCriterias.onTransferList) {
-    //       if (player.dateBidEnd == null || player.idClub == null) {
-    //         return false;
-    //       }
-    //     }
-    //     // if (_currentSearchCriterias.isFreePlayer && player.idClub != null) {
-    //     //   return false;
-    //     // }
-
-    //     /// If the age range is set, filter the players based on the age range
-    //     if (player.age < _currentSearchCriterias.selectedMinAge ||
-    //         player.age > _currentSearchCriterias.selectedMaxAge) {
-    //       return false;
-    //     }
-
-    //     /// If the stats are set, filter the players based on the stats
-    //     if (_currentSearchCriterias.stats.isNotEmpty) {
-    //       for (var entry in _currentSearchCriterias.stats.entries) {
-    //         var statName = entry.key;
-    //         var range = entry.value;
-    //         var playerStat;
-
-    //         // Use a switch statement to fetch the stat based on the name
-    //         switch (statName) {
-    //           case 'keeper':
-    //             playerStat = player.keeper;
-    //             break;
-    //           case 'defense':
-    //             playerStat = player.defense;
-    //             break;
-    //           case 'passes':
-    //             playerStat = player.passes;
-    //             break;
-    //           case 'playmaking':
-    //             playerStat = player.playmaking;
-    //             break;
-    //           case 'winger':
-    //             playerStat = player.winger;
-    //             break;
-    //           case 'scoring':
-    //             playerStat = player.scoring;
-    //             break;
-    //           case 'freekick':
-    //             playerStat = player.freekick;
-    //             break;
-    //           default:
-    //             playerStat = null;
-    //         }
-
-    //         // Check if the player's stat is within the specified range
-    //         if (range != null) {
-    //           if (playerStat < range.start || playerStat > range.end) {
-    //             return false;
-    //           }
-    //         }
-    //       }
-    //     }
-
-    //     return true;
-    //   }).toList();
-
-    //   // Apply ordering
-    //   players.sort((Player a, Player b) {
-    //     return a.dateBirth.compareTo(b.dateBirth);
-    //   });
-
-    //   return players;
-    // });
-
-    // Stream to fetch clubs from the list of clubs in the players list
-    _clubStream = _playerStream.switchMap((players) {
-      // final clubIds = players.map((player) => player.idClub).toSet().toList();
-      final clubIds = players
-          .map((player) => player.idClub)
-          .where((id) => id != null)
-          .toSet()
-          .toList();
-
-      if (clubIds.isEmpty) {
-        return Stream.value([]);
-      }
-
-      return supabase
-          .from('clubs')
+      final playerStream = supabase
+          .from('players')
           .stream(primaryKey: ['id'])
-          .inFilter('id', clubIds.cast<Object>())
-          .map((maps) => maps
-              .map((map) => Club.fromMap(map))
-              .toList()); // Handle empty stream
-    });
-    // Combine player and club streams
-    _playerStream = _playerStream
-        .switchMap((players) => _clubStream.map((List<Club> clubs) {
-              for (var player
-                  in players.where((player) => player.idClub != null)) {
-                final clubData =
-                    clubs.firstWhere((Club club) => club.id == player.idClub);
-                player.club = clubData;
-              }
-              return players;
-            }));
+          .inFilter('id', playerIds)
+          .map((maps) {
+            print('Fetched player maps: $maps');
+            return maps.map((map) => Player.fromMap(map)).toList();
+          })
+          .handleError((error) {
+            print('Error fetching player maps: $error');
+          });
 
-    // Stream to fetch transfer bids for each player
-    _transferBids = _playerStream.switchMap((players) {
-      final playerIds = players.map((player) => player.id).toSet().toList();
-      return supabase
-          .from('transfers_bids')
-          .stream(primaryKey: ['id'])
-          .inFilter('id_player', playerIds.cast<Object>())
-          .order('count_bid', ascending: true)
-          .map((maps) => maps.map((map) => TransferBid.fromMap(map)).toList());
-    });
+      print('Test1');
 
-    // Combine player and transfer bids streams
-    _playerStream =
-        _playerStream.switchMap((players) => _transferBids.map((transferBids) {
-              for (var player in players) {
-                player.transferBids.clear();
-                player.transferBids.addAll(
-                    transferBids.where((bid) => bid.idPlayer == player.id));
-              }
+      // If on transferList, order by dateBidEnd
+      final sortedPlayerStream = _currentSearchCriterias.onTransferList
+          ? playerStream.map((players) {
+              players.sort((Player a, Player b) {
+                if (a.dateBidEnd == null) {
+                  return 1;
+                } else if (b.dateBidEnd == null) {
+                  return -1;
+                } else {
+                  return a.dateBidEnd!.compareTo(b.dateBidEnd!);
+                }
+              });
               return players;
-            }));
+            })
+          : playerStream.map((players) {
+              players.sort((Player a, Player b) {
+                return a.dateBirth.compareTo(b.dateBirth);
+              });
+              return players;
+            });
+
+      // Stream to fetch clubs from the list of clubs in the players list
+      _clubStream = sortedPlayerStream.switchMap((players) {
+        final clubIds = players
+            .map((player) => player.idClub)
+            .where((id) => id != null)
+            .toSet()
+            .toList();
+
+        print('Fetched club IDs: $clubIds');
+
+        if (clubIds.isEmpty) {
+          return Stream.value([]);
+        }
+
+        return supabase
+            .from('clubs')
+            .stream(primaryKey: ['id'])
+            .inFilter('id', clubIds.cast<Object>())
+            .map((maps) {
+              print('Fetched club maps: $maps');
+              return maps.map((map) => Club.fromMap(map)).toList();
+            })
+            .handleError((error) {
+              print('Error fetching club maps: $error');
+            });
+      });
+
+      // Combine player and club streams
+      final combinedPlayerStream = sortedPlayerStream
+          .switchMap((players) => _clubStream.map((List<Club> clubs) {
+                for (var player
+                    in players.where((player) => player.idClub != null)) {
+                  final clubData =
+                      clubs.firstWhere((Club club) => club.id == player.idClub);
+                  player.club = clubData;
+                }
+                return players;
+              }));
+
+      // Stream to fetch transfer bids for each player
+      _transferBids = combinedPlayerStream.switchMap((players) {
+        final playerIds = players.map((player) => player.id).toSet().toList();
+        print('Fetched transfer bid player IDs: $playerIds');
+        return supabase
+            .from('transfers_bids')
+            .stream(primaryKey: ['id'])
+            .inFilter('id_player', playerIds.cast<Object>())
+            .order('count_bid', ascending: true)
+            .map((maps) {
+              print('Fetched transfer bid maps: $maps');
+              return maps.map((map) => TransferBid.fromMap(map)).toList();
+            })
+            .handleError((error) {
+              print('Error fetching transfer bid maps: $error');
+            });
+      });
+
+      // Combine player and transfer bids streams
+      final finalPlayerStream = combinedPlayerStream
+          .switchMap((players) => _transferBids.map((transferBids) {
+                for (var player in players) {
+                  player.transferBids.clear();
+                  player.transferBids.addAll(
+                      transferBids.where((bid) => bid.idPlayer == player.id));
+                }
+                return players;
+              }));
+
+      // Add the final stream to the StreamController
+      finalPlayerStream.listen((players) {
+        print('Final player stream data: $players');
+        _playerStreamController.add(players);
+      });
+    } catch (e) {
+      print('Error initializing streams: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _playerStreamController.close();
+    super.dispose();
   }
 
   @override
@@ -297,25 +190,20 @@ class _PlayersPageState extends State<PlayersPage> {
               child: Text('ERROR: ${snapshot.error}'),
             );
           } else {
-            // final players = snapshot.data ?? [];
             final List<Player> players = (snapshot.data ?? []);
+            print('StreamBuilder snapshot data: $players');
 
             return Scaffold(
                 appBar: AppBar(
                   title: players.isEmpty
                       ? Text('No Players Found')
                       : players.length == 1
-                          // If only 1 player, show his name as title
                           ? players.first.getPlayerNames(context)
-                          // Else show the number of players on the page
                           : Text(
                               '${players.length} Players',
                             ),
                   actions: [
-                    // Navigate to previous page
                     goBackIconButton(context),
-                    // Search for a player only if the input criteria is not a simple case
-
                     IconButton(
                       tooltip: 'Modify Search Criterias',
                       onPressed: () {
@@ -338,14 +226,11 @@ class _PlayersPageState extends State<PlayersPage> {
                       },
                       icon: Icon(Icons.person_search),
                     ),
-                    // Open the order and filter drawer
-                    // filterAndOrderPlayersButton(players),
                     IconButton(
                         tooltip: 'Sort players by...',
                         onPressed: () {
                           showSortingOptions(context, setState, players);
                         },
-                        // icon: Icon(Icons.sort)),
                         icon: Icon(Icons.align_horizontal_left_rounded)),
                   ],
                 ),
@@ -364,8 +249,7 @@ class _PlayersPageState extends State<PlayersPage> {
                             return InkWell(
                               onTap: () {
                                 if (widget.isReturningPlayer) {
-                                  Navigator.of(context).pop(
-                                      player); // Return the id of the player
+                                  Navigator.of(context).pop(player);
                                 } else if (players.length > 1) {
                                   Navigator.push(
                                     context,
