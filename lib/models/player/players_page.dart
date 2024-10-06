@@ -15,8 +15,7 @@ import '../../constants.dart';
 
 class PlayersPage extends StatefulWidget {
   final PlayerSearchCriterias playerSearchCriterias;
-  final bool
-      isReturningPlayer; // Should the page return the id of the player clicked ?
+  final bool isReturningPlayer;
 
   const PlayersPage(
       {Key? key,
@@ -42,6 +41,9 @@ class _PlayersPageState extends State<PlayersPage> {
   late Stream<List<Club>> _clubStream = Stream.value([]);
   late Stream<List<TransferBid>> _transferBids = Stream.value([]);
   late PlayerSearchCriterias _currentSearchCriterias;
+  List<int> _previousPlayerIds = [];
+  Timer? _timer;
+  bool _showReloadButton = false;
 
   @override
   void initState() {
@@ -50,11 +52,32 @@ class _PlayersPageState extends State<PlayersPage> {
     _currentSearchCriterias = widget.playerSearchCriterias;
     _playerStream = _playerStreamController.stream;
     _initializeStreams();
+    _startPeriodicFetch();
+  }
+
+  void _startPeriodicFetch() {
+    _timer = Timer.periodic(Duration(minutes: 1), (timer) async {
+      List<int> newPlayerIds = await _currentSearchCriterias.fetchPlayerIds();
+      if (!_listsAreEqual(newPlayerIds, _previousPlayerIds)) {
+        setState(() {
+          _showReloadButton = true;
+        });
+      }
+    });
+  }
+
+  bool _listsAreEqual(List<int> list1, List<int> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
   }
 
   Future<void> _initializeStreams() async {
     try {
       List<int> playerIds = await _currentSearchCriterias.fetchPlayerIds();
+      _previousPlayerIds = playerIds;
       print('Fetched player IDs: $playerIds');
 
       final playerStream = supabase
@@ -71,7 +94,6 @@ class _PlayersPageState extends State<PlayersPage> {
 
       print('Test1');
 
-      // If on transferList, order by dateBidEnd
       final sortedPlayerStream = _currentSearchCriterias.onTransferList
           ? playerStream.map((players) {
               players.sort((Player a, Player b) {
@@ -92,7 +114,6 @@ class _PlayersPageState extends State<PlayersPage> {
               return players;
             });
 
-      // Stream to fetch clubs from the list of clubs in the players list
       _clubStream = sortedPlayerStream.switchMap((players) {
         final clubIds = players
             .map((player) => player.idClub)
@@ -119,7 +140,6 @@ class _PlayersPageState extends State<PlayersPage> {
             });
       });
 
-      // Combine player and club streams
       final combinedPlayerStream = sortedPlayerStream
           .switchMap((players) => _clubStream.map((List<Club> clubs) {
                 for (var player
@@ -131,7 +151,6 @@ class _PlayersPageState extends State<PlayersPage> {
                 return players;
               }));
 
-      // Stream to fetch transfer bids for each player
       _transferBids = combinedPlayerStream.switchMap((players) {
         final playerIds = players.map((player) => player.id).toSet().toList();
         print('Fetched transfer bid player IDs: $playerIds');
@@ -149,7 +168,6 @@ class _PlayersPageState extends State<PlayersPage> {
             });
       });
 
-      // Combine player and transfer bids streams
       final finalPlayerStream = combinedPlayerStream
           .switchMap((players) => _transferBids.map((transferBids) {
                 for (var player in players) {
@@ -160,7 +178,6 @@ class _PlayersPageState extends State<PlayersPage> {
                 return players;
               }));
 
-      // Add the final stream to the StreamController
       finalPlayerStream.listen((players) {
         print('Final player stream data: $players');
         _playerStreamController.add(players);
@@ -173,6 +190,7 @@ class _PlayersPageState extends State<PlayersPage> {
   @override
   void dispose() {
     _playerStreamController.close();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -204,6 +222,18 @@ class _PlayersPageState extends State<PlayersPage> {
                             ),
                   actions: [
                     goBackIconButton(context),
+                    if (_showReloadButton)
+                      IconButton(
+                        tooltip:
+                            'Reload the list of players to see the latest changes',
+                        onPressed: () {
+                          setState(() {
+                            _showReloadButton = false;
+                            _initializeStreams();
+                          });
+                        },
+                        icon: Icon(Icons.refresh, color: Colors.green),
+                      ),
                     IconButton(
                       tooltip: 'Modify Search Criterias',
                       onPressed: () {
