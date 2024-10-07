@@ -56,7 +56,7 @@ class _PlayersPageState extends State<PlayersPage> {
   }
 
   void _startPeriodicFetch() {
-    _timer = Timer.periodic(Duration(minutes: 1), (timer) async {
+    _timer = Timer.periodic(Duration(seconds: 15), (timer) async {
       List<int> newPlayerIds = await _currentSearchCriterias.fetchPlayerIds();
       if (!_listsAreEqual(newPlayerIds, _previousPlayerIds)) {
         setState(() {

@@ -28,7 +28,9 @@ extension PlayerWidgetTransfer on Player {
       title: Row(
         children: [
           Text(
-            transferBids.last.nameClub + ': ',
+            transferBids.length == 1
+                ? 'Starting price: '
+                : '${transferBids.last.nameClub}: ',
           ),
           formSpacer6,
           Text(

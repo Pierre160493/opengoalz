@@ -4,6 +4,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverse_widget.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
+import 'package:opengoalz/widgets/playersNotes.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'class/player.dart';
@@ -150,7 +151,7 @@ class _PlayerCardState extends State<PlayerCard>
                       buildTabWithIcon(iconDetails, 'Details'),
                       buildTabWithIcon(iconTraining, 'Stats'),
                       // buildTabWithIcon(iconGames, 'Games'),
-                      buildTabWithIcon(iconHistory, 'History')
+                      buildTabWithIcon(iconHistory, 'Others')
                     ],
                   ),
                   body: TabBarView(
@@ -173,7 +174,8 @@ class _PlayerCardState extends State<PlayerCard>
                       // Placeholder(),
 
                       /// History tab
-                      widget.player.playerCardStatsWidget(context),
+                      // widget.player.playerCardStatsWidget(context),
+                      PostItNote(player: widget.player),
                     ],
                   ),
                 ),
@@ -275,8 +277,7 @@ class _PlayerCardState extends State<PlayerCard>
                     tabs: [
                       buildTabWithIcon(iconDetails, 'Details'),
                       buildTabWithIcon(iconTraining, 'Stats'),
-                      // buildTabWithIcon(iconGames, 'Games'),
-                      buildTabWithIcon(iconHistory, 'History')
+                      buildTabWithIcon(iconHistory, 'Others')
                     ],
                   ),
                   body: TabBarView(
@@ -308,8 +309,9 @@ class _PlayerCardState extends State<PlayerCard>
                       /// Games tab
                       // Placeholder(),
 
-                      /// History tab
-                      widget.player.playerCardStatsWidget(context),
+                      /// Others tab
+                      // widget.player.playerCardStatsWidget(context),
+                      PostItNote(player: widget.player),
                     ],
                   ),
                 ),
