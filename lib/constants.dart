@@ -77,6 +77,13 @@ const TextStyle styleItalicBlueGrey = TextStyle(
   color: Colors.blueGrey,
 );
 
+RoundedRectangleBorder shapePersoRoundedBorder = RoundedRectangleBorder(
+  borderRadius: BorderRadius.circular(12), // Adjust border radius as needed
+  side: BorderSide(
+    color: Colors.blueGrey, // Border color
+  ),
+);
+
 double iconSizeSmall = 24.0;
 double iconSizeMedium = 30.0;
 double iconSizeLarge = 36.0;

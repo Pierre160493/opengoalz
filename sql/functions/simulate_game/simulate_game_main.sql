@@ -76,11 +76,11 @@ BEGIN
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------ Step 2: Fetch, calculate and store data in arrays
-        ------ Fetch players id of the club for this game
+        ------ Fetch players id of the club for this game {21 players}
         loc_array_players_id_left := simulate_game_fetch_players_id(inp_id_teamcomp := loc_id_teamcomp_left);
         loc_array_players_id_right := simulate_game_fetch_players_id(inp_id_teamcomp := loc_id_teamcomp_right);
 
-        ------ Fetch player stats matrix
+        ------ Fetch player stats matrix [21 players x 7 stats]
         loc_matrix_player_stats_left := simulate_game_fetch_player_stats(loc_array_players_id_left);
         loc_matrix_player_stats_right := simulate_game_fetch_player_stats(loc_array_players_id_right);
 
@@ -150,6 +150,11 @@ BEGIN
                 loc_minute_period_extra_time := 2 + ROUND(random() * 4); -- Extra time for the period
             END IF;
 
+------ Cheat CODE to avoid recalculating the team weights every minute
+------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
+loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
+
             ------ Get the team composition for the game
             loc_goal_opportunity = 0.05; -- Probability of a goal opportunity
             --loc_goal_opportunity = 0.00; -- Probability of a goal opportunity (for having 0-0 scores)
@@ -182,13 +187,13 @@ BEGIN
                     score := loc_score_right - loc_score_left,
                     game := game);
 
-                ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+/*                ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
                 loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
 --IF game.id = 1 THEN
 --RAISE NOTICE 'loc_minute_game= %', loc_minute_game;
 --RAISE NOTICE 'loc_array_team_weights_left= %', loc_array_team_weights_left;
 --END IF;
-                loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
+                loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);*/
 
                 -- Probability of left team opportunity
                 loc_team_left_goal_opportunity = LEAST(GREATEST((loc_array_team_weights_left[4] / loc_array_team_weights_right[4])-0.5, 0.2), 0.8);
@@ -307,8 +312,8 @@ BEGIN
 
         -- Insert messages
         INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
-            (game.id_club_left, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach'),
-            (game.id_club_right, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach');
+            (game.id_club_left, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach'),
+            (game.id_club_right, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach');
 
     -- Right team wins
     ELSEIF loc_score_left < loc_score_right THEN
@@ -321,8 +326,8 @@ BEGIN
 
         -- Insert messages
         INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
-            (game.id_club_left, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach'),
-            (game.id_club_right, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach');
+            (game.id_club_left, 'Defeat for game in week' || game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach'),
+            (game.id_club_right, 'Victory for game in week ' || game.week_number, 'Great news ! We have won the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach');
 
     -- Draw
     ELSE
@@ -332,8 +337,8 @@ BEGIN
 
         -- Insert messages
         INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
-            (game.id_club_left, 'Draw for game in week' || game.week_number, 'We drew the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach'),
-            (game.id_club_right, 'Draw for game in week ' || game.week_number, 'We drew the game against ' || (SELECT name_club FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach');
+            (game.id_club_left, 'Draw for game in week' || game.week_number, 'We drew the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_right) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach'),
+            (game.id_club_right, 'Draw for game in week ' || game.week_number, 'We drew the game against ' || (SELECT name FROM clubs WHERE id = game.id_club_left) || ' with ' || loc_score_left || ' - ' || loc_score_right, 'Coach');
 
     END IF;
 

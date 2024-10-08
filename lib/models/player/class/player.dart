@@ -62,6 +62,7 @@ class Player {
     required this.form,
     required this.experience,
     required this.notes,
+    required this.performanceScore,
   });
 
   final int id;
@@ -92,6 +93,7 @@ class Player {
   final double form;
   final double experience;
   final String? notes;
+  final double performanceScore;
 
   Player.fromMap(Map<String, dynamic> map)
       : id = map['id'],
@@ -125,22 +127,23 @@ class Player {
             ? DateTime.parse(map['date_bid_end']).toLocal()
             : null,
         dateArrival = DateTime.parse(map['date_arrival']).toLocal(),
-        notes = map['notes'];
+        notes = map['notes'],
+        performanceScore = (map['performance_score'] as num).toDouble();
 
   double get age {
     return calculateAge(dateBirth, multiverseSpeed);
   }
 
-  double get stats_average {
-    return (keeper +
-            defense +
-            playmaking +
-            passes +
-            scoring +
-            freekick +
-            winger) /
-        7.0;
-  }
+  // double get stats_average {
+  //   return (keeper +
+  //           defense +
+  //           playmaking +
+  //           passes +
+  //           scoring +
+  //           freekick +
+  //           winger) /
+  //       7.0;
+  // }
 
   dynamic getPropertyValue(String propertyName) {
     switch (propertyName) {

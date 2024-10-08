@@ -283,31 +283,20 @@ extension PlayerWidgetsHelper on Player {
 
   Widget getAvgStatsWidget() {
     return ListTile(
-      shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(12), // Adjust border radius as needed
-        side: const BorderSide(
-          color: Colors.blueGrey, // Border color
+      shape: shapePersoRoundedBorder,
+      leading: Icon(
+        Icons.query_stats_outlined,
+        size: iconSize,
+      ),
+      title: Text(
+        performanceScore.toStringAsFixed(0),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
         ),
       ),
-      // leading: Icon(
-      //   Icons.query_stats_outlined,
-      //   size: iconSize,
-      // ),
-      title: Row(
-        children: [
-          Icon(Icons.query_stats_outlined, size: iconSize),
-          Text(
-            stats_average.toStringAsFixed(1),
-            // style: TextStyle(
-            //   fontWeight: FontWeight.bold,
-            // ),
-          ),
-        ],
-      ),
       subtitle: Text(
-        'Average stats',
-        style: TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey),
+        'Performance Score',
+        style: styleItalicBlueGrey,
       ),
     );
   }
@@ -332,6 +321,7 @@ extension PlayerWidgetsHelper on Player {
   Widget getStatLinearWidget(String label, double value) {
     return Row(
       children: [
+        formSpacer6,
         Container(
           width: 100, // Fixed width for the label
           child: Text(label),
@@ -348,75 +338,6 @@ extension PlayerWidgetsHelper on Player {
               valueColor: AlwaysStoppedAnimation<Color>(
                 Colors.green, // Color of the filled portion of the bar
               ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget getStaminaWidget() {
-    return Row(
-      children: [
-        Text('Stamina'),
-        SizedBox(
-          width: 200, // Adjust the width of the bar as needed
-          height: 20, // Height of the bar
-          child: ClipRRect(
-            borderRadius:
-                BorderRadius.circular(10), // Rounded corners for the bar
-            child: LinearProgressIndicator(
-              value: stamina /
-                  100, // Assuming widget.player.defense ranges from 0 to 100
-              backgroundColor: Colors.grey[300], // Background color of the bar
-              valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.green), // Color of the filled portion of the bar
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget getFormWidget() {
-    return Row(
-      children: [
-        Text('Form'),
-        SizedBox(
-          width: 200, // Adjust the width of the bar as needed
-          height: 20, // Height of the bar
-          child: ClipRRect(
-            borderRadius:
-                BorderRadius.circular(10), // Rounded corners for the bar
-            child: LinearProgressIndicator(
-              value: form /
-                  100, // Assuming widget.player.defense ranges from 0 to 100
-              backgroundColor: Colors.grey[300], // Background color of the bar
-              valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.green), // Color of the filled portion of the bar
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget getExperienceWidget() {
-    return Row(
-      children: [
-        Text('Experience'),
-        SizedBox(
-          width: 200, // Adjust the width of the bar as needed
-          height: 20, // Height of the bar
-          child: ClipRRect(
-            borderRadius:
-                BorderRadius.circular(10), // Rounded corners for the bar
-            child: LinearProgressIndicator(
-              value: experience /
-                  100, // Assuming widget.player.defense ranges from 0 to 100
-              backgroundColor: Colors.grey[300], // Background color of the bar
-              valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.green), // Color of the filled portion of the bar
             ),
           ),
         ),

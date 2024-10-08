@@ -23,10 +23,10 @@ extension PlayerCardStats on Player {
               size: iconSizeMedium,
               color: Colors.green,
             ),
-            title: Text('Training points: ${trainingPoints}'),
+            title: Text('Training points: ${trainingPoints.floor()}'),
             subtitle: Text(
               'Gain training points thanks to the staff',
-              style: TextStyle(fontStyle: FontStyle.italic),
+              style: styleItalicBlueGrey,
             ),
             trailing: trainingPoints >= 1
                 ? InkWell(
