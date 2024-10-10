@@ -37,7 +37,16 @@ extension PlayerCardStats on Player {
                           return StatefulBuilder(
                             builder: (context, setState) {
                               return AlertDialog(
-                                title: Text('What do you wish to increase ?'),
+                                title: ListTile(
+                                  leading: Icon(
+                                    Icons.query_stats,
+                                    color: Colors.green,
+                                  ),
+                                  title: Text(
+                                      'Which stat do you wish to increase ?'),
+                                  subtitle: Text(
+                                      'You have ${trainingPoints.floor()} training points'),
+                                ),
                                 content: SingleChildScrollView(
                                   child: ListBody(
                                     children: <Widget>[
@@ -130,21 +139,23 @@ extension PlayerCardStats on Player {
     return TextButton(
       onPressed: () async {
         bool isOK = await operationInDB(context, 'UPDATE', 'players', data: {
-          stat: min(value + 1, 100),
-          'training_points': trainingPoints - 1,
+          stat: min(value + 5, 100),
+          'training_points': max(0, trainingPoints - 5),
         }, matchCriteria: {
           'id': id
         });
         if (isOK) {
           context.showSnackBarSuccess(
               'Successfully updated player ${stat} stat! Hooray!');
+          print(trainingPoints);
         }
         Navigator.of(context).pop();
       },
       child: Row(
         children: [
           Text(
-              '${stat} from ${value.toStringAsFixed(1)} to ${(value + 1).toStringAsFixed(1)}'),
+              // '${stat[0].toUpperCase()}${stat.substring(1)} from ${value.toStringAsFixed(1)} to ${(value + 1).toStringAsFixed(1)}'),
+              '${stat[0].toUpperCase()}${stat.substring(1)}'),
         ],
       ),
       // child: Text('Increase ${stat}'),
