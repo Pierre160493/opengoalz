@@ -5,8 +5,8 @@ extension PlayerCardStats on Player {
     final features = [
       keeper,
       defense,
-      playmaking,
       passes,
+      playmaking,
       winger,
       scoring,
       freekick,
@@ -49,25 +49,67 @@ extension PlayerCardStats on Player {
                                 ),
                                 content: SingleChildScrollView(
                                   child: ListBody(
-                                    children: <Widget>[
-                                      // Add similar buttons for other stats
-                                      updatePlayerStatButton(context, 'keeper',
-                                          keeper, trainingPoints),
-                                      updatePlayerStatButton(context, 'defense',
-                                          defense, trainingPoints),
-                                      updatePlayerStatButton(
-                                          context,
-                                          'playmaking',
-                                          playmaking,
-                                          trainingPoints),
-                                      updatePlayerStatButton(context, 'passes',
-                                          passes, trainingPoints),
-                                      updatePlayerStatButton(context, 'winger',
-                                          winger, trainingPoints),
-                                      updatePlayerStatButton(context, 'scoring',
-                                          scoring, trainingPoints),
-                                      updatePlayerStatButton(context,
-                                          'freekick', freekick, trainingPoints),
+                                    children: [
+                                      for (var entry in {
+                                        'keeper': keeper,
+                                        'defense': defense,
+                                        'playmaking': playmaking,
+                                        'passes': passes,
+                                        'winger': winger,
+                                        'scoring': scoring,
+                                        'freekick': freekick,
+                                      }.entries)
+                                        ListTile(
+                                          leading: Icon(Icons.query_stats),
+                                          title: Text(
+                                              '${entry.key[0].toUpperCase()}${entry.key.substring(1)}'),
+                                          subtitle: Text(
+                                              'Current value: ${entry.value.toStringAsFixed(1)}',
+                                              style: styleItalicBlueGrey),
+                                          trailing: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(
+                                                    Icons.exposure_plus_1,
+                                                    color: Colors.green),
+                                                onPressed: () => updateStat(
+                                                    context,
+                                                    entry.key,
+                                                    entry.value,
+                                                    1),
+                                              ),
+                                              IconButton(
+                                                icon: Icon(Icons.filter_5,
+                                                    color: Colors.green),
+                                                onPressed: () => updateStat(
+                                                    context,
+                                                    entry.key,
+                                                    entry.value,
+                                                    5),
+                                              ),
+                                              // IconButton(
+                                              //   icon: Icon(
+                                              //       Icons.exposure_plus_10,
+                                              //       color: Colors.green),
+                                              //   onPressed: () => updateStat(
+                                              //       context,
+                                              //       entry.key,
+                                              //       entry.value,
+                                              //       10),
+                                              // ),
+                                              // IconButton(
+                                              //   icon: Icon(Icons.exposure,
+                                              //       color: Colors.green),
+                                              //   onPressed: () => updateStat(
+                                              //       context,
+                                              //       entry.key,
+                                              //       entry.value,
+                                              //       100 - entry.value),
+                                              // ),
+                                            ],
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 ),
@@ -125,40 +167,27 @@ extension PlayerCardStats on Player {
     );
   }
 
-  Widget updatePlayerStatButton(
-      BuildContext context, String stat, double value, double trainingPoints) {
-    if (value >= 100) {
-      return Row(
-        children: [
-          Icon(Icons.vertical_align_top, color: Colors.grey),
-          Text('Stat ${stat} is already at maximum value!',
-              style: TextStyle(color: Colors.red)),
-        ],
+  void updateStat(BuildContext context, String stat, double currentValue,
+      double increment) async {
+    if (currentValue < 100) {
+      double newValue = min(currentValue + increment, 100);
+      bool isOK = await operationInDB(
+        context,
+        'UPDATE',
+        'players',
+        data: {
+          stat: newValue,
+          'training_points': max(0, trainingPoints - increment),
+        },
+        matchCriteria: {'id': id},
       );
-    }
-    return TextButton(
-      onPressed: () async {
-        bool isOK = await operationInDB(context, 'UPDATE', 'players', data: {
-          stat: min(value + 5, 100),
-          'training_points': max(0, trainingPoints - 5),
-        }, matchCriteria: {
-          'id': id
-        });
-        if (isOK) {
-          context.showSnackBarSuccess(
-              'Successfully updated player ${stat} stat! Hooray!');
-          print(trainingPoints);
-        }
+      if (isOK) {
+        context.showSnackBarSuccess(
+            'Successfully updated player $stat stat! Hooray!');
         Navigator.of(context).pop();
-      },
-      child: Row(
-        children: [
-          Text(
-              // '${stat[0].toUpperCase()}${stat.substring(1)} from ${value.toStringAsFixed(1)} to ${(value + 1).toStringAsFixed(1)}'),
-              '${stat[0].toUpperCase()}${stat.substring(1)}'),
-        ],
-      ),
-      // child: Text('Increase ${stat}'),
-    );
+      }
+    } else {
+      context.showSnackBarError('Stat $stat is already at maximum value!');
+    }
   }
 }

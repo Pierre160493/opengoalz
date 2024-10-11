@@ -80,10 +80,11 @@ class _PlayersPageState extends State<PlayersPage> {
       _previousPlayerIds = playerIds;
       print('Fetched player IDs: $playerIds');
 
-      final playerStream = supabase
+      var playerStream = supabase
           .from('players')
           .stream(primaryKey: ['id'])
           .inFilter('id', playerIds)
+          .order('date_birth', ascending: false)
           .map((maps) {
             print('Fetched player maps: $maps');
             return maps.map((map) => Player.fromMap(map)).toList();
@@ -94,34 +95,29 @@ class _PlayersPageState extends State<PlayersPage> {
 
       print('Test1');
 
-      final sortedPlayerStream = _currentSearchCriterias.onTransferList
-          ? playerStream.map((players) {
-              players.sort((Player a, Player b) {
-                if (a.dateBidEnd == null) {
-                  return 1;
-                } else if (b.dateBidEnd == null) {
-                  return -1;
-                } else {
-                  return a.dateBidEnd!.compareTo(b.dateBidEnd!);
-                }
-              });
-              return players;
-            })
-          : playerStream.map((players) {
-              players.sort((Player a, Player b) {
-                return a.dateBirth.compareTo(b.dateBirth);
-              });
-              return players;
-            });
+      // Sort players by bid end date if they are on transfer list
+      if (_currentSearchCriterias.onTransferList) {
+        playerStream = playerStream.map((players) {
+          players.sort((Player a, Player b) {
+            if (a.dateBidEnd == null) {
+              return 1;
+            } else if (b.dateBidEnd == null) {
+              return -1;
+            } else {
+              return a.dateBidEnd!.compareTo(b.dateBidEnd!);
+            }
+          });
+          return players;
+        });
+      }
 
-      _clubStream = sortedPlayerStream.switchMap((players) {
+      _clubStream = playerStream.switchMap((players) {
         final clubIds = players
             .map((player) => player.idClub)
             .where((id) => id != null)
             .toSet()
             .toList();
-
-        print('Fetched club IDs: $clubIds');
+        // Continue with the rest of your logic
 
         if (clubIds.isEmpty) {
           return Stream.value([]);
@@ -140,7 +136,7 @@ class _PlayersPageState extends State<PlayersPage> {
             });
       });
 
-      final combinedPlayerStream = sortedPlayerStream
+      final combinedPlayerStream = playerStream
           .switchMap((players) => _clubStream.map((List<Club> clubs) {
                 for (var player
                     in players.where((player) => player.idClub != null)) {

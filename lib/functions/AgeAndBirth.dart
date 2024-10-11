@@ -23,7 +23,8 @@ Widget getAgeStringRow(double age, int multiverseSpeed) {
       ' & ',
     ),
     Text(
-      ((age - age.truncate()) * 14 * 7 / multiverseSpeed).floor().toString(),
+      // ((age - age.truncate()) * 14 * 7 / multiverseSpeed).floor().toString(),
+      ((age % 1) * 14 * 7).floor().toString(),
       style: TextStyle(
         fontWeight: FontWeight.bold,
       ),
