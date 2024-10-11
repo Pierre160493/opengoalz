@@ -38,12 +38,18 @@ extension PlayerCardStats on Player {
                             builder: (context, setState) {
                               return AlertDialog(
                                 title: ListTile(
-                                  leading: Icon(
-                                    Icons.query_stats,
-                                    color: Colors.green,
+                                  // leading: Icon(
+                                  //   Icons.query_stats,
+                                  //   color: Colors.green,
+                                  // ),
+                                  title: Row(
+                                    children: [
+                                      Icon(Icons.query_stats,
+                                          color: Colors.green),
+                                      Text(
+                                          'Which stat do you wish to increase ?'),
+                                    ],
                                   ),
-                                  title: Text(
-                                      'Which stat do you wish to increase ?'),
                                   subtitle: Text(
                                       'You have ${trainingPoints.floor()} training points'),
                                 ),
@@ -60,9 +66,14 @@ extension PlayerCardStats on Player {
                                         'freekick': freekick,
                                       }.entries)
                                         ListTile(
-                                          leading: Icon(Icons.query_stats),
-                                          title: Text(
-                                              '${entry.key[0].toUpperCase()}${entry.key.substring(1)}'),
+                                          // leading: Icon(Icons.query_stats),
+                                          title: Row(
+                                            children: [
+                                              Icon(Icons.query_stats),
+                                              Text(
+                                                  '${entry.key[0].toUpperCase()}${entry.key.substring(1)}'),
+                                            ],
+                                          ),
                                           subtitle: Text(
                                               'Current value: ${entry.value.toStringAsFixed(1)}',
                                               style: styleItalicBlueGrey),
