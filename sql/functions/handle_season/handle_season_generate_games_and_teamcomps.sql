@@ -30,7 +30,7 @@ BEGIN
         FOR league IN
             (SELECT * FROM leagues
             WHERE id_multiverse = multiverse.id
-            AND level > 0
+            AND is_finished IS NULL
             ORDER BY continent, level)
         LOOP
 
@@ -49,8 +49,12 @@ BEGIN
                 END LOOP; -- End of the loop for the weeks of the season
             END LOOP; -- End of the club loop
 
-            -- Schedule games of first 10 weeks
-            INSERT INTO games (
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------
+------------ Create the championship games for the weeks 1 to 10
+            IF league.level > 0 THEN
+            
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_league, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
             -- Week 1 and 10
 (multiverse.id, league.id, inp_season_number, 1, inp_date_start, TRUE, 1, 2, league.id, league.id, 1),
@@ -88,22 +92,19 @@ id_multiverse, id_league, season_number, week_number, date_start, is_league, pos
 (multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 5, TRUE, 2, 6, league.id, league.id, 52),
 (multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 5, TRUE, 3, 5, league.id, league.id, 53);
 
-        END LOOP; -- End of the league loop
+            END IF; -- End of the creation of the championship games
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------
------------- Loop through the international leagues of the multiverse
-        FOR league IN 
-            (SELECT * FROM leagues
-            WHERE id_multiverse = multiverse.id
-            AND level = 0)
-        LOOP
-            
-            -- 3 international league cups for 1st, 2nd and 3rd of top level leagues
-            IF league.number < 4 THEN
+------------ Create the games for week 11 to 14
+            -- Create the international league games for the internation leagues
+            IF league.level = 0 THEN -- International leagues
+                
+                -- 3 international league cups for 1st, 2nd and 3rd of top level leagues
+                IF league.number <= 3 THEN
 
-                -- Schedule the international league games
-                INSERT INTO games (
+                    -- Schedule the international league cup games
+                    INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_league, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
             -- Week 11 (First Round)
 (multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, 1, 4, league.id, league.id, 101),
@@ -122,10 +123,11 @@ id_multiverse, id_league, season_number, week_number, date_start, is_league, pos
 (multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, 3, 4, league.id, league.id, 132),
 (multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, 5, 6, league.id, league.id, 133);
 
-           -- Handling of friendly games (week11 and 12) between 4th, 5th and 6th of top level leagues while waiting for barrages
-            ELSE
-                 -- 3*2 international friendly games between 4th, 5th and 6th of master leagues for week 11 and 12
-                INSERT INTO games (
+                -- Friendly games (week11 and 12) between 4th, 5th and 6th of top level leagues while waiting for barrages
+                ELSE
+                    
+                    -- 3*2 international friendly games between 4th, 5th and 6th of master leagues for week 11 and 12
+                    INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
 (multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 6, 1, league.id, league.id, 151),
 (multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 5, league.id, league.id, 161),
@@ -134,19 +136,12 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
 (multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 4, 3, league.id, league.id, 153),
 (multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 3, 6, league.id, league.id, 163);
 
-            END IF;
-        END LOOP; -- End of the international league loop
+                END IF;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------
------------- Loop through the normal leagues of the multiverse
-        FOR league IN 
-            (SELECT * FROM leagues
-            WHERE id_multiverse = multiverse.id
-            AND id < 0
-            AND level > 1
-            ORDER BY id_upper_league)
-        LOOP
+------------ Create the barrages games for the normal leagues
+            ELSE IF league.id < 0 THEN -- Select only the left leagues
 
             -- {1, 2} are the champions of the lower leagues league.id and -league.id 
             -- {3, 4} are the 2nd of the lower leagues league.id and -league.id 
@@ -154,8 +149,9 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
 
             ---- 4th, 5th and 6th Friendly Games for Week11 and 12
             -- Friendly games between 4th, 5th, 6th of this league and 4th, 5th, 6th of symmetric league for two first weeks (not for first level leagues because they already play friendly international)
-            IF league.level >= 2 THEN
-                INSERT INTO games (
+                IF league.level >= 2 THEN
+
+                    INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 4, 4, league.id, -league.id, 171),
 (multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 4, 4, -league.id, league.id, 181),
@@ -163,113 +159,109 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
 (multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 5, 5, -league.id, league.id, 182),
 (multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 6, 6, league.id, -league.id, 173),
 (multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 6, 6, -league.id, league.id, 183);
-            END IF;
+                
+                END IF;
 
-            ---- Barrage1
-            -- Week 11 and 12: Games between both 1st of the lower leagues ==> Winner goes up, Loser plays barrage against 5th of upper league
-            INSERT INTO games (
+                ---- Barrage1
+                -- Week 11 and 12: Games between both 1st of the lower leagues ==> Winner goes up, Loser plays barrage against 5th of upper league
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, 1, 1, league.id, -league.id, 211)
 RETURNING id INTO loc_id_game_1;
-            INSERT INTO games (
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 1, -league.id, league.id, loc_id_game_1, 212)
 RETURNING id INTO loc_id_game_1;
-            -- Week 13 and 14: Friendly game between winner of the barrage 1 and winner of the barrage 1 from the symmetric league
-            IF loc_id_game_transverse IS NULL THEN
-                -- Store the game id for the next winner of the barrage 1 from league that will play friendly game against the winner of this league barrage 1  
-                loc_id_game_transverse := loc_id_game_1;
-            ELSE
-                -- Then we can insert the game between two winners of barrage 1
-                INSERT INTO games (
+                -- Week 13 and 14: Friendly game between winner of the barrage 1 and winner of the barrage 1 from the symmetric league
+                IF loc_id_game_transverse IS NULL THEN
+                    -- Store the game id for the next winner of the barrage 1 from league that will play friendly game against the winner of this league barrage 1  
+                    loc_id_game_transverse := loc_id_game_1;
+                ELSE
+                    -- Then we can insert the game between two winners of barrage 1
+                    INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, 1, 1, loc_id_game_1, loc_id_game_transverse, 215)
 RETURNING id INTO loc_id_game_2;
-                INSERT INTO games (
+                    INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 1, loc_id_game_transverse, loc_id_game_1, loc_id_game_2, 216);
-                -- Reset to NULL for next leagues
-                loc_id_game_transverse := NULL;
-            END IF;
-            -- Week 13 and 14: Relegation Game Between 5th of the upper league and Loser of the barrage1
-            INSERT INTO games (
+                    -- Reset to NULL for next leagues
+                    loc_id_game_transverse := NULL;
+                END IF;
+
+                -- Week 13 and 14: Relegation Game Between 5th of the upper league and Loser of the barrage1
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, pos_club_left, pos_club_right, id_game_club_left, id_league_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, 2, 5, loc_id_game_1, league.id_upper_league, 213)
 RETURNING id INTO loc_id_game_2;
-            INSERT INTO games (
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_game_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 5, 2, league.id_upper_league, loc_id_game_1, loc_id_game_2, 214);
             
-            ---- Barrage2
-            -- Week 11
-            -- Game1: Barrage between 2nd and 3rd {2nd of left league vs 3rd of right league}
-            INSERT INTO games (
+                ---- Barrage2
+                -- Week 11
+                -- Game1: Barrage between 2nd and 3rd {2nd of left league vs 3rd of right league}
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 2, 3, league.id, -league.id, 311)
 RETURNING id INTO loc_id_game_3;
-            -- Game2: Barrage between 2nd and 3rd {2nd of right league vs 3rd of left league}
-            INSERT INTO games (
+                -- Game2: Barrage between 2nd and 3rd {2nd of right league vs 3rd of left league}
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 2, 3, -league.id, league.id, 312)
 RETURNING id INTO loc_id_game_4;
-            -- Week12
-            -- Game1: Barrage between winners of the first round {Winner of loc_id_game_1 vs Winner of loc_id_game_2} => Winner plays barrage and loser plays friendly
-            INSERT INTO games (
+                -- Week12
+                -- Game1: Barrage between winners of the first round {Winner of loc_id_game_1 vs Winner of loc_id_game_2} => Winner plays barrage and loser plays friendly
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 321)
 RETURNING id INTO loc_id_game_1;
-            -- Game2: Friendly between losers of first round {Loser of loc_id_game_1 vs Loser of loc_id_game_2} => Winner plays international friendly game and loser plays friendly
-            INSERT INTO games (
+                -- Game2: Friendly between losers of first round {Loser of loc_id_game_1 vs Loser of loc_id_game_2} => Winner plays international friendly game and loser plays friendly
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 322)
 RETURNING id INTO loc_id_game_2;
-            ------ Week 13 and 14
-            -- Relegation between 4th of master league and Winner of the barrage2
-            INSERT INTO games (
+                ------ Week 13 and 14
+                -- Relegation between 4th of master league and Winner of the barrage2
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, pos_club_left, pos_club_right, id_league_club_left, id_game_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, 4, 1, league.id_upper_league, loc_id_game_1, 331)
 RETURNING id INTO loc_id_game_3;
-            INSERT INTO games (
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_league_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 4, loc_id_game_1, league.id_upper_league, loc_id_game_3, 332);
-            ------ Week 13
-            -- Friendly game between loser of second round of barrage 2 and winner of friendly game between losers of the first round of the barrage 2
-            INSERT INTO games (
+                ------ Week 13
+                -- Friendly game between loser of second round of barrage 2 and winner of friendly game between losers of the first round of the barrage 2
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 2, loc_id_game_1, loc_id_game_2, 341)
 RETURNING id INTO loc_id_game_3;
-            -- Friendly game between winner of friendly game between losers of first round of barrage 2 and 6th club from the upper league (that is going down)
-            INSERT INTO games (
+                -- Friendly game between winner of friendly game between losers of first round of barrage 2 and 6th club from the upper league (that is going down)
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_league_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 6, loc_id_game_2, league.id_upper_league, 342)
 RETURNING id INTO loc_id_game_4;
-            ------ Week 14
-            -- Friendly Game between winners of last two friendly games loc_id_game_3 and loc_id_game_4
-            INSERT INTO games (
+                ------ Week 14
+                -- Friendly Game between winners of last two friendly games loc_id_game_3 and loc_id_game_4
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 351);
-            -- Friendly Game between losers of last two friendly games loc_id_game_3 and loc_id_game_4
-            INSERT INTO games (
+                -- Friendly Game between losers of last two friendly games loc_id_game_3 and loc_id_game_4
+                INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 352);
 
-        END LOOP; -- End of the league loop
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------
------------- Loop through the lowest leagues of the multiverse of each continent
-        FOR league IN 
-            (SELECT * FROM leagues WHERE
-                LEVEL > 0
-                AND id < 0 -- Only select the left leagues
-                AND id NOT IN ( -- Exclude the leagues that are the upper leagues
+------------ Create the friendly games for the clubs 4th, 5th and 6th for the last level leagues
+                IF (league.id NOT IN (
                     SELECT id_upper_league FROM leagues WHERE id_multiverse = multiverse.id
-                        AND id_upper_league IS NOT NULL)
-            )
-        LOOP
-
-            -- Friendly Games between clubs of symmetric leagues
-            INSERT INTO games (
+                        AND id_upper_league IS NOT NULL
+                ))
+                THEN
+                    -- Friendly Games between clubs of symmetric last level leagues
+                    INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
 (multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 4, 4, league.id, -league.id, 411),
 (multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 5, 5, league.id, -league.id, 412),
@@ -284,8 +276,14 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
 (multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 5, 5, -league.id, league.id, 442),
 (multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 6, 6, -league.id, league.id, 443);
 
-        END LOOP; -- End of the lowest league loop
+                END IF; -- End of the friendly games for the last level leagues
+            END IF; -- End of the leagues with id < 0
+        END IF; -- End of the games for week 11 to 14
 
+        -- Set the boolean to false to say games generation is ok and avoid running the loop again
+        UPDATE leagues SET is_finished = FALSE WHERE id = league.id;
+
+        END LOOP; -- End of the league loop
     END LOOP; -- End of the multiverse loop
 
 END;
