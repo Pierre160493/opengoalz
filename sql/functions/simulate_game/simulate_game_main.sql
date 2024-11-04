@@ -76,11 +76,11 @@ BEGIN
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------ Step 2: Fetch, calculate and store data in arrays
-        ------ Fetch players id of the club for this game {21 players}
+        ------ Fetch players id of the club for this game
         loc_array_players_id_left := simulate_game_fetch_players_id(inp_id_teamcomp := loc_id_teamcomp_left);
         loc_array_players_id_right := simulate_game_fetch_players_id(inp_id_teamcomp := loc_id_teamcomp_right);
 
-        ------ Fetch player stats matrix [21 players x 7 stats]
+        ------ Fetch player stats matrix
         loc_matrix_player_stats_left := simulate_game_fetch_player_stats(loc_array_players_id_left);
         loc_matrix_player_stats_right := simulate_game_fetch_player_stats(loc_array_players_id_right);
 
@@ -150,10 +150,14 @@ BEGIN
                 loc_minute_period_extra_time := 2 + ROUND(random() * 4); -- Extra time for the period
             END IF;
 
------- Cheat CODE to avoid recalculating the team weights every minute
------- Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
-loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
-loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
+------ Cheat CODE
+                ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+                loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
+--IF game.id = 1 THEN
+--RAISE NOTICE 'loc_minute_game= %', loc_minute_game;
+--RAISE NOTICE 'loc_array_team_weights_left= %', loc_array_team_weights_left;
+--END IF;
+                loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
 
             ------ Get the team composition for the game
             loc_goal_opportunity = 0.05; -- Probability of a goal opportunity
@@ -451,9 +455,11 @@ loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_
     END IF;
 
     -- Set date_end for this game
-    UPDATE games SET date_end =
-        date_start + (loc_minute_period_end + loc_minute_period_extra_time) * INTERVAL '1 minute'
+    UPDATE games SET
+        date_end = date_start + (loc_minute_period_end + loc_minute_period_extra_time) * INTERVAL '1 minute',
+        is_playing = FALSE
     WHERE id = inp_id_game;
+
     -- Set games_teamcomp is_played = TRUE
     UPDATE games_teamcomp SET is_played = TRUE WHERE id IN (loc_id_teamcomp_left, loc_id_teamcomp_right);
 
