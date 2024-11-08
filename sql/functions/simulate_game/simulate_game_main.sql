@@ -34,6 +34,8 @@ DECLARE
     loc_id_event int8; -- tmp id of the event
     loc_id_club int8; -- tmp id of the club
     I int8;
+    minutes_half_time int8 := 0; -- 45
+    minutes_extra_time int8 := 0; -- 15
 BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -95,12 +97,12 @@ BEGIN
             IF loc_period_game = 1 THEN
                 loc_date_start_period := game.date_start; -- Start date of the first period is the start date of the game
                 loc_minute_period_start := 0; -- Start minute of the first period
-                loc_minute_period_end := 45; -- Start minute of the first period
+                loc_minute_period_end := loc_minute_period_start + minutes_half_time; -- Start minute of the first period
                 loc_minute_period_extra_time := 2 + ROUND(random() * 3); -- Extra time for the period
             ELSEIF loc_period_game = 2 THEN
                 loc_date_start_period := loc_date_start_period + (45 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the second period is the start date of the game plus 45 minutes + extra time
-                loc_minute_period_start := 45; -- Start minute of the first period
-                loc_minute_period_end := 90; -- Start minute of the first period
+                loc_minute_period_start := 45; -- Start minute of the second period
+                loc_minute_period_end := loc_minute_period_start + minutes_half_time; -- Start minute of the first period
                 loc_minute_period_extra_time := 3 + ROUND(random() * 5); -- Extra time for the period
             ELSEIF loc_period_game = 3 THEN
                 -- If the game is_cup we fetch the previous score if a previous game exists
@@ -141,12 +143,12 @@ BEGIN
                 END IF;
                 loc_date_start_period := loc_date_start_period + (45 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the first prolongation is the start date of the second half plus 45 minutes + extra time
                 loc_minute_period_start := 90; -- Start minute of the first period
-                loc_minute_period_end := 105; -- Start minute of the first period
+                loc_minute_period_end := loc_minute_period_start + minutes_extra_time; -- Start minute of the first period
                 loc_minute_period_extra_time := ROUND(random() * 3); -- Extra time for the period
             ELSE
                 loc_date_start_period := loc_date_start_period + (15 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the second prolongation is the start date of the first prolongation plus 15 minutes + extra time
                 loc_minute_period_start := 105; -- Start minute of the first period
-                loc_minute_period_end := 120; -- Start minute of the first period
+                loc_minute_period_end := loc_minute_period_start + minutes_extra_time; -- Start minute of the first period
                 loc_minute_period_extra_time := 2 + ROUND(random() * 4); -- Extra time for the period
             END IF;
 
@@ -160,8 +162,8 @@ BEGIN
                 loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
 
             ------ Get the team composition for the game
-            loc_goal_opportunity = 0.05; -- Probability of a goal opportunity
-            --loc_goal_opportunity = 0.00; -- Probability of a goal opportunity (for having 0-0 scores)
+            --loc_goal_opportunity = 0.05; -- Probability of a goal opportunity
+            loc_goal_opportunity = 0.00; -- Probability of a goal opportunity (for having 0-0 scores)
 
             ------ Calculate the events of the game with one event every minute
             FOR loc_minute_game IN loc_minute_period_start..loc_minute_period_end + loc_minute_period_extra_time LOOP
@@ -170,7 +172,7 @@ BEGIN
                 ------------------------------------------------------------------------
                 ------ Handle orders
                 -- Handle orders for left club
-                loc_array_substitutes_left := simulate_game_handle_orders(
+/*                loc_array_substitutes_left := simulate_game_handle_orders(
                     inp_teamcomp_id := loc_id_teamcomp_left,
                     array_players_id := loc_array_players_id_left,
                     array_substitutes := loc_array_substitutes_left,
@@ -189,7 +191,7 @@ BEGIN
                     game_period := loc_period_game,
                     period_start := loc_date_start_period,
                     score := loc_score_right - loc_score_left,
-                    game := game);
+                    game := game);*/
 
 /*                ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
                 loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
@@ -383,40 +385,50 @@ BEGIN
     ------ Update league position for specific games
     -- Barrage 1: Winner of barrage 1 switches place with 6th of upper_league
     IF game.id_games_description = 212 THEN
+        -- If left club won
         IF (loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0)) > (loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0)) THEN
+
+            -- Left club (who won barrage1) goes up
             UPDATE clubs SET
                 pos_league_next_season = 6,
                 id_league_next_season = game.id_league
                 WHERE id = game.id_club_left;
 
+            -- Club that finished 6th of the upper league goes down
             UPDATE clubs SET
                 pos_league_next_season = 3,
                 id_league_next_season = game.id_league_club_left
                 WHERE id = (SELECT id FROM clubs WHERE id_league = game.id_league AND pos_league = 6);
+
+        -- If right club won
         ELSE
+
             UPDATE clubs SET
                 pos_league_next_season = 6,
                 id_league_next_season = game.id_league
                 WHERE id = game.id_club_right;
 
+            -- Club that finished 6th of the upper league goes down
             UPDATE clubs SET
                 pos_league_next_season = 3,
                 id_league_next_season = game.id_league_club_right
                 WHERE id = (SELECT id FROM clubs WHERE id_league = game.id_league AND pos_league = 6);
+
         END IF;
+
     -- Barrage 1: Loser of barrage 1 plays against 5th of upper_league, winner plays the upper league
     ELSEIF game.id_games_description = 214 THEN
         IF (loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0)) > (loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0)) THEN
             -- 5th of upper league won, both clubs stay at their place and league
-            UPDATE clubs SET
-                pos_league_next_season = pos_league,
-                id_league_next_season = id_league
-                WHERE id = game.id_club_left;
+            --UPDATE clubs SET
+            --    pos_league_next_season = pos_league,
+            --    id_league_next_season = id_league
+            --    WHERE id = game.id_club_left;
 
-            UPDATE clubs SET
-                pos_league_next_season = pos_league,
-                id_league_next_season = id_league
-                WHERE id = game.id_club_right;
+            --UPDATE clubs SET
+            --    pos_league_next_season = pos_league,
+            --    id_league_next_season = id_league
+            --    WHERE id = game.id_club_right;
         ELSE -- Loser of barrage 1 goes up and 5th of upper league goes down
             UPDATE clubs SET
                 pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = game.id_club_right),
@@ -452,14 +464,13 @@ BEGIN
                 id_league_next_season = (SELECT id_league FROM clubs WHERE id = game.id_club_left)
                 WHERE id = game.id_club_right;
         END IF;
+
     END IF;
 
     -- Set date_end for this game
-    UPDATE games SET
-        date_end = date_start + (loc_minute_period_end + loc_minute_period_extra_time) * INTERVAL '1 minute',
-        is_playing = FALSE
+    UPDATE games SET date_end =
+        date_start + (loc_minute_period_end + loc_minute_period_extra_time) * INTERVAL '1 minute'
     WHERE id = inp_id_game;
-
     -- Set games_teamcomp is_played = TRUE
     UPDATE games_teamcomp SET is_played = TRUE WHERE id IN (loc_id_teamcomp_left, loc_id_teamcomp_right);
 

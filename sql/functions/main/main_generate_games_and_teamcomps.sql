@@ -1,6 +1,6 @@
 -- DROP FUNCTION public.handle_season_generate_games_and_teamcomps(int8, int8, timestamptz);
 
-CREATE OR REPLACE FUNCTION public.handle_season_generate_games_and_teamcomps(inp_id_multiverse bigint, inp_season_number bigint, inp_date_start timestamp with time zone)
+CREATE OR REPLACE FUNCTION public.main_generate_games_and_teamcomps(inp_id_multiverse bigint, inp_season_number bigint, inp_date_start timestamp with time zone)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
@@ -15,6 +15,8 @@ DECLARE
     loc_id_game_4 bigint; -- Id of the game
     loc_id_game_transverse bigint := NULL; -- Id of the game used to make friendly game between winners of first barrage 1 between brother leagues 
 BEGIN
+
+    PERFORM set_config('statement_timeout', '5min', true);
 
     -- Loop through the multiverses
     FOR multiverse IN

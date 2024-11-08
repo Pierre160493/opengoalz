@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/profile.dart';
-import 'package:opengoalz/pages/club_page.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
 import 'package:opengoalz/models/club/club.dart';
@@ -43,7 +42,7 @@ class League {
   final int level;
   final int number;
   final int? idUpperLeague;
-  final bool isFinished;
+  final bool? isFinished;
 
   League.fromMap(Map<String, dynamic> map,
       {this.idSelectedClub}) // Add idSelectedClub as an optional parameter
