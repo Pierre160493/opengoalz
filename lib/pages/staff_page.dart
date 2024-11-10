@@ -67,7 +67,7 @@ class _StaffPageState extends State<StaffPage> {
                         SizedBox(width: 3.0),
                         Text(
                           NumberFormat.decimalPattern()
-                              .format(club.staffExpanses),
+                              .format(club.expensesStaff),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -79,7 +79,7 @@ class _StaffPageState extends State<StaffPage> {
                     onTap: () async {
                       final TextEditingController controller =
                           TextEditingController(
-                              text: club.staffExpanses.toString());
+                              text: club.expensesStaff.toString());
 
                       await showDialog(
                         context: context,
@@ -112,11 +112,11 @@ class _StaffPageState extends State<StaffPage> {
                                       ),
                                     );
                                   } else if (newExpanses ==
-                                      club.staffExpanses) {
+                                      club.expensesStaff) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                            'Staff expanses is already set at ${club.staffExpanses} per week'),
+                                            'Staff expanses is already set at ${club.expensesStaff} per week'),
                                       ),
                                     );
                                   } else {
@@ -161,7 +161,7 @@ class _StaffPageState extends State<StaffPage> {
                         Text('Staff skill: '),
                         Text(
                           NumberFormat.decimalPattern()
-                              .format(club.staffExpanses),
+                              .format(club.expensesStaff),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -171,8 +171,8 @@ class _StaffPageState extends State<StaffPage> {
                       style: TextStyle(fontStyle: FontStyle.italic),
                     ),
                   ),
-                  SizedBox(height: 12),
-                  _getStaffExpansesHistory(club),
+                  // SizedBox(height: 12),
+                  // _getStaffExpansesHistory(club),
                 ],
               ),
             ),
@@ -182,25 +182,25 @@ class _StaffPageState extends State<StaffPage> {
     );
   }
 
-  Widget _getStaffExpansesHistory(Club club) {
-    List<FlSpot> data = club.lisStaffExpanses
-        .asMap()
-        .entries
-        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
-        .toList();
+  // Widget _getStaffExpansesHistory(Club club) {
+  //   List<FlSpot> data = club.lisStaffExpanses
+  //       .asMap()
+  //       .entries
+  //       .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
+  //       .toList();
 
-    return Container(
-      height: 400,
-      child: LineChart(
-        LineChartData(
-          lineBarsData: [
-            LineChartBarData(
-              spots: data,
-              color: Colors.blue,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //   return Container(
+  //     height: 400,
+  //     child: LineChart(
+  //       LineChartData(
+  //         lineBarsData: [
+  //           LineChartBarData(
+  //             spots: data,
+  //             color: Colors.blue,
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }

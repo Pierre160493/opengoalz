@@ -166,7 +166,7 @@ extension PlayerWidgetsHelper on Player {
               Row(
                 children: [
                   Expanded(child: getAvgStatsWidget()),
-                  Expanded(child: getExpansesWidget(context)),
+                  Expanded(child: getExpensesWidget(context)),
                 ],
               ),
               if (transferBids.length > 0 &&
@@ -182,7 +182,7 @@ extension PlayerWidgetsHelper on Player {
               getAgeWidget(),
               getCountryNameWidget(context, idCountry),
               getAvgStatsWidget(),
-              getExpansesWidget(context),
+              getExpensesWidget(context),
               if (transferBids.length > 0 &&
                   dateBidEnd!.isAfter(DateTime.now()))
                 playerTransferWidget(context),
@@ -242,9 +242,9 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  Widget getExpansesWidget(BuildContext context) {
+  Widget getExpensesWidget(BuildContext context) {
     return ListTile(
-      onTap: () => showPlayerExpansesHistory(context),
+      onTap: () => showPlayerExpensesHistory(context),
       shape: RoundedRectangleBorder(
         borderRadius:
             BorderRadius.circular(12), // Adjust border radius as needed
@@ -257,22 +257,110 @@ extension PlayerWidgetsHelper on Player {
       //   size: iconSize, // Adjust icon size as needed
       // ),
       title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(
-            iconMoney,
-            size: iconSize, // Adjust icon size as needed
+          Row(
+            children: [
+              Icon(
+                iconMoney,
+                size: iconSize, // Adjust icon size as needed
+              ),
+              formSpacer3,
+              Text(
+                expensesExpected.toString(),
+                // style: TextStyle(
+                //   fontWeight: FontWeight.bold,
+                // ),
+              ),
+            ],
           ),
-          formSpacer3,
-          Text(
-            expanses.toString(),
-            // style: TextStyle(
-            //   fontWeight: FontWeight.bold,
-            // ),
-          ),
+          if (expensesMissed > 0)
+            IconButton(
+              tooltip: 'Past expenses not payed ${expensesMissed.toString()}',
+              onPressed: () {
+                if (Provider.of<SessionProvider>(context, listen: false)
+                        .user!
+                        .selectedClub!
+                        .id ==
+                    idClub) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Past expenses not payed'),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              ListTile(
+                                title: Row(
+                                  children: [
+                                    Icon(iconMoney, color: Colors.red),
+                                    Text(
+                                      ' ${expensesMissed.toString()}',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                subtitle: Text(
+                                    'Total amount of unpaid expenses',
+                                    style: styleItalicBlueGrey),
+                              ),
+                              ListTile(
+                                title: Row(
+                                  children: [
+                                    Icon(iconMoney, color: Colors.green),
+                                    Text(
+                                      ' ${Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.cash.toString()}',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                subtitle: Text('Available cash',
+                                    style: styleItalicBlueGrey),
+                              ),
+                            ],
+                          ),
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text('Pay expenses'),
+                            onPressed: () async {
+                              bool isOK = await operationInDB(
+                                  context, 'UPDATE', 'players',
+                                  data: {'missed_expenses': 0},
+                                  matchCriteria: {'id': id});
+                              if (isOK) {
+                                context.showSnackBar(
+                                    'Successfully payed ${firstName} ${lastName} missed expenses',
+                                    icon: Icon(iconSuccessfulOperation,
+                                        color: Colors.green));
+                              }
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          TextButton(
+                            child: Text('Close'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  context.showSnackBarError(
+                      'You are not the owner of ${firstName} ${lastName}\'s club');
+                }
+              },
+              icon: Icon(Icons.money_off, color: Colors.red),
+            ),
         ],
       ),
       subtitle: Text(
-        'Expanses per week',
+        'Expected expenses per week',
         style: TextStyle(
           fontStyle: FontStyle.italic,
           color: Colors.blueGrey,

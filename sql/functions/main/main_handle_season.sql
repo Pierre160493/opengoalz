@@ -80,7 +80,8 @@ BEGIN
 
             -- Update players
             UPDATE players SET
-                expanses = FLOOR((expanses + 100 + keeper + defense + playmaking + passes + winger + scoring + freekick) * 0.5)
+                expenses_expected = expenses_expected || 
+                    FLOOR((expenses_expected[array_length(expenses_expected, 1)] + 100 + keeper + defense + playmaking + passes + winger + scoring + freekick) * 0.5)
             WHERE id_multiverse = inp_multiverse.id;
 
         ELSE

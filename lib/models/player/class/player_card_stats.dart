@@ -151,6 +151,8 @@ extension PlayerCardStats on Player {
                   ),
           ),
           const SizedBox(height: 6.0),
+          getStatLinearWidget('Motivation', motivation),
+          const SizedBox(height: 6.0),
           getStatLinearWidget('Stamina', stamina),
           const SizedBox(height: 6.0),
           getStatLinearWidget('Form', form),

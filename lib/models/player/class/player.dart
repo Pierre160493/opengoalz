@@ -27,7 +27,7 @@ part 'player_widget_actions.dart';
 part 'player_card_details.dart';
 part 'player_card_stats.dart';
 part 'player_card_history.dart';
-part 'player_expanses_history.dart';
+part 'player_expenses_history.dart';
 
 class Player {
   Club? club;
@@ -46,7 +46,9 @@ class Player {
     required this.idMultiverse,
     required this.multiverseSpeed,
     required this.idCountry,
-    required this.expanses,
+    required this.expensesExpected,
+    required this.expensesPayed,
+    required this.expensesMissed,
     required this.trainingPoints,
     required this.keeper,
     required this.defense,
@@ -58,8 +60,9 @@ class Player {
     required this.dateEndInjury,
     required this.dateBidEnd,
     required this.dateArrival,
-    required this.stamina,
+    required this.motivation,
     required this.form,
+    required this.stamina,
     required this.experience,
     required this.notes,
     required this.performanceScore,
@@ -77,7 +80,9 @@ class Player {
   final int idMultiverse;
   final int multiverseSpeed;
   final int? idCountry; //Shouldn't be nullable
-  final int expanses;
+  final int expensesExpected;
+  final int expensesPayed;
+  final int expensesMissed;
   final double trainingPoints;
   final double keeper;
   final double defense;
@@ -89,8 +94,9 @@ class Player {
   final DateTime? dateEndInjury;
   final DateTime? dateBidEnd;
   final DateTime dateArrival;
-  final double stamina;
+  final double motivation;
   final double form;
+  final double stamina;
   final double experience;
   final String? notes;
   final double performanceScore;
@@ -108,7 +114,9 @@ class Player {
         idMultiverse = map['id_multiverse'],
         multiverseSpeed = map['multiverse_speed'],
         idCountry = map['id_country'],
-        expanses = map['expanses'],
+        expensesExpected = map['expenses_expected'],
+        expensesPayed = map['expenses_payed'],
+        expensesMissed = map['expenses_missed'],
         trainingPoints = (map['training_points'] as num).toDouble(),
         keeper = (map['keeper'] as num).toDouble(),
         defense = (map['defense'] as num).toDouble(),
@@ -117,8 +125,9 @@ class Player {
         scoring = (map['scoring'] as num).toDouble(),
         freekick = (map['freekick'] as num).toDouble(),
         winger = (map['winger'] as num).toDouble(),
-        stamina = (map['stamina'] as num).toDouble(),
         form = (map['form'] as num).toDouble(),
+        motivation = (map['motivation'] as num).toDouble(),
+        stamina = (map['stamina'] as num).toDouble(),
         experience = (map['experience'] as num).toDouble(),
         dateEndInjury = map['date_end_injury'] != null
             ? DateTime.parse(map['date_end_injury']).toLocal()
@@ -171,8 +180,12 @@ class Player {
         return multiverseSpeed;
       case 'idCountry':
         return idCountry;
-      case 'expanses':
-        return expanses;
+      case 'expensesExpected':
+        return expensesExpected;
+      case 'expensesPayed':
+        return expensesPayed;
+      case 'expensesMissed':
+        return expensesMissed;
       case 'trainingPoints':
         return trainingPoints;
       case 'keeper':
@@ -195,10 +208,12 @@ class Player {
         return dateBidEnd;
       case 'dateArrival':
         return dateArrival;
-      case 'stamina':
-        return stamina;
+      case 'motivation':
+        return motivation;
       case 'form':
         return form;
+      case 'stamina':
+        return stamina;
       case 'experience':
         return experience;
       case 'notes':

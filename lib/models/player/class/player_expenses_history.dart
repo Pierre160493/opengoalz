@@ -1,13 +1,13 @@
 part of 'player.dart';
 
-extension PlayerExpansesHistory on Player {
-  void showPlayerExpansesHistory(BuildContext context) {
+extension PlayerExpensesHistory on Player {
+  void showPlayerExpensesHistory(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Player Expanses History'),
-          content: getPlayerExpansesHistory(context),
+          title: Text('Player Expenses History'),
+          content: getPlayerExpensesHistory(context),
           actions: <Widget>[
             TextButton(
               child: Text('Close'),
@@ -21,9 +21,9 @@ extension PlayerExpansesHistory on Player {
     );
   }
 
-  Widget getPlayerExpansesHistory(BuildContext context) {
-    Stream<List<Map>> _expansesStream = supabase
-        .from('players_expanses')
+  Widget getPlayerExpensesHistory(BuildContext context) {
+    Stream<List<Map>> _expensesStream = supabase
+        .from('players_expenses')
         .stream(primaryKey: ['id'])
         .eq('id_player', id)
         .order('created_at', ascending: true)
@@ -32,12 +32,12 @@ extension PlayerExpansesHistory on Player {
                   // 'id': map['id'],
                   'created_at': map['created_at'],
                   // 'id_player': map['id_player'],
-                  'expanses': map['expanses'],
+                  'expenses': map['expenses'],
                 })
             .toList());
 
     return StreamBuilder<List<Map>>(
-      stream: _expansesStream,
+      stream: _expensesStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
@@ -51,8 +51,8 @@ extension PlayerExpansesHistory on Player {
         // Create a list of FlSpot
         final data = historyData.map((item) {
           final DateTime dateEvent = DateTime.parse(item['created_at']);
-          final double expanses = item['expanses'].toDouble();
-          return FlSpot(dateEvent.millisecondsSinceEpoch.toDouble(), expanses);
+          final double expenses = item['expenses'].toDouble();
+          return FlSpot(dateEvent.millisecondsSinceEpoch.toDouble(), expenses);
         }).toList();
 
         return Container(
@@ -74,7 +74,7 @@ extension PlayerExpansesHistory on Player {
                     axisNameWidget: Text('Time'),
                     sideTitles: SideTitles(showTitles: true)),
                 leftTitles: AxisTitles(
-                    axisNameWidget: Text('Expanses'),
+                    axisNameWidget: Text('Expenses'),
                     sideTitles: SideTitles(showTitles: true)),
               ),
               // gridData: FlGridData(show: false),

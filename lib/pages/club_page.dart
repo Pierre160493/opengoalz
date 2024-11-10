@@ -297,7 +297,7 @@ class _ClubPageState extends State<ClubPage> {
                                 ),
                               ),
                               // Text('${club.league_level}.${club.id_league}'),
-                              Text('${club.lisCash.last}'),
+                              Text('${club.cash}'),
                             ],
                           ),
                           // subtitle: Row(

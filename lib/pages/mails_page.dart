@@ -75,7 +75,7 @@ class _MailsPageState extends State<MailsPage> {
       stream: _clubStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         }
@@ -255,7 +255,7 @@ class _MailsPageState extends State<MailsPage> {
                 border: Border.all(color: Colors.blueGrey),
                 borderRadius: BorderRadius.circular(8.0),
                 color: mail.isRead
-                    ? Colors.brown
+                    ? Colors.grey[800]
                     : null, // Background color based on read status
               ),
               child: ExpansionTile(

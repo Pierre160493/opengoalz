@@ -319,7 +319,7 @@ extension PlayerWidgetTransfer on Player {
                 ),
               ),
               Text(
-                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.lisCash.last)}'),
+                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.cash)}'),
             ],
           ),
           actions: <Widget>[

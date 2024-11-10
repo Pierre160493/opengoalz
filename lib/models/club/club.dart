@@ -51,15 +51,21 @@ class Club {
     required this.idLeague,
     required this.userName,
     required this.name,
-    required this.staffExpanses,
     required this.cash,
     required this.lisCash,
     required this.lisRevenues,
-    required this.lisSponsors,
-    required this.lisExpanses,
-    required this.lisTax,
-    required this.lisPlayersExpanses,
-    required this.lisStaffExpanses,
+    required this.lisExpenses,
+    // required this.lisSponsors,
+    // required this.lisTax,
+    // required this.lisPlayersExpenses,
+    // required this.lisStaffExpenses,
+    required this.revenuesSponsors,
+    required this.revenuesTotal,
+    required this.expensesPlayers,
+    required this.expensesPlayersRatio,
+    required this.expensesStaff,
+    required this.expensesTax,
+    required this.expensesTotal,
     required this.staffWeight,
     required this.numberFans,
     required this.idCountry,
@@ -78,15 +84,21 @@ class Club {
   final int idLeague;
   final String? userName;
   final String name;
-  final int staffExpanses;
   final int cash;
   final List<int> lisCash;
   final List<int> lisRevenues;
-  final List<int> lisSponsors;
-  final List<int> lisExpanses;
-  final List<int> lisTax;
-  final List<int> lisPlayersExpanses;
-  final List<int> lisStaffExpanses;
+  final List<int> lisExpenses;
+  // final List<int> lisSponsors;
+  // final List<int> lisTax;
+  // final List<int> lisPlayersExpenses;
+  // final List<int> lisStaffExpenses;
+  final int revenuesSponsors;
+  final int revenuesTotal;
+  final int expensesPlayers;
+  final double expensesPlayersRatio;
+  final int expensesStaff;
+  final int expensesTax;
+  final int expensesTotal;
   final double staffWeight;
   final int numberFans;
   final int idCountry;
@@ -112,15 +124,22 @@ class Club {
         idLeague = map['id_league'],
         userName = map['username'],
         name = map['name'],
-        staffExpanses = map['staff_expanses'],
         cash = map['cash'],
         lisCash = List<int>.from(map['lis_cash']),
         lisRevenues = List<int>.from(map['lis_revenues']),
-        lisSponsors = List<int>.from(map['lis_sponsors']),
-        lisExpanses = List<int>.from(map['lis_expanses']),
-        lisTax = List<int>.from(map['lis_tax']),
-        lisPlayersExpanses = List<int>.from(map['lis_players_expanses']),
-        lisStaffExpanses = List<int>.from(map['lis_staff_expanses']),
+        lisExpenses = List<int>.from(map['lis_expenses']),
+        // lisSponsors = List<int>.from(map['lis_sponsors']),
+        // lisTax = List<int>.from(map['lis_tax']),
+        // lisPlayersExpenses = List<int>.from(map['lis_players_expenses']),
+        // lisStaffExpenses = List<int>.from(map['lis_staff_expenses']),
+        revenuesSponsors = map['revenues_sponsors'],
+        revenuesTotal = map['revenues_total'],
+        expensesPlayers = map['expenses_players'],
+        expensesPlayersRatio =
+            (map['expenses_players_ratio'] as num).toDouble(),
+        expensesStaff = map['expenses_staff'],
+        expensesTax = map['expenses_tax'],
+        expensesTotal = map['expenses_total'],
         staffWeight = (map['staff_weight'] as num).toDouble(),
         numberFans = map['number_fans'],
         idCountry = map['id_country'],

@@ -27,6 +27,9 @@ class FinancesPage extends StatefulWidget {
 
 class _FinancesPageState extends State<FinancesPage> {
   late final Stream<List<Map<String, dynamic>>> _financeStream;
+  bool _showCashCurve = true;
+  bool _showRevenuesCurve = true;
+  bool _showExpensesCurve = true;
 
   @override
   void initState() {
@@ -114,6 +117,14 @@ class _FinancesPageState extends State<FinancesPage> {
               ),
             ),
           ),
+          Text(
+            'Last week revenues and expenses',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              decoration: TextDecoration.underline,
+            ),
+          ),
           Center(
             child: DataTable(
               columns: [
@@ -121,30 +132,30 @@ class _FinancesPageState extends State<FinancesPage> {
                   label: buildTabWithIcon(Icons.trending_up, 'Revenues'),
                 ),
                 DataColumn(
-                    label: buildTabWithIcon(Icons.trending_down, 'Expanses')),
+                    label: buildTabWithIcon(Icons.trending_down, 'Expenses')),
               ],
               rows: [
                 DataRow(cells: [
                   DataCell(_getDataCellRow(
-                      'Sponsors', club.lisSponsors.last, Colors.green)),
+                      'Sponsors', club.revenuesSponsors, Colors.green)),
                   DataCell(_getDataCellRow(
-                      'Salaries', club.lisPlayersExpanses.last, Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('')),
-                  DataCell(_getDataCellRow(
-                      'Staff', club.lisStaffExpanses.last, Colors.red)),
+                      'Salaries', club.expensesPlayers, Colors.red)),
                 ]),
                 DataRow(cells: [
                   DataCell(Text('')),
                   DataCell(
-                      _getDataCellRow('Taxes', club.lisTax.last, Colors.red)),
+                      _getDataCellRow('Staff', club.expensesStaff, Colors.red)),
+                ]),
+                DataRow(cells: [
+                  DataCell(Text('')),
+                  DataCell(
+                      _getDataCellRow('Taxes', club.expensesTax, Colors.red)),
                 ]),
                 DataRow(cells: [
                   DataCell(_getDataCellRow(
-                      'Total', club.lisRevenues.last, Colors.green)),
-                  DataCell(_getDataCellRow(
-                      'Total', club.lisExpanses.last, Colors.red)),
+                      'Total', club.revenuesTotal, Colors.green)),
+                  DataCell(
+                      _getDataCellRow('Total', club.expensesTotal, Colors.red)),
                 ]),
               ],
             ),
@@ -180,45 +191,99 @@ class _FinancesPageState extends State<FinancesPage> {
         .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
         .toList();
 
-    List<FlSpot> expansesData = club.lisExpanses
+    List<FlSpot> expensesData = club.lisExpenses
         .asMap()
         .entries
         .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
         .toList();
 
-    double minY = [
-      club.lisCash.reduce(min),
-      club.lisRevenues.reduce(min),
-      club.lisExpanses.reduce(min),
-    ].reduce(min).toDouble();
+    List<double> allValues = [];
+    if (_showCashCurve) {
+      allValues.addAll(club.lisCash.map((e) => e.toDouble()));
+    }
+    if (_showRevenuesCurve) {
+      allValues.addAll(club.lisRevenues.map((e) => e.toDouble()));
+    }
+    if (_showExpensesCurve) {
+      allValues.addAll(club.lisExpenses.map((e) => e.toDouble()));
+    }
+
+    double minY = allValues.isNotEmpty ? allValues.reduce(min) : 0;
     minY = (minY / 1000).floorToDouble() * 1000;
 
-    double maxY = [
-      club.lisCash.reduce(max),
-      club.lisRevenues.reduce(max),
-      club.lisExpanses.reduce(max),
-    ].reduce(max).toDouble();
+    double maxY = allValues.isNotEmpty ? allValues.reduce(max) : 0;
     maxY = (maxY / 1000).ceilToDouble() * 1000;
 
-    return LineChart(
-      LineChartData(
-        minY: minY,
-        maxY: maxY,
-        lineBarsData: [
-          LineChartBarData(
-            spots: cashData,
-            color: Colors.blue,
+    List<LineChartBarData> lineBarsData = [];
+    if (_showCashCurve) {
+      lineBarsData.add(LineChartBarData(
+        spots: cashData,
+        color: Colors.blue,
+      ));
+    }
+    if (_showRevenuesCurve) {
+      lineBarsData.add(LineChartBarData(
+        spots: revenuesData,
+        color: Colors.green,
+      ));
+    }
+    if (_showExpensesCurve) {
+      lineBarsData.add(LineChartBarData(
+        spots: expensesData,
+        color: Colors.red,
+      ));
+    }
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: CheckboxListTile(
+                title: Text('Cash'),
+                value: _showCashCurve,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _showCashCurve = value!;
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: CheckboxListTile(
+                title: Text('Revenues'),
+                value: _showRevenuesCurve,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _showRevenuesCurve = value!;
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: CheckboxListTile(
+                title: Text('Expenses'),
+                value: _showExpensesCurve,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _showExpensesCurve = value!;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+        Expanded(
+          child: LineChart(
+            LineChartData(
+              minY: minY,
+              maxY: maxY,
+              lineBarsData: lineBarsData,
+            ),
           ),
-          LineChartBarData(
-            spots: revenuesData,
-            color: Colors.green,
-          ),
-          LineChartBarData(
-            spots: expansesData,
-            color: Colors.red,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

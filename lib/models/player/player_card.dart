@@ -292,7 +292,7 @@ class _PlayerCardState extends State<PlayerCard>
                             getCountryNameWidget(
                                 context, widget.player.idCountry),
                             widget.player.getAvgStatsWidget(),
-                            widget.player.getExpansesWidget(context),
+                            widget.player.getExpensesWidget(context),
                             // if (widget.player.transferBids.length > 0 &&
                             //     widget.player.dateBidEnd!
                             //         .isAfter(DateTime.now()))

@@ -9,10 +9,10 @@ extension ClubWidgetFinances on Club {
         size: iconSizeLarge,
       ),
       title: Text(
-        '${NumberFormat.decimalPattern().format(lisCash.last)}',
+        '${NumberFormat.decimalPattern().format(cash)}',
         style: TextStyle(
           fontWeight: FontWeight.bold,
-          color: lisCash.last > 0 ? Colors.green : Colors.red,
+          color: cash > 0 ? Colors.green : Colors.red,
         ),
       ),
       subtitle: Text(
