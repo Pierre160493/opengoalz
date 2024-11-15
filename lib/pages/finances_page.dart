@@ -219,6 +219,13 @@ class _FinancesPageState extends State<FinancesPage> {
       lineBarsData.add(LineChartBarData(
         spots: cashData,
         color: Colors.blue,
+        aboveBarData: BarAreaData(
+          show: true,
+          color:
+              Colors.red.withOpacity(0.3), // Background color for positive cash
+          cutOffY: 0,
+          applyCutOffY: true,
+        ),
       ));
     }
     if (_showRevenuesCurve) {
@@ -280,6 +287,15 @@ class _FinancesPageState extends State<FinancesPage> {
               minY: minY,
               maxY: maxY,
               lineBarsData: lineBarsData,
+              extraLinesData: ExtraLinesData(
+                horizontalLines: [
+                  HorizontalLine(
+                    y: 0,
+                    color: Colors.black,
+                    strokeWidth: 1,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

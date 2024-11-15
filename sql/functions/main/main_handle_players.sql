@@ -1,56 +1,83 @@
-CREATE OR REPLACE FUNCTION public.main_handle_players(
-    inp_multiverse RECORD
-)
-RETURNS void
-LANGUAGE plpgsql
+-- DROP FUNCTION public.main_handle_players(record);
+
+CREATE OR REPLACE FUNCTION public.main_handle_players(inp_multiverse record)
+ RETURNS void
+ LANGUAGE plpgsql
 AS $function$
 DECLARE
     player RECORD; -- Record for the player selection
+    mutliverse_now TIMESTAMP; -- Current time of the multiverse
 BEGIN
+
+    ------ Calculate the current time of the multiverse
+    multiverse_now := inp_multiverse.date_season_start +
+        (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed);
 
     ------ Update the players expenses_missed
     UPDATE players SET
-        expenses_missed = GREATEST(0, 
-            expenses_missed + 
-            + expenses_payed[array_length(expenses_payed, 1)]
-            - expenses_expected[array_length(expenses_expected, 1)])
+        expenses_missed = CASE
+            WHEN id_club IS NULL THEN 0
+            ELSE GREATEST(
+                0,
+                expenses_missed - expenses_payed + expenses_expected)
+        END
     WHERE id_multiverse = inp_multiverse.id;
 
-    ------ Update players motivation
+    ------ Update players motivation, form and stamina
     UPDATE players SET
-        motivation = motivation ||
-            motivation[array_length(motivation, 1)]
-            + (random() * 5 - 2) -- Random [-2, +3]
-            - (expenses_missed / expenses_expected[array_length(expenses_expected, 1)]) * 5,
-        form = form || 
-            form[array_length(form, 1)] + (random() * 10 - 5) -- Random [-5, +5]
-        WHERE id_multiverse = inp_multiverse.id;
+        motivation = LEAST(100, GREATEST(0,
+            motivation + (random() * 20 - 9) -- Random [-8, +12]
+            + ((70 - motivation) / 10) -- +7; -3 based on value
+            - (expenses_missed / expenses_expected) * 10)),
+        form = LEAST(100, GREATEST(0,
+            form + (random() * 20 - 10) + ((70 - form) / 10)
+            )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
+        stamina = LEAST(100, GREATEST(0,
+            stamina + (random() * 20 - 10) + ((70 - stamina) / 10)
+            )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
+        experience = experience + 0.1
+    WHERE id_multiverse = inp_multiverse.id;
 
     ------ If player's motivation is too low, risk of leaving club
     FOR player IN (
         SELECT * FROM players
             WHERE id_multiverse = inp_multiverse.id
+            AND id_club IS NOT NULL
             AND date_bid_end IS NULL
-            AND motivation[array_length(motivation, 1)] < 20
+            AND motivation < 20
     ) LOOP
         -- If motivation = 0 ==> 100% chance of leaving, if motivation = 20 ==> 0% chance of leaving
-        IF random() < (20 - player.motivation[array_length(motivation, 1)]) / 20 THEN
+        IF random() < (20 - player.motivation) / 20 THEN
         
             -- Update the date_firing for the selected player
-            PERFORM transfers_handle_new_bid(inp_id_player := player.id, inp_id_club_bidder := club.id, inp_amount := 0, inp_date_bid_end := (NOW() + INTERVAL '5 days'));
+            PERFORM transfers_handle_new_bid(inp_id_player := player.id,
+                inp_id_club_bidder := player.id_club,
+                inp_amount := 0,
+                inp_date_bid_end := multiverse_now + (INTERVAL '6 days' / inp_multiverse.speed));
 
-            -- Create a new mail saying the player has been put to sell and will be leaving club
-            INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
-                (club.id, player.first_name || ' ' || UPPER(player.last_name) || ' leaves club', player.first_name || ' ' || UPPER(player.last_name) || ' has been put to sell because he asked to leave the club because of low motivation. He will be leaving the club in 5 days...', 'Financial Advisor');
+            -- Create a new mail warning saying that the player is leaving club
+            INSERT INTO messages_mail (
+                id_club_to, created_at, title, message, sender_role)
+            VALUES
+                (player.id_club,
+                multiverse_now,
+                player.first_name || ' ' || UPPER(player.last_name) || ' leaves the club !',
+                player.first_name || ' ' || UPPER(player.last_name) || ' will be leaving the club before next week because of low motivation: ' || player.motivation || '.',
+                'Financial Advisor');
 
         ELSE
 
             -- Create a new mail warning saying that the player is at risk leaving club
-            INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
-                (club.id, player.first_name || ' ' || UPPER(player.last_name) || ' has low motivation', player.first_name || ' ' || UPPER(player.last_name) || ' has been put to sell because he asked to leave the club because of low motivation. He will be leaving the club in 5 days...', 'Financial Advisor');
+            INSERT INTO messages_mail (
+                id_club_to, created_at, title, message, sender_role)
+            VALUES
+                (player.id_club,
+                multiverse_now,
+                player.first_name || ' ' || UPPER(player.last_name) || ' has low motivation: ' || player.motivation ||,
+                player.first_name || ' ' || UPPER(player.last_name) || ' has low motivation: ' || player.motivation || 'and is at risk of leaving your club',
+                'Financial Advisor');
 
         END IF;
-
     END LOOP;
 
     ------ Update players training points based on the staff weight of the club
@@ -98,7 +125,7 @@ BEGIN
                         WHEN random() < 1.0/7 THEN GREATEST(passes - 1, 0) 
                         ELSE passes END,
             playmaking = CASE 
-                        WHEN random() < 1.0/7 THEN GREATEST(playmaking - 1, 0) 
+                        WHEN random() < 1.0/7 THEN GREATEST(playmaking - 1, 0)
                         ELSE playmaking END,
             winger = CASE 
                         WHEN random() < 1.0/7 THEN GREATEST(winger - 1, 0) 
@@ -112,5 +139,20 @@ BEGIN
             training_points = training_points + 1
         WHERE training_points < -1;
 
+    ------ Store player's stats in the history
+    INSERT INTO players_history_stats
+        (created_at, id_player, performance_score,
+        expenses_payed, expenses_expected, expenses_missed,
+        keeper, defense, passes, playmaking, winger, scoring, freekick,
+        motivation, form, stamina, experience)
+    SELECT
+        multiverse_now, id, performance_score,
+        expenses_payed, expenses_expected, expenses_missed,
+        keeper, defense, passes, playmaking, winger, scoring, freekick,
+        motivation, form, stamina, experience
+    FROM players
+    WHERE id_multiverse = inp_multiverse.id;
+
 END;
-$function$;
+$function$
+;

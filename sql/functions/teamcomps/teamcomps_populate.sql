@@ -33,7 +33,7 @@ BEGIN
     -- Copy the first default teamcomp
     PERFORM teamcomps_copy_previous(inp_id_teamcomp := inp_id_teamcomp);
 
-        -- Fetch the team composition for the specified game and club
+    -- Fetch the team composition for the specified game and club
     SELECT ARRAY[
         idgoalkeeper, -- 1
         idleftbackwinger, idleftcentralback, idcentralback, idrightcentralback, idrightbackwinger, -- 2, 3, 4, 5, 6

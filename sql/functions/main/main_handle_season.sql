@@ -1,8 +1,8 @@
-CREATE OR REPLACE FUNCTION public.main_handle_season(
-    inp_multiverse RECORD
-)
-RETURNS void
-LANGUAGE plpgsql
+-- DROP FUNCTION public.main_handle_season(record);
+
+CREATE OR REPLACE FUNCTION public.main_handle_season(inp_multiverse record)
+ RETURNS void
+ LANGUAGE plpgsql
 AS $function$
 DECLARE
     game RECORD; -- Record for the game loop
@@ -25,6 +25,17 @@ BEGIN
                 pos_last_season = pos_league
             WHERE id_multiverse = inp_multiverse.id;
 
+            -- Send mail to each club indicating their position in the league
+            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
+                SELECT 
+                    id AS id_club_to,
+                    inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
+                    'End of League Season ' || inp_multiverse.season_number || ': Position ' || pos_league AS title,
+                    'The League Season ' || inp_multiverse.season_number || ' has ended. Your club finished in position ' || pos_league || '.' AS message,
+                    'League Manager' AS sender_role
+            FROM clubs
+            WHERE id_multiverse = inp_multiverse.id;
+
         ---- Handle the 13th week of the season ==> Intercontinental Cup Leagues are finished
         WHEN inp_multiverse.week_number = 13 THEN
             -- Update the special leagues to say that they are finished
@@ -33,9 +44,10 @@ BEGIN
 
         ---- Handle the 14th week of the season ==> Season is over, start a new one
         WHEN inp_multiverse.week_number = 14 THEN
+
             -- Generate the games_teamcomp and the games of the next season
             PERFORM main_generate_games_and_teamcomps(
-                inp_id_multiverse := inp_multiverse.speed,
+                inp_id_multiverse := inp_multiverse.id,
                 inp_season_number := inp_multiverse.season_number + 2,
                 inp_date_start := inp_multiverse.date_season_end + (14 * INTERVAL '7 days' / inp_multiverse.speed)
             );
@@ -61,8 +73,7 @@ BEGIN
                 season_number = season_number + 1,
                 id_league = id_league_next_season,
                 id_league_next_season = NULL,
-                lis_sponsors = lis_sponsors || (
-                    (SELECT cash_last_season FROM leagues WHERE id = id_league) * 
+                revenues_sponsors = (SELECT cash_last_season FROM leagues WHERE id = id_league) * 
                     CASE 
                         WHEN pos_league = 1 THEN 0.20
                         WHEN pos_league = 2 THEN 0.18
@@ -72,16 +83,26 @@ BEGIN
                         WHEN pos_league = 6 THEN 0.14
                         ELSE 0
                     END
-                ) / 14,
+                / 14,
                 pos_league = pos_league_next_season,
                 pos_league_next_season = NULL,
                 league_points = 0
             WHERE id_multiverse = inp_multiverse.id;
 
+            -- Send mail to each club indicating their position in the league
+            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
+                SELECT 
+                    id AS id_club_to,
+                    inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
+                    'New Season ' || inp_multiverse.season_number || ' is launched ' AS title,
+                    'The League Season ' || inp_multiverse.season_number || ' is ready to start. This season your revenues from sponsors will be ' || revenues_sponsors || ' per week' AS message,
+                    'Financial Manager' AS sender_role
+            FROM clubs
+            WHERE id_multiverse = inp_multiverse.id;
+
             -- Update players
             UPDATE players SET
-                expenses_expected = expenses_expected || 
-                    FLOOR((expenses_expected[array_length(expenses_expected, 1)] + 100 + keeper + defense + playmaking + passes + winger + scoring + freekick) * 0.5)
+                expenses_expected = FLOOR((expenses_expected + 100 + keeper + defense + playmaking + passes + winger + scoring + freekick + training_points) * 0.5)
             WHERE id_multiverse = inp_multiverse.id;
 
         ELSE
@@ -106,4 +127,5 @@ BEGIN
     END IF; -- End of the week_number check
 
 END;
-$function$;
+$function$
+;
