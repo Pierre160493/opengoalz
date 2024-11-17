@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION public.simulate_game_update_results(
-    inp_id_game bigint,
+    rec_game record,
     loc_score_left int,
     loc_score_right int,
     loc_score_left_previous int,
@@ -14,30 +14,27 @@ CREATE OR REPLACE FUNCTION public.simulate_game_update_results(
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    rec_game RECORD;
     i int;
 BEGIN
-    -- Fetch game details
-    SELECT * INTO rec_game FROM games WHERE id = inp_id_game;
 
     -- Store the score
     UPDATE games SET
         score_left = loc_score_left,
         score_right = loc_score_right
-    WHERE id = inp_id_game;
+    WHERE id = rec_game.id;
 
     -- Store the score if ever a game is a return game of this one
     UPDATE games SET
         score_cumul_left = loc_score_right,
         score_cumul_right = loc_score_left
-    WHERE is_return_game_id_game_first_round = inp_id_game;
+    WHERE is_return_game_id_game_first_round =  rec_game.id;
 
     -- Update cumulated score for cup games
     IF rec_game.is_cup THEN
         UPDATE games SET
             score_cumul_left = (loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0)),
             score_cumul_right = (loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0))
-        WHERE id = inp_id_game;
+        WHERE id =  rec_game.id;
     END IF;
 
     -- Update game result
@@ -101,7 +98,7 @@ BEGIN
 
     -- Update players experience and stats
     PERFORM simulate_game_process_experience_gain(
-        inp_id_game := inp_id_game,
+        inp_id_game :=  rec_game.id,
         inp_list_players_id_left := loc_array_players_id_left,
         inp_list_players_id_right := loc_array_players_id_right
     );
@@ -165,7 +162,7 @@ BEGIN
     -- Set date_end for this game
     UPDATE games SET date_end =
         date_start + (loc_minute_period_end + loc_minute_period_extra_time) * INTERVAL '1 minute'
-    WHERE id = inp_id_game;
+    WHERE id =  rec_game.id;
 
     -- Set games_teamcomp is_played = TRUE
     UPDATE games_teamcomp SET is_played = TRUE WHERE id IN (rec_game.id_teamcomp_club_left, rec_game.id_teamcomp_club_right);
