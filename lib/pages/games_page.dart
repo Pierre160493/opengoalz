@@ -269,28 +269,19 @@ class _HomePageState extends State<GamesPage> {
               final List<Game> gamesIncoming = [];
               final List<Game> gamesPlayed = [];
 
-              DateTime now = DateTime.now();
-
               /// Loop through games to store them in the right list
               for (Game game in club.games) {
                 /// Games for this season
 
                 // Game is not played yet
-                if (game.dateEnd == null) {
+                if (game.isPlaying == null) {
                   gamesIncoming.add(game);
-                }
-
-                // Game is played
-                else {
-                  // Current games
-                  if (game.dateStart
-                          .isAfter(now.add(const Duration(hours: -1))) &&
-                      game.dateEnd!.isAfter(now)) {
-                    gamesCurrent.add(game);
-                  } else {
-                    // Played games for this season
-                    gamesPlayed.add(game);
-                  }
+                } else if (game.isPlaying!) {
+                  gamesCurrent.add(game);
+                } else if (game.isPlaying! == false) {
+                  gamesPlayed.add(game);
+                } else {
+                  throw Exception('Game ${game.id} has no isPlaying value');
                 }
               }
               return Scaffold(

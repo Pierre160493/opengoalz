@@ -26,8 +26,8 @@ DECLARE
     loc_score_penalty_right int := 0; -- The score of the right team for the penalty shootout
     loc_score_left_previous int := 0; -- The score of the left team previous game
     loc_score_right_previous int := 0; -- The score of the right team with previous game
-    minutes_half_time int8 := 0; -- 45
-    minutes_extra_time int8 := 0; -- 15
+    minutes_half_time int8 := 45; -- 45
+    minutes_extra_time int8 := 15; -- 15
     penalty_number int8; -- The number of penalties
     context game_context; -- Game context
 BEGIN
@@ -85,6 +85,21 @@ BEGIN
     ------ If the game needs to be simulated, then set the initial score
     IF loc_score_left IS NULL AND loc_score_right IS NULL THEN
 
+        ------ Set that the game is_playing
+        UPDATE games SET
+            is_playing = TRUE
+        WHERE id = rec_game.id;
+
+        ------ Update the games teamcomp to say that the game is played
+        UPDATE games_teamcomp SET
+            is_played = TRUE
+        WHERE id IN (rec_game.id_teamcomp_club_left, rec_game.id_teamcomp_club_right);
+
+        ------ Update player to say they are currently playing a game
+        UPDATE players SET
+            is_playing = TRUE
+        WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
+
         ------ Set the initial score
         loc_score_left := 0;
         loc_score_right := 0;
@@ -95,13 +110,10 @@ BEGIN
         ------ Fetch players id of the club for this game
         loc_array_players_id_left := simulate_game_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
         loc_array_players_id_right := simulate_game_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
-        ------ Fetch player stats matrix
+        
+        ------ Fetch constant player stats matrix
         loc_matrix_player_stats_left := simulate_game_fetch_player_stats(loc_array_players_id_left);
         loc_matrix_player_stats_right := simulate_game_fetch_player_stats(loc_array_players_id_right);
-
-        ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
-        loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
-        loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
 
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -223,7 +235,9 @@ BEGIN
                 INTO loc_score_left, loc_score_right
                 FROM simulate_game_minute(
                     rec_game := rec_game,
-                    context := context
+                    context := context,
+                    inp_score_left := loc_score_left,
+                    inp_score_right := loc_score_right
                 );
 
             END LOOP; -- End loop on the minutes of the game
@@ -249,19 +263,38 @@ BEGIN
         END LOOP; -- End loop on the first half, second half and extra time for cup
     END IF; -- End if the game needs to be simulated
 
-    ------ Store the results of the game
-    PERFORM simulate_game_update_results(
-        rec_game := rec_game,
-        loc_score_left := loc_score_left,
-        loc_score_right := loc_score_right,
-        loc_score_left_previous := loc_score_left_previous,
-        loc_score_right_previous := loc_score_right_previous,
-        loc_score_penalty_left := loc_score_penalty_left,
-        loc_score_penalty_right := loc_score_penalty_right,
-        loc_minute_period_end := loc_minute_period_end,
-        loc_minute_period_extra_time := loc_minute_period_extra_time,
-        loc_array_players_id_left := loc_array_players_id_left,
-        loc_array_players_id_right := loc_array_players_id_right);
+    ------------ Store the results
+    ------ Store the score
+    UPDATE games SET
+        score_left = loc_score_left,
+        score_right = loc_score_right
+    WHERE id = rec_game.id;
+
+    ------ Store the score if ever a game is a return game of this one
+    UPDATE games SET
+        score_cumul_left = loc_score_right,
+        score_cumul_right = loc_score_left
+    WHERE is_return_game_id_game_first_round = rec_game.id;
+
+    ------ Update cumulated score for cup games
+    IF rec_game.is_cup THEN
+        UPDATE games SET
+            score_cumul_left = (loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0)),
+            score_cumul_right = (loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0))
+        WHERE id = rec_game.id;
+    END IF;
+
+    -- Update players experience and stats
+    PERFORM simulate_game_process_experience_gain(
+        inp_id_game :=  rec_game.id,
+        inp_list_players_id_left := loc_array_players_id_left,
+        inp_list_players_id_right := loc_array_players_id_right
+    );
+
+    ------ Set date_end for this game
+    UPDATE games SET date_end =
+        date_start + (loc_minute_period_end + loc_minute_period_extra_time) * INTERVAL '1 minute'
+    WHERE id =  rec_game.id;
 
 END;
 $function$

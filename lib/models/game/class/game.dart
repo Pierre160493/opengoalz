@@ -20,6 +20,7 @@ class Game {
     required this.id,
     required this.idClubLeft,
     required this.idClubRight,
+    required this.isPlaying,
     required this.dateStart,
     required this.dateEnd,
     required this.idStadium,
@@ -50,6 +51,7 @@ class Game {
   final int id;
   final int? idClubLeft;
   final int? idClubRight;
+  final bool? isPlaying;
   final DateTime dateStart;
   final DateTime? dateEnd;
   final String? idStadium;
@@ -88,6 +90,7 @@ class Game {
       id: map['id'],
       idClubLeft: map['id_club_left'],
       idClubRight: map['id_club_right'],
+      isPlaying: map['is_playing'],
       dateStart: map['date_start'] != null
           ? DateTime.parse(map['date_start']).toLocal()
           : throw ArgumentError('date_start cannot be null'),
