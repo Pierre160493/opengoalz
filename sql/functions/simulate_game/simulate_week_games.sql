@@ -19,31 +19,35 @@ BEGIN
     FOR league IN (
         SELECT * FROM leagues WHERE id_multiverse = multiverse.id)
     LOOP
-        -- Set to FALSE by default
-        is_league_game_finished := FALSE;
 
-        -- Loop through the games that need to be played for the current week of the current league
+        ------ Loop through the games that need to be played for the current week of the current league
         FOR game IN
             (SELECT id FROM games
                 WHERE id_league = league.id
                 AND date_end IS NULL
-                AND season_number = inp_season_number
-                AND week_number = inp_week_number
-                --AND now() > date_start
-                ORDER BY id)
+                AND season_number <= inp_season_number
+                AND week_number <= inp_week_number
+                AND now() > date_start
+                ORDER BY season_number, week_number, id)
         LOOP
+--RAISE NOTICE 'game.date_start = %', game.date_start;
+
+            -- Simulate the game
             PERFORM simulate_game_main(inp_id_game := game.id);
         
         END LOOP; -- End of the loop of the games simulation
 
-        ------ Loop through the games that need to be played for the current week
+        -- Set to FALSE by default
+        is_league_game_finished := FALSE;
+
+        ------ Loop through the games that are finished for the current week of the current league
         FOR game IN
             (SELECT id FROM games
                 WHERE id_league = league.id
                 AND now() >= date_end
-                AND season_number = inp_season_number
-                AND week_number = inp_week_number
-                --AND now() > date_start
+                AND is_playing = TRUE
+                AND season_number <= inp_season_number
+                AND week_number <= inp_week_number
                 ORDER BY id)
         LOOP
             PERFORM simulate_game_set_is_played(inp_id_game := game.id);
@@ -62,7 +66,10 @@ BEGIN
                 FOR club IN
                     (SELECT * FROM clubs
                         WHERE id_league = league.id
-                        ORDER BY league_points DESC, pos_last_season, created_at ASC)
+                        ORDER BY league_points DESC,
+                            (league_goals_for - league_goals_against) DESC,
+                            pos_last_season,
+                            created_at ASC)
                 LOOP
                     -- Update the position in the league of this club
                     UPDATE clubs

@@ -17,7 +17,7 @@ DECLARE
     loc_score_right int := inp_score_right;
 BEGIN
     loc_goal_opportunity = 0.05; -- Probability of a goal opportunity
-    --loc_goal_opportunity = 0.00; -- Probability of a goal opportunity (for having 0-0 scores)
+    -- loc_goal_opportunity = 0.00; -- Probability of a goal opportunity (for having 0-0 scores)
 
     loc_team_left_goal_opportunity = LEAST(GREATEST((context.loc_array_team_weights_left[4] / context.loc_array_team_weights_right[4])-0.5, 0.2), 0.8);
 

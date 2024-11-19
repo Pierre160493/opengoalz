@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION public.main_handle_season(inp_multiverse record)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-    game RECORD; -- Record for the game loop
+    loc_record RECORD; -- Record for the game loop
 BEGIN
 
     ------------------------------------------------------------------------
@@ -86,8 +86,23 @@ BEGIN
                 / 14,
                 pos_league = pos_league_next_season,
                 pos_league_next_season = NULL,
-                league_points = 0
+                league_points = 0,
+                league_goals_for = 0,
+                league_goals_against = 0
             WHERE id_multiverse = inp_multiverse.id;
+
+            -- Ensure there are always 6 clubs per league
+            FOR loc_record IN (
+                SELECT leagues.id AS league_id, array_agg(clubs.id) AS club_ids
+                FROM leagues
+                JOIN clubs ON clubs.id_league = leagues.id
+                WHERE multiverse_id = inp_multiverse.id
+                AND LEVEL > 0
+                GROUP BY leagues.id
+                HAVING count(leagues.id) <> 6
+            ) LOOP
+                RAISE EXCEPTION 'League % does not contain exactly 6 clubs. Clubs: %', loc_record.league_id, loc_record.club_ids;
+            END LOOP;
 
             -- Send mail to each club indicating their position in the league
             INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
@@ -113,7 +128,7 @@ BEGIN
     ------------ Try to populate the games for weeks greater than 10
     IF inp_multiverse.week_number >= 10 THEN
         ------ Loop through the list of games that can be populated
-        FOR game IN (
+        FOR loc_record IN (
             SELECT games.* FROM games
             JOIN games_description ON games.id_games_description = games_description.id
             WHERE id_multiverse = inp_multiverse.id
@@ -122,7 +137,8 @@ BEGIN
             AND (id_club_left IS NULL OR id_club_right IS NULL)
             ORDER BY games.id
         ) LOOP
-            PERFORM main_populate_game(game.id);
+RAISE NOTICE '*** MAIN: Populating games for Multiverse [%] S% WEEK % ==> id_game = %', inp_multiverse.name, inp_multiverse.season_number, inp_multiverse.week_number, loc_record.id;
+            PERFORM main_populate_game(loc_record);
         END LOOP; --- End of the game loop
     END IF; -- End of the week_number check
 

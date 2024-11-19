@@ -1,6 +1,6 @@
 -- DROP FUNCTION public.teamcomps_copy_previous(int8, int8, int8);
 
-CREATE OR REPLACE FUNCTION public.teamcomps_copy_previous(inp_id_teamcomp bigint, inp_season_number bigint DEFAULT 0, inp_week_number bigint DEFAULT 1)
+CREATE OR REPLACE FUNCTION public.teamcomp_copy_previous(inp_id_teamcomp bigint, inp_season_number bigint DEFAULT 0, inp_week_number bigint DEFAULT 1)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
@@ -9,29 +9,13 @@ DECLARE
 BEGIN
 
     -- Set all to NULL
-    IF inp_season_number == -1 THEN
+    IF inp_season_number = -999 THEN
         UPDATE games_teamcomp SET
             idgoalkeeper = NULL,
-            idleftbackwinger = NULL,
-            idleftcentralback = NULL,
-            idcentralback = NULL,
-            idrightcentralback = NULL,
-            idrightbackwinger = NULL,
-            idleftwinger = NULL,
-            idleftmidfielder = NULL,
-            idcentralmidfielder = NULL,
-            idrightmidfielder = NULL,
-            idrightwinger = NULL,
-            idleftstriker = NULL,
-            idcentralstriker = NULL,
-            idrightstriker = NULL,
-            idsub1 = NULL,
-            idsub2 = NULL,
-            idsub3 = NULL,
-            idsub4 = NULL,
-            idsub5 = NULL,
-            idsub6 = NULL,
-            idsub7 = NULL
+            idleftbackwinger = NULL, idleftcentralback = NULL, idcentralback = NULL, idrightcentralback = NULL, idrightbackwinger = NULL,
+            idleftwinger = NULL, idleftmidfielder = NULL, idcentralmidfielder = NULL, idrightmidfielder = NULL, idrightwinger = NULL,
+            idleftstriker = NULL, idcentralstriker = NULL, idrightstriker = NULL,
+            idsub1 = NULL, idsub2 = NULL, idsub3 = NULL, idsub4 = NULL, idsub5 = NULL, idsub6 = NULL, idsub7 = NULL
         WHERE id = inp_id_teamcomp;
 
     ELSE
@@ -76,18 +60,18 @@ BEGIN
             WHERE id = loc_id_teamcomp_ref
         ) AS teamcomp_ref
         WHERE id = inp_id_teamcomp;
-    ENDIF;
+    END IF;
 
     -- Clean the game orders
     DELETE FROM game_orders WHERE id_teamcomp = inp_id_teamcomp;
 
-    IF inp_season_number != -1
+    IF inp_season_number != -999 THEN
         -- Insert the game orders
         INSERT INTO game_orders (id_teamcomp, id_player_out, id_player_in, minute, condition)
         SELECT inp_id_teamcomp, id_player_out, id_player_in, minute, condition
         FROM game_orders
         WHERE id_teamcomp = loc_id_teamcomp_ref;
-    ENDIF;
+    END IF;
 
 END;
 $function$

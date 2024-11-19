@@ -30,6 +30,7 @@ DECLARE
     minutes_extra_time int8 := 15; -- 15
     penalty_number int8; -- The number of penalties
     context game_context; -- Game context
+    teamcomp_text TEXT;
 BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -47,7 +48,7 @@ BEGIN
         games.id = inp_id_game;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Game [%] does not exist', inp_id_game;
+        RAISE EXCEPTION 'Game [%] does not exist or the teamcomp was not found for the JOIN', inp_id_game;
     ELSIF rec_game.date_end IS NOT NULL THEN
         RAISE EXCEPTION 'Game [%] has already being played', inp_id_game;
     ELSIF rec_game.id_club_left IS NULL THEN
@@ -63,27 +64,73 @@ BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------ Step 2: Check teamcomps
-    ------ Call function to populate the clubs
-   PERFORM teamcomps_populate(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
-   PERFORM teamcomps_populate(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
-
     ------ Check if there is an error in the left teamcomp
-    BEGIN
-        PERFORM teamcomps_check_error_in_teamcomp(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
-    EXCEPTION
+    BEGIN -- Check for errors in the teamcomp of the left club
+        teamcomp_text := teamcomp_check_error(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
+        IF teamcomp_text IS NOT NULL THEN
+            RAISE EXCEPTION 'Teamcomp error: %', teamcomp_text;
+        END IF;
+    EXCEPTION -- If an error is found
         WHEN OTHERS THEN
-            loc_score_left := -1; -- Left club has an error
+            BEGIN -- try to populate the teamcomp
+                PERFORM teamcomp_populate(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
+
+                -- Send mail for club saying that the teamcomp was modified
+                INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
+                VALUES (rec_game.id_club_left,
+                        rec_game.date_start,
+                        'Incorrect teamcomp for week ' || rec_game.week_number || ': New teamcomp generated',
+                        'The teamcomp that you prepared for the game of week ' || rec_game.week_number || ' contained an error and was refused by the referee. I had to create new teamcomp quickly inspired by the default teamcomp',
+                        'Coach');
+
+            EXCEPTION -- If an error is found
+                WHEN OTHERS THEN
+                    loc_score_left := -1; -- Left club has an error and will forfeit the game
+            END;
     END;
+    
     ------ Check if there is an error in the right teamcomp
-    BEGIN
-        PERFORM teamcomps_check_error_in_teamcomp(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
-    EXCEPTION
+    BEGIN -- Check for errors in the teamcomp of the right club
+        teamcomp_text := teamcomp_check_error(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
+        IF teamcomp_text IS NOT NULL THEN
+            RAISE EXCEPTION 'Teamcomp error: %', teamcomp_text;
+        END IF;
+    EXCEPTION -- If an error is found
         WHEN OTHERS THEN
-            loc_score_right := -1; -- Right club has an error
+            BEGIN -- try to populate the teamcomp
+                PERFORM teamcomp_populate(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
+
+                -- Send mail for club saying that the teamcomp was modified
+                INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
+                VALUES (rec_game.id_club_right,
+                        rec_game.date_start,
+                        'Incorrect teamcomp for week ' || rec_game.week_number || ': New teamcomp generated',
+                        'The teamcomp that you prepared for the game of week ' || rec_game.week_number || ' contained an error and was refused by the referee. I had to create new teamcomp quickly, I hope it will go smoothly',
+                        'Coach');
+
+            EXCEPTION -- If an error is found
+                WHEN OTHERS THEN
+                    loc_score_right := -1; -- Left club has an error and will forfeit the game
+            END;
     END;
+
+    ------ If both clubs were forfeited ==> Draw with 0-0
+    IF loc_score_left = -1 AND loc_score_right = -1 THEN
+        loc_score_left := 0;
+        loc_score_right := 0;
+
+    ------ If left club was forfeited
+    ELSEIF loc_score_left = -1 THEN
+        loc_score_left := 0;
+        loc_score_right := 3;
+    
+    ------ If right club was forfeited
+    ELSEIF loc_score_right = -1 THEN
+        loc_score_left := 3;
+        loc_score_right := 0;
 
     ------ If the game needs to be simulated, then set the initial score
-    IF loc_score_left IS NULL AND loc_score_right IS NULL THEN
+    ELSEIF loc_score_left IS NULL AND loc_score_right IS NULL THEN
 
         ------ Set that the game is_playing
         UPDATE games SET
@@ -108,8 +155,8 @@ BEGIN
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------ Step 2: Fetch, calculate and store data in arrays
         ------ Fetch players id of the club for this game
-        loc_array_players_id_left := simulate_game_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
-        loc_array_players_id_right := simulate_game_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
+        loc_array_players_id_left := teamcomp_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
+        loc_array_players_id_right := teamcomp_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
         
         ------ Fetch constant player stats matrix
         loc_matrix_player_stats_left := simulate_game_fetch_player_stats(loc_array_players_id_left);
@@ -259,13 +306,25 @@ BEGIN
                 END LOOP;
                 loc_minute_period_extra_time := loc_minute_period_extra_time + (2 * penalty_number);
             END IF;
-
         END LOOP; -- End loop on the first half, second half and extra time for cup
+        
+        ------ Calculate the end time of the game
+        loc_minute_period_end := loc_minute_period_end + loc_minute_period_extra_time;
+
     END IF; -- End if the game needs to be simulated
 
+    -- Update players experience and stats
+    PERFORM simulate_game_process_experience_gain(
+        inp_id_game :=  rec_game.id,
+        inp_list_players_id_left := loc_array_players_id_left,
+        inp_list_players_id_right := loc_array_players_id_right
+    );
+    
     ------------ Store the results
     ------ Store the score
     UPDATE games SET
+        date_end = date_start + (loc_minute_period_end) * INTERVAL '1 minute',
+        --date_end = NOW(),
         score_left = loc_score_left,
         score_right = loc_score_right
     WHERE id = rec_game.id;
@@ -279,22 +338,12 @@ BEGIN
     ------ Update cumulated score for cup games
     IF rec_game.is_cup THEN
         UPDATE games SET
+            --score_cumul_left = score_cumul_left + (loc_score_left + (loc_score_penalty_left / 1000.0)),
+            --score_cumul_right = score_cumul_right + (loc_score_right + (loc_score_penalty_right / 1000.0))
             score_cumul_left = (loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0)),
             score_cumul_right = (loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0))
         WHERE id = rec_game.id;
     END IF;
-
-    -- Update players experience and stats
-    PERFORM simulate_game_process_experience_gain(
-        inp_id_game :=  rec_game.id,
-        inp_list_players_id_left := loc_array_players_id_left,
-        inp_list_players_id_right := loc_array_players_id_right
-    );
-
-    ------ Set date_end for this game
-    UPDATE games SET date_end =
-        date_start + (loc_minute_period_end + loc_minute_period_extra_time) * INTERVAL '1 minute'
-    WHERE id =  rec_game.id;
 
 END;
 $function$

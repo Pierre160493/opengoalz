@@ -5,6 +5,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     rec_game RECORD;
+    score_diff INT;
 BEGIN
 
     ------ Store the game record
@@ -20,85 +21,70 @@ BEGIN
         is_playing = FALSE
     WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
 
+    ------ Get the score difference
+    score_diff = rec_game.score_left - rec_game.score_right;
+
     ------ Update clubs results
-    -- Left club won
-    IF rec_game.score_left > rec_game.score_right THEN
+    UPDATE clubs SET
+        lis_last_results = lis_last_results || 
+            CASE 
+                WHEN score_diff > 0 THEN CASE WHEN id = rec_game.id_club_left THEN 3 ELSE 0 END
+                WHEN score_diff < 0 THEN CASE WHEN id = rec_game.id_club_right THEN 3 ELSE 0 END
+                ELSE 1
+            END
+    WHERE id IN (rec_game.id_club_left, rec_game.id_club_right);
 
-        UPDATE clubs SET
-            lis_last_results = lis_last_results || 3
-        WHERE id = rec_game.id_club_left;
-
-        UPDATE clubs SET
-            lis_last_results = lis_last_results || 0
-        WHERE id = rec_game.id_club_right;
-
-        INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
-            (rec_game.id_club_left, 'Victory for game in week ' || rec_game.week_number, 'Great news! We have won the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_right) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right, 'Coach'),
-            (rec_game.id_club_right, 'Defeat for game in week ' || rec_game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_left) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right, 'Coach');
-    
-    -- Right club won
-    ELSEIF rec_game.score_left < rec_game.score_right THEN
-        
-        UPDATE clubs SET
-            lis_last_results = lis_last_results || 0
-        WHERE id = rec_game.id_club_left;
-        
-        UPDATE clubs SET
-            lis_last_results = lis_last_results || 3
-        WHERE id = rec_game.id_club_right;
-
-        INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
-            (rec_game.id_club_left, 'Defeat for game in week ' || rec_game.week_number, 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_right) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right, 'Coach'),
-            (rec_game.id_club_right, 'Victory for game in week ' || rec_game.week_number, 'Great news! We have won the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_left) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right, 'Coach');
-    
-    -- Draw
-    ELSE
-        UPDATE clubs SET
-            lis_last_results = lis_last_results || 1
-        WHERE id IN (rec_game.id_club_left, rec_game.id_club_right);
-
-        INSERT INTO messages_mail (id_club_to, title, message, sender_role) VALUES
-            (rec_game.id_club_left, 'Draw for game in week ' || rec_game.week_number, 'We drew the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_right) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right, 'Coach'),
-            (rec_game.id_club_right, 'Draw for game in week ' || rec_game.week_number, 'We drew the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_left) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right, 'Coach');
-    END IF;
+    INSERT INTO messages_mail (id_club_to, title, message, sender_role) 
+    VALUES
+        (rec_game.id_club_left, 
+         CASE 
+             WHEN score_diff > 0 THEN 'Victory for game in week ' || rec_game.week_number
+             WHEN score_diff < 0 THEN 'Defeat for game in week ' || rec_game.week_number
+             ELSE 'Draw for game in week ' || rec_game.week_number
+         END,
+         CASE 
+             WHEN score_diff > 0 THEN 'Great news! We have won the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_right) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
+             WHEN score_diff < 0 THEN 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_right) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
+             ELSE 'We drew the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_right) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
+         END,
+         'Coach'),
+        (rec_game.id_club_right, 
+         CASE 
+             WHEN score_diff > 0 THEN 'Defeat for game in week ' || rec_game.week_number
+             WHEN score_diff < 0 THEN 'Victory for game in week ' || rec_game.week_number
+             ELSE 'Draw for game in week ' || rec_game.week_number
+         END,
+         CASE 
+             WHEN score_diff > 0 THEN 'Unfortunately we have lost the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_left) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
+             WHEN score_diff < 0 THEN 'Great news! We have won the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_left) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
+             ELSE 'We drew the game against ' || (SELECT name FROM clubs WHERE id = rec_game.id_club_left) || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
+         END,
+         'Coach');
 
     ------ Update the league points
     -- Only for league games before week 10
-    IF rec_game.is_league AND rec_game.week_number <= 10 THEN
+    IF rec_game.week_number <= 10 THEN
+        UPDATE clubs SET
+            league_points = league_points + 
+                CASE 
+                    WHEN score_diff > 0 THEN 3
+                    WHEN score_diff < 0 THEN 0
+                    ELSE 1
+                END,
+            league_goals_for = league_goals_for + rec_game.score_left,
+            league_goals_against = league_goals_against + rec_game.score_right
+        WHERE id = rec_game.id_club_left;
 
-        -- Left club won
-        IF rec_game.score_left > rec_game.score_right THEN
-            
-            UPDATE clubs SET
-                league_points = league_points + 3.0 + ((rec_game.score_left - rec_game.score_right) / 1000)
-            WHERE id = rec_game.id_club_left;
-            
-            UPDATE clubs SET
-                league_points = league_points - ((rec_game.score_left - rec_game.score_right) / 1000)
-            WHERE id = rec_game.id_club_right;
-        
-        -- Right club won
-        ELSEIF rec_game.score_left < rec_game.score_right THEN
-            
-            UPDATE clubs SET
-                league_points = league_points + ((rec_game.score_left - rec_game.score_right) / 1000)
-            WHERE id = rec_game.id_club_left;
-            
-            UPDATE clubs SET
-                league_points = league_points + 3.0 - ((rec_game.score_left - rec_game.score_right) / 1000)
-            WHERE id = rec_game.id_club_right;
-        
-        -- Draw
-        ELSE
-            
-            UPDATE clubs SET
-                league_points = league_points + 1.0
-            WHERE id = rec_game.id_club_left;
-            
-            UPDATE clubs SET
-                league_points = league_points + 1.0
-            WHERE id = rec_game.id_club_right;
-        END IF;
+        UPDATE clubs SET
+            league_points = league_points + 
+                CASE 
+                    WHEN score_diff > 0 THEN 0
+                    WHEN score_diff < 0 THEN 3
+                    ELSE 1
+                END,
+            league_goals_for = league_goals_for + rec_game.score_right,
+            league_goals_against = league_goals_against + rec_game.score_left
+        WHERE id = rec_game.id_club_right;
     END IF;
 
     ------ Update league position for specific games
@@ -106,7 +92,7 @@ BEGIN
     IF rec_game.id_games_description = 212 THEN
 
         -- Left club won
-        IF rec_game.score_cumul_left > rec_game.score_cumul_right THEN
+        IF score_diff > 0 THEN
             
             UPDATE clubs SET
                 pos_league_next_season = 6,
@@ -135,7 +121,7 @@ BEGIN
     -- 4th and final game of the barrage 1 (week 14) between 5th of the upper league and loser of the barrage 1
     ELSEIF rec_game.id_games_description = 214 THEN
         
-        IF rec_game.score_cumul_left > rec_game.score_cumul_right THEN
+        IF score_diff > 0 THEN
             -- 5th of upper league won, both clubs stay at their place and league
         ELSE
 
@@ -153,7 +139,7 @@ BEGIN
     -- Return game of the barrage 2 (week 14) between the 4th of the upper league and the winner of the 2nd round of the barrage 2
     ELSEIF rec_game.id_games_description = 332 THEN
         -- Left club won
-        IF rec_game.score_cumul_left > rec_game.score_cumul_right THEN
+        IF score_diff > 0 THEN
 
             UPDATE clubs SET
                 pos_league_next_season = pos_league,
