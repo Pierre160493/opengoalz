@@ -1,4 +1,4 @@
--- DROP FUNCTION public.handle_season_generate_games_and_teamcomps(int8, int8, timestamptz);
+-- DROP FUNCTION public.main_generate_games_and_teamcomps(int8, int8, timestamptz);
 
 CREATE OR REPLACE FUNCTION public.main_generate_games_and_teamcomps(inp_id_multiverse bigint, inp_season_number bigint, inp_date_start timestamp with time zone)
  RETURNS void
@@ -16,8 +16,6 @@ DECLARE
     loc_id_game_transverse bigint := NULL; -- Id of the game used to make friendly game between winners of first barrage 1 between brother leagues 
 BEGIN
 
-    PERFORM set_config('statement_timeout', '5min', true);
-
     -- Loop through the multiverses
     FOR multiverse IN
         (SELECT * FROM multiverses WHERE id = inp_id_multiverse)
@@ -32,7 +30,7 @@ BEGIN
         FOR league IN
             (SELECT * FROM leagues
             WHERE id_multiverse = multiverse.id
-            AND is_finished IS NULL
+            --AND is_finished IS NULL
             ORDER BY continent, level)
         LOOP
 
@@ -55,7 +53,7 @@ BEGIN
 ------------------------------------------------------------------------------------------------------------------------------------------------
 ------------ Create the championship games for the weeks 1 to 10
             IF league.level > 0 THEN
-            
+
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_league, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
             -- Week 1 and 10

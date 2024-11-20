@@ -1,6 +1,6 @@
--- DROP FUNCTION public.main_populate_game(int8);
+-- DROP FUNCTION public.main_populate_game(record);
 
-CREATE OR REPLACE FUNCTION public.main_populate_game(rec_game RECORD)
+CREATE OR REPLACE FUNCTION public.main_populate_game(rec_game record)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
@@ -163,7 +163,6 @@ END IF;
             ------ Try to set it with the game id
             ELSEIF loc_array_id_games[I] IS NOT NULL THEN
                 
-                
                 -- Check if the depending game is_played or not
                 IF (SELECT date_end FROM games WHERE id = loc_array_id_games[I]) IS NOT NULL THEN
 --RAISE NOTICE 'Depending game loc_array_id_games[I]= %', loc_array_id_games[I];
@@ -184,6 +183,8 @@ END IF;
                     ] INTO loc_array_selected_id_clubs
                     FROM games
                     WHERE id = loc_array_id_games[I];
+RAISE NOTICE '###### Game %: loc_array_selected_id_clubs = Winner: % Loser: % [Score: (%-%) Cumul (%-%)]', loc_array_id_games[I], loc_array_selected_id_clubs[1], loc_array_selected_id_clubs[2],
+(SELECT score_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_right FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_right FROM games WHERE id = loc_array_id_games[I]);
 
 --IF rec_game.id = ANY(id_game_debug) THEN
 --RAISE NOTICE 'loc_array_selected_id_clubs = %', loc_array_selected_id_clubs;

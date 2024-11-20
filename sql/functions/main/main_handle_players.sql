@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION public.main_handle_players(inp_multiverse record)
 AS $function$
 DECLARE
     player RECORD; -- Record for the player selection
-    mutliverse_now TIMESTAMP; -- Current time of the multiverse
+    multiverse_now TIMESTAMP; -- Current time of the multiverse
 BEGIN
 
     ------ Calculate the current time of the multiverse
@@ -26,7 +26,7 @@ BEGIN
     ------ Update players motivation, form and stamina
     UPDATE players SET
         motivation = LEAST(100, GREATEST(0,
-            motivation + (random() * 20 - 9) -- Random [-8, +12]
+            motivation + (random() * 20 - 8) -- Random [-8, +12]
             + ((70 - motivation) / 10) -- +7; -3 based on value
             - (expenses_missed / expenses_expected) * 10)),
         form = LEAST(100, GREATEST(0,
@@ -65,6 +65,8 @@ BEGIN
                 player.first_name || ' ' || UPPER(player.last_name) || ' will be leaving the club before next week because of low motivation: ' || player.motivation || '.',
                 'Financial Advisor');
 
+--RAISE NOTICE 'RageQuit => % % % quits', player.first_name, player.last_name, player.id;
+
         ELSE
 
             -- Create a new mail warning saying that the player is at risk leaving club
@@ -73,7 +75,7 @@ BEGIN
             VALUES
                 (player.id_club,
                 multiverse_now,
-                player.first_name || ' ' || UPPER(player.last_name) || ' has low motivation: ' || player.motivation ||,
+                player.first_name || ' ' || UPPER(player.last_name) || ' has low motivation: ' || player.motivation,
                 player.first_name || ' ' || UPPER(player.last_name) || ' has low motivation: ' || player.motivation || 'and is at risk of leaving your club',
                 'Financial Advisor');
 

@@ -29,10 +29,10 @@ BEGIN
             INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
                 SELECT 
                     id AS id_club_to,
-                    inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
+                    inp_multiverse.date_now,
                     'End of League Season ' || inp_multiverse.season_number || ': Position ' || pos_league AS title,
-                    'The League Season ' || inp_multiverse.season_number || ' has ended. Your club finished in position ' || pos_league || '.' AS message,
-                    'League Manager' AS sender_role
+                    'The League Season ' || inp_multiverse.season_number || ' has ended. We finished in position ' || pos_league || '.' AS message,
+                    'Coach' AS sender_role
             FROM clubs
             WHERE id_multiverse = inp_multiverse.id;
 
@@ -96,7 +96,7 @@ BEGIN
                 SELECT leagues.id AS league_id, array_agg(clubs.id) AS club_ids
                 FROM leagues
                 JOIN clubs ON clubs.id_league = leagues.id
-                WHERE multiverse_id = inp_multiverse.id
+                WHERE leagues.id_multiverse = inp_multiverse.id
                 AND LEVEL > 0
                 GROUP BY leagues.id
                 HAVING count(leagues.id) <> 6
@@ -137,7 +137,7 @@ BEGIN
             AND (id_club_left IS NULL OR id_club_right IS NULL)
             ORDER BY games.id
         ) LOOP
-RAISE NOTICE '*** MAIN: Populating games for Multiverse [%] S% WEEK % ==> id_game = %', inp_multiverse.name, inp_multiverse.season_number, inp_multiverse.week_number, loc_record.id;
+--RAISE NOTICE '*** MAIN: Populating games for Multiverse [%] S% WEEK % ==> id_game = %', inp_multiverse.name, inp_multiverse.season_number, inp_multiverse.week_number, loc_record.id;
             PERFORM main_populate_game(loc_record);
         END LOOP; --- End of the game loop
     END IF; -- End of the week_number check

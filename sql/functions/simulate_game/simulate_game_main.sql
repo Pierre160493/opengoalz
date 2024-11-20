@@ -323,10 +323,12 @@ BEGIN
     ------------ Store the results
     ------ Store the score
     UPDATE games SET
-        date_end = date_start + (loc_minute_period_end) * INTERVAL '1 minute',
-        --date_end = NOW(),
+        --date_end = date_start + (loc_minute_period_end) * INTERVAL '1 minute',
+        date_end = NOW(),
         score_left = loc_score_left,
-        score_right = loc_score_right
+        score_right = loc_score_right,
+        score_cumul_left = score_cumul_left + loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0),
+        score_cumul_right = score_cumul_right + loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0)
     WHERE id = rec_game.id;
 
     ------ Store the score if ever a game is a return game of this one

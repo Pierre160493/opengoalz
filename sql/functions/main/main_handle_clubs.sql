@@ -43,7 +43,7 @@ BEGIN
         INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
     SELECT 
         id_club AS id_club_to,
-        inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
+        inp_multiverse.date_now,
         clubs_finances.total_expenses_missed_to_pay || 'Missed Expenses Paid' AS title,
         'The previous missed expenses (' || clubs_finances.total_expenses_missed_to_pay || ') have been paid for week ' || inp_multiverse.week_number || '. The club now has available cash: ' || cash || '.' AS message,
         'Financial Advisor' AS sender_role
@@ -61,7 +61,7 @@ BEGIN
     INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
         SELECT 
             id AS id_club_to,
-            inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
+            inp_multiverse.date_now,
             'Negative Cash: Staff and Players not paid' AS title,
             'The club is in debt (available cash: ' || cash || ') for week ' || inp_multiverse.week_number || ': The staff and players will not be paid this week because the club is in debt, rectify the situation quickly !' AS message,
             'Financial Advisor' AS sender_role

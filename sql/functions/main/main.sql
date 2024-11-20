@@ -14,13 +14,11 @@ BEGIN
     ------ Loop through all multiverses
     FOR multiverse IN (SELECT * FROM multiverses ORDER BY id) LOOP
 
-RAISE NOTICE 'Now() = %', now();
         ------ Loop through all the weeks of the current multiverse that need to be simulated
         --WHILE now() > multiverse.date_season_start + (INTERVAL '7 days' * (multiverse.week_number - 1) / multiverse.speed) LOOP
         WHILE now() > multiverse.date_now LOOP
         
-            RAISE NOTICE '****** MAIN: Multiverse [%] Handling S% WEEK %', multiverse.name, multiverse.season_number, multiverse.week_number;
-RAISE NOTICE 'Multiverse_time = %', multiverse.date_now;
+            RAISE NOTICE '****** MAIN: Multiverse [%] Handling S% WEEK %: date_now= %', multiverse.name, multiverse.season_number, multiverse.week_number, multiverse.date_now;
 
             -- Measure time for simulate_week_games
 --RAISE NOTICE '*** MAIN: Running Simulate Games...';
@@ -49,7 +47,7 @@ start_time := clock_timestamp();
 --RAISE NOTICE '=> Took: % seconds', EXTRACT(EPOCH FROM (clock_timestamp() - start_time));
 
             -- Measure time for main_handle_season
-RAISE NOTICE '*** MAIN: Running Handle Season...';
+-- RAISE NOTICE '*** MAIN: Running Handle Season...';
 start_time := clock_timestamp();
             PERFORM main_handle_season(multiverse);
 --RAISE NOTICE '=> Took: % seconds', EXTRACT(EPOCH FROM (clock_timestamp() - start_time));
