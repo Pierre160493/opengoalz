@@ -1,4 +1,3 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/club.dart';
@@ -59,7 +58,7 @@ class _StaffPageState extends State<StaffPage> {
                     leading: Icon(iconStaff, size: iconSizeMedium),
                     title: Row(
                       children: [
-                        Text('Staff expanses: '),
+                        Text('Staff expenses: '),
                         Icon(
                           iconMoney,
                           size: iconSizeSmall,
@@ -73,7 +72,7 @@ class _StaffPageState extends State<StaffPage> {
                       ],
                     ),
                     subtitle: const Text(
-                      'Staff expanses of the club per week for training players',
+                      'Staff expenses of the club per week for training players',
                       style: TextStyle(fontStyle: FontStyle.italic),
                     ),
                     onTap: () async {
@@ -85,12 +84,12 @@ class _StaffPageState extends State<StaffPage> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: Text('Update Staff Expanses'),
+                            title: Text('Update Staff Expenses'),
                             content: TextField(
                               controller: controller,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
-                                  hintText: "Enter new staff expanses"),
+                                  hintText: "Enter new staff expenses"),
                             ),
                             actions: <Widget>[
                               TextButton(
@@ -102,21 +101,21 @@ class _StaffPageState extends State<StaffPage> {
                               TextButton(
                                 child: Text('Update'),
                                 onPressed: () async {
-                                  int? newExpanses =
+                                  int? newExpenses =
                                       int.tryParse(controller.text);
-                                  if (newExpanses == null) {
+                                  if (newExpenses == null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
                                             'Input could not be parsed as an integer'),
                                       ),
                                     );
-                                  } else if (newExpanses ==
+                                  } else if (newExpenses ==
                                       club.expensesStaff) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                            'Staff expanses is already set at ${club.expensesStaff} per week'),
+                                            'Staff expenses is already set at ${club.expensesStaff} per week'),
                                       ),
                                     );
                                   } else {
@@ -124,7 +123,7 @@ class _StaffPageState extends State<StaffPage> {
                                       var response = await supabase
                                           .from('clubs')
                                           .update({
-                                        'staff_expanses': newExpanses
+                                        'expenses_staff': newExpenses
                                       }).eq('id', club.id);
 
                                       print(response);
@@ -133,7 +132,7 @@ class _StaffPageState extends State<StaffPage> {
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                              'Successfully updated the staff expanses'),
+                                              'Successfully updated the staff expenses'),
                                         ),
                                       );
                                     } catch (error) {
@@ -161,7 +160,7 @@ class _StaffPageState extends State<StaffPage> {
                         Text('Staff skill: '),
                         Text(
                           NumberFormat.decimalPattern()
-                              .format(club.expensesStaff),
+                              .format(club.staffWeight),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -172,7 +171,7 @@ class _StaffPageState extends State<StaffPage> {
                     ),
                   ),
                   // SizedBox(height: 12),
-                  // _getStaffExpansesHistory(club),
+                  // _getStaffExpensesHistory(club),
                 ],
               ),
             ),
@@ -182,8 +181,8 @@ class _StaffPageState extends State<StaffPage> {
     );
   }
 
-  // Widget _getStaffExpansesHistory(Club club) {
-  //   List<FlSpot> data = club.lisStaffExpanses
+  // Widget _getStaffExpensesHistory(Club club) {
+  //   List<FlSpot> data = club.lisStaffExpenses
   //       .asMap()
   //       .entries
   //       .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))

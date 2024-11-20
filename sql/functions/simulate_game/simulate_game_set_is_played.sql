@@ -242,26 +242,26 @@ RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will 
         VALUES
             (rec_game.id_club_left, 
              CASE 
-                WHEN rec_game.score_diff > 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Victory ' || rec_game.score_left || '-' || rec_game.score_right || 'against ' || rec_game.club_right_name
-                WHEN rec_game.score_diff < 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Defeat ' || rec_game.score_left || '-' || rec_game.score_right || 'against ' || rec_game.club_right_name
-                ELSE 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Draw ' || rec_game.score_left || '-' || rec_game.score_right || 'against ' || rec_game.club_right_name
+                WHEN rec_game.score_diff > 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name
+                WHEN rec_game.score_diff < 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name
+                ELSE 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Draw ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name
              END,
              CASE 
-                WHEN rec_game.score_diff > 0 THEN 'Great news! We have won the game against ' || rec_game.club_right_name || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
-                WHEN rec_game.score_diff < 0 THEN 'Unfortunately we have lost the game against ' || rec_game.club_right_name || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
-                ELSE 'We drew the game against ' || rec_game.club_right_name || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
+                WHEN rec_game.score_diff > 0 THEN 'Great news! We have won the game against ' || rec_game.club_right_name || ' with ' || rec_game.score_left || '-' || rec_game.score_right
+                WHEN rec_game.score_diff < 0 THEN 'Unfortunately we have lost the game against ' || rec_game.club_right_name || ' with ' || rec_game.score_left || '-' || rec_game.score_right
+                ELSE 'We drew the game against ' || rec_game.club_right_name || ' with ' || rec_game.score_left || '-' || rec_game.score_right
              END,
              'Coach'),
             (rec_game.id_club_right, 
              CASE 
-                WHEN rec_game.score_diff > 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Defeat ' || rec_game.score_left || '-' || rec_game.score_right || 'against ' || rec_game.club_left_name
-                WHEN rec_game.score_diff < 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Victory ' || rec_game.score_left || '-' || rec_game.score_right || 'against ' || rec_game.club_left_name
-                ELSE 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Draw ' || rec_game.score_left || '-' || rec_game.score_right || 'against ' || rec_game.club_right_name
+                WHEN rec_game.score_diff > 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name
+                WHEN rec_game.score_diff < 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name
+                ELSE 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Draw ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name
              END,
              CASE 
-                WHEN rec_game.score_diff > 0 THEN 'Unfortunately we have lost the game against ' || rec_game.club_left_name || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
-                WHEN rec_game.score_diff < 0 THEN 'Great news! We have won the game against ' || rec_game.club_left_name || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
-                ELSE 'We drew the game against ' || rec_game.club_left_name || ' with ' || rec_game.score_left || ' - ' || rec_game.score_right
+                WHEN rec_game.score_diff > 0 THEN 'Unfortunately we have lost the game against ' || rec_game.club_left_name || '. The score was ' || rec_game.score_left || '-' || rec_game.score_right
+                WHEN rec_game.score_diff < 0 THEN 'Great news! We have won the game against ' || rec_game.club_left_name || '. The score was ' || rec_game.score_left || '-' || rec_game.score_right
+                ELSE 'We drew the game against ' || rec_game.club_left_name || ' with ' || rec_game.score_left || '-' || rec_game.score_right
              END,
              'Coach');
     END IF;

@@ -100,7 +100,7 @@ BEGIN
             ELSE
 
                 -- Remove the player from the club's teamcomps
-                loc_count := teamcomps_remove_player_from_teamcomps(player.id);
+                loc_count := player_remove_from_teamcomps(player);
 
                 -- Set the message to be sent
                 message_text := player.full_name || ' has been sold for ' || last_bid.amount || '.';

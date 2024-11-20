@@ -10,43 +10,20 @@ DECLARE
     loc_random_players INT8[]; -- Array to hold random player IDs that are used to set the missing positions
 BEGIN
 
-    ------ Fetch players id into a temporary array
-    loc_players_id := teamcomp_fetch_players_id(inp_id_teamcomp := inp_id_teamcomp);
-
-    -- Count the number of non-null player IDs in the first 14 elements of the array
-    SELECT COUNT(*) INTO loc_player_count
-    FROM unnest(loc_players_id[1:14]) AS id_player
-    WHERE id_player IS NOT NULL;
-
-    -- If there is 11 players in the team composition, then it's ok, function can return
-    IF loc_player_count = 11 THEN
+    ------ If the inputed teamcomp is valid, end the function
+    IF teamcomp_check_error(inp_id_teamcomp := inp_id_teamcomp) IS NULL THEN
         RETURN;
     END IF;
 
-    -- Copy the first default teamcomp
+    ------ Otherwise, copy the first default teamcomp
     PERFORM teamcomp_copy_previous(inp_id_teamcomp := inp_id_teamcomp);
 
-    -- Fetch the team composition for the specified game and club
-    SELECT ARRAY[
-        idgoalkeeper, -- 1
-        idleftbackwinger, idleftcentralback, idcentralback, idrightcentralback, idrightbackwinger, -- 2, 3, 4, 5, 6
-        idleftwinger, idleftmidfielder, idcentralmidfielder, idrightmidfielder, idrightwinger, -- 7, 8, 9, 10, 11
-        idleftstriker, idcentralstriker, idrightstriker, -- 12, 13, 14
-        idsub1, idsub2, idsub3, idsub4, idsub5, idsub6, idsub7] INTO loc_players_id -- 15, 16, 17, 18, 19, 20, 21
-    FROM games_teamcomp
-    WHERE id = inp_id_teamcomp;
-
-    -- Count the number of non-null player IDs in the first 14 elements of the array
-    SELECT COUNT(*) INTO loc_player_count
-    FROM unnest(loc_players_id[1:14]) AS id_player
-    WHERE id_player IS NOT NULL;
-
-    -- If there is 11 players in the team composition, then it's ok, function can return
-    IF loc_player_count = 11 THEN
+    ------ If the inputed teamcomp is valid, end the function
+    IF teamcomp_check_error(inp_id_teamcomp := inp_id_teamcomp) IS NULL THEN
         RETURN;
     END IF;
 
-    -- Fetch a list of players that are missing from the team composition that belong to the club
+    ------ Select 11 players from the club to fill the teamcomp
     SELECT ARRAY_AGG(id)
     INTO loc_random_players
     FROM (
@@ -55,12 +32,14 @@ BEGIN
         WHERE id_club = (SELECT id_club FROM games_teamcomp WHERE id = inp_id_teamcomp)
             AND id NOT IN (SELECT id_players FROM unnest(loc_players_id) AS id_players WHERE id_players IS NOT NULL)
         ORDER BY random()
-        LIMIT loc_player_count
+        LIMIT 11
     ) subquery;
         
     -- Check if there are enough players available to fill the missing slots
-    IF array_length(loc_random_players, 1) < loc_player_count THEN
-        RAISE EXCEPTION 'Not enough players available in club for teamcomp with id: %', inp_id_teamcomp;
+    IF array_length(loc_random_players, 1) < 11 THEN
+        -- RAISE EXCEPTION 'Not enough players available in club for teamcomp with id: %', inp_id_teamcomp;
+        UPDATE games_teamcomp SET error = 'Not enough players available in club for teamcomp of S' || (SELECT season_number FROM games_teamcomp WHERE id = inp_id_teamcomp) || 'W' || (SELECT week_number FROM games_teamcomp WHERE id = inp_id_teamcomp);
+        WHERE id = inp_id_teamcomp;
     END IF;
 
     -- Get the number of missing slots in the team composition

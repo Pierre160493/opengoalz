@@ -74,13 +74,14 @@ BEGIN
     ------ Update the clubs finances
     UPDATE clubs SET
         -- Tax is 1% of the available cash
-        expenses_tax = GREATEST(0, FLOOR(cash * 0.01)),
+        expenses_tax = GREATEST(0, FLOOR(cash * 0.05)),
         -- Players expenses are the expected expenses of the players * the ratio applied by the club
         expenses_players = (SELECT SUM(expenses_payed)
             FROM players 
             WHERE id_club = clubs.id),
         -- Update the staff weight of the club 
-        staff_weight = LEAST(GREATEST((staff_weight + expenses_staff) * 0.5, 0), 5000)
+        staff_weight = LEAST(5000, GREATEST(0, 
+            (staff_weight + expenses_staff) * 0.5))
     WHERE id_multiverse = inp_multiverse.id;
 
     -- Update the clubs revenues and expenses in the list
