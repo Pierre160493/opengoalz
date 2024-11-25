@@ -65,49 +65,29 @@ BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------ Step 2: Check teamcomps
     ------ Check if there is an error in the left teamcomp
-    BEGIN -- Check for errors in the teamcomp of the left club
-        teamcomp_text := teamcomp_check_error(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
-        IF teamcomp_text IS NOT NULL THEN
-            RAISE EXCEPTION 'Teamcomp error: %', teamcomp_text;
+    BEGIN 
+        ---- If the left teamcomp has an error, then try to correct it
+        IF teamcomp_check_and_try_populate_if_error(
+            inp_id_teamcomp := rec_game.id_teamcomp_club_left)
+        IS NOT TRUE THEN
+            loc_score_left := -1;
         END IF;
-    EXCEPTION -- If an error is found
+    EXCEPTION
         WHEN OTHERS THEN
-            BEGIN -- try to populate the teamcomp
-                PERFORM teamcomp_populate(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
-
-                -- Send mail for club saying that the teamcomp was modified
-                INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
-                VALUES (rec_game.id_club_left, rec_game.date_start, 'Coach',
-                        'S' || rec_game.season_number || 'W' || rec_game.wekk_number || ' Incorrect teamcomp',
-                        'The teamcomp that you prepared for the game of week ' || rec_game.week_number || ' contained an error and was refused by the referee. I had to create new teamcomp quickly inspired by the default teamcomp');
-
-            EXCEPTION -- If an error is found
-                WHEN OTHERS THEN
-                    loc_score_left := -1; -- Left club has an error and will forfeit the game
-            END;
+            loc_score_left := -1;
     END;
     
     ------ Check if there is an error in the right teamcomp
-    BEGIN -- Check for errors in the teamcomp of the right club
-        teamcomp_text := teamcomp_check_error(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
-        IF teamcomp_text IS NOT NULL THEN
-            RAISE EXCEPTION 'Teamcomp error: %', teamcomp_text;
+    BEGIN
+        ---- If the right teamcomp has an error, then try to correct it
+        IF teamcomp_check_and_try_populate_if_error(
+            inp_id_teamcomp := rec_game.id_teamcomp_club_right)
+        IS NOT TRUE THEN
+            loc_score_right := -1;
         END IF;
-    EXCEPTION -- If an error is found
+    EXCEPTION
         WHEN OTHERS THEN
-            BEGIN -- try to populate the teamcomp
-                PERFORM teamcomp_populate(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
-
-                -- Send mail for club saying that the teamcomp was modified
-                INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
-                VALUES (rec_game.id_club_right, rec_game.date_start, 'Coach',
-                        'S' || rec_game.season_number || 'W' || rec_game.wekk_number || ' Incorrect teamcomp',
-                        'The teamcomp that you prepared for the game of week ' || rec_game.week_number || ' contained an error and was refused by the referee. I had to create new teamcomp quickly, I hope it will go smoothly');
-
-            EXCEPTION -- If an error is found
-                WHEN OTHERS THEN
-                    loc_score_right := -1; -- Left club has an error and will forfeit the game
-            END;
+            loc_score_right := -1;
     END;
 
     ------ If both clubs were forfeited ==> Draw with 0-0

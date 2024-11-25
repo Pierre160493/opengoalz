@@ -27,7 +27,7 @@ class TeamComp {
     required this.name,
     required this.description,
     required this.isPlayed,
-    required this.error,
+    required this.errors,
   });
 
   final int id;
@@ -37,7 +37,7 @@ class TeamComp {
   final String name;
   final String description;
   final bool isPlayed;
-  final String? error;
+  final List<String>? errors;
   final List<Map<String, dynamic>> players;
 
   static List<Map<String, dynamic>> defaultPlayers = [
@@ -204,7 +204,7 @@ class TeamComp {
       name: map['name'],
       description: map['description'],
       isPlayed: map['is_played'],
-      error: map['error'],
+      errors: map['error'] != null ? List<String>.from(map['error']) : null,
       players: players,
     );
   }

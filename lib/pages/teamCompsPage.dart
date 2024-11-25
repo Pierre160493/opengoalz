@@ -250,7 +250,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                                   color: club
                                                               .defaultTeamComps[
                                                                   index]
-                                                              .error ==
+                                                              .errors ==
                                                           null
                                                       ? Colors.green
                                                       : Colors.red,
@@ -299,7 +299,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                                   club.teamComps[index].isPlayed
                                                       ? null
                                                       : club.teamComps[index]
-                                                                  .error ==
+                                                                  .errors ==
                                                               null
                                                           ? Colors.green
                                                           : Colors.red),
@@ -311,10 +311,8 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                     child: TabBarView(
                                       children: List<Widget>.generate(
                                           14,
-                                          (index) =>
-                                              TeamCompWidget(
-                                                  teamComp:
-                                                      club.teamComps[index])),
+                                          (index) => TeamCompWidget(
+                                              teamComp: club.teamComps[index])),
                                     ),
                                   ),
                                 ],

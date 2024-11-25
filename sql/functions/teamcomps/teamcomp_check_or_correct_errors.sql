@@ -3,17 +3,26 @@
 CREATE OR REPLACE FUNCTION public.teamcomp_check_or_correct_errors(
     inp_id_teamcomp bigint,
     inp_bool_try_to_correct BOOLEAN DEFAULT FALSE,
-    inp_notify_user BOOLEAN DEFAULT FALSE)
- RETURNS void
+    inp_bool_notify_user BOOLEAN DEFAULT FALSE)
+ RETURNS BOOLEAN
  LANGUAGE plpgsql
 AS $function$
 DECLARE
+    rec_teamcomp RECORD; -- Record to store the teamcomp
     array_id_players int8[]; -- Array of the players id in the teamcomp
     array_id_players_tmp INT[] := NULL; -- Helper Array of players id for removing and adding
     loc_count INT; -- Number of players in the teamcomp
     I INT; -- Variable for loop index
     text_return TEXT[] := ARRAY[]::TEXT[]; -- Array to store error messages
 BEGIN
+
+    ------ Fetch the teamcomp record
+    SELECT * INTO rec_teamcomp FROM games_teamcomp WHERE id = inp_id_teamcomp;
+
+    ------ If the teamcomp is not in the database, return an error
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'The teamcomp with id % does not exist', inp_id_teamcomp;
+    END IF;
 
     ------ Fetch players id into a temporary array
     array_id_players := teamcomp_fetch_players_id(inp_id_teamcomp := inp_id_teamcomp);
@@ -36,7 +45,7 @@ BEGIN
     ------ If there are players that are not from the club anymore, remove them from the teamcomp
     IF array_id_players_tmp IS NOT NULL THEN
         ------ Loop through the teamcomp players and set null when id in array_id_players_tmp
-        FOR I IN 1..array_length(array_id_players, 1) LOOP
+        FOR I IN 1..21 LOOP
             --- Loop through the players in the teamcomp
             IF array_id_players[I] = ANY(array_id_players_tmp) THEN
 
@@ -249,27 +258,37 @@ BEGIN
                 idsub6 = array_id_players[20],
                 idsub7 = array_id_players[21]
             WHERE id = inp_id_teamcomp;
-        ---- The update will triger the trigger to update the teamcomp error field
+            ---- The update will triger the trigger to update the teamcomp error field
 
-        ---- If the user needs to be notified, send a message to the user
-        IF inp_notify_user IS TRUE THEN
-            ---- Send a message to the user
-            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role) 
-                VALUES
-                    (rec_game.id_club_left, (SELECT date_now FROM multiverses WHERE id = rec_teamcomp.id_multiverse), 
-                    array_length(text_return, 1) || ' Errors in teamcomp of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number,
-                    'The teamcomp for the game of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number || ' contained the ' || array_length(text_return, 1) || ' following errors: ' || 
-                    (SELECT string_agg(unnest(text_return), E'\n')),
-                    'Coach');
-        END IF;
+            ---- If the user needs to be notified, send a message to the user
+            IF inp_notify_user IS TRUE THEN
+
+                ---- Send a message to the user
+                INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
+                    VALUES
+                        (rec_game.id_club_left, (SELECT date_now FROM multiverses WHERE id = rec_teamcomp.id_multiverse), 
+                        array_length(text_return, 1) || ' Errors in teamcomp of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number,
+                        'I tried correcting the teamcomp for the game of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number || '. It contained the ' || array_length(text_return, 1) || ' following errors: ' || string_agg(unnest(text_return), E'\n'),
+                        'Coach');
+
+            END IF;
+
+            ---- Return true if the teamcomp is now valid
+            IF (SELECT error FROM games_teamcomp WHERE id = inp_id_teamcomp) IS NOT NULL THEN
+                RETURN FALSE;
+            ELSE -- Otherwise return false
+                RETURN TRUE;
+            END IF;
 
         ---- Otherwise, store the error messages in the teamcomp error field
         ELSE
             UPDATE games_teamcomp SET error = text_return WHERE id = inp_id_teamcomp;
+            RETURN FALSE;
         END IF;
     ------ Otherwise set the error field to null
     ELSE
         UPDATE games_teamcomp SET error = NULL WHERE id = inp_id_teamcomp;
+        RETURN TRUE;
     END IF;
 
 --RAISE NOTICE '*** FIN array_id_players= %', array_id_players;

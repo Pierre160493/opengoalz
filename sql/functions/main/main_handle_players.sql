@@ -65,7 +65,7 @@ BEGIN
                 player.first_name || ' ' || UPPER(player.last_name) || ' will be leaving the club before next week because of low motivation: ' || player.motivation || '.',
                 'Financial Advisor');
 
---RAISE NOTICE 'RageQuit => % % % quits', player.first_name, player.last_name, player.id;
+RAISE NOTICE '==> RageQuit => % % (%) quits from %', player.first_name, player.last_name, player.id, player.id_club;
 
         ELSE
 

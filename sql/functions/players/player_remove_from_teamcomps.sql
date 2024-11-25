@@ -4,13 +4,10 @@ CREATE OR REPLACE FUNCTION public.player_remove_from_teamcomps(rec_player RECORD
  RETURNS integer
  LANGUAGE plpgsql
 AS $function$
-DECLARE
-    removal_count INT := 0; -- Counter for the number of removals
 BEGIN
 
--- Remove the player id from the teamcomps of his club where he appears
-    WITH updated_rows AS (
-        UPDATE games_teamcomp
+    ------ Remove the player id from the teamcomps of his club where he appears
+    UPDATE games_teamcomp
         SET
             idgoalkeeper = CASE WHEN idgoalkeeper = rec_player.id THEN NULL ELSE idgoalkeeper END,
             idleftbackwinger = CASE WHEN idleftbackwinger = rec_player.id THEN NULL ELSE idleftbackwinger END,
@@ -33,13 +30,19 @@ BEGIN
             idsub5 = CASE WHEN idsub5 = rec_player.id THEN NULL ELSE idsub5 END,
             idsub6 = CASE WHEN idsub6 = rec_player.id THEN NULL ELSE idsub6 END,
             idsub7 = CASE WHEN idsub7 = rec_player.id THEN NULL ELSE idsub7 END
-        WHERE is_played IS FALSE
-        AND id_club = rec_player.id_club
-        RETURNING *
-    )
-    SELECT COUNT(*) INTO removal_count FROM updated_rows;
+    WHERE is_played IS FALSE
+    AND id_club = rec_player.id_club;
 
-    RETURN removal_count;
+    ------ Try to correct the errors in the main default teamcomp
+    PERFORM teamcomp_correct_teamcomp_errors(
+        inp_id_teamcomp := (
+            SELECT id
+            FROM games_teamcomp
+            WHERE id_club = rec_player.id_club
+            AND season_number = 0
+            AND week_number = 1
+        )
+    );
 
 END;
 $function$

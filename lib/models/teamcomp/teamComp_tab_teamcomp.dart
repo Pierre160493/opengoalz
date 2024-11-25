@@ -17,18 +17,20 @@ extension TeamCompTab on TeamComp {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (error != null)
-              Text(
-                error!,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
+            if (errors != null && errors!.isNotEmpty)
+              Column(
+                children: errors!.map((error) {
+                  return Text(
+                    error,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  );
+                }).toList(),
               ),
-
-            /// Add a row of buttons to clean the teamcomp and apply the default teamcomp
             if (isPlayed == false)
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -91,22 +93,6 @@ extension TeamCompTab on TeamComp {
                   ],
                 ),
               ),
-            // IconButton(
-            //   icon: Icon(Icons.save),
-            //   onPressed: () async {
-            //     // final data = await supabase.rpc('teamcomps_copy_previous',
-            //     //     params: {'inp_id_teamcomp': id});
-            //     bool isOK = await operationInDB(
-            //         context, 'FUNCTION', 'teamcomps_copy_previous',
-            //         data: {'inp_id_teamcomp': id});
-            //     if (isOK) {
-            //       showSnackBar(
-            //           context,
-            //           'The teamcomp has successfully being applied',
-            //           Icon(iconSuccessfulOperation, color: Colors.green));
-            //     }
-            //   },
-            // ),
             const SizedBox(height: 12.0), // Add spacing between rows
             _getStartingTeam(context, width),
             const SizedBox(height: 12.0), // Add spacing between rows

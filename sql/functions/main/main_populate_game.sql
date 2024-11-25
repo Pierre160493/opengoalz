@@ -183,8 +183,8 @@ END IF;
                     ] INTO loc_array_selected_id_clubs
                     FROM games
                     WHERE id = loc_array_id_games[I];
-RAISE NOTICE '###### Game %: loc_array_selected_id_clubs = Winner: % Loser: % [Score: (%-%) Cumul (%-%)]', loc_array_id_games[I], loc_array_selected_id_clubs[1], loc_array_selected_id_clubs[2],
-(SELECT score_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_right FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_right FROM games WHERE id = loc_array_id_games[I]);
+--RAISE NOTICE '###### Game %: loc_array_selected_id_clubs = Winner: % Loser: % [Score: (%-%) Cumul (%-%)]', loc_array_id_games[I], loc_array_selected_id_clubs[1], loc_array_selected_id_clubs[2],
+--(SELECT score_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_right FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_right FROM games WHERE id = loc_array_id_games[I]);
 
 --IF rec_game.id = ANY(id_game_debug) THEN
 --RAISE NOTICE 'loc_array_selected_id_clubs = %', loc_array_selected_id_clubs;

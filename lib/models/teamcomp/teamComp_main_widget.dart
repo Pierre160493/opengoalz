@@ -27,7 +27,7 @@ class _TeamCompWidgetState extends State<TeamCompWidget> {
                   children: [
                     Icon(
                       Icons.preview,
-                      color: widget.teamComp.error == null ? null : Colors.red,
+                      color: widget.teamComp.errors == null ? null : Colors.red,
                     ),
                     SizedBox(width: 3),
                     Text('TeamComp'),
