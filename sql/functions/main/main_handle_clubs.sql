@@ -16,14 +16,14 @@ BEGIN
                 WHEN clubs.cash > 0 THEN clubs.expenses_staff
                 ELSE 0
             END AS expenses_staff_applied, -- Staff expenses applied this week
-            SUM(players.expenses_expected) AS total_expenses_expected, -- Total expenses expected for the players
+            -- SUM(players.expenses_expected) AS total_expenses_expected, -- Total expenses expected for the players
             CASE
                 WHEN clubs.cash > 0 THEN expenses_players_ratio_target
                 ELSE 0
             END AS expenses_players_ratio_applied, -- Players expenses ratio applied this week
             SUM(LEAST(players.expenses_missed, players.expenses_expected)) AS total_expenses_missed_to_pay -- Total expenses missed for the players
         FROM clubs
-        JOIN players ON players.id_club = clubs.id
+        LEFT JOIN players ON players.id_club = clubs.id
         WHERE clubs.id_multiverse = 1
         GROUP BY clubs.id
     ),
@@ -76,9 +76,9 @@ BEGIN
         -- Tax is 1% of the available cash
         expenses_tax = GREATEST(0, FLOOR(cash * 0.05)),
         -- Players expenses are the expected expenses of the players * the ratio applied by the club
-        expenses_players = (SELECT SUM(expenses_payed)
+        expenses_players = COALESCE((SELECT SUM(expenses_payed)
             FROM players 
-            WHERE id_club = clubs.id),
+            WHERE id_club = clubs.id), 0),
         -- Update the staff weight of the club 
         staff_weight = LEAST(5000, GREATEST(0, 
             (staff_weight + expenses_staff) * 0.5))

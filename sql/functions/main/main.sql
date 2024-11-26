@@ -20,6 +20,11 @@ BEGIN
         
             RAISE NOTICE '****** MAIN: Multiverse [%] Handling S% WEEK %: date_now= %', multiverse.name, multiverse.season_number, multiverse.week_number, multiverse.date_now;
 
+            ------ Handle the transfers
+            PERFORM transfers_handle_transfers(
+                inp_multiverse_id := multiverse.id
+            );
+
             -- Measure time for simulate_week_games
 --RAISE NOTICE '*** MAIN: Running Simulate Games...';
 start_time := clock_timestamp();
@@ -62,7 +67,14 @@ start_time := clock_timestamp();
             SELECT * INTO multiverse FROM multiverses WHERE id = multiverse.id;
 
         END LOOP; -- End of the WHILE loop
+
+        ------ Handle the transfers
+        PERFORM transfers_handle_transfers(
+            inp_multiverse_id := multiverse.id
+        );
+
     END LOOP; -- End of the loop through the multiverses
+    
     RAISE NOTICE '****** END MAIN: Multiverse [%] S% WEEK %', multiverse.name, multiverse.season_number, multiverse.week_number;
 END;
 $function$

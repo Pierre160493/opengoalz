@@ -16,7 +16,7 @@ DECLARE
     loc_array_team_weights_right float8[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
     loc_period_game int; -- The period of the game (e.g., first half, second half, extra time)
     loc_minute_period_start int; -- The minute where the period starts
-    loc_minute_period_end int; -- The minute where the period ends
+    loc_minute_period_end int := 0; -- The minute where the period ends
     loc_minute_period_extra_time int; -- The extra time for the period
     loc_minute_game int; -- The minute of the game
     loc_date_start_period timestamp; -- The date and time of the period
@@ -37,13 +37,15 @@ BEGIN
     ------------ Step 1: Get game details and initial checks
     SELECT games.*,
         gtl.id AS id_teamcomp_club_left, 
-        gtr.id AS id_teamcomp_club_right 
+        gtr.id AS id_teamcomp_club_right,
+        cl.name AS name_club_left, cl.username AS username_club_left,
+        cr.name AS name_club_right, cr.username AS username_club_right
     INTO rec_game 
     FROM games
-    JOIN 
-        games_teamcomp gtl ON games.id_club_left = gtl.id_club AND games.season_number = gtl.season_number AND games.week_number = gtl.week_number
-    JOIN 
-        games_teamcomp gtr ON games.id_club_right = gtr.id_club AND games.season_number = gtr.season_number AND games.week_number = gtr.week_number
+    JOIN games_teamcomp gtl ON games.id_club_left = gtl.id_club AND games.season_number = gtl.season_number AND games.week_number = gtl.week_number
+    JOIN games_teamcomp gtr ON games.id_club_right = gtr.id_club AND games.season_number = gtr.season_number AND games.week_number = gtr.week_number
+    JOIN clubs cl ON games.id_club_left = cl.id
+    JOIN clubs cr ON games.id_club_right = cr.id
     WHERE 
         games.id = inp_id_game;
 
@@ -61,10 +63,28 @@ BEGIN
         RAISE EXCEPTION 'Game [%]: Teamcomp not found for club % for season % and week %', inp_id_game, rec_game.id_club_right, rec_game.season_number, rec_game.week_number;
     END IF;
 
+
+    ------ Set that the game is_playing
+    UPDATE games SET
+        is_playing = TRUE
+    WHERE id = rec_game.id;
+
+    ------ Update the games teamcomp to say that the game is played
+    UPDATE games_teamcomp SET
+        is_played = TRUE
+    WHERE id IN (rec_game.id_teamcomp_club_left, rec_game.id_teamcomp_club_right);
+
+    ------ Update player to say they are currently playing a game
+    UPDATE players SET
+        is_playing = TRUE
+    WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
+
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------ Step 2: Check teamcomps
     ------ Check if there is an error in the left teamcomp
+RAISE NOTICE '###### Game [%] - Checking teamcomps % - %', inp_id_game, rec_game.id_club_left, rec_game.id_club_right;
+RAISE NOTICE '###### Game [%] - Club% [%] VS Club% [%]', inp_id_game, rec_game.id_club_left, (SELECT array_agg(id) FROM players where id_club = rec_game.id_club_left), rec_game.id_club_right, (SELECT array_agg(id) FROM players where id_club = rec_game.id_club_right);
     BEGIN 
         ---- If the left teamcomp has an error, then try to correct it
         IF teamcomp_check_and_try_populate_if_error(
@@ -90,38 +110,59 @@ BEGIN
             loc_score_right := -1;
     END;
 
-    ------ If both clubs were forfeited ==> Draw with 0-0
-    IF loc_score_left = -1 AND loc_score_right = -1 THEN
-        loc_score_left := 0;
-        loc_score_right := 0;
+RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_left, loc_score_left, loc_score_right, rec_game.id_club_right;
 
-    ------ If left club was forfeited
-    ELSEIF loc_score_left = -1 THEN
-        loc_score_left := 0;
-        loc_score_right := 3;
-    
-    ------ If right club was forfeited
-    ELSEIF loc_score_right = -1 THEN
-        loc_score_left := 3;
-        loc_score_right := 0;
+    ------ If one of the clubs is forfeit
+    IF loc_score_left = -1 OR loc_score_right = -1 THEN
+        ---- If both clubs are forfeit
+        IF loc_score_left = -1 AND loc_score_right = -1 THEN
+            loc_score_left := 0;
+            loc_score_right := 0;
+
+            -- Send mails to the clubs
+            INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
+            VALUES
+                (rec_game.id_club_left, rec_game.date_start, 'Referee',
+                    'Game of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
+                    'We were not able to give a valid teamcomp for the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' but they didnt either, we will see what the league decides but it might end with a draw'),
+                (rec_game.id_club_right, rec_game.date_start, 'Referee',
+                    'Game of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
+                    'We were not able to give a valid teamcomp for the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' but they didnt either, we will see what the league decides but it might end with a draw');
+
+        ---- If the left club is forfeit
+        ELSEIF loc_score_left = -1 THEN
+            loc_score_left := 0;
+            loc_score_right := 3;
+
+            -- Send mails to the clubs
+            INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
+            VALUES
+                (rec_game.id_club_left, rec_game.date_start, 'Referee',
+                    'Game of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
+                    'We were not able to give a valid teamcomp for the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat'),
+                (rec_game.id_club_right, rec_game.date_start, 'Referee',
+                    'Game of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Opponent has no valid teamcomp',
+                    rec_game.name_club_left || ', our opponent for the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory');
+
+        ---- If the right club is forfeit
+        ELSE
+            loc_score_left := 3;
+            loc_score_right := 0;
+
+            -- Send mails to the clubs
+            INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
+            VALUES
+                (rec_game.id_club_left, rec_game.date_start, 'Referee',
+                    'Game of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Opponent has no valid teamcomp',
+                    rec_game.name_club_right || ', our opponent for the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory'),
+                (rec_game.id_club_right, rec_game.date_start, 'Referee',
+                    'Game of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
+                    'We were not able to give a valid teamcomp for the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat');
+
+        END IF;
 
     ------ If the game needs to be simulated, then set the initial score
-    ELSEIF loc_score_left IS NULL AND loc_score_right IS NULL THEN
-
-        ------ Set that the game is_playing
-        UPDATE games SET
-            is_playing = TRUE
-        WHERE id = rec_game.id;
-
-        ------ Update the games teamcomp to say that the game is played
-        UPDATE games_teamcomp SET
-            is_played = TRUE
-        WHERE id IN (rec_game.id_teamcomp_club_left, rec_game.id_teamcomp_club_right);
-
-        ------ Update player to say they are currently playing a game
-        UPDATE players SET
-            is_playing = TRUE
-        WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
+    ELSE
 
         ------ Set the initial score
         loc_score_left := 0;
@@ -299,8 +340,8 @@ BEGIN
     ------------ Store the results
     ------ Store the score
     UPDATE games SET
-        --date_end = date_start + (loc_minute_period_end) * INTERVAL '1 minute',
-        date_end = NOW(),
+        date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
+        --date_end = NOW(),
         score_left = loc_score_left,
         score_right = loc_score_right,
         score_cumul_left = score_cumul_left + loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0),

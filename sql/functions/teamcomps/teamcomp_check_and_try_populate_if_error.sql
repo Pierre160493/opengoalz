@@ -10,14 +10,18 @@ DECLARE
     loc_random_players INT8[]; -- Array to hold random player IDs that are used to set the missing positions
 BEGIN
 
+--RAISE NOTICE '###### TRY POPULATE TEAMCOMP[%] FIRST CHECK', inp_id_teamcomp;
     ------ If the inputed teamcomp is valid
     IF teamcomp_check_or_correct_errors(
         inp_id_teamcomp := inp_id_teamcomp,
         inp_bool_try_to_correct := FALSE) IS TRUE
     THEN
+--RAISE NOTICE '### TRY POPULATE TEAMCOMP 1: VALID';
         RETURN TRUE; -- Return TRUE
     END IF;
+--RAISE NOTICE '### TRY POPULATE TEAMCOMP 1: NOT VALID';
 
+--RAISE NOTICE '###### TRY POPULATE TEAMCOMP[%] TRY POPULATE DEFAULT', inp_id_teamcomp;
     ------ Otherwise, try to copy the first default teamcomp
     PERFORM teamcomp_copy_previous(inp_id_teamcomp := inp_id_teamcomp);
 
@@ -26,9 +30,12 @@ BEGIN
         inp_id_teamcomp := inp_id_teamcomp,
         inp_bool_try_to_correct := FALSE) IS TRUE
     THEN
+--RAISE NOTICE '### TRY POPULATE TEAMCOMP 2: VALID';
         RETURN TRUE; -- Return TRUE
     END IF;
+--RAISE NOTICE '### TRY POPULATE TEAMCOMP 2: NOT VALID';
 
+--RAISE NOTICE '###### TRY POPULATE TEAMCOMP[%] TRY TO CORRECT', inp_id_teamcomp;
     ------ Otherwise, try to populate the teamcomp with the final function to correct errors
     RETURN teamcomp_check_or_correct_errors(
         inp_id_teamcomp := inp_id_teamcomp,

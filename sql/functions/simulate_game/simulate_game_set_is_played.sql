@@ -8,12 +8,9 @@ DECLARE
 BEGIN
 
     ------ Store the game record
-    SELECT games.*,
-    score_cumul_left - score_cumul_right AS score_diff,
-    club_left.id_league AS club_left_league,
-    club_right.id_league AS club_right_league,
-    club_left.name AS club_left_name,
-    club_right.name AS club_right_name
+    SELECT games.*, score_cumul_left - score_cumul_right AS score_diff,
+    club_left.id_league AS club_left_league, club_right.id_league AS club_right_league,
+    club_left.name AS club_left_name, club_right.name AS club_right_name
     INTO rec_game
     FROM games
     JOIN clubs AS club_left ON club_left.id = games.id_club_left

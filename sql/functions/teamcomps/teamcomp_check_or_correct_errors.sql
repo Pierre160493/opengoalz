@@ -31,16 +31,17 @@ BEGIN
 
     -- array_id_players := ARRAY[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
     -- array_id_players := ARRAY[1, 2, 3, NULL, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, NULL, NULL, NULL, 18, 19, 20];
---RAISE NOTICE '###### 0) array_id_players: %', array_id_players;
+RAISE NOTICE '0) array_id_players: %', array_id_players;
     ------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------
     ------------ Remove any player ID that is not from the club anymore
     ------ Select the players id that are in the teamcomp but not in the club anymore
     SELECT array_agg(id) INTO array_id_players_tmp FROM players
     WHERE id = ANY(array_id_players)
-    AND id_club != (SELECT id_club FROM games_teamcomp WHERE id = inp_id_teamcomp);
+    AND id_club IS DISTINCT FROM rec_teamcomp.id_club;
 
---RAISE NOTICE 'NOT IN CLUB: array_id_players_tmp: %', array_id_players_tmp;
+RAISE NOTICE 'Players from club%: %', rec_teamcomp.id_club, (SELECT array_agg(id) FROM players WHERE id_club = rec_teamcomp.id_club);
+RAISE NOTICE '==> PLAYERS IN TEAMCOMP BUT NOT IN CLUB: array_id_players_tmp: %', array_id_players_tmp;
 
     ------ If there are players that are not from the club anymore, remove them from the teamcomp
     IF array_id_players_tmp IS NOT NULL THEN
@@ -60,7 +61,7 @@ BEGIN
         END LOOP;
     END IF;
 
---RAISE NOTICE '1) array_id_players: %', array_id_players;
+RAISE NOTICE '1) array_id_players: %', array_id_players;
 
     ------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------
@@ -86,26 +87,14 @@ BEGIN
         END IF;
     END LOOP;
 
---RAISE NOTICE '2) array_id_players= %', array_id_players;
+RAISE NOTICE '2) array_id_players= %', array_id_players;
 
     ------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------
     ------------ Remove any player that make the teamcomp have more than 11 players in the 14 first positions
     SELECT COUNT(id) INTO loc_count FROM unnest(array_remove(array_id_players[1:14],NULL)) AS id;
-
-    ------ If the boolean is set to false, return the number of players in the teamcomp
-    IF inp_bool_try_to_correct = FALSE THEN
-        IF loc_count < 10 THEN
-            text_return := array_append(text_return, 11-loc_count || ' players missing in the starting slots of the teamcomp');
-        ELSIF loc_count = 10 THEN
-            text_return := array_append(text_return, ' 1 player missing in the starting slot of the teamcomp');
-        ELSIF loc_count = 12 THEN
-            text_return := array_append(text_return, ' 1 extra player found in the starting slot of the teamcomp, (12 players instead of 11)');
-        ELSIF loc_count > 12 THEN
-            text_return := array_append(text_return, loc_count - 11 || ' extra players found in the starting slots of the teamcomp, (' || loc_count || ' instead of 11)');
-        END IF;
-    END IF;
-
+RAISE NOTICE 'Number of players in the 14 starting positions: loc_count= %', loc_count;
+    
     ------ If the boolean is set to true, remove the players from the teamcomp
     IF inp_bool_try_to_correct THEN
         
@@ -144,7 +133,7 @@ BEGIN
             END LOOP;
         END LOOP;
 
---RAISE NOTICE '3) array_id_players= %', array_id_players;
+RAISE NOTICE '3) array_id_players= %', array_id_players;
 
         ------------------------------------------------------------------------------------------------------------------------
         ------------------------------------------------------------------------------------------------------------------------
@@ -154,7 +143,7 @@ BEGIN
         WHERE id NOT IN (
             SELECT unnest(array_remove(array_id_players[1:14], NULL))
         )
-        AND id_club = (SELECT id_club FROM games_teamcomp WHERE id = inp_id_teamcomp);
+        AND id_club = rec_teamcomp.id_club;
 
 --RAISE NOTICE 'AVAILABLE PLAYERS= %', array_id_players_tmp;
 
@@ -194,12 +183,24 @@ BEGIN
 
                     loc_count := loc_count + 1;
                     EXIT;
-                END IF;
-            END LOOP;
-        END LOOP;
+                END IF; -- End if position is null
+            END LOOP; -- End for the 11 main starting positions
+        END LOOP; -- End while loc_count < 11 AND players available
+    END IF; -- End if try to correct
+
+RAISE NOTICE 'Number of players in the 14 starting positions: loc_count= %', loc_count;
+    
+    IF loc_count < 10 THEN
+        text_return := array_append(text_return, 11-loc_count || ' players missing in the starting slots of the teamcomp');
+    ELSIF loc_count = 10 THEN
+        text_return := array_append(text_return, ' 1 player missing in the starting slot of the teamcomp');
+    ELSIF loc_count = 12 THEN
+        text_return := array_append(text_return, ' 1 extra player found in the starting slot of the teamcomp, (12 players instead of 11)');
+    ELSIF loc_count > 12 THEN
+        text_return := array_append(text_return, loc_count - 11 || ' extra players found in the starting slots of the teamcomp, (' || loc_count || ' instead of 11)');
     END IF;
 
---RAISE NOTICE '4) array_id_players= %', array_id_players;
+RAISE NOTICE '4) array_id_players= %', array_id_players;
 
     ------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------
@@ -207,7 +208,7 @@ BEGIN
     ------ Select the players from the club that are not in the starting positions
     SELECT array_agg(id ORDER BY performance_score DESC) INTO array_id_players_tmp FROM players
     WHERE id NOT IN (SELECT unnest(array_remove(array_id_players, NULL)))
-    AND id_club = (SELECT id_club FROM games_teamcomp WHERE id = inp_id_teamcomp);
+    AND id_club = rec_teamcomp.id_club;
 
 --RAISE NOTICE ':::::::::: AVAILABLE PLAYERS array_id_players_tmp= %', array_id_players_tmp;
 
@@ -225,7 +226,8 @@ BEGIN
         END IF;
     END LOOP;
 
---RAISE NOTICE '5) array_id_players= %', array_id_players;
+RAISE NOTICE '5) array_id_players= %', array_id_players;
+RAISE NOTICE '###### Errors in teamcomp %: %', inp_id_teamcomp, text_return;
 
     ------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------
@@ -261,33 +263,37 @@ BEGIN
             ---- The update will triger the trigger to update the teamcomp error field
 
             ---- If the user needs to be notified, send a message to the user
-            IF inp_notify_user IS TRUE THEN
+            IF inp_bool_notify_user IS TRUE THEN
 
                 ---- Send a message to the user
-                INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
+                INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
                     VALUES
-                        (rec_game.id_club_left, (SELECT date_now FROM multiverses WHERE id = rec_teamcomp.id_multiverse), 
+                        (rec_teamcomp.id_club, (SELECT date_now FROM multiverses WHERE id = (SELECT id_multiverse FROM clubs WHERE id = rec_teamcomp.id_club)), 'Coach',
                         array_length(text_return, 1) || ' Errors in teamcomp of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number,
-                        'I tried correcting the teamcomp for the game of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number || '. It contained the ' || array_length(text_return, 1) || ' following errors: ' || string_agg(unnest(text_return), E'\n'),
-                        'Coach');
+                        -- 'I tried correcting the teamcomp for the game of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number || '. It contained the ' || array_length(text_return, 1) || ' following errors: ' || string_agg(unnest(text_return), E'\n'));
+                        'I tried correcting the teamcomp for the game of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number || '. It contained ' || array_length(text_return, 1) || ' errors !');
 
             END IF;
 
             ---- Return true if the teamcomp is now valid
             IF (SELECT error FROM games_teamcomp WHERE id = inp_id_teamcomp) IS NOT NULL THEN
+RAISE NOTICE 'Teamcomp % is now valid (TRY TO CORRECT TRUE)', inp_id_teamcomp;
                 RETURN FALSE;
             ELSE -- Otherwise return false
+RAISE NOTICE 'Teamcomp % is not valid (TRY TO CORRECT TRUE)', inp_id_teamcomp;
                 RETURN TRUE;
             END IF;
 
         ---- Otherwise, store the error messages in the teamcomp error field
         ELSE
             UPDATE games_teamcomp SET error = text_return WHERE id = inp_id_teamcomp;
+RAISE NOTICE 'Teamcomp % is not valid (TRY TO CORRECT FALSE)', inp_id_teamcomp;
             RETURN FALSE;
         END IF;
     ------ Otherwise set the error field to null
     ELSE
         UPDATE games_teamcomp SET error = NULL WHERE id = inp_id_teamcomp;
+RAISE NOTICE 'Teamcomp % is valid (TRY TO CORRECT FALSE)', inp_id_teamcomp;
         RETURN TRUE;
     END IF;
 

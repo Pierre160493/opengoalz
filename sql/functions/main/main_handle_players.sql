@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION public.main_handle_players(inp_multiverse record)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-    player RECORD; -- Record for the player selection
+    rec_player RECORD; -- Record for the player selection
     multiverse_now TIMESTAMP; -- Current time of the multiverse
 BEGIN
 
@@ -28,7 +28,7 @@ BEGIN
         motivation = LEAST(100, GREATEST(0,
             motivation + (random() * 20 - 8) -- Random [-8, +12]
             + ((70 - motivation) / 10) -- +7; -3 based on value
-            - (expenses_missed / expenses_expected) * 10)),
+            - ((expenses_missed / expenses_expected) ^ 0.5) * 10)),
         form = LEAST(100, GREATEST(0,
             form + (random() * 20 - 10) + ((70 - form) / 10)
             )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
@@ -39,19 +39,20 @@ BEGIN
     WHERE id_multiverse = inp_multiverse.id;
 
     ------ If player's motivation is too low, risk of leaving club
-    FOR player IN (
-        SELECT * FROM players
+    FOR rec_player IN (
+        SELECT *, player_get_full_name(id) AS full_name FROM players
             WHERE id_multiverse = inp_multiverse.id
             AND id_club IS NOT NULL
             AND date_bid_end IS NULL
             AND motivation < 20
     ) LOOP
+    
         -- If motivation = 0 ==> 100% chance of leaving, if motivation = 20 ==> 0% chance of leaving
-        IF random() < (20 - player.motivation) / 20 THEN
+        IF random() < (20 - rec_player.motivation) / 20 THEN
         
             -- Update the date_firing for the selected player
-            PERFORM transfers_handle_new_bid(inp_id_player := player.id,
-                inp_id_club_bidder := player.id_club,
+            PERFORM transfers_handle_new_bid(inp_id_player := rec_player.id,
+                inp_id_club_bidder := rec_player.id_club,
                 inp_amount := 0,
                 inp_date_bid_end := multiverse_now + (INTERVAL '6 days' / inp_multiverse.speed));
 
@@ -59,13 +60,13 @@ BEGIN
             INSERT INTO messages_mail (
                 id_club_to, created_at, title, message, sender_role)
             VALUES
-                (player.id_club,
+                (rec_player.id_club,
                 multiverse_now,
-                player.first_name || ' ' || UPPER(player.last_name) || ' leaves the club !',
-                player.first_name || ' ' || UPPER(player.last_name) || ' will be leaving the club before next week because of low motivation: ' || player.motivation || '.',
+                rec_player.full_name || ' asked to leave the club !',
+                rec_player.full_name || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.',
                 'Financial Advisor');
 
-RAISE NOTICE '==> RageQuit => % % (%) quits from %', player.first_name, player.last_name, player.id, player.id_club;
+--RAISE NOTICE '==> RageQuit => % (%) has asked to leave club [%]', rec_player.full_name, rec_player.id, rec_player.id_club;
 
         ELSE
 
@@ -73,10 +74,10 @@ RAISE NOTICE '==> RageQuit => % % (%) quits from %', player.first_name, player.l
             INSERT INTO messages_mail (
                 id_club_to, created_at, title, message, sender_role)
             VALUES
-                (player.id_club,
+                (rec_player.id_club,
                 multiverse_now,
-                player.first_name || ' ' || UPPER(player.last_name) || ' has low motivation: ' || player.motivation,
-                player.first_name || ' ' || UPPER(player.last_name) || ' has low motivation: ' || player.motivation || 'and is at risk of leaving your club',
+                rec_player.full_name || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
+                rec_player.full_name || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club',
                 'Financial Advisor');
 
         END IF;
