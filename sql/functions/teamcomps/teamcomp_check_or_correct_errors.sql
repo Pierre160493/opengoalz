@@ -31,7 +31,7 @@ BEGIN
 
     -- array_id_players := ARRAY[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
     -- array_id_players := ARRAY[1, 2, 3, NULL, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, NULL, NULL, NULL, 18, 19, 20];
-RAISE NOTICE '0) array_id_players: %', array_id_players;
+--RAISE NOTICE '0) array_id_players: %', array_id_players;
     ------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------
     ------------ Remove any player ID that is not from the club anymore
@@ -40,8 +40,8 @@ RAISE NOTICE '0) array_id_players: %', array_id_players;
     WHERE id = ANY(array_id_players)
     AND id_club IS DISTINCT FROM rec_teamcomp.id_club;
 
-RAISE NOTICE 'Players from club%: %', rec_teamcomp.id_club, (SELECT array_agg(id) FROM players WHERE id_club = rec_teamcomp.id_club);
-RAISE NOTICE '==> PLAYERS IN TEAMCOMP BUT NOT IN CLUB: array_id_players_tmp: %', array_id_players_tmp;
+--RAISE NOTICE 'Players from club%: %', rec_teamcomp.id_club, (SELECT array_agg(id) FROM players WHERE id_club = rec_teamcomp.id_club);
+--RAISE NOTICE '==> PLAYERS IN TEAMCOMP BUT NOT IN CLUB: array_id_players_tmp: %', array_id_players_tmp;
 
     ------ If there are players that are not from the club anymore, remove them from the teamcomp
     IF array_id_players_tmp IS NOT NULL THEN
@@ -61,7 +61,7 @@ RAISE NOTICE '==> PLAYERS IN TEAMCOMP BUT NOT IN CLUB: array_id_players_tmp: %',
         END LOOP;
     END IF;
 
-RAISE NOTICE '1) array_id_players: %', array_id_players;
+--RAISE NOTICE '1) array_id_players: %', array_id_players;
 
     ------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------
@@ -87,13 +87,13 @@ RAISE NOTICE '1) array_id_players: %', array_id_players;
         END IF;
     END LOOP;
 
-RAISE NOTICE '2) array_id_players= %', array_id_players;
+--RAISE NOTICE '2) array_id_players= %', array_id_players;
 
     ------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------
     ------------ Remove any player that make the teamcomp have more than 11 players in the 14 first positions
     SELECT COUNT(id) INTO loc_count FROM unnest(array_remove(array_id_players[1:14],NULL)) AS id;
-RAISE NOTICE 'Number of players in the 14 starting positions: loc_count= %', loc_count;
+--RAISE NOTICE 'START Number of players in the 14 starting positions: loc_count= %', loc_count;
     
     ------ If the boolean is set to true, remove the players from the teamcomp
     IF inp_bool_try_to_correct THEN
@@ -133,7 +133,7 @@ RAISE NOTICE 'Number of players in the 14 starting positions: loc_count= %', loc
             END LOOP;
         END LOOP;
 
-RAISE NOTICE '3) array_id_players= %', array_id_players;
+--RAISE NOTICE '3) array_id_players= %', array_id_players;
 
         ------------------------------------------------------------------------------------------------------------------------
         ------------------------------------------------------------------------------------------------------------------------
@@ -186,9 +186,33 @@ RAISE NOTICE '3) array_id_players= %', array_id_players;
                 END IF; -- End if position is null
             END LOOP; -- End for the 11 main starting positions
         END LOOP; -- End while loc_count < 11 AND players available
+
+        ------------------------------------------------------------------------------------------------------------------------
+        ------------------------------------------------------------------------------------------------------------------------
+        ------------ Finally try to populate the subs positions
+        ------ Select the players from the club that are not in the starting positions
+        SELECT array_agg(id ORDER BY performance_score DESC) INTO array_id_players_tmp FROM players
+        WHERE id NOT IN (SELECT unnest(array_remove(array_id_players, NULL)))
+        AND id_club = rec_teamcomp.id_club;
+
+    ------ OPTIMIZE THIS PART !!!!!!!!!!!!
+        ------ Loop through the subs positions and add the players if there are any
+        FOR I IN 15..21 LOOP
+            -- If the position is null, add the player
+            IF array_id_players[I] IS NULL AND array_length(array_id_players_tmp, 1) > 0 THEN
+
+                -- Add the player to the teamcomp
+                array_id_players[I] := array_id_players_tmp[1];
+
+                -- Remove the player from the list of available players
+                array_id_players_tmp := array_id_players_tmp[2:array_length(array_id_players_tmp, 1)];
+
+            END IF;
+        END LOOP;
+
     END IF; -- End if try to correct
 
-RAISE NOTICE 'Number of players in the 14 starting positions: loc_count= %', loc_count;
+--RAISE NOTICE 'END Number of players in the 14 starting positions: loc_count= %', loc_count;
     
     IF loc_count < 10 THEN
         text_return := array_append(text_return, 11-loc_count || ' players missing in the starting slots of the teamcomp');
@@ -200,34 +224,8 @@ RAISE NOTICE 'Number of players in the 14 starting positions: loc_count= %', loc
         text_return := array_append(text_return, loc_count - 11 || ' extra players found in the starting slots of the teamcomp, (' || loc_count || ' instead of 11)');
     END IF;
 
-RAISE NOTICE '4) array_id_players= %', array_id_players;
-
-    ------------------------------------------------------------------------------------------------------------------------
-    ------------------------------------------------------------------------------------------------------------------------
-    ------------ Finally try to populate the subs positions
-    ------ Select the players from the club that are not in the starting positions
-    SELECT array_agg(id ORDER BY performance_score DESC) INTO array_id_players_tmp FROM players
-    WHERE id NOT IN (SELECT unnest(array_remove(array_id_players, NULL)))
-    AND id_club = rec_teamcomp.id_club;
-
---RAISE NOTICE ':::::::::: AVAILABLE PLAYERS array_id_players_tmp= %', array_id_players_tmp;
-
-    ------ Loop through the subs positions and add the players if there are any
-    FOR I IN 15..21 LOOP
-        -- If the position is null, add the player
-        IF array_id_players[I] IS NULL AND array_length(array_id_players_tmp, 1) > 0 THEN
-
-            -- Add the player to the teamcomp
-            array_id_players[I] := array_id_players_tmp[1];
-
-            -- Remove the player from the list of available players
-            array_id_players_tmp := array_id_players_tmp[2:array_length(array_id_players_tmp, 1)];
-
-        END IF;
-    END LOOP;
-
-RAISE NOTICE '5) array_id_players= %', array_id_players;
-RAISE NOTICE '###### Errors in teamcomp %: %', inp_id_teamcomp, text_return;
+--RAISE NOTICE '5) array_id_players= %', array_id_players;
+--RAISE NOTICE '###### Errors in teamcomp %: %', inp_id_teamcomp, text_return;
 
     ------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------
@@ -276,24 +274,24 @@ RAISE NOTICE '###### Errors in teamcomp %: %', inp_id_teamcomp, text_return;
             END IF;
 
             ---- Return true if the teamcomp is now valid
-            IF (SELECT error FROM games_teamcomp WHERE id = inp_id_teamcomp) IS NOT NULL THEN
-RAISE NOTICE 'Teamcomp % is now valid (TRY TO CORRECT TRUE)', inp_id_teamcomp;
-                RETURN FALSE;
-            ELSE -- Otherwise return false
-RAISE NOTICE 'Teamcomp % is not valid (TRY TO CORRECT TRUE)', inp_id_teamcomp;
+            IF (SELECT error FROM games_teamcomp WHERE id = inp_id_teamcomp) IS NULL THEN
+--RAISE NOTICE 'Teamcomp % is now valid (TRY TO CORRECT TRUE)', inp_id_teamcomp;
                 RETURN TRUE;
+            ELSE -- Otherwise return false
+--RAISE NOTICE 'Teamcomp % is not valid (TRY TO CORRECT TRUE)', inp_id_teamcomp;
+                RETURN FALSE;
             END IF;
 
         ---- Otherwise, store the error messages in the teamcomp error field
         ELSE
             UPDATE games_teamcomp SET error = text_return WHERE id = inp_id_teamcomp;
-RAISE NOTICE 'Teamcomp % is not valid (TRY TO CORRECT FALSE)', inp_id_teamcomp;
+--RAISE NOTICE 'Teamcomp % is not valid (TRY TO CORRECT FALSE)', inp_id_teamcomp;
             RETURN FALSE;
         END IF;
     ------ Otherwise set the error field to null
     ELSE
         UPDATE games_teamcomp SET error = NULL WHERE id = inp_id_teamcomp;
-RAISE NOTICE 'Teamcomp % is valid (TRY TO CORRECT FALSE)', inp_id_teamcomp;
+--RAISE NOTICE 'Teamcomp % is valid (TRY TO CORRECT FALSE)', inp_id_teamcomp;
         RETURN TRUE;
     END IF;
 

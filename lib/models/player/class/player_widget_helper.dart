@@ -406,30 +406,120 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  Widget getStatLinearWidget(String label, double value) {
-    return Row(
-      children: [
-        formSpacer6,
-        Container(
-          width: 100, // Fixed width for the label
-          child: Text(label),
-        ),
-        SizedBox(
-          width: 120,
-          height: 20, // Height of the bar
-          child: ClipRRect(
-            borderRadius:
-                BorderRadius.circular(10), // Rounded corners for the bar
-            child: LinearProgressIndicator(
-              value: value / 100, // Assuming value ranges from 0 to 100
-              backgroundColor: Colors.grey[300], // Background color of the bar
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Colors.green, // Color of the filled portion of the bar
+  Widget getStatLinearWidget(String label, double value, BuildContext context) {
+    IconData getIcon(String label) {
+      switch (label) {
+        case 'Motivation':
+          return iconMotivation;
+        case 'Stamina':
+          return iconStamina;
+        case 'Form':
+          return iconForm;
+        case 'Experience':
+          return iconExperience;
+        default:
+          return iconBug;
+      }
+    }
+
+    IconData icon = getIcon(label);
+
+    return ListTile(
+      shape: shapePersoRoundedBorder,
+      leading: Icon(
+        icon,
+        size: iconSize,
+      ),
+      title: Row(
+        children: [
+          formSpacer6,
+          Container(
+            width: 100, // Fixed width for the label
+            child: Text(label),
+          ),
+          SizedBox(
+            width: 120,
+            height: 24, // Height of the bar
+            child: ClipRRect(
+              borderRadius:
+                  BorderRadius.circular(10), // Rounded corners for the bar
+              child: LinearProgressIndicator(
+                value: value / 100, // Assuming value ranges from 0 to 100
+                backgroundColor:
+                    Colors.grey[300], // Background color of the bar
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.green, // Color of the filled portion of the bar
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
+      onTap: () async {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(label),
+              content: Container(
+                width: double.maxFinite,
+                height: 200,
+                child: StreamBuilder(
+                  stream: supabase
+                      .from('players_history_stats')
+                      .stream(primaryKey: ['id'])
+                      .eq('id_player', id)
+                      .order('created_at', ascending: true),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    } else if (!snapshot.hasData) {
+                      return Text('Error: No data');
+                    }
+                    final data = snapshot.data;
+                    List<double> values = data!
+                        .map((e) => e[label.toLowerCase()].toDouble() as double)
+                        .toList();
+                    // List<DateTime> dates = data
+                    //     .map((e) => DateTime.parse(e['created_at'] as String))
+                    //     .toList();
+
+                    return Container(
+                      child: LineChart(
+                        LineChartData(
+                          minY: 0,
+                          maxY: 100,
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: values.asMap().entries.map((e) {
+                                return FlSpot(e.key.toDouble(), e.value);
+                              }).toList(),
+                              isCurved: true,
+                              barWidth: 2,
+                              belowBarData: BarAreaData(show: false),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

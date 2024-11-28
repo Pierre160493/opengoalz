@@ -73,8 +73,8 @@ class Game {
   final String? error;
   final int? scoreLeft;
   final int? scoreRight;
-  final double? scoreCumulLeft;
-  final double? scoreCumulRight;
+  final double scoreCumulLeft;
+  final double scoreCumulRight;
   final int idDescription;
 
   // factory Game.fromMap(Map<String, dynamic> map, {int? idClubSelected}) {
@@ -116,12 +116,8 @@ class Game {
       error: map['error'],
       scoreLeft: map['score_left'],
       scoreRight: map['score_right'],
-      scoreCumulLeft: map['score_cumul_left'] != null
-          ? (map['score_cumul_left'] as num).toDouble()
-          : null,
-      scoreCumulRight: map['score_cumul_right'] != null
-          ? (map['score_cumul_right'] as num).toDouble()
-          : null,
+      scoreCumulLeft: (map['score_cumul_left'] as num).toDouble(),
+      scoreCumulRight: (map['score_cumul_right'] as num).toDouble(),
       idDescription: map['id_games_description'],
       isLeftClubSelected: isLeftClubSelected,
     );

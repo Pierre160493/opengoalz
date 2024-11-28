@@ -20,8 +20,8 @@ DECLARE
     loc_minute_period_extra_time int; -- The extra time for the period
     loc_minute_game int; -- The minute of the game
     loc_date_start_period timestamp; -- The date and time of the period
-    loc_score_left int := NULL; -- The score of the left team
-    loc_score_right int := NULL; -- The score of the right team
+    loc_score_left int := 0; -- The score of the left team
+    loc_score_right int := 0; -- The score of the right team
     loc_score_penalty_left int := 0; -- The score of the left team for the penalty shootout
     loc_score_penalty_right int := 0; -- The score of the right team for the penalty shootout
     loc_score_left_previous int := 0; -- The score of the left team previous game
@@ -83,8 +83,8 @@ BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------ Step 2: Check teamcomps
     ------ Check if there is an error in the left teamcomp
-RAISE NOTICE '###### Game [%] - Checking teamcomps % - %', inp_id_game, rec_game.id_club_left, rec_game.id_club_right;
-RAISE NOTICE '###### Game [%] - Club% [%] VS Club% [%]', inp_id_game, rec_game.id_club_left, (SELECT array_agg(id) FROM players where id_club = rec_game.id_club_left), rec_game.id_club_right, (SELECT array_agg(id) FROM players where id_club = rec_game.id_club_right);
+--RAISE NOTICE '###### Game [%] - Checking teamcomps % - %', inp_id_game, rec_game.id_club_left, rec_game.id_club_right;
+--RAISE NOTICE '###### Game [%] - Club% [%] VS Club% [%]', inp_id_game, rec_game.id_club_left, (SELECT array_agg(id) FROM players where id_club = rec_game.id_club_left), rec_game.id_club_right, (SELECT array_agg(id) FROM players where id_club = rec_game.id_club_right);
     BEGIN 
         ---- If the left teamcomp has an error, then try to correct it
         IF teamcomp_check_and_try_populate_if_error(
@@ -116,8 +116,6 @@ RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_lef
     IF loc_score_left = -1 OR loc_score_right = -1 THEN
         ---- If both clubs are forfeit
         IF loc_score_left = -1 AND loc_score_right = -1 THEN
-            loc_score_left := 0;
-            loc_score_right := 0;
 
             -- Send mails to the clubs
             INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
@@ -131,8 +129,7 @@ RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_lef
 
         ---- If the left club is forfeit
         ELSEIF loc_score_left = -1 THEN
-            loc_score_left := 0;
-            loc_score_right := 3;
+            loc_score_right := 3; -- Set the right club as winner by 3-0
 
             -- Send mails to the clubs
             INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
@@ -146,8 +143,7 @@ RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_lef
 
         ---- If the right club is forfeit
         ELSE
-            loc_score_left := 3;
-            loc_score_right := 0;
+            loc_score_left := 3; -- Set the left club as winner by 3-0
 
             -- Send mails to the clubs
             INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
@@ -163,11 +159,6 @@ RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_lef
 
     ------ If the game needs to be simulated, then set the initial score
     ELSE
-
-        ------ Set the initial score
-        loc_score_left := 0;
-        loc_score_right := 0;
-
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------------------------------------------------------------------------------------------------------------------------------------------
         ------------ Step 2: Fetch, calculate and store data in arrays
@@ -344,25 +335,17 @@ RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_lef
         --date_end = NOW(),
         score_left = loc_score_left,
         score_right = loc_score_right,
-        score_cumul_left = score_cumul_left + loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0),
-        score_cumul_right = score_cumul_right + loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0)
+        score_cumul_left = score_cumul_left + loc_score_left_previous + (loc_score_penalty_left / 1000.0)
+            + CASE WHEN loc_score_left = - 1 THEN 0 ELSE loc_score_left END,
+        score_cumul_right = score_cumul_right + loc_score_right_previous + (loc_score_penalty_right / 1000.0)
+            + CASE WHEN loc_score_right = - 1 THEN 0 ELSE loc_score_right END
     WHERE id = rec_game.id;
 
     ------ Store the score if ever a game is a return game of this one
     UPDATE games SET
-        score_cumul_left = loc_score_right,
-        score_cumul_right = loc_score_left
+        score_cumul_left = CASE WHEN loc_score_right = - 1 THEN 0 ELSE loc_score_right END,
+        score_cumul_right = CASE WHEN loc_score_left = - 1 THEN 0 ELSE loc_score_left END
     WHERE is_return_game_id_game_first_round = rec_game.id;
-
-    ------ Update cumulated score for cup games
-    IF rec_game.is_cup THEN
-        UPDATE games SET
-            --score_cumul_left = score_cumul_left + (loc_score_left + (loc_score_penalty_left / 1000.0)),
-            --score_cumul_right = score_cumul_right + (loc_score_right + (loc_score_penalty_right / 1000.0))
-            score_cumul_left = (loc_score_left_previous + loc_score_left + (loc_score_penalty_left / 1000.0)),
-            score_cumul_right = (loc_score_right_previous + loc_score_right + (loc_score_penalty_right / 1000.0))
-        WHERE id = rec_game.id;
-    END IF;
 
 END;
 $function$

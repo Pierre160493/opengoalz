@@ -60,7 +60,8 @@ extension GameClassWidgetHelper on Game {
   }
 
   Widget getScoreRow() {
-    if (dateEnd == null)
+    /// If the game is not played yet
+    if (isPlaying == null)
       return Icon(Icons.sync, size: iconSizeSmall);
     // Row(
     //   children: [
@@ -72,22 +73,18 @@ extension GameClassWidgetHelper on Game {
     //   ],
     // );
     else if (scoreLeft == null && scoreRight == null)
-      return Text('ERR: Unknown left and right score of the game $id');
+      return Text('ERROR: Unknown left and right score of the game $id');
     else if (scoreRight == null)
-      return Text('ERR: Unknown left score of the game $id');
+      return Text('ERROR: Unknown left score of the game $id');
     else if (scoreRight == null)
-      return Text('ERR: Unknown right score of the game $id');
+      return Text('ERROR: Unknown right score of the game $id');
 
     // If the game is a cup, display the score of the penalty shootout
     int? leftPenaltyScore = null;
     int? rightPenaltyScore = null;
     if (isCup) {
-      if (scoreCumulLeft != null && scoreCumulRight != null) {
-        leftPenaltyScore = (scoreCumulLeft! % 1 * 1000).toInt();
-        rightPenaltyScore = (scoreCumulRight! % 1 * 1000).toInt();
-      } else {
-        return Text('ERR: Unknown cumul score of the game $id');
-      }
+      leftPenaltyScore = (scoreCumulLeft % 1 * 1000).toInt();
+      rightPenaltyScore = (scoreCumulRight % 1 * 1000).toInt();
     }
 
     /// Default white colors
@@ -96,30 +93,8 @@ extension GameClassWidgetHelper on Game {
     Color colorLeftPenalty = Colors.white;
     Color colorRightPenalty = Colors.white;
 
-    /// If no club is selected
-    if (isLeftClubSelected == null) {
-      // if (scoreLeft! > scoreRight!) {
-      //   leftColor = Colors.green;
-      //   rightColor = Colors.red;
-      // } else if (scoreLeft! < scoreRight!) {
-      //   leftColor = Colors.red;
-      //   rightColor = Colors.green;
-      // } else if (scoreLeft! == scoreRight!) {
-      //   leftColor = Colors.blueGrey;
-      //   rightColor = Colors.blueGrey;
-      // }
-      // if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
-      //   if (leftPenaltyScore > rightPenaltyScore) {
-      //     colorLeftPenalty = Colors.green;
-      //     colorRightPenalty = Colors.red;
-      //   } else {
-      //     colorLeftPenalty = Colors.red;
-      //     colorRightPenalty = Colors.green;
-      //   }
-      // }
-
-      /// If the left club is selected
-    } else if (isLeftClubSelected!) {
+    /// If the left club is selected
+    if (isLeftClubSelected == true) {
       if (scoreLeft! > scoreRight!) {
         leftColor = Colors.green;
         rightColor = Colors.green;
@@ -142,7 +117,7 @@ extension GameClassWidgetHelper on Game {
     }
 
     /// If the left club is selected
-    else if (!isLeftClubSelected!) {
+    else if (isLeftClubSelected == false) {
       if (scoreLeft! > scoreRight!) {
         leftColor = Colors.red;
         rightColor = Colors.red;
@@ -173,7 +148,8 @@ extension GameClassWidgetHelper on Game {
       child: Row(
         children: [
           Text(
-            scoreLeft.toString(),
+            // If the score is -1, display 0F for forfeit
+            scoreLeft == -1 ? '0(F)' : scoreLeft.toString(),
             style: TextStyle(
               // color: leftPenaltyScore == null ? colorLeftPenalty : null,
               color: leftColor,
@@ -202,10 +178,10 @@ extension GameClassWidgetHelper on Game {
               ),
             ),
           Text(
-            scoreRight.toString(),
+            scoreRight == -1 ? '0(F)' : scoreRight.toString(),
             style: TextStyle(
               // color: rightPenaltyScore == null ? colorRightPenalty : null,
-              color: leftColor,
+              color: rightColor,
               fontWeight: FontWeight.bold,
             ),
           )
@@ -261,20 +237,16 @@ extension GameClassWidgetHelper on Game {
                               // If the game is played, display the score
                               if (dateEnd != null)
                                 // If the score is available, display it
-                                if (scoreCumulLeft != null &&
-                                    scoreCumulRight != null &&
-                                    scoreLeft != null &&
-                                    scoreRight != null)
+                                if (scoreLeft != null && scoreRight != null)
                                   Text(
-                                      'Score: ${scoreCumulLeft!.toInt() - scoreLeft!.toInt()} - ${scoreCumulRight!.toInt() - scoreLeft!.toInt()}')
+                                      'Score: ${scoreCumulLeft.toInt() - scoreLeft!.toInt()} - ${scoreCumulRight.toInt() - scoreLeft!.toInt()}')
                                 else
                                   Text(
                                       'ERROR: Cannot fetch the first leg score')
                               // Then the game is not played so scoreCumul stores the first leg score
-                              else if (scoreCumulLeft != null &&
-                                  scoreCumulRight != null)
+                              else
                                 Text(
-                                    'Score: ${scoreCumulLeft!.toInt()} - ${scoreCumulRight!.toInt()}')
+                                    'Score: ${scoreCumulLeft.toInt()} - ${scoreCumulRight.toInt()}')
                               // else
                               //   Text('ERROR: Cannot fetch the final score')
                             ],

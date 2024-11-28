@@ -150,14 +150,10 @@ extension PlayerCardStats on Player {
                     color: Colors.red,
                   ),
           ),
-          const SizedBox(height: 6.0),
-          getStatLinearWidget('Motivation', motivation),
-          const SizedBox(height: 6.0),
-          getStatLinearWidget('Stamina', stamina),
-          const SizedBox(height: 6.0),
-          getStatLinearWidget('Form', form),
-          const SizedBox(height: 6.0),
-          getStatLinearWidget('Experience', experience),
+          getStatLinearWidget('Motivation', motivation, context),
+          getStatLinearWidget('Form', form, context),
+          getStatLinearWidget('Stamina', stamina, context),
+          getStatLinearWidget('Experience', experience, context),
           SizedBox(
             width: double.infinity,
             height: 240, // Adjust the height as needed

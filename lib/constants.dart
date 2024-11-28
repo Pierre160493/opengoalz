@@ -56,8 +56,7 @@ const iconBot = Icons.smart_toy_outlined;
 const iconAge = Icons.cake_outlined;
 const iconTeamComp = Icons.grid_on;
 const iconMails = Icons.email;
-const iconStamina = Icons.ev_station;
-// const iconBug = Icons.bug_report;
+const iconBug = Icons.bug_report;
 const iconCancel = Icons.cancel;
 const iconError = Icons.error;
 const iconSuccessfulOperation = Icons.check_circle;
@@ -67,6 +66,10 @@ const iconShirt = Icons.checkroom;
 // const iconMultiverseSpeed = Icons.speed;
 const iconMultiverseSpeed = Icons.shutter_speed;
 const iconCountries = Icons.public;
+const iconMotivation = Icons.emoji_emotions;
+const iconStamina = Icons.ev_station;
+const iconForm = Icons.directions_run;
+const iconExperience = Icons.school;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorIsMine = Colors.purple;

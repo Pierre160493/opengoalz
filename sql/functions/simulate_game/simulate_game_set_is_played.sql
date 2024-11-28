@@ -4,63 +4,109 @@ CREATE OR REPLACE FUNCTION public.simulate_game_set_is_played(
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    rec_game RECORD;
+    rec_game RECORD; -- Record to store the game data
+    text_title_left TEXT; -- Title of the message for the left club
+    text_title_right TEXT; -- Title of the message for the right club
+    text_message_left TEXT; -- Message of the message for the left club
+    text_message_right TEXT; -- Message of the message for the right club
 BEGIN
 
     ------ Store the game record
-    SELECT games.*, score_cumul_left - score_cumul_right AS score_diff,
-    club_left.id_league AS club_left_league, club_right.id_league AS club_right_league,
-    club_left.name AS club_left_name, club_right.name AS club_right_name
+    SELECT games.*,
+        (CASE WHEN score_left = -1 THEN 0 ELSE score_left END) - (CASE WHEN score_right = -1 THEN 0 ELSE score_right END) AS score_diff,
+        CASE WHEN score_left = -1 OR score_right = -1 THEN TRUE ELSE FALSE END AS is_forfeit,
+        score_cumul_left - score_cumul_right AS score_diff_total,
+        club_left.id_league AS club_left_league, club_right.id_league AS club_right_league,
+        club_left.name AS club_left_name, club_right.name AS club_right_name
     INTO rec_game
     FROM games
     JOIN clubs AS club_left ON club_left.id = games.id_club_left
     JOIN clubs AS club_right ON club_right.id = games.id_club_right
     WHERE games.id = inp_id_game;
 
-    ------ Set the game as played
-    UPDATE games SET
-        is_playing = FALSE
-    WHERE id = rec_game.id;
-
-    ------ Update player to say they are not playing anymore
-    UPDATE players SET
-        is_playing = FALSE
-    WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
-
-    ------ Update clubs results
-    UPDATE clubs SET
-        lis_last_results = lis_last_results || 
+    ------ Start writing the messages to be sent to the clubs
+    -- Left club won
+    IF rec_game.score_diff > 0 THEN
+        text_title_left := 'S' || rec_game.season_number || 'W' || rec_game.week_number || ': Victory ' || 
             CASE 
-                WHEN rec_game.score_diff > 0 THEN CASE WHEN id = rec_game.id_club_left THEN 3 ELSE 0 END
-                WHEN rec_game.score_diff < 0 THEN CASE WHEN id = rec_game.id_club_right THEN 3 ELSE 0 END
-                ELSE 1
-            END
-    WHERE id IN (rec_game.id_club_left, rec_game.id_club_right);
+                WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
+                ELSE rec_game.score_left || '-' || rec_game.score_right
+            END || 
+            ' against ' || rec_game.club_right_name;
+        text_title_right := 'S' || rec_game.season_number || 'W' || rec_game.week_number || ': Defeat ' ||
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
+                ELSE rec_game.score_right || '-' || rec_game.score_left
+            END || 
+            ' against ' || rec_game.club_left_name;
+        text_message_left := 'We have won ' || 
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
+                ELSE rec_game.score_left || '-' || rec_game.score_right
+            END ||
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_right_name;
+        text_message_right := 'We have lost ' ||
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
+                ELSE rec_game.score_right || '-' || rec_game.score_left
+            END ||
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_left_name;
 
-    ------ Update the league points
-    -- Only for league games before week 10
-    IF rec_game.week_number <= 10 THEN
-        UPDATE clubs SET
-            league_points = league_points + 
-                CASE 
-                    WHEN rec_game.score_diff > 0 THEN 3
-                    WHEN rec_game.score_diff < 0 THEN 0
-                    ELSE 1
-                END,
-            league_goals_for = league_goals_for + rec_game.score_left,
-            league_goals_against = league_goals_against + rec_game.score_right
-        WHERE id = rec_game.id_club_left;
+    -- Right club won
+    ELSEIF rec_game.score_diff < 0 THEN
+        text_title_left := 'S' || rec_game.season_number || 'W' || rec_game.week_number || ': Defeat ' || 
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
+                ELSE rec_game.score_left || '-' || rec_game.score_right
+            END || 
+            ' against ' || rec_game.club_right_name;
+        text_title_right := 'S' || rec_game.season_number || 'W' || rec_game.week_number || ': Victory ' ||
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
+                ELSE rec_game.score_right || '-' || rec_game.score_left
+            END || 
+            ' against ' || rec_game.club_left_name;
+        text_message_left := 'We have lost ' ||
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
+                ELSE rec_game.score_left || '-' || rec_game.score_right
+            END ||
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_right_name;
+        text_message_right := 'We have won ' ||
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
+                ELSE rec_game.score_right || '-' || rec_game.score_left
+            END ||
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_left_name;
 
-        UPDATE clubs SET
-            league_points = league_points + 
-                CASE 
-                    WHEN rec_game.score_diff > 0 THEN 0
-                    WHEN rec_game.score_diff < 0 THEN 3
-                    ELSE 1
-                END,
-            league_goals_for = league_goals_for + rec_game.score_right,
-            league_goals_against = league_goals_against + rec_game.score_left
-        WHERE id = rec_game.id_club_right;
+    -- Draw
+    ELSE
+
+        text_title_left := 'S' || rec_game.season_number || 'W' || rec_game.week_number || ': Draw ' || 
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
+                ELSE rec_game.score_left || '-' || rec_game.score_right
+            END || 
+            ' against ' || rec_game.club_right_name;
+        text_title_right := 'S' || rec_game.season_number || 'W' || rec_game.week_number || ': Draw ' ||
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
+                ELSE rec_game.score_right || '-' || rec_game.score_left
+            END || 
+            ' against ' || rec_game.club_left_name;
+        text_message_left := 'We have drawn ' ||
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
+                ELSE rec_game.score_left || '-' || rec_game.score_right
+            END ||
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_right_name;
+        text_message_right := 'We have drawn ' ||
+            CASE 
+                WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
+                ELSE rec_game.score_right || '-' || rec_game.score_left
+            END ||
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_left_name;
+
     END IF;
 
     ------ Update league position for specific games
@@ -68,7 +114,7 @@ BEGIN
     IF rec_game.id_games_description = 212 THEN
 
         -- Left club won
-        IF rec_game.score_diff > 0 THEN
+        IF rec_game.score_diff_total > 0 THEN
             
 RAISE NOTICE '*** 1A: Left Club % (from league= %) won the game % (type= 212) and will be promoted to league: %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.id_league;
 RAISE NOTICE '*** 1A: Right Club % (from league= %) lost the game % (type= 212) and will play barrage game against 5th of upper league', rec_game.id_club_right, rec_game.club_right_league, rec_game.id;
@@ -88,17 +134,17 @@ RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %
             WHERE id = (SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6);
 
             -- Send messages
-            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role) 
+            text_title_left := text_title_left || ': BARRAGE1 Victory => PROMOTION to upper league';
+            text_title_right := text_title_right || ': BARRAGE1 Defeat => BARRAGE 2 to get promotion';
+            text_message_left := text_message_left || '. This victory in the BARRAGE 1 means that we will be playing in the upper league next season. Congratulations to you and all the players, it''s time to party !';
+            text_message_right := text_message_right || '. This defeat in the BARRAGE 1 means that we will have to play the BARRAGE 2 to get promoted to the upper league next season. We can do it, let''s go !';
+
+            -- Send message to the club who finished 6th of the upper league to say the league where is being demoted
+            INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message) 
             VALUES
-                (rec_game.id_club_left, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1: Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name,
-                'We did it! Our Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name || ' will make us play in the upper league next season. Congratulations', 'Coach'),
-                (rec_game.id_club_right, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1: Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name,
-                'So sorry! The defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name || ' will make us play the second barrage if we want to be promoted this season', 'Coach'),
-                ((SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), rec_game.date_end, 
+                ((SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), rec_game.date_end, 'Coach',
                 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1 Played: Next season we will play in league ' || rec_game.id_league_club_left,
-                'The Club ' || rec_game.club_left_name || ' won the barrage 1 ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name || '. Next season we will play in league ' || rec_game.id_league_club_left, 'Coach');
+                'The Club ' || rec_game.club_left_name || ' won the barrage 1 ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name || '. Next season we will play in league ' || rec_game.id_league_club_left);
 
         -- Right club won
         ELSE
@@ -120,21 +166,21 @@ RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %
             WHERE id = (SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6);
 
             -- Send messages
-            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role) 
+            text_title_right := text_title_right || ': BARRAGE1 Victory => PROMOTION to upper league';
+            text_title_left := text_title_left || ': BARRAGE1 Defeat => BARRAGE 2 to get promotion';
+            text_message_right := text_message_right || '. This victory in the BARRAGE 1 means that we will be playing in the upper league next season. Congratulations to you and all the players, it''s time to party !';
+            text_message_left := text_message_left || '. This defeat in the BARRAGE 1 means that we will have to play the BARRAGE 2 to get promoted to the upper league next season. We can do it, let''s go !';
+
+            -- Send messages
+            INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message) 
             VALUES
-                (rec_game.id_club_right, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1: Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name,
-                'We did it! Our Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name || ' will make us play in the upper league next season. Congratulations', 'Coach'),
-                (rec_game.id_club_left, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1: Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name,
-                'So sorry! The defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name || ' will make us play the second barrage if we want to be promoted this season', 'Coach'),
-                ((SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), rec_game.date_end, 
+                ((SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), rec_game.date_end, 'Coach',
                 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1 Played: Next season we will play in league ' || rec_game.id_league_club_right,
-                'The Club ' || rec_game.club_right_name || ' won the barrage 1 ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name || '. Next season we will play in league ' || rec_game.id_league_club_right, 'Coach');
+                'The Club ' || rec_game.club_right_name || ' won the barrage 1 ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name || '. Next season we will play in league ' || rec_game.id_league_club_right);
 
         END IF; --End right club won
 
-    -- 4th and final game of the barrage 1 (week 14) between 5th of the upper league and loser of the barrage 1
+    -- 4th and final game of the barrage 2 (week 14) between 5th of the upper league and loser of the barrage 1
     ELSEIF rec_game.id_games_description = 214 THEN
         
         -- Left club (5th of upper league) won so both clubs stay in their league
@@ -144,14 +190,10 @@ RAISE NOTICE '*** 2A: Left Club % (from league= %) won the game % (type= 214) an
 RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will stay in current league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_right_league;
 
             -- Send messages
-            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role) 
-            VALUES
-                (rec_game.id_club_left, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1: Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name,
-                'We made it ! Our Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name || ' saved our season and we will stay in this league', 'Coach'),
-                (rec_game.id_club_right, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1: Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name,
-                'What a disapointment ! The defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name || ' ruined our possibilities of going up, we will stay in our current league next season, but dont give up, we can make it', 'Coach');
+            text_title_left := text_title_left || ': BARRAGE2 Victory => We avoided relegation';
+            text_title_right := text_title_right || ': BARRAGE2 Defeat => We failed to get promoted';
+            text_message_left := text_message_left || '. This victory in the 2nd barrage means that we avoided relegation in a lower league. Congratulations to you and all the players, what a relief !';
+            text_message_right := text_message_right || '. This defeat in the 2nd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
 
         -- Right club (loser of barrage 1) won so he is promoted to the league of the 5th of the upper league
         ELSE
@@ -172,18 +214,14 @@ RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will 
             WHERE id = rec_game.id_club_right;
 
             -- Send messages
-            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role) 
-            VALUES
-                (rec_game.id_club_left, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1: Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name,
-                'Sorry boss ! The defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name || ' means that we will be demoted for the next season to the lower league ' || rec_game.club_right_league, 'Coach'),
-                (rec_game.id_club_right, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 1: Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name,
-                'We did it ! Our victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name || ' means that next season we will be playing in the upper league ' || rec_game.club_left_league, 'Coach');
+            text_title_left := text_title_left || ': BARRAGE2 Defeat => We are demoted...';
+            text_title_right := text_title_right || ': BARRAGE2 Victory => We are promoted !';
+            text_message_left := text_message_left || '. This defeat in the 2nd barrage means that we are relegated to a lower league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_right := text_message_right || '. This victory in the 2nd barrage means that we are promoted to the upper league next season. Congratulations to you and all the players, we made it !';
 
         END IF;
 
-    -- Return game of the barrage 2 (week 14) between the 4th of the upper league and the winner of the 2nd round of the barrage 2
+    -- Return game of the barrage 3 (week 14) between the 4th of the upper league and the winner of the 2nd round of the barrage 3
     ELSEIF rec_game.id_games_description = 332 THEN
         -- Left club (4th of upper league) won, both clubs stay in their league
         IF rec_game.score_diff > 0 THEN
@@ -192,16 +230,12 @@ RAISE NOTICE '*** 3A: Left Club % (from league= %) won the game % (type= 214) an
 RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will stay in current league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_right_league;
 
             -- Send messages
-            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role) 
-            VALUES
-                (rec_game.id_club_left, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 2: Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name,
-                'We made it ! Our Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name || ' saved our season and we will stay in this league', 'Coach'),
-                (rec_game.id_club_right, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 2: Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name,
-                'What a disapointment ! The defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name || ' ruined our possibilities of going up, we will stay in our current league next season, but dont give up, we can make it', 'Coach');
+            text_title_left := text_title_left || ': BARRAGE3 Victory => We avoided relegation';
+            text_title_right := text_title_right || ': BARRAGE3 Defeat => We failed to get promoted';
+            text_message_left := text_message_left || '. This victory in the 3rd barrage means that we avoided relegation in a lower league. Congratulations to you and all the players, what a relief !';
+            text_message_right := text_message_right || '. This defeat in the 3rd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
 
-        -- Right club (winner of the second round of the barrage 2) won
+        -- Right club (winner of the 2nd round of the barrage 2) won
         ELSE
 
 RAISE NOTICE '*** 3B: Left Club % (from league= %) lost the game % (type= 214) and will be demoted to league %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.club_right_league;
@@ -222,45 +256,63 @@ RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will 
             WHERE id = rec_game.id_club_right;
 
             -- Send messages
-            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role) 
-            VALUES
-                (rec_game.id_club_left, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 2: Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name,
-                'What a disapointment ! The defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name || ' means that we are demoted to the league ' || rec_game.club_right_league, 'Coach'),
-                (rec_game.id_club_right, rec_game.date_end, 
-                'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Barrage 2: Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name,
-                'We made it ! Our Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name || ' means that we are promoted to the upper league ' || rec_game.club_left_league, 'Coach');
+            text_title_left := text_title_left || ': BARRAGE3 Defeat => We are demoted...';
+            text_title_right := text_title_right || ': BARRAGE3 Victory => We are promoted !';
+            text_message_left := text_message_left || '. This defeat in the 3rd barrage means that we are relegated to a lower league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_right := text_message_right || '. This victory in the 3rd barrage means that we are promoted to the upper league next season. Congratulations to you and all the players, we made it !';
 
-        END IF;
+        END IF; -- End right club won
+    END IF; -- End of the barrage games
 
-    ------ Normal games
-    ELSE
-        INSERT INTO messages_mail (id_club_to, title, message, sender_role) 
-        VALUES
-            (rec_game.id_club_left, 
-             CASE 
-                WHEN rec_game.score_diff > 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name
-                WHEN rec_game.score_diff < 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name
-                ELSE 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Draw ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name
-             END,
-             CASE 
-                WHEN rec_game.score_diff > 0 THEN 'Great news! We have won the game against ' || rec_game.club_right_name || ' with ' || rec_game.score_left || '-' || rec_game.score_right
-                WHEN rec_game.score_diff < 0 THEN 'Unfortunately we have lost the game against ' || rec_game.club_right_name || ' with ' || rec_game.score_left || '-' || rec_game.score_right
-                ELSE 'We drew the game against ' || rec_game.club_right_name || ' with ' || rec_game.score_left || '-' || rec_game.score_right
-             END,
-             'Coach'),
-            (rec_game.id_club_right, 
-             CASE 
-                WHEN rec_game.score_diff > 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Defeat ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name
-                WHEN rec_game.score_diff < 0 THEN 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Victory ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_left_name
-                ELSE 'S' || rec_game.season_number || 'W' || rec_game.week_number || ' Draw ' || rec_game.score_left || '-' || rec_game.score_right || ' against ' || rec_game.club_right_name
-             END,
-             CASE 
-                WHEN rec_game.score_diff > 0 THEN 'Unfortunately we have lost the game against ' || rec_game.club_left_name || '. The score was ' || rec_game.score_left || '-' || rec_game.score_right
-                WHEN rec_game.score_diff < 0 THEN 'Great news! We have won the game against ' || rec_game.club_left_name || '. The score was ' || rec_game.score_left || '-' || rec_game.score_right
-                ELSE 'We drew the game against ' || rec_game.club_left_name || ' with ' || rec_game.score_left || '-' || rec_game.score_right
-             END,
-             'Coach');
+    ------ Send messages
+    INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
+    VALUES
+        (rec_game.id_club_left, rec_game.date_end, 'Coach', text_title_left, text_message_left),
+        (rec_game.id_club_right, rec_game.date_end, 'Coach', text_title_right, text_message_right);
+
+    ------ Set the game as played
+    UPDATE games SET
+        is_playing = FALSE
+    WHERE id = rec_game.id;
+
+    ------ Update player to say they are not playing anymore
+    UPDATE players SET
+        is_playing = FALSE
+    WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
+
+    ------ Update clubs results
+    UPDATE clubs SET
+        lis_last_results = lis_last_results || 
+            CASE 
+                WHEN rec_game.score_diff > 0 THEN CASE WHEN id = rec_game.id_club_left THEN 3 ELSE 0 END
+                WHEN rec_game.score_diff < 0 THEN CASE WHEN id = rec_game.id_club_right THEN 3 ELSE 0 END
+                ELSE 1
+            END
+    WHERE id IN (rec_game.id_club_left, rec_game.id_club_right);
+
+    ------ Update the league points for games before week 10
+    IF rec_game.week_number <= 10 THEN
+        UPDATE clubs SET
+            league_points = league_points + 
+                CASE 
+                    WHEN rec_game.score_diff > 0 THEN 3
+                    WHEN rec_game.score_diff < 0 THEN 0
+                    ELSE 1
+                END,
+            league_goals_for = league_goals_for + CASE WHEN rec_game.score_left = -1 THEN 0 ELSE rec_game.score_left END,
+            league_goals_against = league_goals_against + CASE WHEN rec_game.score_right = -1 THEN 0 ELSE rec_game.score_right END
+        WHERE id = rec_game.id_club_left;
+
+        UPDATE clubs SET
+            league_points = league_points + 
+                CASE 
+                    WHEN rec_game.score_diff > 0 THEN 0
+                    WHEN rec_game.score_diff < 0 THEN 3
+                    ELSE 1
+                END,
+            league_goals_for = league_goals_for + CASE WHEN rec_game.score_right = -1 THEN 0 ELSE rec_game.score_right END,
+            league_goals_against = league_goals_against + CASE WHEN rec_game.score_left = -1 THEN 0 ELSE rec_game.score_left END
+        WHERE id = rec_game.id_club_right;
     END IF;
 
 END;
