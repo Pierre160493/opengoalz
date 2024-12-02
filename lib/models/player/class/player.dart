@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/player/player_dialog_training_coef.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
@@ -49,7 +50,8 @@ class Player {
     required this.expensesExpected,
     required this.expensesPayed,
     required this.expensesMissed,
-    required this.trainingPoints,
+    required this.trainingPointsUsed,
+    required this.trainingCoef,
     required this.keeper,
     required this.defense,
     required this.playmaking,
@@ -83,7 +85,8 @@ class Player {
   final int expensesExpected;
   final int expensesPayed;
   final int expensesMissed;
-  final double trainingPoints;
+  final double trainingPointsUsed;
+  final List<int> trainingCoef;
   final double keeper;
   final double defense;
   final double playmaking;
@@ -117,7 +120,8 @@ class Player {
         expensesExpected = map['expenses_expected'],
         expensesPayed = map['expenses_payed'],
         expensesMissed = map['expenses_missed'],
-        trainingPoints = (map['training_points'] as num).toDouble(),
+        trainingPointsUsed = (map['training_points_used'] as num).toDouble(),
+        trainingCoef = List<int>.from(map['training_coef']),
         keeper = (map['keeper'] as num).toDouble(),
         defense = (map['defense'] as num).toDouble(),
         playmaking = (map['playmaking'] as num).toDouble(),
@@ -186,8 +190,8 @@ class Player {
         return expensesPayed;
       case 'expensesMissed':
         return expensesMissed;
-      case 'trainingPoints':
-        return trainingPoints;
+      case 'trainingPointsUsed':
+        return trainingPointsUsed;
       case 'keeper':
         return keeper;
       case 'defense':
@@ -221,5 +225,9 @@ class Player {
       default:
         throw ArgumentError('Property not found');
     }
+  }
+
+  String getFullName() {
+    return '$firstName ${lastName.toUpperCase()} ${surName != null ? '${surName!}' : ''}';
   }
 }

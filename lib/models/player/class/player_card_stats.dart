@@ -23,132 +23,20 @@ extension PlayerCardStats on Player {
               size: iconSizeMedium,
               color: Colors.green,
             ),
-            title: Text('Training points: ${trainingPoints.floor()}'),
+            title: Text(
+                'Points gained this season: ${trainingPointsUsed.floor()}'),
             subtitle: Text(
               'Gain training points thanks to the staff',
               style: styleItalicBlueGrey,
             ),
-            trailing: trainingPoints >= 1
-                ? InkWell(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return StatefulBuilder(
-                            builder: (context, setState) {
-                              return AlertDialog(
-                                title: ListTile(
-                                  // leading: Icon(
-                                  //   Icons.query_stats,
-                                  //   color: Colors.green,
-                                  // ),
-                                  title: Row(
-                                    children: [
-                                      Icon(Icons.query_stats,
-                                          color: Colors.green),
-                                      Text(
-                                          'Which stat do you wish to increase ?'),
-                                    ],
-                                  ),
-                                  subtitle: Text(
-                                      'You have ${trainingPoints.floor()} training points'),
-                                ),
-                                content: SingleChildScrollView(
-                                  child: ListBody(
-                                    children: [
-                                      for (var entry in {
-                                        'keeper': keeper,
-                                        'defense': defense,
-                                        'playmaking': playmaking,
-                                        'passes': passes,
-                                        'winger': winger,
-                                        'scoring': scoring,
-                                        'freekick': freekick,
-                                      }.entries)
-                                        ListTile(
-                                          // leading: Icon(Icons.query_stats),
-                                          title: Row(
-                                            children: [
-                                              Icon(Icons.query_stats),
-                                              Text(
-                                                  '${entry.key[0].toUpperCase()}${entry.key.substring(1)}'),
-                                            ],
-                                          ),
-                                          subtitle: Text(
-                                              'Current value: ${entry.value.toStringAsFixed(1)}',
-                                              style: styleItalicBlueGrey),
-                                          trailing: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                icon: Icon(
-                                                    Icons.exposure_plus_1,
-                                                    color: Colors.green),
-                                                onPressed: () => updateStat(
-                                                    context,
-                                                    entry.key,
-                                                    entry.value,
-                                                    1),
-                                              ),
-                                              IconButton(
-                                                icon: Icon(Icons.filter_5,
-                                                    color: Colors.green),
-                                                onPressed: () => updateStat(
-                                                    context,
-                                                    entry.key,
-                                                    entry.value,
-                                                    5),
-                                              ),
-                                              // IconButton(
-                                              //   icon: Icon(
-                                              //       Icons.exposure_plus_10,
-                                              //       color: Colors.green),
-                                              //   onPressed: () => updateStat(
-                                              //       context,
-                                              //       entry.key,
-                                              //       entry.value,
-                                              //       10),
-                                              // ),
-                                              // IconButton(
-                                              //   icon: Icon(Icons.exposure,
-                                              //       color: Colors.green),
-                                              //   onPressed: () => updateStat(
-                                              //       context,
-                                              //       entry.key,
-                                              //       entry.value,
-                                              //       100 - entry.value),
-                                              // ),
-                                            ],
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('Close'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      );
-                    },
-                    child: Icon(
-                      Icons.switch_access_shortcut_add,
-                      size: iconSizeMedium,
-                      color: Colors.green,
-                    ),
-                  )
-                : Icon(
-                    Icons.switch_access_shortcut_add,
-                    size: iconSizeMedium,
-                    color: Colors.red,
-                  ),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return PlayerTrainingDialog(player: this);
+                },
+              );
+            },
           ),
           getStatLinearWidget('Motivation', motivation, context),
           getStatLinearWidget('Form', form, context),
@@ -186,7 +74,7 @@ extension PlayerCardStats on Player {
         'players',
         data: {
           stat: newValue,
-          'training_points': max(0, trainingPoints - increment),
+          'training_points': max(0, trainingPointsUsed - increment),
         },
         matchCriteria: {'id': id},
       );

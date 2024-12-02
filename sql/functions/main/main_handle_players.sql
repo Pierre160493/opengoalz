@@ -83,76 +83,93 @@ BEGIN
         END IF;
     END LOOP;
 
-    ------ Update players training points based on the staff weight of the club
+    ------ Update players stats based on the training points
     WITH player_data AS (
         SELECT 
-            players.id AS player_id,
-            players_calculate_age(inp_multiverse.speed, players.date_birth) AS age,
-            COALESCE(clubs.staff_weight, 0.25) AS staff_weight
+            players.id, -- Player's id
+            players_calculate_age(inp_multiverse.speed, players.date_birth) AS age, -- Player's age
+            training_points_available, -- Initial training points
+            training_coef, -- Array of coef for each stat
+            COALESCE(clubs.staff_weight, 1000) AS staff_weight, -- Staff weight of the club
+            (COALESCE(clubs.staff_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
+            SUM(coef) AS sum_training_coef -- Sum of the training_coef array
         FROM players
-        LEFT JOIN clubs ON clubs.id = players.id_club
-        JOIN multiverses ON players.id_multiverse = multiverses.id
-        WHERE multiverses.id = inp_multiverse.id
+        LEFT JOIN clubs ON clubs.id = players.id_club,
+        LATERAL UNNEST(training_coef) AS coef
+        GROUP BY players.id, training_points_available, training_coef, clubs.staff_weight
+    ), player_data2 AS (
+        SELECT 
+            id, -- Player's id
+            training_points_available + 3 * (0.5 + 0.5 * staff_coef) * (
+                CASE
+                    WHEN player_data.age <= 15 THEN 1.25
+                    WHEN player_data.age <= 25 THEN  
+                        1.25 - ((player_data.age - 15) / 10) * 0.5
+                    ELSE 
+                        0.75 - ((player_data.age - 25) / 5) * 0.75
+                END
+            ) AS updated_training_points_available, -- Updated training points based on age and staff weight
+            training_coef, -- Array of coef for each stat
+            staff_weight, -- Staff weight of the club
+            staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
+            sum_training_coef, -- Sum of the training_coef array
+            ARRAY(
+                SELECT (1 - staff_coef) + CASE WHEN sum_training_coef = 0 THEN 1.0 ELSE coef / sum_training_coef END
+                FROM UNNEST(training_coef) AS coef
+            ) AS updated_training_coef -- Updated training_coef array
+        FROM player_data
+    ), player_data3 AS (
+        SELECT 
+            id,
+            updated_training_points_available,
+            training_coef,
+            staff_weight,
+            staff_coef,
+            sum_training_coef,
+            updated_training_coef,
+            (SELECT SUM(value) FROM UNNEST(updated_training_coef) AS value) AS total_sum
+        FROM player_data2
+    ), final_data AS (
+        SELECT 
+            id,
+            updated_training_points_available,
+            training_coef,
+            staff_weight,
+            staff_coef,
+            sum_training_coef,
+            updated_training_coef,
+            total_sum,
+            -- Normalize the array so its elements sum to 1
+            ARRAY(
+                SELECT value / total_sum
+                FROM UNNEST(updated_training_coef) AS value
+            ) AS normalized_training_coef
+        FROM player_data3
     )
-
-    ------ Calculate the training points based on staff weight and player's age
     UPDATE players SET
-        training_points = training_points + 3 * (
-        CASE
-            WHEN player_data.staff_weight <= 1000 THEN 0.25 + (player_data.staff_weight / 1000) * 0.5
-            WHEN player_data.staff_weight <= 5000 THEN 0.75 + ((player_data.staff_weight - 1000) / 4000) * 0.25
-            ELSE 1
-        END
-    ) * (
-        CASE
-            WHEN player_data.age <= 15 THEN 1.25
-            WHEN player_data.age <= 25 THEN 
-                1.25 - ((player_data.age - 15) / 10) * 0.5
-            ELSE 
-                0.75 - ((player_data.age - 25) / 5) * 0.75
-        END
-    )
-    FROM player_data
-    WHERE players.id = player_data.player_id;
-
-    ------ Lower players stats that have negative training points
-    UPDATE players
-        SET 
-            keeper = CASE 
-                        WHEN random() < 1.0/7 THEN GREATEST(keeper - 1, 0) 
-                        ELSE keeper END,
-            defense = CASE 
-                        WHEN random() < 1.0/7 THEN GREATEST(defense - 1, 0) 
-                        ELSE defense END,
-            passes = CASE 
-                        WHEN random() < 1.0/7 THEN GREATEST(passes - 1, 0) 
-                        ELSE passes END,
-            playmaking = CASE 
-                        WHEN random() < 1.0/7 THEN GREATEST(playmaking - 1, 0)
-                        ELSE playmaking END,
-            winger = CASE 
-                        WHEN random() < 1.0/7 THEN GREATEST(winger - 1, 0) 
-                        ELSE winger END,
-            scoring = CASE 
-                        WHEN random() < 1.0/7 THEN GREATEST(scoring - 1, 0) 
-                        ELSE scoring END,
-            freekick = CASE 
-                        WHEN random() < 1.0/7 THEN GREATEST(freekick - 1, 0) 
-                        ELSE freekick END,
-            training_points = training_points + 1
-        WHERE training_points < -1;
+        keeper = keeper + updated_training_points_available * normalized_training_coef[1],
+        defense = defense + updated_training_points_available * normalized_training_coef[2],
+        passes = passes + updated_training_points_available * normalized_training_coef[3],
+        playmaking = playmaking + updated_training_points_available * normalized_training_coef[4],
+        winger = winger + updated_training_points_available * normalized_training_coef[5],
+        scoring = scoring + updated_training_points_available * normalized_training_coef[6],
+        freekick = freekick + updated_training_points_available * normalized_training_coef[7],
+        training_points_available = 0,
+        training_points_used = training_points_used + updated_training_points_available
+    FROM final_data
+    WHERE players.id = final_data.id;
 
     ------ Store player's stats in the history
     INSERT INTO players_history_stats
         (created_at, id_player, performance_score,
         expenses_payed, expenses_expected, expenses_missed,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, experience)
+        motivation, form, stamina, experience, training_points_used)
     SELECT
         multiverse_now, id, performance_score,
         expenses_payed, expenses_expected, expenses_missed,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, experience
+        motivation, form, stamina, experience, training_points_used
     FROM players
     WHERE id_multiverse = inp_multiverse.id;
 
