@@ -63,28 +63,4 @@ extension PlayerCardStats on Player {
       ),
     );
   }
-
-  void updateStat(BuildContext context, String stat, double currentValue,
-      double increment) async {
-    if (currentValue < 100) {
-      double newValue = min(currentValue + increment, 100);
-      bool isOK = await operationInDB(
-        context,
-        'UPDATE',
-        'players',
-        data: {
-          stat: newValue,
-          'training_points': max(0, trainingPointsUsed - increment),
-        },
-        matchCriteria: {'id': id},
-      );
-      if (isOK) {
-        context.showSnackBarSuccess(
-            'Successfully updated player $stat stat! Hooray!');
-        Navigator.of(context).pop();
-      }
-    } else {
-      context.showSnackBarError('Stat $stat is already at maximum value!');
-    }
-  }
 }

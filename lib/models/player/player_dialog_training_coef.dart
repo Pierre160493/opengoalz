@@ -1,7 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 
 class PlayerTrainingDialog extends StatefulWidget {
   final Player player;
@@ -40,6 +43,9 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
 
   List<double> _calculateRatio(List<int> trainingCoef) {
     int totalWeight = trainingCoef.reduce((a, b) => a + b);
+    if (totalWeight == 0) {
+      return List.filled(trainingCoef.length, 0.0);
+    }
     return trainingCoef.map((value) => value / totalWeight).toList();
   }
 
@@ -209,8 +215,18 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
             /// Save button
             TextButton(
               onPressed: _isModified
-                  ? () {
-                      print(trainingCoefNew);
+                  ? () async {
+                      bool isOK = await operationInDB(
+                          context, 'UPDATE', 'players',
+                          data: {'training_coef': trainingCoefNew},
+                          matchCriteria: {'id': widget.player.id});
+                      if (isOK) {
+                        context.showSnackBar(
+                            'Successfully updated the training coefficients for ${widget.player.getFullName()}',
+                            icon: Icon(iconSuccessfulOperation,
+                                color: Colors.green));
+                      }
+                      Navigator.of(context).pop();
                     }
                   : null,
               child: Row(

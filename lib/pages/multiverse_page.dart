@@ -322,7 +322,10 @@ class _MultiversePageState extends State<MultiversePage> {
               )
             ],
           ),
-          subtitle: Text('Days per season: ${14 * 7 / multiverse.speed}',
+          subtitle: Text(
+              multiverse.speed < 7
+                  ? 'Games per week: ${multiverse.speed}'
+                  : 'Games per day ${multiverse.speed / 7}',
               style: styleItalicBlueGrey),
         ),
         ListTile(
@@ -333,7 +336,7 @@ class _MultiversePageState extends State<MultiversePage> {
         ListTile(
           leading: Icon(Icons.date_range),
           title: Text(
-              'From ${DateFormat('MMM dd').format(multiverse.dateSeasonStart)} to ${DateFormat('MMM dd').format(multiverse.dateSeasonEnd)}'),
+              'From ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonStart)} to ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonEnd)}'),
           subtitle: Text(
               // 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} days with ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays * multiverse.speed / 7} games left',
               'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} days',
