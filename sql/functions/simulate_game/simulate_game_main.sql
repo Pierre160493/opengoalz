@@ -10,8 +10,10 @@ DECLARE
     loc_array_players_id_right int8[21]; -- Array of players id for 21 slots of players
     loc_array_substitutes_left int8[21] := ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; -- Array for storing substitutions
     loc_array_substitutes_right int8[21] := ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; -- Array for storing substitutions
-    loc_matrix_player_stats_left float8[21][7]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick}]
-    loc_matrix_player_stats_right float8[21][7]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick}]
+    loc_matrix_player_stats_left float8[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
+    loc_matrix_player_stats_right float8[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
+    loc_matrix_player_weights_left float8[14][7]; -- Matrix to hold player weights [14 players x {left defense, central defense, right defense, midfield, left attack, central attack, right attack}]
+    loc_matrix_player_weights_right float8[14][7]; -- Matrix to hold player weights [14 players x {left defense, central defense, right defense, midfield, left attack, central attack, right attack}]
     loc_array_team_weights_left float8[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
     loc_array_team_weights_right float8[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
     loc_period_game int; -- The period of the game (e.g., first half, second half, extra time)
@@ -30,7 +32,6 @@ DECLARE
     minutes_extra_time int8 := 15; -- 15
     penalty_number int8; -- The number of penalties
     context game_context; -- Game context
-    teamcomp_text TEXT;
 BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -110,7 +111,7 @@ BEGIN
             loc_score_right := -1;
     END;
 
-RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_left, loc_score_left, loc_score_right, rec_game.id_club_right;
+-- RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_left, loc_score_left, loc_score_right, rec_game.id_club_right;
 
     ------ If one of the clubs is forfeit
     IF loc_score_left = -1 OR loc_score_right = -1 THEN
@@ -237,8 +238,8 @@ RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_lef
 
             ------ Cheat CODE to calculate only once
             ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
-            loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
-            loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
+            --loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
+            --loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
 
             ------ Calculate the events of the game with one event every minute
             FOR loc_minute_game IN loc_minute_period_start..loc_minute_period_end + loc_minute_period_extra_time LOOP
@@ -268,9 +269,9 @@ RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_lef
                     score := loc_score_right - loc_score_left,
                     game := rec_game);
 
-/*                ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+                ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
                 loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
-                loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);*/
+                loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
 
                 ------ Set the game context
                 context := ROW(
@@ -294,6 +295,22 @@ RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_lef
                     inp_score_left := loc_score_left,
                     inp_score_right := loc_score_right
                 );
+
+                ------ Reduce the players energy
+                FOR I IN 1..14 LOOP
+                    IF loc_array_players_id_left[loc_array_substitutes_left[I]] IS NOT NULL THEN
+                        loc_matrix_player_stats_left[I][9] := GREATEST(0,
+                            loc_matrix_player_stats_left[loc_array_substitutes_left[I]][9] - 1 + loc_matrix_player_stats_left[loc_array_substitutes_left[I]][10] / 200.0);
+                    END IF;
+                    IF loc_array_players_id_right[loc_array_substitutes_right[I]] IS NOT NULL THEN
+                        loc_matrix_player_stats_right[I][9] := GREATEST(0,
+                            loc_matrix_player_stats_right[loc_array_substitutes_right[I]][9] - 1 + loc_matrix_player_stats_right[loc_array_substitutes_right[I]][10] / 200.0);
+                    END IF;
+                END LOOP;
+
+                ------ Insert a new row in the game_stats table
+                INSERT INTO games_stats (id_game, period, minute, extra_time, weights_left, weights_right)
+                VALUES (rec_game.id, loc_period_game, loc_minute_game, loc_minute_period_extra_time, loc_array_team_weights_left, loc_array_team_weights_right);
 
             END LOOP; -- End loop on the minutes of the game
 

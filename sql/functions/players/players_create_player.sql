@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION public.players_create_player(
     inp_id_club bigint,
     inp_id_country bigint,
     inp_stats double precision[],
-    inp_age double precision DEFAULT NULL::double precision,
+    inp_age double precision,
     inp_shirt_number bigint DEFAULT NULL::bigint,
     inp_notes text DEFAULT NULL::text)
  RETURNS bigint
@@ -21,13 +21,13 @@ BEGIN
     ------ Create player
     INSERT INTO players (
         id_multiverse, id_club, id_country,
-        date_birth,
+        date_birth, experience,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         training_coef,
         notes, shirt_number
     ) VALUES (
         inp_id_multiverse, inp_id_club, inp_id_country,
-        players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age),
+        players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age), 3.0 * (inp_age - 15.0),
         inp_stats[1], inp_stats[2], inp_stats[3], inp_stats[4], inp_stats[5], inp_stats[6], inp_stats[7],
         ARRAY[
             FLOOR(inp_stats[1]),

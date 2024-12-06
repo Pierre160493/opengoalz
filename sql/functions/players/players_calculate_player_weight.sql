@@ -23,6 +23,7 @@ DECLARE
       {{0,0.025,0,0,0,0},{0,0.05,0,0,0,0},{0,0.025,0,0,0,0},{0,0,0.05,0.2,0,0},{0,0,0.05,0,0.05,0.05},{0,0,0.05,0,0.1,0.2},{0,0,0.05,0,0.05,0.05}},
       {{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0.1,0,0,0,0},{0,0,0.05,0.2,0,0},{0,0,0,0,0,0},{0,0,0.05,0,0.05,0.3},{0,0,0.1,0,0.05,0.1}}}';
     player_weight float8[7] := '{0,0,0,0,0,0,0}'; -- Array to hold player weights on the team (LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+    player_coef float4; -- Coefficient of the player stats
 BEGIN
 
     -- Check if the position is between 1 and 14
@@ -30,35 +31,19 @@ BEGIN
         RAISE EXCEPTION 'Position must be between 1 and 14';
     END IF;
 
-    ------ If inp_player_stats is null, raise an exception
-    IF array_length(inp_player_stats, 1) IS NULL THEN
-        RAISE EXCEPTION 'inp_player_stats must be an array of 6 elements';
-    ------ If inp_player_stats is is an array of 6 elements, calculate the player weight for game (array of 7 elements[LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack])
-    ELSEIF array_length(inp_player_stats, 1) = 6 THEN
+    -- Calculate the coefficient of the player stats (motiation, form, experiennce, energy)
+    player_coef := 1 + ((inp_player_stats[8] + inp_player_stats[9] + inp_player_stats[10] + inp_player_stats[12]) / 400.0);
 
-        -- Loop through the 7 team stats (LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
-        FOR I IN 1..7 LOOP
-            -- Loop through the 6 player stats (keeper, defense, passes, playmaking, winger, scoring, NO FREEKINK !)
-            FOR J IN 1..6 LOOP
-                player_weight[I] := player_weight[I] + inp_player_stats[J] * CoefMatrix[inp_position][I][J];
-            END LOOP;
+    -- Loop through the 7 team stats (LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+    FOR i IN 1..7 LOOP
+        -- Loop through the 6 player stats (keeper, defense, passes, playmaking, winger, scoring, NO FREEKINK !)
+        FOR j IN 1..6 LOOP
+            player_weight[i] := player_weight[i] + inp_player_stats[j] * CoefMatrix[inp_position][i][j];
         END LOOP;
 
-    ------ If inp_player_stats is is an array of 1 element, calculate the player weight for training (array of 7 elements[keeper, defense, passes, playmaking, winger, scoring, freekick])
-    ELSEIF array_length(inp_player_stats, 1) = 1 THEN
-
-        -- Loop through the 7 team stats (LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
-        FOR I IN 1..7 LOOP
-            -- Loop through the 6 player stats (keeper, defense, passes, playmaking, winger, scoring, NO FREEKINK !)
-            FOR J IN 1..6 LOOP
-                player_weight[J] := player_weight[J] + inp_player_stats[1] * CoefMatrix[inp_position][I][J];
-            END LOOP;
-        END LOOP;
-        player_weight[7] := 0.1 * inp_player_stats[1];
-RAISE NOTICE 'player_weight: % [SUM= %]', player_weight, array_sum(player_weight);
-    ELSE
-        RAISE EXCEPTION 'inp_player_stats [%] input is not valid', inp_player_stats;
-    END IF;
+        -- Add the coefficients of the player stats
+        player_weight[i] := player_weight[i] * player_coef;
+    END LOOP;
 
     RETURN player_weight;
 END;

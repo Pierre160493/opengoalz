@@ -23,7 +23,7 @@ extension PlayerExpensesHistory on Player {
 
   Widget getPlayerExpensesHistory(BuildContext context) {
     Stream<List<Map>> _expensesStream = supabase
-        .from('players_expenses')
+        .from('players_history_stats')
         .stream(primaryKey: ['id'])
         .eq('id_player', id)
         .order('created_at', ascending: true)
@@ -32,7 +32,7 @@ extension PlayerExpensesHistory on Player {
                   // 'id': map['id'],
                   'created_at': map['created_at'],
                   // 'id_player': map['id_player'],
-                  'expenses': map['expenses'],
+                  'expenses_expected': map['expenses_expected'],
                 })
             .toList());
 
@@ -51,7 +51,7 @@ extension PlayerExpensesHistory on Player {
         // Create a list of FlSpot
         final data = historyData.map((item) {
           final DateTime dateEvent = DateTime.parse(item['created_at']);
-          final double expenses = item['expenses'].toDouble();
+          final double expenses = item['expenses_expected'].toDouble();
           return FlSpot(dateEvent.millisecondsSinceEpoch.toDouble(), expenses);
         }).toList();
 
