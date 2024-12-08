@@ -147,13 +147,20 @@ BEGIN
         FROM player_data3
     )
     UPDATE players SET
-        keeper = keeper + updated_training_points_available * normalized_training_coef[1],
-        defense = defense + updated_training_points_available * normalized_training_coef[2],
-        passes = passes + updated_training_points_available * normalized_training_coef[3],
-        playmaking = playmaking + updated_training_points_available * normalized_training_coef[4],
-        winger = winger + updated_training_points_available * normalized_training_coef[5],
-        scoring = scoring + updated_training_points_available * normalized_training_coef[6],
-        freekick = freekick + updated_training_points_available * normalized_training_coef[7],
+        keeper = GREATEST(0,
+            keeper + updated_training_points_available * normalized_training_coef[1]),
+        defense = GREATEST(0,
+            defense + updated_training_points_available * normalized_training_coef[2]),
+        passes = GREATEST(0,
+            passes + updated_training_points_available * normalized_training_coef[3]),
+        playmaking = GREATEST(0,
+            playmaking + updated_training_points_available * normalized_training_coef[4]),
+        winger = GREATEST(0,
+            winger + updated_training_points_available * normalized_training_coef[5]),
+        scoring = GREATEST(0,
+            scoring + updated_training_points_available * normalized_training_coef[6]),
+        freekick = GREATEST(0,
+            freekick + updated_training_points_available * normalized_training_coef[7]),
         training_points_available = 0,
         training_points_used = training_points_used + updated_training_points_available
     FROM final_data

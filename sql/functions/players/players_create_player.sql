@@ -44,7 +44,8 @@ BEGIN
     PERFORM players_calculate_performance_score(inp_id_player := loc_new_player_id);
 
     ------ Log player history
-    INSERT INTO players_history (id_player, id_club, description) VALUES (loc_new_player_id, inp_id_club, 'Joined a club as a free player');
+    INSERT INTO players_history (id_player, id_club, description)
+    VALUES (loc_new_player_id, inp_id_club, 'Joined a club as a free player');
 
     ------ Store player's stats in the history
     INSERT INTO players_history_stats

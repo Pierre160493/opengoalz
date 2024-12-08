@@ -40,7 +40,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
     super.initState();
 
     _seasonNumber = widget.seasonNumber; // Initialize _seasonNumber here
-
+    print('widget.seasonNumber: ${widget.seasonNumber}');
     _loadClubStream();
   }
 

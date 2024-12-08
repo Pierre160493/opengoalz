@@ -8,14 +8,14 @@ DECLARE
     rec_game RECORD; -- Record of the game
     loc_array_players_id_left int8[21]; -- Array of players id for 21 slots of players
     loc_array_players_id_right int8[21]; -- Array of players id for 21 slots of players
-    loc_array_substitutes_left int8[21] := ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; -- Array for storing substitutions
-    loc_array_substitutes_right int8[21] := ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; -- Array for storing substitutions
-    loc_matrix_player_stats_left float8[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
-    loc_matrix_player_stats_right float8[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
-    loc_matrix_player_weights_left float8[14][7]; -- Matrix to hold player weights [14 players x {left defense, central defense, right defense, midfield, left attack, central attack, right attack}]
-    loc_matrix_player_weights_right float8[14][7]; -- Matrix to hold player weights [14 players x {left defense, central defense, right defense, midfield, left attack, central attack, right attack}]
-    loc_array_team_weights_left float8[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
-    loc_array_team_weights_right float8[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
+    loc_array_substitutes_left int4[21] := ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; -- Array for storing substitutions
+    loc_array_substitutes_right int4[21] := ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; -- Array for storing substitutions
+    loc_matrix_player_stats_left float4[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
+    loc_matrix_player_stats_right float4[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
+    loc_matrix_player_weights_left float4[14][7]; -- Matrix to hold player weights [14 players x {left defense, central defense, right defense, midfield, left attack, central attack, right attack}]
+    loc_matrix_player_weights_right float4[14][7]; -- Matrix to hold player weights [14 players x {left defense, central defense, right defense, midfield, left attack, central attack, right attack}]
+    loc_array_team_weights_left float4[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
+    loc_array_team_weights_right float4[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
     loc_period_game int; -- The period of the game (e.g., first half, second half, extra time)
     loc_minute_period_start int; -- The minute where the period starts
     loc_minute_period_end int := 0; -- The minute where the period ends
@@ -32,6 +32,7 @@ DECLARE
     minutes_extra_time int8 := 15; -- 15
     penalty_number int8; -- The number of penalties
     context game_context; -- Game context
+    index_player int; -- Index of the player
 BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -74,11 +75,6 @@ BEGIN
     UPDATE games_teamcomp SET
         is_played = TRUE
     WHERE id IN (rec_game.id_teamcomp_club_left, rec_game.id_teamcomp_club_right);
-
-    ------ Update player to say they are currently playing a game
-    UPDATE players SET
-        is_playing = TRUE
-    WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
 
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -166,6 +162,12 @@ BEGIN
         ------ Fetch players id of the club for this game
         loc_array_players_id_left := teamcomp_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
         loc_array_players_id_right := teamcomp_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
+
+            ------ Update player to say they are currently playing a game
+        UPDATE players SET
+            is_playing = TRUE
+        WHERE id = ANY(loc_array_players_id_left)
+           OR id = ANY(loc_array_players_id_right);
         
         ------ Fetch constant player stats matrix
         loc_matrix_player_stats_left := simulate_game_fetch_player_stats(loc_array_players_id_left);
@@ -277,6 +279,8 @@ BEGIN
                 context := ROW(
                     loc_array_players_id_left,
                     loc_array_players_id_right,
+                    loc_array_substitutes_left,
+                    loc_array_substitutes_right,
                     loc_matrix_player_stats_left,
                     loc_matrix_player_stats_right,
                     loc_array_team_weights_left,
@@ -296,21 +300,31 @@ BEGIN
                     inp_score_right := loc_score_right
                 );
 
-                ------ Reduce the players energy
-                FOR I IN 1..14 LOOP
-                    IF loc_array_players_id_left[loc_array_substitutes_left[I]] IS NOT NULL THEN
-                        loc_matrix_player_stats_left[I][9] := GREATEST(0,
-                            loc_matrix_player_stats_left[loc_array_substitutes_left[I]][9] - 1 + loc_matrix_player_stats_left[loc_array_substitutes_left[I]][10] / 200.0);
-                    END IF;
-                    IF loc_array_players_id_right[loc_array_substitutes_right[I]] IS NOT NULL THEN
-                        loc_matrix_player_stats_right[I][9] := GREATEST(0,
-                            loc_matrix_player_stats_right[loc_array_substitutes_right[I]][9] - 1 + loc_matrix_player_stats_right[loc_array_substitutes_right[I]][10] / 200.0);
-                    END IF;
-                END LOOP;
-
                 ------ Insert a new row in the game_stats table
                 INSERT INTO games_stats (id_game, period, minute, extra_time, weights_left, weights_right)
                 VALUES (rec_game.id, loc_period_game, loc_minute_game, loc_minute_period_extra_time, loc_array_team_weights_left, loc_array_team_weights_right);
+
+                ------ Update players stats
+                FOR I IN 1..14 LOOP
+                    index_player := loc_array_substitutes_left[I];
+                    IF loc_array_players_id_left[index_player] IS NOT NULL THEN
+                        ---- Reduce energy
+                        loc_matrix_player_stats_left[I][12] := GREATEST(0,
+                            loc_matrix_player_stats_left[index_player][12] - 1 + loc_matrix_player_stats_left[index_player][11] / 200.0);
+                        ---- Increase experience
+                        loc_matrix_player_stats_left[I][10] := LEAST(100,
+                            loc_matrix_player_stats_left[index_player][10] + 0.01);
+                    END IF;
+                    index_player := loc_array_substitutes_right[I];
+                    IF loc_array_players_id_right[index_player] IS NOT NULL THEN
+                        ---- Reduce energy
+                        loc_matrix_player_stats_right[I][12] := GREATEST(0,
+                            loc_matrix_player_stats_right[index_player][12] - 1 + loc_matrix_player_stats_right[index_player][11] / 200.0);
+                        ---- Increase experience
+                        loc_matrix_player_stats_right[I][10] := LEAST(100,
+                            loc_matrix_player_stats_right[index_player][10] + 0.01);
+                    END IF;
+                END LOOP;
 
             END LOOP; -- End loop on the minutes of the game
 
@@ -339,17 +353,35 @@ BEGIN
     END IF; -- End if the game needs to be simulated
 
     -- Update players experience and stats
-    PERFORM simulate_game_process_experience_gain(
-        inp_id_game :=  rec_game.id,
-        inp_list_players_id_left := loc_array_players_id_left,
-        inp_list_players_id_right := loc_array_players_id_right
-    );
-    
+    -- PERFORM simulate_game_process_experience_gain(
+    --     inp_id_game :=  rec_game.id,
+    --     inp_list_players_id_left := loc_array_players_id_left,
+    --     inp_list_players_id_right := loc_array_players_id_right
+    -- );
+
+    ------ Store the players stats
+    FOR I IN 1..21 LOOP
+        IF loc_array_players_id_left[I] IS NOT NULL THEN
+            UPDATE players SET
+                training_points_available = training_points_available + 5,
+                energy = loc_matrix_player_stats_left[I][12],
+                experience = loc_matrix_player_stats_left[I][10]
+            WHERE id = loc_array_players_id_left[I];
+        END IF;
+        IF loc_array_players_id_right[I] IS NOT NULL THEN
+            UPDATE players SET
+                training_points_available = training_points_available + 5,
+                energy = loc_matrix_player_stats_right[I][12],
+                experience = loc_matrix_player_stats_right[I][10]
+            WHERE id = loc_array_players_id_right[I];
+        END IF;
+    END LOOP;
+
     ------------ Store the results
     ------ Store the score
     UPDATE games SET
-        date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
-        --date_end = NOW(),
+        -- date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
+        date_end = NOW(),
         score_left = loc_score_left,
         score_right = loc_score_right,
         score_cumul_left = score_cumul_left + loc_score_left_previous + (loc_score_penalty_left / 1000.0)

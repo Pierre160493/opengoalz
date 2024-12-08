@@ -72,7 +72,8 @@ extension PlayerWidgetsActions on Player {
         TextEditingController(text: '0'); // Initialize with default value
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     DateTime selectedDate =
-        DateTime.now().add(Duration(days: 7)); // Default to now + 7 days
+        // DateTime.now().add(Duration(days: 7)); // Default to now + 7 days
+        DateTime.now().add(Duration(minutes: 5)); // Default to now + 7 days
     TimeOfDay selectedTime = TimeOfDay.now(); // Default to current time
 
     showDialog(
@@ -140,7 +141,7 @@ extension PlayerWidgetsActions on Player {
                   final DateTime? pickedDate = await showDatePicker(
                     context: context,
                     initialDate: selectedDate,
-                    firstDate: DateTime.now().add(Duration(days: 3)),
+                    firstDate: DateTime.now().add(Duration(minutes: 5)),
                     lastDate: DateTime.now().add(Duration(days: 14)),
                   );
                   if (pickedDate != null) {
@@ -195,28 +196,34 @@ extension PlayerWidgetsActions on Player {
                     return;
                   }
                   if (firePlayer) {
-                    minimumPrice = -1;
+                    minimumPrice = 0;
                   }
 
                   // Validate the selected date
-                  if (selectedDate
-                          .isBefore(DateTime.now().add(Duration(days: 3))) ||
+                  if (
+                      // selectedDate.isBefore(
+                      //       DateTime.now().add(Duration(minutes: 30))) ||
                       selectedDate
                           .isAfter(DateTime.now().add(Duration(days: 14)))) {
                     scaffoldMessenger.showSnackBar(
                       const SnackBar(
                         content: Text(
-                            'Please select a valid date between 3 and 14 days from now'),
+                            'Please select a valid date between XXX and 14 days from now'),
                       ),
                     );
                     return;
                   }
 
                   // Call the transfers_new_transfer function
-                  await supabase.rpc('transfers_new_transfer', params: {
+                  await supabase.rpc('transfers_handle_new_bid', params: {
                     'inp_id_player': id,
+                    'inp_id_club_bidder':
+                        Provider.of<SessionProvider>(context, listen: false)
+                            .user!
+                            .selectedClub
+                            ?.id,
                     'inp_amount': minimumPrice,
-                    'inp_date_bid_end': selectedDate.toIso8601String(),
+                    'inp_date_bid_end': selectedDate.toUtc().toIso8601String(),
                   });
 
                   context.showSnackBarSuccess(

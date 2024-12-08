@@ -1,17 +1,12 @@
--- Use the composite type in the function signature
-CREATE OR REPLACE FUNCTION public.simulate_game_minute(
-    rec_game RECORD,
-    context game_context,
-    inp_score_left int,
-    inp_score_right int
-) RETURNS TABLE (
-    loc_score_left int,
-    loc_score_right int
-) LANGUAGE plpgsql
-AS $$
+-- DROP FUNCTION public.simulate_game_minute(record, game_context, int4, int4);
+
+CREATE OR REPLACE FUNCTION public.simulate_game_minute(rec_game record, context game_context, inp_score_left integer, inp_score_right integer)
+ RETURNS TABLE(loc_score_left integer, loc_score_right integer)
+ LANGUAGE plpgsql
+AS $function$
 DECLARE
-    loc_goal_opportunity float8; -- Probability of opportunity
-    loc_team_left_goal_opportunity float8; -- Probability of left team opportunity
+    loc_goal_opportunity float4; -- Probability of opportunity
+    loc_team_left_goal_opportunity float4; -- Probability of left team opportunity
     is_goal boolean;
     loc_score_left int := inp_score_left;
     loc_score_right int := inp_score_right;
@@ -47,4 +42,5 @@ BEGIN
 
     RETURN QUERY SELECT loc_score_left, loc_score_right;
 END;
-$$;
+$function$
+;

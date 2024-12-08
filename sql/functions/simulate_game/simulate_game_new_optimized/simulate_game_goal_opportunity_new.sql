@@ -1,23 +1,26 @@
--- DROP FUNCTION public.simulate_game_goal_opportunity(record, game_context, bool);
+-- DROP FUNCTION public.simulate_game_goal_opportunity(int8, _float8, _float8, _int8, _int8, _float8, _float8);
 
-CREATE OR REPLACE FUNCTION public.simulate_game_goal_opportunity(rec_game record, context game_context, is_left_club boolean)
- RETURNS TABLE(is_goal boolean)
- LANGUAGE plpgsql
+CREATE OR REPLACE FUNCTION public.simulate_game_goal_opportunity_new(
+    rec_game RECORD,
+    rec_team_attack RECORD,
+    rec_team_defense RECORD
+    )
+LANGUAGE plpgsql
 AS $function$
 DECLARE
-    loc_matrix_side_multiplier float4[14][3] := '{
+    loc_matrix_side_multiplier float8[14][3] := '{
                         {0,0,0},
         {5,2,1},{2,4,1},{1,5,1},{1,4,2},{1,2,5},
         {5,2,1},{2,4,1},{1,5,1},{1,4,2},{1,2,5},
                 {5,2,1},{3,5,3},{1,2,5}
         }'; -- Matrix to hold the multiplier to get the players that made the event (14 players, 3 sides(left, center, right))
-    loc_array_attack_multiplier float4[14] := '{
+    loc_array_attack_multiplier float8[14] := '{
             0,
         2,1,1,1,2,
         3,2,2,2,3,
           5,5,5
         }'; -- Array to hold the multiplier to get the offensive players
-    loc_array_defense_multiplier float4[14] := '{
+    loc_array_defense_multiplier float8[14] := '{
             2,
         5,5,5,5,5,
         3,3,3,3,3,
@@ -25,46 +28,29 @@ DECLARE
         }'; -- Array to hold the multiplier to get the offensive players
     I INT;
     J INT;
-    loc_weight_attack float4 := 0; -- The weight of the attack
-    loc_weight_defense float4 := 0; -- The weight of the defense
-    loc_sum_weights_attack float4 := 0;
+    loc_weight_attack float8 := 0; -- The weight of the attack
+    loc_weight_defense float8 := 0; -- The weight of the defense
+    loc_sum_weights_attack float8 := 0;
     loc_sum float8 := 0;
-    loc_array_weights float4[14]; -- Array to hold the multipliers of the players
+    loc_array_weights float8[14]; -- Array to hold the multipliers of the players
     loc_id_player_attack INT8; -- The ID of the player who made the event
     loc_id_player_passer INT8; -- The ID of the player who made the pass
     loc_id_player_defense INT8; -- The ID of the player who defended
-    random_value float4;
+    random_value float8;
     loc_pos_striking INT8 := 6; -- The position of striking in the list of 7 stats ()
     loc_pos_defense INT8:= 2; -- The position of defense in the list of 7 stats
     loc_pos_passing INT8 := 3; -- The position of passing in the list of 7 stats
     loc_event_type TEXT; -- Event type 'Goal', Opportunity', 'Injury' etc...
-    loc_array_team_weights_attack float4[];
-    loc_array_team_weights_defense float4[];
+    loc_array_team_weights_attack float8[];
+    loc_array_team_weights_defense float8[];
     loc_array_player_ids_attack int8[];
     loc_array_player_ids_defense int8[];
-    loc_matrix_player_stats_attack float4[][];
-    loc_matrix_player_stats_defense float4[][];
+    loc_matrix_player_stats_attack float8[][];
+    loc_matrix_player_stats_defense float8[][];
 BEGIN
-    IF is_left_club THEN
-        loc_array_team_weights_attack := context.loc_array_team_weights_left;
-        loc_array_team_weights_defense := context.loc_array_team_weights_right;
-        loc_array_player_ids_attack := context.loc_array_players_id_left;
-        loc_array_player_ids_defense := context.loc_array_players_id_right;
-        loc_matrix_player_stats_attack := context.loc_matrix_player_stats_left;
-        loc_matrix_player_stats_defense := context.loc_matrix_player_stats_right;
-    ELSE
-        loc_array_team_weights_attack := context.loc_array_team_weights_right;
-        loc_array_team_weights_defense := context.loc_array_team_weights_left;
-        loc_array_player_ids_attack := context.loc_array_players_id_right;
-        loc_array_player_ids_defense := context.loc_array_players_id_left;
-        loc_matrix_player_stats_attack := context.loc_matrix_player_stats_right;
-        loc_matrix_player_stats_defense := context.loc_matrix_player_stats_left;
-    END IF;
---RAISE NOTICE 'Right: %', context.loc_array_team_weights_right;
---RAISE NOTICE 'Left: %', context.loc_array_team_weights_left;
 
-    -- Initialize the attack weight
-    loc_sum_weights_attack := loc_array_team_weights_attack[5]+loc_array_team_weights_attack[6]+loc_array_team_weights_attack[7]; -- Sum of the attack weights of the attack team
+    ------ Initialize the attack weight
+    loc_sum_weights_attack := rec_team_attack.;
 
     -- Random value to check which side is the attack
     random_value := random();
@@ -79,7 +65,6 @@ BEGIN
             FOR J IN 1..14 LOOP
                 loc_array_weights[J] := loc_array_attack_multiplier[J] * loc_matrix_side_multiplier[J][I] * loc_matrix_player_stats_attack[J][loc_pos_striking]; -- Calculate the multiplier to fetch players for the event
             END LOOP;
---RAISE NOTICE '*** Fetch Attacker: %', loc_array_weights;
             loc_id_player_attack = simulate_game_fetch_random_player_id_based_on_weight_array(
                 inp_array_player_ids := loc_array_player_ids_attack[1:14],
                 inp_array_weights := loc_array_weights,
@@ -93,7 +78,6 @@ BEGIN
                         loc_array_weights[J] = 0; -- Set the attacker to 0 cause he cant be passer
                     END IF;
                 END LOOP;
---RAISE NOTICE '*** Fetch Passer: %', loc_array_weights;
                 loc_id_player_passer = simulate_game_fetch_random_player_id_based_on_weight_array(
                     inp_array_player_ids := loc_array_player_ids_attack[1:14],
                     inp_array_weights := loc_array_weights,
@@ -108,7 +92,6 @@ BEGIN
                     loc_array_weights[J] = 0;
                 END IF;
             END LOOP;
---RAISE NOTICE '*** Fetch Defender: %', loc_array_weights;
             loc_id_player_defense = simulate_game_fetch_random_player_id_based_on_weight_array(
                 inp_array_player_ids := loc_array_player_ids_defense[1:14],
                 inp_array_weights := loc_array_weights,

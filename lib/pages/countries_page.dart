@@ -58,10 +58,14 @@ class _CountriesPageState extends State<CountriesPage> {
     if (_searchQuery.isEmpty) {
       return countries;
     }
-    return countries
+    List<Country> filteredCountries = countries
         .where((country) =>
             country.name.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();
+    if (filteredCountries.isEmpty) {
+      return countries;
+    }
+    return filteredCountries;
   }
 
   @override

@@ -134,6 +134,55 @@ void showSortingOptions(
       rowRight: Row(children: [Icon(Icons.calendar_month)]),
       variableName: 'dateEndInjury',
     ),
+    SortingOption(
+      title: 'Keeper',
+      iconMain: iconStats,
+      rowLeft: Row(children: [Icon(Icons.filter_1)]),
+      rowRight: Row(children: [Icon(Icons.filter_9)]),
+      variableName: 'keeper',
+    ),
+    SortingOption(
+      title: 'Defense',
+      iconMain: iconStats,
+      rowLeft: Row(children: [Icon(Icons.filter_1)]),
+      rowRight: Row(children: [Icon(Icons.filter_9)]),
+      variableName: 'defense',
+    ),
+    SortingOption(
+      title: 'Passes',
+      iconMain: iconStats,
+      rowLeft: Row(children: [Icon(Icons.filter_1)]),
+      rowRight: Row(children: [Icon(Icons.filter_9)]),
+      variableName: 'passes',
+    ),
+    SortingOption(
+      title: 'Playmaking',
+      iconMain: iconStats,
+      rowLeft: Row(children: [Icon(Icons.filter_1)]),
+      rowRight: Row(children: [Icon(Icons.filter_9)]),
+      variableName: 'playmaking',
+    ),
+    SortingOption(
+      title: 'Winger',
+      iconMain: iconStats,
+      rowLeft: Row(children: [Icon(Icons.filter_1)]),
+      rowRight: Row(children: [Icon(Icons.filter_9)]),
+      variableName: 'winger',
+    ),
+    SortingOption(
+      title: 'Scoring',
+      iconMain: iconStats,
+      rowLeft: Row(children: [Icon(Icons.filter_1)]),
+      rowRight: Row(children: [Icon(Icons.filter_9)]),
+      variableName: 'scoring',
+    ),
+    SortingOption(
+      title: 'Free Kicks',
+      iconMain: iconStats,
+      rowLeft: Row(children: [Icon(Icons.filter_1)]),
+      rowRight: Row(children: [Icon(Icons.filter_9)]),
+      variableName: 'freekick',
+    ),
   ];
 
   showModalBottomSheet(

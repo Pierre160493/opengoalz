@@ -45,6 +45,7 @@ const iconLeaveClub = Icons.door_sliding;
 // const icon_league = Icons.emoji_events_outlined;
 const icon_league = Icons.format_list_numbered;
 const iconTraining = Icons.query_stats;
+const iconStats = Icons.query_stats;
 const icon_chat = Icons.wechat_outlined;
 // const icon_club = Icons.real_estate_agent_outlined;
 const icon_club = Icons.home_work_rounded;
