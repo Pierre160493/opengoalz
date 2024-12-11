@@ -82,7 +82,7 @@ extension PlayerWidgetTransfer on Player {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return PlayerTransferBidDialogBox(player: this);
+            return PlayerTransferBidDialogBox(idPlayer: this.id);
           },
         );
       },

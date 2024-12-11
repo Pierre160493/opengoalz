@@ -277,7 +277,7 @@ extension TeamCompPlayerCard on TeamComp {
                         player.getPlayerIcon(),
                         size: iconSizeLarge,
                       ),
-                      player.getPlayerNames(context),
+                      player.getPlayerNameToolTip(context),
                     ],
                   ),
                 ],

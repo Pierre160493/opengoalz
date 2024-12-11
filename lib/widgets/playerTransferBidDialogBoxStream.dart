@@ -84,7 +84,7 @@ class _PlayerTransferBidDialogBoxState
             title: Row(
               children: [
                 Text('Transfer Bid for '),
-                _player!.getPlayerNames(context),
+                _player!.getPlayerNameToolTip(context),
               ],
             ),
             content: SingleChildScrollView(
@@ -194,7 +194,7 @@ class _PlayerTransferBidDialogBoxState
                         Icon(Icons.person_search, color: Colors.green),
                         formSpacer3,
                         Text('Bid XXX on '),
-                        _player!.getPlayerNames(context)
+                        _player!.getPlayerNameToolTip(context)
                       ],
                     ),
                   ),

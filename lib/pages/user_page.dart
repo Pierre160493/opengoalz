@@ -90,7 +90,6 @@ class _UserPageState extends State<UserPage> {
       return Consumer<SessionProvider>(
         builder: (context, sessionProvider, child) {
           Profile? user = sessionProvider.user;
-          print('User: $user');
           return _buildUserWidget(user);
         },
       );

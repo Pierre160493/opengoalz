@@ -96,7 +96,7 @@ class _PlayerCardState extends State<PlayerCard>
             title: Row(
               // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                widget.player.getPlayerNames(context),
+                widget.player.getPlayerNameToolTip(context),
                 widget.player.getStatusRow(),
                 if (Provider.of<SessionProvider>(context, listen: false)
                         .user!
@@ -229,7 +229,7 @@ class _PlayerCardState extends State<PlayerCard>
                           (widget.index!).toString(),
                         ),
                 ),
-                widget.player.getPlayerNames(context),
+                widget.player.getPlayerNameToolTip(context),
                 widget.player.getStatusRow(),
                 if (Provider.of<SessionProvider>(context, listen: false).user!.players.any(
                         (Player player) => player.id == widget.player.id) ||

@@ -78,103 +78,6 @@ class _PlayersPageState extends State<PlayersPage> {
       _previousPlayerIds = playerIds;
       print('Fetched player IDs: $playerIds');
 
-      // var playerStream = supabase
-      //     .from('players')
-      //     .stream(primaryKey: ['id'])
-      //     .inFilter('id', playerIds)
-      //     .order('date_birth', ascending: false)
-      //     .map((maps) {
-      //       print('Fetched player maps: $maps');
-      //       return maps.map((map) => Player.fromMap(map)).toList();
-      //     })
-      //     .handleError((error) {
-      //       print('Error fetching player maps: $error');
-      //     });
-
-      // // Sort players by bid end date if they are on transfer list
-      // if (_currentSearchCriterias.onTransferList) {
-      //   playerStream = playerStream.map((players) {
-      //     players.sort((Player a, Player b) {
-      //       if (a.dateBidEnd == null) {
-      //         return 1;
-      //       } else if (b.dateBidEnd == null) {
-      //         return -1;
-      //       } else {
-      //         return a.dateBidEnd!.compareTo(b.dateBidEnd!);
-      //       }
-      //     });
-      //     return players;
-      //   });
-      // }
-
-      // _clubStream = playerStream.switchMap((players) {
-      //   final clubIds = players
-      //       .map((player) => player.idClub)
-      //       .where((id) => id != null)
-      //       .toSet()
-      //       .toList();
-      //   // Continue with the rest of your logic
-
-      //   if (clubIds.isEmpty) {
-      //     return Stream.value([]);
-      //   }
-
-      //   return supabase
-      //       .from('clubs')
-      //       .stream(primaryKey: ['id'])
-      //       .inFilter('id', clubIds.cast<Object>())
-      //       .map((maps) {
-      //         print('Fetched club maps: $maps');
-      //         return maps.map((map) => Club.fromMap(map)).toList();
-      //       })
-      //       .handleError((error) {
-      //         print('Error fetching club maps: $error');
-      //       });
-      // });
-
-      // final combinedPlayerStream = playerStream
-      //     .switchMap((players) => _clubStream.map((List<Club> clubs) {
-      //           for (var player
-      //               in players.where((player) => player.idClub != null)) {
-      //             final clubData =
-      //                 clubs.firstWhere((Club club) => club.id == player.idClub);
-      //             player.club = clubData;
-      //           }
-      //           return players;
-      //         }));
-
-      // _transferBids = combinedPlayerStream.switchMap((players) {
-      //   final playerIds = players.map((player) => player.id).toSet().toList();
-      //   print('Fetched transfer bid player IDs: $playerIds');
-      //   return supabase
-      //       .from('transfers_bids')
-      //       .stream(primaryKey: ['id'])
-      //       .inFilter('id_player', playerIds.cast<Object>())
-      //       .order('count_bid', ascending: true)
-      //       .map((maps) {
-      //         print('Fetched transfer bid maps: $maps');
-      //         return maps.map((map) => TransferBid.fromMap(map)).toList();
-      //       })
-      //       .handleError((error) {
-      //         print('Error fetching transfer bid maps: $error');
-      //       });
-      // });
-
-      // final finalPlayerStream = combinedPlayerStream
-      //     .switchMap((players) => _transferBids.map((transferBids) {
-      //           for (var player in players) {
-      //             player.transferBids.clear();
-      //             player.transferBids.addAll(
-      //                 transferBids.where((bid) => bid.idPlayer == player.id));
-      //           }
-      //           return players;
-      //         }));
-
-      // finalPlayerStream.listen((players) {
-      //   print('Final player stream data: $players');
-      //   _playerStreamController.add(players);
-      // });
-
       _playerStream = supabase
 
           /// Fetch the players
@@ -290,7 +193,7 @@ class _PlayersPageState extends State<PlayersPage> {
           title: players.isEmpty
               ? Text('No Players Found')
               : players.length == 1
-                  ? players.first.getPlayerNames(context)
+                  ? players.first.getPlayerNameToolTip(context)
                   : Text(
                       '${players.length} Players',
                     ),
@@ -401,7 +304,7 @@ class _PlayersPageState extends State<PlayersPage> {
   //                 title: players.isEmpty
   //                     ? Text('No Players Found')
   //                     : players.length == 1
-  //                         ? players.first.getPlayerNames(context)
+  //                         ? players.first.getPlayerNameToolTip(context)
   //                         : Text(
   //                             '${players.length} Players',
   //                           ),

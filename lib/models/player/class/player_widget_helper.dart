@@ -1,7 +1,16 @@
 part of 'player.dart';
 
 extension PlayerWidgetsHelper on Player {
-  Widget getPlayerNames(BuildContext context, {bool isSurname = false}) {
+  String getPlayerNameString({bool isSurname = false}) {
+    return isSurname
+        ? surName == null
+            ? 'No Surname'
+            : surName!
+        : '${firstName[0]}.${lastName.toUpperCase()}';
+  }
+
+  Widget getPlayerNameTextWidget(BuildContext context,
+      {bool isSurname = false}) {
     /// Check if the player belongs to the currently connected user
     bool isMine = Provider.of<SessionProvider>(context, listen: false)
         .user!
@@ -10,22 +19,22 @@ extension PlayerWidgetsHelper on Player {
         .toList()
         .contains(id);
 
+    return Text(
+      getPlayerNameString(isSurname: isSurname),
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        color: isMine ? colorIsMine : null,
+      ),
+      overflow: TextOverflow.fade, // or TextOverflow.ellipsis
+      maxLines: 1,
+      softWrap: false,
+    );
+  }
+
+  Widget getPlayerNameToolTip(BuildContext context, {bool isSurname = false}) {
     return Tooltip(
       message: firstName + ' ' + lastName.toUpperCase(),
-      child: Text(
-        isSurname
-            ? surName == null
-                ? 'No Surname'
-                : surName!
-            : '${firstName[0]}.${lastName.toUpperCase()}',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: isMine ? colorIsMine : null,
-        ),
-        overflow: TextOverflow.fade, // or TextOverflow.ellipsis
-        maxLines: 1,
-        softWrap: false,
-      ),
+      child: getPlayerNameTextWidget(context, isSurname: isSurname),
     );
   }
 
@@ -47,7 +56,7 @@ extension PlayerWidgetsHelper on Player {
               ),
             );
           },
-          child: getPlayerNames(context),
+          child: getPlayerNameToolTip(context),
         ),
       ],
     );

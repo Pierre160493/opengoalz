@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/models/transfer_bid.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/club.dart';
@@ -10,8 +13,8 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 
 class PlayerTransferBidDialogBox extends StatefulWidget {
-  final Player player;
-  PlayerTransferBidDialogBox({required this.player});
+  final int idPlayer;
+  PlayerTransferBidDialogBox({required this.idPlayer});
   @override
   _PlayerTransferBidDialogBoxState createState() =>
       _PlayerTransferBidDialogBoxState();
@@ -19,14 +22,64 @@ class PlayerTransferBidDialogBox extends StatefulWidget {
 
 class _PlayerTransferBidDialogBoxState
     extends State<PlayerTransferBidDialogBox> {
+  Stream<Player> _playerStream = Stream.empty();
+  StreamSubscription<Player>? _playerSubscription;
   final TextEditingController _bidController = TextEditingController();
-  // bool _isBidValid = true;
   int _minBidAbsolute = 100;
   int? _bidAmount;
+  Player? _currentPlayer;
 
   @override
   void initState() {
     super.initState();
+
+    _playerStream = supabase
+
+        /// Fetch the player
+        .from('players')
+        .stream(primaryKey: ['id'])
+        .eq('id', widget.idPlayer)
+        .order('date_birth', ascending: false)
+        .map((maps) => maps.map((map) => Player.fromMap(map)).first)
+
+        /// Fetch its club
+        .switchMap((Player player) {
+          if (player.idClub == null) {
+            return Stream.value(player);
+          }
+          return supabase
+              .from('clubs')
+              .stream(primaryKey: ['id'])
+              .eq('id', player.idClub!)
+              .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+              .map((Club club) {
+                player.club = club;
+                return player;
+              });
+        })
+
+        /// Fetch its transfers bids
+        .switchMap((Player player) {
+          return supabase
+              .from('transfers_bids')
+              .stream(primaryKey: ['id'])
+              .eq('id_player', player.id)
+              .order('count_bid', ascending: true)
+              .map((maps) =>
+                  maps.map((map) => TransferBid.fromMap(map)).toList())
+              .map((List<TransferBid> transfersBids) {
+                player.transferBids.clear();
+                player.transferBids.addAll(transfersBids);
+                return player;
+              });
+        });
+
+    _playerSubscription = _playerStream.listen((player) {
+      setState(() {
+        _currentPlayer = player;
+      });
+    });
+
     _bidController.addListener(_validateBid);
     _validateBid();
   }
@@ -35,14 +88,14 @@ class _PlayerTransferBidDialogBoxState
   void dispose() {
     _bidController.removeListener(_validateBid);
     _bidController.dispose();
+    _playerSubscription?.cancel(); // Cancel the stream subscription
     super.dispose();
   }
 
   void _validateBid() {
     setState(() {
       _bidAmount = int.tryParse(_bidController.text);
-      if (_bidAmount == null) {
-        // _isBidValid = false;
+      if (_bidAmount == null || _currentPlayer == null) {
         return;
       }
 
@@ -51,36 +104,37 @@ class _PlayerTransferBidDialogBoxState
               .user!
               .selectedClub!
               .cash;
-      final int? currentHighestBid = widget.player.transferBids.length == 1
+      final int? currentHighestBid = _currentPlayer!.transferBids.length == 1
           ? null
-          : widget.player.transferBids.last.amount;
+          : _currentPlayer!.transferBids.last.amount;
       final int minimumBid = currentHighestBid == null
           ? _minBidAbsolute
           : max(_minBidAbsolute, (currentHighestBid * 1.01).ceil());
 
       if (_bidAmount! > availableCash) {
-        // context.showSnackBarError(
-        //     'Successfully placed bid on ${widget.player.getPlayerNames(context)}');
         _bidAmount = null;
       } else if (_bidAmount! < minimumBid) {
         _bidAmount = null;
       } else if (_bidAmount! < currentHighestBid!) {
         _bidAmount = null;
       }
-
-      // _isBidValid = _bidAmount <= availableCash && _bidAmount >= minimumBid;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final int? currentHighestBid = widget.player.idClub == null
-        ? widget.player.transferBids.length == 0
+    if (_currentPlayer == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    final Player player = _currentPlayer!;
+    final int? currentHighestBid = player.idClub == null
+        ? player.transferBids.length == 0
             ? null
-            : widget.player.transferBids.last.amount
-        : widget.player.transferBids.length == 1
+            : player.transferBids.last.amount
+        : player.transferBids.length == 1
             ? null
-            : widget.player.transferBids.last.amount;
+            : player.transferBids.last.amount;
     final int minimumBid = currentHighestBid == null
         ? _minBidAbsolute
         : max(_minBidAbsolute, (currentHighestBid * 1.01).ceil());
@@ -91,7 +145,7 @@ class _PlayerTransferBidDialogBoxState
         title: Row(
           children: [
             Text('Transfer Bid for '),
-            widget.player.getPlayerNames(context),
+            player.getPlayerNameToolTip(context),
           ],
         ),
         content: SingleChildScrollView(
@@ -131,7 +185,7 @@ class _PlayerTransferBidDialogBoxState
                   ),
                   subtitle: currentHighestBid == null
                       ? null
-                      : Text('By: ${widget.player.transferBids.last.nameClub}'),
+                      : Text('By: ${player.transferBids.last.nameClub}'),
                 ),
                 ListTile(
                   shape: RoundedRectangleBorder(
@@ -220,7 +274,7 @@ class _PlayerTransferBidDialogBoxState
                 TextButton(
                   onPressed: () async {
                     print({
-                      'inp_id_player': widget.player.id,
+                      'inp_id_player': player.id,
                       'inp_id_club_bidder':
                           Provider.of<SessionProvider>(context, listen: false)
                               .user!
@@ -233,7 +287,7 @@ class _PlayerTransferBidDialogBoxState
                     bool isOK = await operationInDB(
                         context, 'FUNCTION', 'transfers_handle_new_bid',
                         data: {
-                          'inp_id_player': widget.player.id,
+                          'inp_id_player': player.id,
                           'inp_id_club_bidder': Provider.of<SessionProvider>(
                                   context,
                                   listen: false)
@@ -244,7 +298,7 @@ class _PlayerTransferBidDialogBoxState
                         }); // Use index to modify id
                     if (isOK) {
                       context.showSnackBar(
-                          'Successfully placed bid on ${widget.player.getPlayerNames(context)}',
+                          'Successfully placed bid on ${player.getPlayerNameString()}',
                           icon: Icon(iconSuccessfulOperation,
                               color: Colors.green));
                     }
@@ -255,7 +309,6 @@ class _PlayerTransferBidDialogBoxState
                     children: [
                       Icon(Icons.gavel, color: Colors.green),
                       formSpacer3,
-                      // Text('Bid ${int.parse(_bidController.text)} on '),
                       Text('Bid '),
                       Text(
                         NumberFormat('#,###')
@@ -264,7 +317,7 @@ class _PlayerTransferBidDialogBoxState
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(' on '),
-                      widget.player.getPlayerNames(context)
+                      player.getPlayerNameToolTip(context)
                     ],
                   ),
                 ),

@@ -29,7 +29,7 @@ extension TabOrders on TeamComp {
                         color: Colors.red,
                       ),
                     ),
-                    playerOut!.getPlayerNames(context),
+                    playerOut!.getPlayerNameToolTip(context),
                   ],
                 );
               } else {
@@ -51,7 +51,7 @@ extension TabOrders on TeamComp {
                       Icons.directions_rounded,
                       color: Colors.green,
                     ),
-                    playerIn!.getPlayerNames(context),
+                    playerIn!.getPlayerNameToolTip(context),
                   ],
                 );
               } else {
