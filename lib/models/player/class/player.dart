@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +15,8 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
 import 'package:opengoalz/widgets/playerTransferBidDialogBox.dart';
+import 'package:opengoalz/widgets/tickingTime.dart';
+import 'package:opengoalz/widgets/transferSellFirePlayer.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart'

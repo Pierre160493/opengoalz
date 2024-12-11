@@ -24,10 +24,10 @@ class _PlayerTransferBidDialogBoxState
     extends State<PlayerTransferBidDialogBox> {
   Stream<Player> _playerStream = Stream.empty();
   StreamSubscription<Player>? _playerSubscription;
+  Player? _currentPlayer;
   final TextEditingController _bidController = TextEditingController();
   int _minBidAbsolute = 100;
   int? _bidAmount;
-  Player? _currentPlayer;
 
   @override
   void initState() {
@@ -39,7 +39,6 @@ class _PlayerTransferBidDialogBoxState
         .from('players')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idPlayer)
-        .order('date_birth', ascending: false)
         .map((maps) => maps.map((map) => Player.fromMap(map)).first)
 
         /// Fetch its club

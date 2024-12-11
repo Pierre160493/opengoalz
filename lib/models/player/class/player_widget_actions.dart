@@ -52,7 +52,13 @@ extension PlayerWidgetsActions on Player {
             );
             break;
           case 'Sell':
-            _SellPlayer(context, false); // Sell Player
+            // _SellPlayer(context, false); // Sell Player
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return SellFirePlayerDialogBox(idPlayer: this.id);
+              },
+            );
             break;
           case 'Fire':
             _SellPlayer(context, true); // Fire Player
@@ -69,7 +75,8 @@ extension PlayerWidgetsActions on Player {
 
   Future<void> _SellPlayer(BuildContext context, bool firePlayer) async {
     final TextEditingController _priceController =
-        TextEditingController(text: '0'); // Initialize with default value
+        TextEditingController(text: '100'); // Initialize with default value
+    final TextEditingController _dateController = TextEditingController();
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     DateTime selectedDate =
         // DateTime.now().add(Duration(days: 7)); // Default to now + 7 days
@@ -92,7 +99,8 @@ extension PlayerWidgetsActions on Player {
                     borderRadius: BorderRadius.circular(12.0),
                     side: BorderSide(color: Colors.blueGrey, width: 1.0),
                   ),
-                  leading: Icon(iconMoney),
+                  leading: Icon(iconMoney,
+                      size: iconSizeMedium, color: Colors.green),
                   title: TextFormField(
                     controller: _priceController,
                     keyboardType: TextInputType.number,
@@ -101,7 +109,7 @@ extension PlayerWidgetsActions on Player {
                           .digitsOnly, // Allow only digits
                     ],
                     decoration: InputDecoration(
-                      labelText: 'Start price',
+                      labelText: 'Starting price',
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
@@ -129,122 +137,157 @@ extension PlayerWidgetsActions on Player {
                   side: BorderSide(color: Colors.blueGrey, width: 1.0),
                 ),
                 leading: Icon(iconCalendar),
-                title: Text(
-                  DateFormat('EEE dd MMM HH:mm').format(selectedDate),
-                ),
-                subtitle: Text(
-                  'Date and time when the bid will end',
-                  style: TextStyle(
-                      color: Colors.blueGrey, fontStyle: FontStyle.italic),
-                ),
-                onTap: () async {
-                  final DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate,
-                    firstDate: DateTime.now().add(Duration(minutes: 5)),
-                    lastDate: DateTime.now().add(Duration(days: 14)),
-                  );
-                  if (pickedDate != null) {
-                    final TimeOfDay? pickedTime = await showTimePicker(
+                // title: Text(
+                //   DateFormat('EEE dd MMM HH:mm').format(selectedDate),
+                // ),
+                title: TextFormField(
+                  controller: _dateController,
+                  readOnly: true,
+                  keyboardType: TextInputType.datetime,
+                  decoration: InputDecoration(
+                    labelText: 'Bidding End Date',
+                    border: OutlineInputBorder(),
+                  ),
+                  onTap: () async {
+                    final DateTime? pickedDate = await showDatePicker(
                       context: context,
-                      initialTime: selectedTime,
-                      initialEntryMode: TimePickerEntryMode.input,
+                      initialDate: selectedDate,
+                      firstDate: DateTime.now().add(Duration(minutes: 5)),
+                      lastDate: DateTime.now().add(Duration(days: 14)),
                     );
-                    if (pickedTime != null) {
-                      selectedDate = DateTime(
-                        pickedDate.year,
-                        pickedDate.month,
-                        pickedDate.day,
-                        pickedTime.hour,
-                        pickedTime.minute,
+                    if (pickedDate != null) {
+                      final TimeOfDay? pickedTime = await showTimePicker(
+                        context: context,
+                        initialTime: selectedTime,
+                        initialEntryMode: TimePickerEntryMode.input,
                       );
-                      selectedTime = pickedTime;
+                      if (pickedTime != null) {
+                        selectedDate = DateTime(
+                          pickedDate.year,
+                          pickedDate.month,
+                          pickedDate.day,
+                          pickedTime.hour,
+                          pickedTime.minute,
+                        );
+                        selectedTime = pickedTime;
+                        _dateController.text =
+                            DateFormat('EEE dd MMM HH:mm').format(selectedDate);
+                      }
                     }
-                  }
-                },
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a date and time';
+                    }
+                    final DateTime? date =
+                        DateFormat('EEE dd MMM HH:mm').parse(value, true);
+                    if (date == null) {
+                      return 'Please enter a valid date and time';
+                    }
+                    if (date
+                        .isBefore(DateTime.now().add(Duration(minutes: 5)))) {
+                      return 'Please select a date and time at least 5 minutes from now';
+                    }
+                    if (date.isAfter(DateTime.now().add(Duration(days: 14)))) {
+                      return 'Please select a date and time within the next 14 days';
+                    }
+                    selectedDate = date;
+                    return null;
+                  },
+                ),
+                subtitle:
+                    //   Text(
+                    //   'Date and time when the bid will end',
+                    //   style: TextStyle(
+                    //       color: Colors.blueGrey, fontStyle: FontStyle.italic),
+                    // ),
+                    tickingTimeWidget(selectedDate),
               ),
             ],
           ),
           actions: <Widget>[
-            /// Cancel button
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Row(
-                children: [
-                  Icon(iconCancel, color: Colors.red),
-                  formSpacer3,
-                  Text('Cancel'),
-                ],
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              /// Cancel button
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: Row(
+                  children: [
+                    Icon(iconCancel, color: Colors.red),
+                    formSpacer3,
+                    Text('Cancel'),
+                  ],
+                ),
               ),
-            ),
 
-            /// Confirm button
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close the dialog
-                try {
-                  int? minimumPrice = int.tryParse(_priceController.text);
-                  if (minimumPrice == null || minimumPrice < 0) {
-                    scaffoldMessenger.showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'Please enter a valid number for minimum price (should be a positive integer)'),
-                      ),
-                    );
-                    return;
+              /// Confirm button
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop(); // Close the dialog
+                  try {
+                    int? minimumPrice = int.tryParse(_priceController.text);
+                    if (minimumPrice == null || minimumPrice < 0) {
+                      scaffoldMessenger.showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Please enter a valid number for minimum price (should be a positive integer)'),
+                        ),
+                      );
+                      return;
+                    }
+                    if (firePlayer) {
+                      minimumPrice = 0;
+                    }
+
+                    // Validate the selected date
+                    if (
+                        // selectedDate.isBefore(
+                        //       DateTime.now().add(Duration(minutes: 30))) ||
+                        selectedDate
+                            .isAfter(DateTime.now().add(Duration(days: 14)))) {
+                      scaffoldMessenger.showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Please select a valid date between XXX and 14 days from now'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Call the transfers_new_transfer function
+                    await supabase.rpc('transfers_handle_new_bid', params: {
+                      'inp_id_player': id,
+                      'inp_id_club_bidder':
+                          Provider.of<SessionProvider>(context, listen: false)
+                              .user!
+                              .selectedClub
+                              ?.id,
+                      'inp_amount': minimumPrice,
+                      'inp_date_bid_end':
+                          selectedDate.toUtc().toIso8601String(),
+                    });
+
+                    context.showSnackBarSuccess(
+                        '${firstName} ${lastName.toUpperCase()} ' +
+                            (firePlayer
+                                ? 'has been put to transfer list and will be fired if no bids are received'
+                                : 'has been put to transfer list'));
+                  } on PostgrestException catch (error) {
+                    context.showSnackBarPostgreSQLError(error.message);
+                  } catch (error) {
+                    context.showSnackBarError(error.toString());
                   }
-                  if (firePlayer) {
-                    minimumPrice = 0;
-                  }
-
-                  // Validate the selected date
-                  if (
-                      // selectedDate.isBefore(
-                      //       DateTime.now().add(Duration(minutes: 30))) ||
-                      selectedDate
-                          .isAfter(DateTime.now().add(Duration(days: 14)))) {
-                    scaffoldMessenger.showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'Please select a valid date between XXX and 14 days from now'),
-                      ),
-                    );
-                    return;
-                  }
-
-                  // Call the transfers_new_transfer function
-                  await supabase.rpc('transfers_handle_new_bid', params: {
-                    'inp_id_player': id,
-                    'inp_id_club_bidder':
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub
-                            ?.id,
-                    'inp_amount': minimumPrice,
-                    'inp_date_bid_end': selectedDate.toUtc().toIso8601String(),
-                  });
-
-                  context.showSnackBarSuccess(
-                      '${firstName} ${lastName.toUpperCase()} ' +
-                          (firePlayer
-                              ? 'has been put to transfer list and will be fired if no bids are received'
-                              : 'has been put to transfer list'));
-                } on PostgrestException catch (error) {
-                  context.showSnackBarPostgreSQLError(error.message);
-                } catch (error) {
-                  context.showSnackBarError(error.toString());
-                }
-              },
-              child: Row(
-                children: [
-                  Icon(iconSuccessfulOperation, color: Colors.green),
-                  formSpacer3,
-                  Text('Confirm'),
-                ],
+                },
+                child: Row(
+                  children: [
+                    Icon(iconSuccessfulOperation, color: Colors.green),
+                    formSpacer3,
+                    Text('Confirm'),
+                  ],
+                ),
               ),
-            ),
+            ]),
           ],
         );
       },
