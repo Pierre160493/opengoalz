@@ -96,7 +96,7 @@ class _PlayerTransferBidDialogBoxState
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Provider.of<SessionProvider>(context)
+                    Provider.of<SessionProvider>(context, listen: false)
                         .user!
                         .selectedClub!
                         .getCashListTile(),
@@ -193,7 +193,7 @@ class _PlayerTransferBidDialogBoxState
                       children: [
                         Icon(Icons.person_search, color: Colors.green),
                         formSpacer3,
-                        Text('Bid on '),
+                        Text('Bid XXX on '),
                         _player!.getPlayerNames(context)
                       ],
                     ),

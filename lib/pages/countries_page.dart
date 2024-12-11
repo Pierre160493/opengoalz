@@ -131,7 +131,15 @@ class _CountriesPageState extends State<CountriesPage> {
                         border: InputBorder.none,
                       ),
                     )
-                  : Text('Countries'),
+                  : Tooltip(
+                      message: 'Click to Search',
+                      child: InkWell(
+                        onTap: () {
+                          _startSearch();
+                        },
+                        child: Text('Countries'),
+                      ),
+                    ),
               actions: [
                 _isSearching
                     ? IconButton(

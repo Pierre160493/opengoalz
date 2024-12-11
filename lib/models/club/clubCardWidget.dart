@@ -19,7 +19,7 @@ extension ClubCardWidget on Club {
             },
             leading: CircleAvatar(
               backgroundColor: (id ==
-                      Provider.of<SessionProvider>(context)
+                      Provider.of<SessionProvider>(context, listen: false)
                           .user!
                           .selectedClub
                           ?.id)
@@ -53,7 +53,10 @@ extension ClubCardWidget on Club {
             ),
           ),
           if (id ==
-              Provider.of<SessionProvider>(context).user!.selectedClub?.id)
+              Provider.of<SessionProvider>(context, listen: false)
+                  .user!
+                  .selectedClub
+                  ?.id)
             Column(
               children: [
                 const SizedBox(height: 6),

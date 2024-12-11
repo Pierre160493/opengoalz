@@ -175,7 +175,7 @@ class _UserPageState extends State<UserPage> {
                     icon: Icon(Icons.logout, size: iconSizeSmall),
                   ),
                 )
-              : Provider.of<SessionProvider>(context)
+              : Provider.of<SessionProvider>(context, listen: false)
                   .user!
                   .returnToConnectedUserIconButton(context),
         ],

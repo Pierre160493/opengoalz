@@ -303,7 +303,7 @@ BEGIN
             0 + RANDOM() * 5, -- winger
             30 + RANDOM() * 10, -- scoring
             0 + POWER(RANDOM(), 3) * 10], -- freekick
-        inp_age := 23 + 6 * RANDOM(),
+        inp_age := 25 + 5 * RANDOM(),
         inp_shirt_number := 9,
         inp_notes := 'Experienced Striker');
     -- Set in the array
@@ -322,7 +322,7 @@ BEGIN
             0 + RANDOM() * 5, -- winger
             20 + RANDOM() * 10, -- scoring
             0 + POWER(RANDOM(), 3) * 10], -- freekick
-        inp_age := 21 + 6 * RANDOM(),
+        inp_age := 20 + 5 * RANDOM(),
         inp_shirt_number := 11,
         inp_notes := 'Intermediate Age Striker');
     -- Set in the array
@@ -355,48 +355,48 @@ BEGIN
         inp_id_country := loc_id_country,
         inp_stats := ARRAY[
             0 + POWER(RANDOM(), 3) * 5, -- keeper
-            5 + RANDOM() * 10, -- defense
-            5 + RANDOM() * 10, -- passes
-            5 + RANDOM() * 10, -- playmaking
-            5 + RANDOM() * 10, -- winger
-            5 + RANDOM() * 10, -- scoring
-            0 + POWER(RANDOM(), 3) * 10], -- freekick
+            10 + RANDOM() * 30, -- defense
+            10 + RANDOM() * 40, -- passes
+            10 + RANDOM() * 30, -- playmaking
+            10 + RANDOM() * 30, -- winger
+            10 + RANDOM() * 30, -- scoring
+            0 + POWER(RANDOM(), 3) * 30], -- freekick
         inp_age := 30 + 3 * RANDOM(),
         inp_shirt_number := 18,
         inp_notes := 'Old Experienced player');
     -- Set in the array
     array_id_players[21] := loc_id_player;
 
-    -- Young player 1
+    -- Young defensive player
     loc_id_player := players_create_player(
         inp_id_multiverse := loc_id_multiverse,
         inp_id_club := inp_id_club,
         inp_id_country := loc_id_country,
         inp_stats := ARRAY[
-            0 + POWER(RANDOM(), 3) * 5, -- keeper
-            0 + RANDOM() * 5, -- defense
-            0 + RANDOM() * 5, -- passes
-            0 + RANDOM() * 5, -- playmaking
-            0 + RANDOM() * 5, -- winger
-            0 + RANDOM() * 5, -- scoring
-            0 + POWER(RANDOM(), 3) * 10], -- freekick
+            0, -- keeper
+            5 + RANDOM() * 5, -- defense
+            5 + RANDOM() * 5, -- passes
+            0 + RANDOM() * 4, -- playmaking
+            0 + RANDOM() * 4, -- winger
+            0 + RANDOM() * 4, -- scoring
+            0], -- freekick
         inp_age := 15 + RANDOM(),
         inp_shirt_number := 19,
         inp_notes := 'Youngster 1');
 
-    -- Young player 2
+    -- Young offensive player
     loc_id_player := players_create_player(
         inp_id_multiverse := loc_id_multiverse,
         inp_id_club := inp_id_club,
         inp_id_country := loc_id_country,
         inp_stats := ARRAY[
-            0 + POWER(RANDOM(), 3) * 5, -- keeper
-            0 + RANDOM() * 5, -- defense
-            0 + RANDOM() * 5, -- passes
-            0 + RANDOM() * 5, -- playmaking
-            0 + RANDOM() * 5, -- winger
-            0 + RANDOM() * 5, -- scoring
-            0 + POWER(RANDOM(), 3) * 10], -- freekick
+            0, -- keeper
+            0 + RANDOM() * 4, -- defense
+            5 + RANDOM() * 5, -- passes
+            5 + RANDOM() * 5, -- playmaking
+            0 + RANDOM() * 4, -- winger
+            0 + RANDOM() * 4, -- scoring
+            0], -- freekick
         inp_age := 15 + RANDOM(),
         inp_shirt_number := 20,
         inp_notes := 'Youngster 2');

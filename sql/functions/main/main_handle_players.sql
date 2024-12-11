@@ -100,7 +100,7 @@ BEGIN
     ), player_data2 AS (
         SELECT 
             id, -- Player's id
-            training_points_available + 3 * (0.5 + 0.5 * staff_coef) * (
+            training_points_available + 10 * (0.5 + 0.5 * staff_coef) * (
                 CASE
                     WHEN player_data.age <= 15 THEN 1.25
                     WHEN player_data.age <= 25 THEN  
@@ -165,6 +165,14 @@ BEGIN
         training_points_used = training_points_used + updated_training_points_available
     FROM final_data
     WHERE players.id = final_data.id;
+
+    ------ Calculate player performance score and update the player record
+    UPDATE players
+    SET performance_score = players_calculate_player_best_weight(
+        ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
+        motivation, form, experience, energy, stamina]
+    )
+    WHERE id_multiverse = inp_multiverse.id;
 
     ------ Store player's stats in the history
     INSERT INTO players_history_stats

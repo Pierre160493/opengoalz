@@ -61,14 +61,14 @@ extension PlayerWidgetTransfer on Player {
                     Icon(Icons.timer_outlined, color: Colors.blueGrey),
                     Row(
                       children: [
-                        if (daysLeft > 0)
-                          Text(
-                            ' ${daysLeft > 0 ? '${daysLeft}d,' : ''} ${hoursLeft > 0 ? '${hoursLeft}h' : ''}${minutesLeft > 0 ? '${minutesLeft}m' : ''}${secondsLeft}s',
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        // if (daysLeft > 0)
+                        Text(
+                          ' ${daysLeft > 0 ? '${daysLeft}d,' : ''} ${hoursLeft > 0 ? '${hoursLeft}h' : ''}${minutesLeft > 0 ? '${minutesLeft}m' : ''}${secondsLeft}s',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
                           ),
+                        ),
                       ],
                     ),
                   ],
@@ -122,7 +122,7 @@ extension PlayerWidgetTransfer on Player {
     //           ),
     //         ),
     //         if (idClub !=
-    //             Provider.of<SessionProvider>(context).user!.selectedClub!.id)
+    //             Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.id)
     //           IconButton(
     //             icon: Icon(
     //               Icons.arrow_circle_up_outlined,
@@ -319,7 +319,7 @@ extension PlayerWidgetTransfer on Player {
                 ),
               ),
               Text(
-                  'Available cash: ${NumberFormat('#,###').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.cash)}'),
+                  'Available cash: ${NumberFormat('#,###', 'en_US').format(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.cash)}'),
             ],
           ),
           actions: <Widget>[

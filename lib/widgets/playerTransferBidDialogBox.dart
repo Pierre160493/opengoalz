@@ -1,8 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 
@@ -17,12 +20,15 @@ class PlayerTransferBidDialogBox extends StatefulWidget {
 class _PlayerTransferBidDialogBoxState
     extends State<PlayerTransferBidDialogBox> {
   final TextEditingController _bidController = TextEditingController();
-  bool _isValidBid = true;
+  // bool _isBidValid = true;
+  int _minBidAbsolute = 100;
+  int? _bidAmount;
 
   @override
   void initState() {
     super.initState();
     _bidController.addListener(_validateBid);
+    _validateBid();
   }
 
   @override
@@ -34,9 +40,9 @@ class _PlayerTransferBidDialogBoxState
 
   void _validateBid() {
     setState(() {
-      final int? bidAmount = int.tryParse(_bidController.text);
-      if (bidAmount == null) {
-        _isValidBid = false;
+      _bidAmount = int.tryParse(_bidController.text);
+      if (_bidAmount == null) {
+        // _isBidValid = false;
         return;
       }
 
@@ -49,21 +55,35 @@ class _PlayerTransferBidDialogBoxState
           ? null
           : widget.player.transferBids.last.amount;
       final int minimumBid = currentHighestBid == null
-          ? 1000
-          : max(1000, (currentHighestBid * 1.01).ceil());
+          ? _minBidAbsolute
+          : max(_minBidAbsolute, (currentHighestBid * 1.01).ceil());
 
-      _isValidBid = bidAmount <= availableCash && bidAmount >= minimumBid;
+      if (_bidAmount! > availableCash) {
+        // context.showSnackBarError(
+        //     'Successfully placed bid on ${widget.player.getPlayerNames(context)}');
+        _bidAmount = null;
+      } else if (_bidAmount! < minimumBid) {
+        _bidAmount = null;
+      } else if (_bidAmount! < currentHighestBid!) {
+        _bidAmount = null;
+      }
+
+      // _isBidValid = _bidAmount <= availableCash && _bidAmount >= minimumBid;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final int? currentHighestBid = widget.player.transferBids.length == 1
-        ? null
-        : widget.player.transferBids.last.amount;
+    final int? currentHighestBid = widget.player.idClub == null
+        ? widget.player.transferBids.length == 0
+            ? null
+            : widget.player.transferBids.last.amount
+        : widget.player.transferBids.length == 1
+            ? null
+            : widget.player.transferBids.last.amount;
     final int minimumBid = currentHighestBid == null
-        ? 1000
-        : max(1000, (currentHighestBid * 1.01).ceil());
+        ? _minBidAbsolute
+        : max(_minBidAbsolute, (currentHighestBid * 1.01).ceil());
 
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
@@ -83,7 +103,7 @@ class _PlayerTransferBidDialogBoxState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Provider.of<SessionProvider>(context)
+                Provider.of<SessionProvider>(context, listen: false)
                     .user!
                     .selectedClub!
                     .getCashListTile(),
@@ -96,9 +116,19 @@ class _PlayerTransferBidDialogBoxState
                     Icons.gavel,
                     color: Colors.green,
                   ),
-                  title: Text(currentHighestBid == null
-                      ? 'No bids yet'
-                      : 'Current highest bid: $currentHighestBid'),
+                  title: Row(
+                    children: [
+                      Text(currentHighestBid == null
+                          ? 'No bids yet'
+                          : 'Current highest bid: '),
+                      if (currentHighestBid != null)
+                        Text(
+                            NumberFormat('#,###')
+                                .format(currentHighestBid)
+                                .replaceAll(',', ' '),
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                   subtitle: currentHighestBid == null
                       ? null
                       : Text('By: ${widget.player.transferBids.last.nameClub}'),
@@ -106,10 +136,12 @@ class _PlayerTransferBidDialogBoxState
                 ListTile(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    side: BorderSide(color: Colors.blue, width: 2.0),
+                    side: BorderSide(
+                        color: _bidAmount == null ? Colors.red : Colors.green,
+                        width: 2.0),
                   ),
                   leading: Icon(
-                    Icons.add,
+                    Icons.attach_money,
                     color: Colors.blue,
                   ),
                   title: TextFormField(
@@ -118,7 +150,8 @@ class _PlayerTransferBidDialogBoxState
                     decoration: InputDecoration(
                       labelText: 'Enter your bid amount',
                       border: OutlineInputBorder(),
-                      errorText: _isValidBid ? null : 'Invalid bid amount',
+                      errorText:
+                          _bidAmount == null ? 'Invalid bid amount' : null,
                     ),
                   ),
                   subtitle: Tooltip(
@@ -137,13 +170,26 @@ class _PlayerTransferBidDialogBoxState
                             border: Border.all(color: Colors.blue),
                             borderRadius: BorderRadius.circular(4.0),
                           ),
-                          child: Text(
-                            'Minimum bid: $minimumBid',
-                            style: styleItalicBlueGrey.copyWith(
-                              decoration: TextDecoration.underline,
-                              color: Colors.blue,
-                            ),
-                            textAlign: TextAlign.center,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Minimum bid: ',
+                                style: styleItalicBlueGrey.copyWith(
+                                  decoration: TextDecoration.underline,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              Text(
+                                NumberFormat('#,###')
+                                    .format(minimumBid)
+                                    .replaceAll(',', ' '),
+                                style: styleItalicBlueGrey.copyWith(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -170,21 +216,58 @@ class _PlayerTransferBidDialogBoxState
                   ],
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  // Check if all the required fields are filled
+              if (_bidAmount != null)
+                TextButton(
+                  onPressed: () async {
+                    print({
+                      'inp_id_player': widget.player.id,
+                      'inp_id_club_bidder':
+                          Provider.of<SessionProvider>(context, listen: false)
+                              .user!
+                              .selectedClub!
+                              .id,
+                      'inp_amount': int.parse(_bidController.text)
+                    });
 
-                  Navigator.of(context).pop();
-                },
-                child: Row(
-                  children: [
-                    Icon(Icons.person_search, color: Colors.green),
-                    formSpacer3,
-                    Text('Bid on '),
-                    widget.player.getPlayerNames(context)
-                  ],
+                    /// Try to insert the bid
+                    bool isOK = await operationInDB(
+                        context, 'FUNCTION', 'transfers_handle_new_bid',
+                        data: {
+                          'inp_id_player': widget.player.id,
+                          'inp_id_club_bidder': Provider.of<SessionProvider>(
+                                  context,
+                                  listen: false)
+                              .user!
+                              .selectedClub!
+                              .id,
+                          'inp_amount': int.parse(_bidController.text)
+                        }); // Use index to modify id
+                    if (isOK) {
+                      context.showSnackBar(
+                          'Successfully placed bid on ${widget.player.getPlayerNames(context)}',
+                          icon: Icon(iconSuccessfulOperation,
+                              color: Colors.green));
+                    }
+
+                    Navigator.of(context).pop();
+                  },
+                  child: Row(
+                    children: [
+                      Icon(Icons.gavel, color: Colors.green),
+                      formSpacer3,
+                      // Text('Bid ${int.parse(_bidController.text)} on '),
+                      Text('Bid '),
+                      Text(
+                        NumberFormat('#,###')
+                            .format(_bidAmount)
+                            .replaceAll(',', ' '),
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(' on '),
+                      widget.player.getPlayerNames(context)
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
         ],

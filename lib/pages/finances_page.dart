@@ -71,10 +71,10 @@ class _FinancesPageState extends State<FinancesPage> {
               Expanded(
                 child: TabBarView(
                   children: [
-                    _getFinances(Provider.of<SessionProvider>(context)
+                    _getFinances(Provider.of<SessionProvider>(context, listen: false)
                         .user!
                         .selectedClub!),
-                    _getFinancesHistory(Provider.of<SessionProvider>(context)
+                    _getFinancesHistory(Provider.of<SessionProvider>(context, listen: false)
                         .user!
                         .selectedClub!),
                   ],

@@ -3,7 +3,7 @@ part of 'player.dart';
 extension PlayerWidgetsHelper on Player {
   Widget getPlayerNames(BuildContext context, {bool isSurname = false}) {
     /// Check if the player belongs to the currently connected user
-    bool isMine = Provider.of<SessionProvider>(context)
+    bool isMine = Provider.of<SessionProvider>(context, listen: false)
         .user!
         .players
         .map((player) => player.id)

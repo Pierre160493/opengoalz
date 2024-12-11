@@ -25,7 +25,7 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get the selected club
     Club? selectedClub =
-        Provider.of<SessionProvider>(context).user!.selectedClub;
+        Provider.of<SessionProvider>(context, listen: false).user!.selectedClub;
 
     if (selectedClub == null) {
       return const Drawer(
@@ -41,7 +41,7 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             // leading: const Icon(icon_home), // Add the home icon
             // title: const Text('Home'),
-            title: Provider.of<SessionProvider>(context)
+            title: Provider.of<SessionProvider>(context, listen: false)
                 .user!
                 .getUserName(context),
             onTap: () {
@@ -53,12 +53,12 @@ class AppDrawer extends StatelessWidget {
               );
             },
             subtitle:
-                !Provider.of<SessionProvider>(context).user!.isConnectedUser
+                !Provider.of<SessionProvider>(context, listen: false).user!.isConnectedUser
                     ? Text('Currently visiting this profile')
                     : null,
             trailing:
-                !Provider.of<SessionProvider>(context).user!.isConnectedUser
-                    ? Provider.of<SessionProvider>(context)
+                !Provider.of<SessionProvider>(context, listen: false).user!.isConnectedUser
+                    ? Provider.of<SessionProvider>(context, listen: false)
                         .user!
                         .returnToConnectedUserIconButton(context)
                     : null,

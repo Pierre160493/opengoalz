@@ -72,7 +72,8 @@ class _PlayerCardState extends State<PlayerCard>
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: (Provider.of<SessionProvider>(context)
+              backgroundColor: (Provider.of<SessionProvider>(context,
+                          listen: false)
                       .user!
                       .players
                       .any((Player player) => player.id == widget.player.id))
@@ -97,9 +98,12 @@ class _PlayerCardState extends State<PlayerCard>
               children: [
                 widget.player.getPlayerNames(context),
                 widget.player.getStatusRow(),
-                if (Provider.of<SessionProvider>(context).user!.players.any(
-                        (Player player) => player.id == widget.player.id) ||
-                    Provider.of<SessionProvider>(context)
+                if (Provider.of<SessionProvider>(context, listen: false)
+                        .user!
+                        .players
+                        .any(
+                            (Player player) => player.id == widget.player.id) ||
+                    Provider.of<SessionProvider>(context, listen: false)
                             .user!
                             .selectedClub!
                             .id ==
@@ -212,7 +216,7 @@ class _PlayerCardState extends State<PlayerCard>
               // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CircleAvatar(
-                  backgroundColor: (Provider.of<SessionProvider>(context)
+                  backgroundColor: (Provider.of<SessionProvider>(context, listen: false)
                           .user!
                           .players
                           .any(
@@ -227,9 +231,9 @@ class _PlayerCardState extends State<PlayerCard>
                 ),
                 widget.player.getPlayerNames(context),
                 widget.player.getStatusRow(),
-                if (Provider.of<SessionProvider>(context).user!.players.any(
+                if (Provider.of<SessionProvider>(context, listen: false).user!.players.any(
                         (Player player) => player.id == widget.player.id) ||
-                    Provider.of<SessionProvider>(context)
+                    Provider.of<SessionProvider>(context, listen: false)
                             .user!
                             .selectedClub!
                             .id ==

@@ -3,7 +3,7 @@ part of 'club.dart';
 extension ClubWidgetHelper on Club {
   Widget getClubName(BuildContext context, {bool isRightClub = false}) {
     /// If the club belongs to the current user
-    bool isMine = Provider.of<SessionProvider>(context)
+    bool isMine = Provider.of<SessionProvider>(context, listen: false)
         .user!
         .clubs
         .map((Club club) => club.id)
@@ -11,8 +11,11 @@ extension ClubWidgetHelper on Club {
         .contains(id);
 
     /// If the club is currently selected
-    bool isSelected =
-        Provider.of<SessionProvider>(context).user!.selectedClub?.id == id;
+    bool isSelected = Provider.of<SessionProvider>(context, listen: false)
+            .user!
+            .selectedClub
+            ?.id ==
+        id;
     Text text = Text(
       name,
       style: TextStyle(
@@ -83,11 +86,13 @@ extension ClubWidgetHelper on Club {
       ),
       leading: Icon(icon_finance, color: cash >= 0 ? Colors.green : Colors.red),
       title: Text(
-        NumberFormat.currency(symbol: '', decimalDigits: 0).format(cash),
-        style: TextStyle(color: cash >= 0 ? Colors.green : Colors.red),
+        NumberFormat.decimalPattern().format(cash).replaceAll(',', ' '),
+        style: TextStyle(
+            color: cash >= 0 ? Colors.green : Colors.red,
+            fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
-        'Available cash',
+        'Club\'s Available Cash',
         style: styleItalicBlueGrey,
       ),
     );

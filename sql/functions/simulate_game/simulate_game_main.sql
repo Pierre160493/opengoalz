@@ -313,7 +313,7 @@ BEGIN
                             loc_matrix_player_stats_left[index_player][12] - 1 + loc_matrix_player_stats_left[index_player][11] / 200.0);
                         ---- Increase experience
                         loc_matrix_player_stats_left[I][10] := LEAST(100,
-                            loc_matrix_player_stats_left[index_player][10] + 0.01);
+                            loc_matrix_player_stats_left[index_player][10] + 0.015);
                     END IF;
                     index_player := loc_array_substitutes_right[I];
                     IF loc_array_players_id_right[index_player] IS NOT NULL THEN
@@ -322,7 +322,7 @@ BEGIN
                             loc_matrix_player_stats_right[index_player][12] - 1 + loc_matrix_player_stats_right[index_player][11] / 200.0);
                         ---- Increase experience
                         loc_matrix_player_stats_right[I][10] := LEAST(100,
-                            loc_matrix_player_stats_right[index_player][10] + 0.01);
+                            loc_matrix_player_stats_right[index_player][10] + 0.015);
                     END IF;
                 END LOOP;
 

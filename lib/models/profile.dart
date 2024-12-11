@@ -174,12 +174,12 @@ Widget getUserName(BuildContext context, {String? userName, int? idClub}) {
       SizedBox(width: 3),
       Text(userName),
       if (userName ==
-          Provider.of<SessionProvider>(context)
+          Provider.of<SessionProvider>(context, listen: false)
               .user
               ?.username) // If the user is the connected user
         Icon(Icons.check_circle, color: Colors.green),
       if (userName !=
-          Provider.of<SessionProvider>(context)
+          Provider.of<SessionProvider>(context, listen: false)
               .user
               ?.username) // If the user is not the connected user
         Tooltip(

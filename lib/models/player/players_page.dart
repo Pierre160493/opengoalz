@@ -38,8 +38,6 @@ class _PlayersPageState extends State<PlayersPage> {
   final StreamController<List<Player>> _playerStreamController =
       StreamController<List<Player>>();
   late Stream<List<Player>> _playerStream;
-  late Stream<List<Club>> _clubStream = Stream.value([]);
-  late Stream<List<TransferBid>> _transferBids = Stream.value([]);
   late PlayerSearchCriterias _currentSearchCriterias;
   List<int> _previousPlayerIds = [];
   Timer? _timer;
@@ -80,24 +78,160 @@ class _PlayersPageState extends State<PlayersPage> {
       _previousPlayerIds = playerIds;
       print('Fetched player IDs: $playerIds');
 
-      var playerStream = supabase
+      // var playerStream = supabase
+      //     .from('players')
+      //     .stream(primaryKey: ['id'])
+      //     .inFilter('id', playerIds)
+      //     .order('date_birth', ascending: false)
+      //     .map((maps) {
+      //       print('Fetched player maps: $maps');
+      //       return maps.map((map) => Player.fromMap(map)).toList();
+      //     })
+      //     .handleError((error) {
+      //       print('Error fetching player maps: $error');
+      //     });
+
+      // // Sort players by bid end date if they are on transfer list
+      // if (_currentSearchCriterias.onTransferList) {
+      //   playerStream = playerStream.map((players) {
+      //     players.sort((Player a, Player b) {
+      //       if (a.dateBidEnd == null) {
+      //         return 1;
+      //       } else if (b.dateBidEnd == null) {
+      //         return -1;
+      //       } else {
+      //         return a.dateBidEnd!.compareTo(b.dateBidEnd!);
+      //       }
+      //     });
+      //     return players;
+      //   });
+      // }
+
+      // _clubStream = playerStream.switchMap((players) {
+      //   final clubIds = players
+      //       .map((player) => player.idClub)
+      //       .where((id) => id != null)
+      //       .toSet()
+      //       .toList();
+      //   // Continue with the rest of your logic
+
+      //   if (clubIds.isEmpty) {
+      //     return Stream.value([]);
+      //   }
+
+      //   return supabase
+      //       .from('clubs')
+      //       .stream(primaryKey: ['id'])
+      //       .inFilter('id', clubIds.cast<Object>())
+      //       .map((maps) {
+      //         print('Fetched club maps: $maps');
+      //         return maps.map((map) => Club.fromMap(map)).toList();
+      //       })
+      //       .handleError((error) {
+      //         print('Error fetching club maps: $error');
+      //       });
+      // });
+
+      // final combinedPlayerStream = playerStream
+      //     .switchMap((players) => _clubStream.map((List<Club> clubs) {
+      //           for (var player
+      //               in players.where((player) => player.idClub != null)) {
+      //             final clubData =
+      //                 clubs.firstWhere((Club club) => club.id == player.idClub);
+      //             player.club = clubData;
+      //           }
+      //           return players;
+      //         }));
+
+      // _transferBids = combinedPlayerStream.switchMap((players) {
+      //   final playerIds = players.map((player) => player.id).toSet().toList();
+      //   print('Fetched transfer bid player IDs: $playerIds');
+      //   return supabase
+      //       .from('transfers_bids')
+      //       .stream(primaryKey: ['id'])
+      //       .inFilter('id_player', playerIds.cast<Object>())
+      //       .order('count_bid', ascending: true)
+      //       .map((maps) {
+      //         print('Fetched transfer bid maps: $maps');
+      //         return maps.map((map) => TransferBid.fromMap(map)).toList();
+      //       })
+      //       .handleError((error) {
+      //         print('Error fetching transfer bid maps: $error');
+      //       });
+      // });
+
+      // final finalPlayerStream = combinedPlayerStream
+      //     .switchMap((players) => _transferBids.map((transferBids) {
+      //           for (var player in players) {
+      //             player.transferBids.clear();
+      //             player.transferBids.addAll(
+      //                 transferBids.where((bid) => bid.idPlayer == player.id));
+      //           }
+      //           return players;
+      //         }));
+
+      // finalPlayerStream.listen((players) {
+      //   print('Final player stream data: $players');
+      //   _playerStreamController.add(players);
+      // });
+
+      _playerStream = supabase
+
+          /// Fetch the players
           .from('players')
           .stream(primaryKey: ['id'])
           .inFilter('id', playerIds)
           .order('date_birth', ascending: false)
-          .map((maps) {
-            print('Fetched player maps: $maps');
-            return maps.map((map) => Player.fromMap(map)).toList();
-          })
-          .handleError((error) {
-            print('Error fetching player maps: $error');
-          });
+          .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
 
-      print('Test1');
+          /// Fetch their clubs
+          .switchMap((List<Player> players) {
+            print('Fetched player maps: ${players.length}');
+            return supabase
+                .from('clubs')
+                .stream(primaryKey: ['id'])
+                .inFilter(
+                    'id',
+                    players
+                        .map((Player player) => player.idClub)
+                        .where((idClub) => idClub != null)
+                        .toSet()
+                        .cast<Object>()
+                        .toList())
+                .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+                .map((List<Club> clubs) {
+                  for (Player player
+                      in players.where((player) => player.idClub != null)) {
+                    player.club =
+                        clubs.firstWhere((club) => club.id == player.idClub);
+                  }
+                  return players;
+                });
+          })
+
+          /// Fetch their transfers bids
+          .switchMap((List<Player> players) {
+            return supabase
+                .from('transfers_bids')
+                .stream(primaryKey: ['id'])
+                .inFilter('id_player',
+                    players.map((player) => player.id).toSet().toList())
+                .order('count_bid', ascending: true)
+                .map((maps) =>
+                    maps.map((map) => TransferBid.fromMap(map)).toList())
+                .map((List<TransferBid> transfersBids) {
+                  for (Player player in players) {
+                    player.transferBids.clear();
+                    player.transferBids.addAll(transfersBids
+                        .where((bid) => bid.idPlayer == player.id));
+                  }
+                  return players;
+                });
+          });
 
       // Sort players by bid end date if they are on transfer list
       if (_currentSearchCriterias.onTransferList) {
-        playerStream = playerStream.map((players) {
+        _playerStream = _playerStream.map((players) {
           players.sort((Player a, Player b) {
             if (a.dateBidEnd == null) {
               return 1;
@@ -110,74 +244,6 @@ class _PlayersPageState extends State<PlayersPage> {
           return players;
         });
       }
-
-      _clubStream = playerStream.switchMap((players) {
-        final clubIds = players
-            .map((player) => player.idClub)
-            .where((id) => id != null)
-            .toSet()
-            .toList();
-        // Continue with the rest of your logic
-
-        if (clubIds.isEmpty) {
-          return Stream.value([]);
-        }
-
-        return supabase
-            .from('clubs')
-            .stream(primaryKey: ['id'])
-            .inFilter('id', clubIds.cast<Object>())
-            .map((maps) {
-              print('Fetched club maps: $maps');
-              return maps.map((map) => Club.fromMap(map)).toList();
-            })
-            .handleError((error) {
-              print('Error fetching club maps: $error');
-            });
-      });
-
-      final combinedPlayerStream = playerStream
-          .switchMap((players) => _clubStream.map((List<Club> clubs) {
-                for (var player
-                    in players.where((player) => player.idClub != null)) {
-                  final clubData =
-                      clubs.firstWhere((Club club) => club.id == player.idClub);
-                  player.club = clubData;
-                }
-                return players;
-              }));
-
-      _transferBids = combinedPlayerStream.switchMap((players) {
-        final playerIds = players.map((player) => player.id).toSet().toList();
-        print('Fetched transfer bid player IDs: $playerIds');
-        return supabase
-            .from('transfers_bids')
-            .stream(primaryKey: ['id'])
-            .inFilter('id_player', playerIds.cast<Object>())
-            .order('count_bid', ascending: true)
-            .map((maps) {
-              print('Fetched transfer bid maps: $maps');
-              return maps.map((map) => TransferBid.fromMap(map)).toList();
-            })
-            .handleError((error) {
-              print('Error fetching transfer bid maps: $error');
-            });
-      });
-
-      final finalPlayerStream = combinedPlayerStream
-          .switchMap((players) => _transferBids.map((transferBids) {
-                for (var player in players) {
-                  player.transferBids.clear();
-                  player.transferBids.addAll(
-                      transferBids.where((bid) => bid.idPlayer == player.id));
-                }
-                return players;
-              }));
-
-      finalPlayerStream.listen((players) {
-        print('Final player stream data: $players');
-        _playerStreamController.add(players);
-      });
     } catch (e) {
       print('Error initializing streams: $e');
     }
@@ -192,118 +258,241 @@ class _PlayersPageState extends State<PlayersPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Player>>(
-        stream: _playerStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text('ERROR: ${snapshot.error}'),
-            );
-          } else {
-            final List<Player> players = (snapshot.data ?? []);
-            print('StreamBuilder snapshot data: $players');
-
-            return Scaffold(
-                appBar: AppBar(
-                  title: players.isEmpty
-                      ? Text('No Players Found')
-                      : players.length == 1
-                          ? players.first.getPlayerNames(context)
-                          : Text(
-                              '${players.length} Players',
-                            ),
-                  actions: [
-                    goBackIconButton(context),
-                    if (_showReloadButton)
-                      IconButton(
-                        tooltip:
-                            'Reload the list of players to see the latest changes',
-                        onPressed: () {
-                          setState(() {
-                            _showReloadButton = false;
-                            _initializeStreams();
-                          });
-                        },
-                        icon: Icon(Icons.refresh, color: Colors.green),
-                      ),
-                    IconButton(
-                      tooltip: 'Modify Search Criterias',
-                      onPressed: () {
-                        showDialog<PlayerSearchCriterias>(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return playerSearchDialogBox(
-                              inputPlayerSearchCriterias:
-                                  _currentSearchCriterias,
-                            );
-                          },
-                        ).then((playerSearchCriterias) {
-                          if (playerSearchCriterias != null) {
-                            setState(() {
-                              _currentSearchCriterias = playerSearchCriterias;
-                              _initializeStreams();
-                            });
-                          }
-                        });
-                      },
-                      icon: Icon(Icons.person_search),
-                    ),
-                    IconButton(
-                        tooltip: 'Sort players by...',
-                        onPressed: () {
-                          showSortingOptions(context, setState, players);
-                        },
-                        icon: Icon(Icons.align_horizontal_left_rounded)),
-                  ],
-                ),
-                drawer: (widget.isReturningPlayer || players.length == 1)
-                    ? null
-                    : const AppDrawer(),
-                body: MaxWidthContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: players.length,
-                          itemBuilder: (context, index) {
-                            final Player player = players[index];
-                            return InkWell(
-                              onTap: () {
-                                if (widget.isReturningPlayer) {
-                                  Navigator.of(context).pop(player);
-                                } else if (players.length > 1) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PlayersPage(
-                                        playerSearchCriterias:
-                                            PlayerSearchCriterias(
-                                                idPlayer: [player.id]),
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  // Handle logic for single player directly
-                                }
-                              },
-                              child: PlayerCard(
-                                  player: player,
-                                  index: players.length == 1 ? 0 : index + 1,
-                                  isExpanded:
-                                      players.length == 1 ? true : false),
-                            );
-                          },
-                        ),
-                      )
-                    ],
-                  ),
-                ));
-          }
-        });
+    return FutureBuilder<void>(
+      future: _initializeStreams(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          return StreamBuilder<List<Player>>(
+            stream: _playerStream,
+            builder: (context, streamSnapshot) {
+              if (streamSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (streamSnapshot.hasError) {
+                return Center(child: Text('Error: ${streamSnapshot.error}'));
+              } else {
+                final List<Player> players = streamSnapshot.data ?? [];
+                return _buildPlayersList(players);
+              }
+            },
+          );
+        }
+      },
+    );
   }
+
+  Widget _buildPlayersList(List<Player> players) {
+    return Scaffold(
+        appBar: AppBar(
+          title: players.isEmpty
+              ? Text('No Players Found')
+              : players.length == 1
+                  ? players.first.getPlayerNames(context)
+                  : Text(
+                      '${players.length} Players',
+                    ),
+          actions: [
+            goBackIconButton(context),
+            if (_showReloadButton)
+              IconButton(
+                tooltip: 'Reload the list of players to see the latest changes',
+                onPressed: () {
+                  setState(() {
+                    _showReloadButton = false;
+                    _initializeStreams();
+                  });
+                },
+                icon: Icon(Icons.refresh, color: Colors.green),
+              ),
+            IconButton(
+              tooltip: 'Modify Search Criterias',
+              onPressed: () {
+                showDialog<PlayerSearchCriterias>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return playerSearchDialogBox(
+                      inputPlayerSearchCriterias: _currentSearchCriterias,
+                    );
+                  },
+                ).then((playerSearchCriterias) {
+                  if (playerSearchCriterias != null) {
+                    setState(() {
+                      _currentSearchCriterias = playerSearchCriterias;
+                      _initializeStreams();
+                    });
+                  }
+                });
+              },
+              icon: Icon(Icons.person_search),
+            ),
+            IconButton(
+                tooltip: 'Sort players by...',
+                onPressed: () {
+                  showSortingOptions(context, setState, players);
+                },
+                icon: Icon(Icons.align_horizontal_left_rounded)),
+          ],
+        ),
+        drawer: (widget.isReturningPlayer || players.length == 1)
+            ? null
+            : const AppDrawer(),
+        body: MaxWidthContainer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: players.length,
+                  itemBuilder: (context, index) {
+                    final Player player = players[index];
+                    return InkWell(
+                      onTap: () {
+                        if (widget.isReturningPlayer) {
+                          Navigator.of(context).pop(player);
+                        } else if (players.length > 1) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PlayersPage(
+                                playerSearchCriterias: PlayerSearchCriterias(
+                                    idPlayer: [player.id]),
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Handle logic for single player directly
+                        }
+                      },
+                      child: PlayerCard(
+                          player: player,
+                          index: players.length == 1 ? 0 : index + 1,
+                          isExpanded: players.length == 1 ? true : false),
+                    );
+                  },
+                ),
+              )
+            ],
+          ),
+        ));
+  }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return StreamBuilder<List<Player>>(
+  //       stream: _playerStream,
+  //       builder: (context, snapshot) {
+  //         if (snapshot.connectionState == ConnectionState.waiting) {
+  //           return const Center(
+  //             child: CircularProgressIndicator(),
+  //           );
+  //         } else if (snapshot.hasError) {
+  //           return Center(
+  //             child: Text('ERROR: ${snapshot.error}'),
+  //           );
+  //         } else {
+  //           final List<Player> players = (snapshot.data ?? []);
+  //           print('StreamBuilder snapshot data: $players');
+
+  //           return Scaffold(
+  //               appBar: AppBar(
+  //                 title: players.isEmpty
+  //                     ? Text('No Players Found')
+  //                     : players.length == 1
+  //                         ? players.first.getPlayerNames(context)
+  //                         : Text(
+  //                             '${players.length} Players',
+  //                           ),
+  //                 actions: [
+  //                   goBackIconButton(context),
+  //                   if (_showReloadButton)
+  //                     IconButton(
+  //                       tooltip:
+  //                           'Reload the list of players to see the latest changes',
+  //                       onPressed: () {
+  //                         setState(() {
+  //                           _showReloadButton = false;
+  //                           _initializeStreams();
+  //                         });
+  //                       },
+  //                       icon: Icon(Icons.refresh, color: Colors.green),
+  //                     ),
+  //                   IconButton(
+  //                     tooltip: 'Modify Search Criterias',
+  //                     onPressed: () {
+  //                       showDialog<PlayerSearchCriterias>(
+  //                         context: context,
+  //                         builder: (BuildContext context) {
+  //                           return playerSearchDialogBox(
+  //                             inputPlayerSearchCriterias:
+  //                                 _currentSearchCriterias,
+  //                           );
+  //                         },
+  //                       ).then((playerSearchCriterias) {
+  //                         if (playerSearchCriterias != null) {
+  //                           setState(() {
+  //                             _currentSearchCriterias = playerSearchCriterias;
+  //                             _initializeStreams();
+  //                           });
+  //                         }
+  //                       });
+  //                     },
+  //                     icon: Icon(Icons.person_search),
+  //                   ),
+  //                   IconButton(
+  //                       tooltip: 'Sort players by...',
+  //                       onPressed: () {
+  //                         showSortingOptions(context, setState, players);
+  //                       },
+  //                       icon: Icon(Icons.align_horizontal_left_rounded)),
+  //                 ],
+  //               ),
+  //               drawer: (widget.isReturningPlayer || players.length == 1)
+  //                   ? null
+  //                   : const AppDrawer(),
+  //               body: MaxWidthContainer(
+  //                 child: Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     Expanded(
+  //                       child: ListView.builder(
+  //                         itemCount: players.length,
+  //                         itemBuilder: (context, index) {
+  //                           final Player player = players[index];
+  //                           return InkWell(
+  //                             onTap: () {
+  //                               if (widget.isReturningPlayer) {
+  //                                 Navigator.of(context).pop(player);
+  //                               } else if (players.length > 1) {
+  //                                 Navigator.push(
+  //                                   context,
+  //                                   MaterialPageRoute(
+  //                                     builder: (context) => PlayersPage(
+  //                                       playerSearchCriterias:
+  //                                           PlayerSearchCriterias(
+  //                                               idPlayer: [player.id]),
+  //                                     ),
+  //                                   ),
+  //                                 );
+  //                               } else {
+  //                                 // Handle logic for single player directly
+  //                               }
+  //                             },
+  //                             child: PlayerCard(
+  //                                 player: player,
+  //                                 index: players.length == 1 ? 0 : index + 1,
+  //                                 isExpanded:
+  //                                     players.length == 1 ? true : false),
+  //                           );
+  //                         },
+  //                       ),
+  //                     )
+  //                   ],
+  //                 ),
+  //               ));
+  //         }
+  //       });
+  // }
 }

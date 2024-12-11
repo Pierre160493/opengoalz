@@ -62,7 +62,7 @@
 //             ),
 //           ),
 //           if (player.idClub !=
-//               Provider.of<SessionProvider>(context).user!.selectedClub!.id)
+//               Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.id)
 //             IconButton(
 //               icon: Icon(
 //                 Icons.arrow_circle_up_outlined,
@@ -110,7 +110,7 @@
 //               ),
 //             ),
 //             if (player.idClub !=
-//                 Provider.of<SessionProvider>(context).user!.selectedClub!.id)
+//                 Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.id)
 //               IconButton(
 //                 icon: Icon(
 //                   Icons.arrow_circle_up_outlined,

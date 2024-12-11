@@ -25,6 +25,7 @@ class SessionProvider extends ChangeNotifier {
     for (Club club in user!.clubs) {
       if (club.id == idClub) {
         selectedClub = club;
+        print('Selected club: ${selectedClub.name}');
         break;
       }
     }

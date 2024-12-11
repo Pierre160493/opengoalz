@@ -339,7 +339,9 @@ class _MultiversePageState extends State<MultiversePage> {
               'From ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonStart)} to ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonEnd)}'),
           subtitle: Text(
               // 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} days with ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays * multiverse.speed / 7} games left',
-              'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} days',
+              multiverse.dateSeasonEnd.difference(DateTime.now()).inDays > 0
+                  ? 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} day(s)'
+                  : 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inHours} hour(s)',
               style: styleItalicBlueGrey),
         ),
         ListTile(

@@ -1,7 +1,7 @@
 -- DROP FUNCTION public.cron_handle_transfers();
 
 CREATE OR REPLACE FUNCTION public.transfers_handle_transfers(
-    inp_multiverse_id BIGINT
+    rec_multiverse RECORD
 )
  RETURNS void
  LANGUAGE plpgsql
@@ -19,7 +19,7 @@ BEGIN
             FROM players
             WHERE date_bid_end < NOW()
             AND is_playing = FALSE
-            AND id_multiverse = inp_multiverse_id
+            AND id_multiverse = rec_multiverse.id
     ) LOOP
 
         -- Get the last bid on the player
@@ -64,7 +64,7 @@ BEGIN
                     UPDATE players SET
                         id_club = NULL,
                         date_arrival = date_bid_end,
-                        date_bid_end = date_trunc('minute', NOW()) + INTERVAL '1 week',
+                        date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / rec_multiverse.speed),
                         expenses_missed = 0,
                         motivation = 60 + random() * 30
                     WHERE id = player.id;
@@ -160,8 +160,8 @@ BEGIN
 
                 -- Update player to make bidding next week
                 UPDATE players SET
-                    date_bid_end = date_trunc('minute', NOW()) + INTERVAL '1 week',
-                    expenses_expected = 0.75 * expenses_expected
+                    date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / rec_multiverse.speed),
+                    expenses_expected = FLOOR(0.9 * expenses_expected)
                 WHERE id = player.id;
 
             ELSE

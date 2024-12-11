@@ -1,20 +1,35 @@
 -- DROP FUNCTION public.players_create_player(int8, int8, int8, _float8, float8, int8, text);
 
-CREATE OR REPLACE FUNCTION public.players_create_player(
-    inp_id_multiverse bigint,
-    inp_id_club bigint,
-    inp_id_country bigint,
-    inp_stats double precision[],
-    inp_age double precision,
-    inp_shirt_number bigint DEFAULT NULL::bigint,
-    inp_notes text DEFAULT NULL::text)
+CREATE OR REPLACE FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_stats double precision[], inp_age double precision, inp_shirt_number bigint DEFAULT NULL::bigint, inp_notes text DEFAULT NULL::text)
  RETURNS bigint
  LANGUAGE plpgsql
 AS $function$
 DECLARE
     loc_new_player_id bigint; -- Variable to store the inserted player's ID
+    loc_top_two_stats double precision[];
+    loc_training_coef double precision[];
 BEGIN
 
+    -- Find the two highest values in inp_stats
+    loc_top_two_stats := (
+        SELECT ARRAY(
+            SELECT val
+            FROM unnest(inp_stats) AS val
+            ORDER BY val DESC
+            LIMIT 2
+        )
+    );
+
+    -- Create the training_coef array with 1 for the two highest stats and 0 for the others
+    loc_training_coef := ARRAY[
+        CASE WHEN inp_stats[1] = ANY(loc_top_two_stats) THEN 1 ELSE 0 END,
+        CASE WHEN inp_stats[2] = ANY(loc_top_two_stats) THEN 1 ELSE 0 END,
+        CASE WHEN inp_stats[3] = ANY(loc_top_two_stats) THEN 1 ELSE 0 END,
+        CASE WHEN inp_stats[4] = ANY(loc_top_two_stats) THEN 1 ELSE 0 END,
+        CASE WHEN inp_stats[5] = ANY(loc_top_two_stats) THEN 1 ELSE 0 END,
+        CASE WHEN inp_stats[6] = ANY(loc_top_two_stats) THEN 1 ELSE 0 END,
+        CASE WHEN inp_stats[7] = ANY(loc_top_two_stats) THEN 1 ELSE 0 END
+    ];
 
     ------------------------------------------------------------------------
     ------------------------------------------------------------------------

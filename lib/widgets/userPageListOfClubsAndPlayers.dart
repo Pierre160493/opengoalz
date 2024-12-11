@@ -419,7 +419,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                 return;
               }
               if (await context.showConfirmationDialog(
-                      'Are you sure you want to create a player from ${selectedCountry!.name} ?') !=
+                      'Are you sure you want to create a new player (${firstNameController.text} ${lastNameController.text}) from ${selectedCountry!.name} ?') !=
                   true) {
                 context.showSnackBarError('Player creation aborted');
                 return;
@@ -436,11 +436,11 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                 'first_name': firstNameController.text,
                 'last_name': lastNameController.text,
                 'date_birth': dateBirth!.toIso8601String(),
-                'training_points': selectedAge * 2,
+                'training_points_available': selectedAge * 2,
               });
               if (isOK) {
                 context.showSnackBarSuccess(
-                    'You now incarne a new player in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
+                    'You now incarne ${firstNameController.text} ${lastNameController.text} in the continent: ${selectedCountry!.selectedContinent} !');
                 Navigator.of(context).pop();
               }
             }

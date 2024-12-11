@@ -274,7 +274,7 @@ class _HomePageState extends State<GamePage> {
                 /// Left Club TeamComp
                 if (game.dateEnd == null &&
                     game.leftClub.id !=
-                        Provider.of<SessionProvider>(context)
+                        Provider.of<SessionProvider>(context, listen: false)
                             .user!
                             .selectedClub!
                             .id)
@@ -289,7 +289,7 @@ class _HomePageState extends State<GamePage> {
                 /// Right Club TeamComp
                 if (game.dateEnd == null &&
                     game.rightClub.id !=
-                        Provider.of<SessionProvider>(context)
+                        Provider.of<SessionProvider>(context, listen: false)
                             .user!
                             .selectedClub!
                             .id)

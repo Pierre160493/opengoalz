@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/models/player/player_card.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:opengoalz/models/club/club.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -39,20 +43,65 @@ class _TransferPageState extends State<TransferPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
+    // Stream to fetch the list of player IDs that the club has shown interest in
     _IdPlayersTransferStream = supabase
         .from('transfers_bids')
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.idClub)
         .map((maps) => maps.map((map) => TransferBid.fromMap(map)).toList());
 
-    _playerStream = _IdPlayersTransferStream.asyncExpand((playerIds) {
-      List<int> playerIdsList = playerIds.map((bid) => bid.idPlayer).toList();
+    // Stream to fetch players based on the player IDs from the transfer bids
+    _playerStream = _IdPlayersTransferStream.asyncExpand<List<Player>>(
+        (List<TransferBid> transferBids) {
+      List<int> playerIdsList =
+          transferBids.map((bid) => bid.idPlayer).toList();
+
       return supabase
           .from('players')
           .stream(primaryKey: ['id'])
           .inFilter('id', playerIdsList)
           .order('date_birth', ascending: true)
-          .map((maps) => maps.map((map) => Player.fromMap(map)).toList());
+          .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+          .switchMap((List<Player> players) {
+            // Fetch their clubs
+            return supabase
+                .from('clubs')
+                .stream(primaryKey: ['id'])
+                .inFilter(
+                    'id',
+                    players
+                        .map((player) => player.idClub)
+                        .toSet()
+                        .cast<Object>()
+                        .toList())
+                .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+                .map((List<Club> clubs) {
+                  for (Player player in players) {
+                    player.club =
+                        clubs.firstWhere((club) => club.id == player.idClub);
+                  }
+                  return players;
+                });
+          })
+          .switchMap((List<Player> players) {
+            // Fetch their transfer bids
+            return supabase
+                .from('transfers_bids')
+                .stream(primaryKey: ['id'])
+                .inFilter('id_player',
+                    players.map((player) => player.id).toSet().toList())
+                .order('count_bid', ascending: true)
+                .map((maps) =>
+                    maps.map((map) => TransferBid.fromMap(map)).toList())
+                .map((List<TransferBid> transfersBids) {
+                  for (Player player in players) {
+                    player.transferBids.clear();
+                    player.transferBids.addAll(transfersBids
+                        .where((bid) => bid.idPlayer == player.id));
+                  }
+                  return players;
+                });
+          });
     }).asBroadcastStream();
   }
 
@@ -119,28 +168,37 @@ class _TransferPageState extends State<TransferPage>
                 body: MaxWidthContainer(
                   child: Column(
                     children: [
-                      ListTile(
-                        leading: Icon(iconMoney, color: Colors.green),
-                        title: Text(NumberFormat.decimalPattern().format(
-                          Provider.of<SessionProvider>(context)
-                              .user!
-                              .selectedClub!
-                              .lisCash
-                              .last,
-                        )),
-                        subtitle: Text(
-                          'Available cash',
-                          style: TextStyle(
-                            color: Colors.blueGrey,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
+                      Provider.of<SessionProvider>(context, listen: false)
+                          .user!
+                          .selectedClub!
+                          .getCashListTile(),
                       TabBar(
                         controller: _tabController,
                         tabs: [
-                          Tab(text: 'Sell (${playersSell.length})'),
-                          Tab(text: 'Buy (${playersBuy.length})'),
+                          buildTabWithIcon2(
+                              context,
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.local_offer,
+                                    color: Colors.green,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text('Sell (${playersSell.length})'),
+                                ],
+                              )),
+                          buildTabWithIcon2(
+                              context,
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.shopping_cart,
+                                    color: Colors.green,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text('Buy (${playersBuy.length})'),
+                                ],
+                              )),
                         ],
                       ),
                       Expanded(
@@ -172,45 +230,62 @@ class _TransferPageState extends State<TransferPage>
             itemCount: players.length,
             itemBuilder: (context, index) {
               final Player player = players[index];
-              return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PlayersPage(
-                          playerSearchCriterias: PlayerSearchCriterias(
-                            idPlayer: [player.id],
-                          ),
-                        ),
+              return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PlayersPage(
+                        playerSearchCriterias:
+                            PlayerSearchCriterias(idPlayer: [player.id]),
                       ),
-                    );
-                  },
-                  child: Card(
-                    child: ListTile(
-                      title: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              '${player.firstName[0]}.${player.lastName.toUpperCase()} ',
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          player.getStatusRow(),
-                        ],
-                      ),
-                      subtitle: Column(
-                        children: [
-                          player.getAgeWidget(),
-                          player.getAvgStatsWidget(),
-                        ],
-                      ),
-                      // You can add more widgets here to display additional information about the player
                     ),
-                  ));
+                  );
+                },
+                child: PlayerCard(
+                    player: player,
+                    index: players.length == 1 ? 0 : index + 1,
+                    isExpanded: players.length == 1 ? true : false),
+              );
+              // return GestureDetector(
+              //     onTap: () {
+              //       Navigator.push(
+              //         context,
+              //         MaterialPageRoute(
+              //           builder: (context) => PlayersPage(
+              //             playerSearchCriterias: PlayerSearchCriterias(
+              //               idPlayer: [player.id],
+              //             ),
+              //           ),
+              //         ),
+              //       );
+              //     },
+              //     child: Card(
+              //       child: ListTile(
+              //         title: Row(
+              //           children: [
+              //             Flexible(
+              //               child: Text(
+              //                 '${player.firstName[0]}.${player.lastName.toUpperCase()} ',
+              //                 overflow: TextOverflow.ellipsis,
+              //                 maxLines: 1,
+              //                 style: TextStyle(
+              //                   fontWeight: FontWeight.bold,
+              //                 ),
+              //               ),
+              //             ),
+              //             player.getStatusRow(),
+              //           ],
+              //         ),
+              //         subtitle: Column(
+              //           children: [
+              //             player.getAgeWidget(),
+              //             player.getAvgStatsWidget(),
+              //           ],
+              //         ),
+              //         // You can add more widgets here to display additional information about the player
+              //       ),
+              //     ));
             },
           ),
         )

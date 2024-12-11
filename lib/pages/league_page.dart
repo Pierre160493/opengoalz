@@ -54,7 +54,6 @@ class _RankingPageState extends State<LeaguePage> {
                 League.fromMap(map, idSelectedClub: widget.idSelectedClub))
             .first)
         .switchMap((League league) {
-          print('testICI_league');
           return supabase
               .from('games')
               .stream(primaryKey: ['id'])

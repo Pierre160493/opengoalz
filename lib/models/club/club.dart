@@ -20,7 +20,6 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:provider/provider.dart';
 
 part 'clubWidgetHelper.dart';
-part 'clubWidgetFinances.dart';
 part 'clubCardWidget.dart';
 
 class Club {
