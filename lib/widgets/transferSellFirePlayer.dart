@@ -28,24 +28,39 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
   StreamSubscription<Player>? _playerSubscription;
   Player? _player;
 
+  bool _firePlayer = false;
+  bool _isPriceValid = true;
+  late bool _isDateValid;
+
   final TextEditingController _priceController =
       TextEditingController(text: '100'); // Initialize with default value
   final TextEditingController _dateController = TextEditingController();
-  DateTime _selectedDateTime = DateTime.now().add(Duration(minutes: 5));
+  late DateTime _selectedDateTime;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+    _initializeDateTime();
+    _initializePlayerStream();
+    _firePlayer = widget.firePlayer;
+  }
 
+  void _initializeDateTime() {
+    _selectedDateTime = DateTime.now()
+        .add(Duration(minutes: 5))
+        .copyWith(second: 0, millisecond: 0, microsecond: 0);
+    _isDateValid = true;
+    _dateController.text =
+        DateFormat('EEE dd MMM HH:mm').format(_selectedDateTime);
+  }
+
+  void _initializePlayerStream() {
     _playerStream = supabase
-
-        /// Fetch the player
         .from('players')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idPlayer)
         .map((maps) => maps.map((map) => Player.fromMap(map)).first)
-
-        /// Fetch its club
         .switchMap((Player player) {
           if (player.idClub == null) {
             return Stream.value(player);
@@ -60,8 +75,6 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
                 return player;
               });
         })
-
-        /// Fetch its transfers bids
         .switchMap((Player player) {
           return supabase
               .from('transfers_bids')
@@ -82,9 +95,6 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
         _player = player;
       });
     });
-
-    _dateController.text = DateFormat('EEE dd MMM HH:mm')
-        .format(_selectedDateTime); // Initialize the date controller
   }
 
   @override
@@ -95,6 +105,51 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
     super.dispose();
   }
 
+  Future<void> _pickDateTime(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateTime,
+      firstDate: DateTime.now().add(Duration(minutes: 5)),
+      lastDate: DateTime.now().add(Duration(days: 14)),
+    );
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
+        initialEntryMode: TimePickerEntryMode.input,
+      );
+      if (pickedTime != null) {
+        setState(() {
+          _selectedDateTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+          _dateController.text =
+              DateFormat('EEE dd MMM HH:mm').format(_selectedDateTime);
+          _formKey.currentState?.validate();
+        });
+      }
+    }
+  }
+
+  String? _validateDateTime(String? value) {
+    _isDateValid = false;
+
+    if (_selectedDateTime.isBefore(DateTime.now())) {
+      return 'Date has passed already';
+    }
+
+    if (_selectedDateTime.isAfter(DateTime.now().add(Duration(days: 14)))) {
+      return 'Date within the next 14 days';
+    }
+
+    _isDateValid = true;
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_player == null) {
@@ -103,25 +158,62 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
 
     final Player player = _player!;
 
-    return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-      return AlertDialog(
-        title: Row(
-          children: [
-            Text('${widget.firePlayer ? 'Fire' : 'Sell'} '),
-            player.getPlayerNameToolTip(context),
-          ],
-        ),
-        content: Column(
+    /// Sell Club Row
+    final Row rowSellPlayer = Row(
+      children: [
+        Icon(iconTransfers, color: Colors.green),
+        formSpacer6,
+        Text('Sell '),
+      ],
+    );
+
+    /// Leave Club Row
+    final Row rowFirePlayer = Row(
+      children: [
+        Icon(iconLeaveClub, color: Colors.green),
+        formSpacer6,
+        Text('Fire '),
+      ],
+    );
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          PopupMenuButton<String>(
+            onSelected: (String result) {
+              setState(() {
+                _firePlayer = result == 'Fire';
+              });
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              PopupMenuItem<String>(
+                value: 'Sell',
+                child: rowSellPlayer,
+              ),
+              PopupMenuItem<String>(
+                value: 'Fire',
+                child: rowFirePlayer,
+              ),
+            ],
+            child: _firePlayer ? rowFirePlayer : rowSellPlayer,
+          ),
+          player.getPlayerNameToolTip(context),
+        ],
+      ),
+      content: Form(
+        key: _formKey,
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Display the _priceController only if the player is gonna be sold
-            if (widget.firePlayer == false)
+            if (_firePlayer == false)
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0),
-                  side: BorderSide(color: Colors.blueGrey, width: 1.0),
+                  side: BorderSide(
+                      color: _isPriceValid ? Colors.green : Colors.red,
+                      width: 2.0),
                 ),
                 leading:
                     Icon(iconMoney, size: iconSizeMedium, color: Colors.green),
@@ -133,29 +225,58 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
                   ],
                   decoration: InputDecoration(
                     labelText: 'Starting price',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: _isPriceValid ? Colors.green : Colors.red,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: _isPriceValid ? Colors.green : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: _isPriceValid ? Colors.green : Colors.red,
+                      ),
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
+                      setState(() {
+                        _isPriceValid = false;
+                      });
                       return 'Please enter a price';
                     }
                     final int? price = int.tryParse(value);
                     if (price == null) {
+                      setState(() {
+                        _isPriceValid = false;
+                      });
                       return 'Please enter a valid integer';
                     }
+                    if (price < 100) {
+                      setState(() {
+                        _isPriceValid = false;
+                      });
+                      return 'Starting price should be at least 100';
+                    }
+                    setState(() {
+                      _isPriceValid = true;
+                    });
                     return null;
                   },
-                ),
-                subtitle: Text(
-                  'Enter the starting price',
-                  style: TextStyle(
-                      color: Colors.blueGrey, fontStyle: FontStyle.italic),
+                  onChanged: (value) {
+                    _formKey.currentState?.validate();
+                  },
                 ),
               ),
             ListTile(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
-                side: BorderSide(color: Colors.blueGrey, width: 1.0),
+                side: BorderSide(
+                    color: _isDateValid ? Colors.green : Colors.red,
+                    width: 2.0),
               ),
               leading: Icon(iconCalendar),
               title: TextFormField(
@@ -164,135 +285,96 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
                 keyboardType: TextInputType.datetime,
                 decoration: InputDecoration(
                   labelText: 'Bidding End Date',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: _isDateValid ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: _isDateValid ? Colors.green : Colors.grey,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: _isDateValid ? Colors.green : Colors.red,
+                    ),
+                  ),
                 ),
-                onTap: () async {
-                  final DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDateTime,
-                    firstDate: DateTime.now().add(Duration(minutes: 5)),
-                    lastDate: DateTime.now().add(Duration(days: 14)),
-                  );
-                  if (pickedDate != null) {
-                    final TimeOfDay? pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
-                      initialEntryMode: TimePickerEntryMode.input,
-                    );
-                    if (pickedTime != null) {
-                      setState(() {
-                        _selectedDateTime = DateTime(
-                          pickedDate.year,
-                          pickedDate.month,
-                          pickedDate.day,
-                          pickedTime.hour,
-                          pickedTime.minute,
-                        );
-                        _dateController.text = DateFormat('EEE dd MMM HH:mm')
-                            .format(_selectedDateTime);
-                      });
-                    }
-                  }
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a date and time';
-                  }
-                  final DateTime? date =
-                      DateFormat('EEE dd MMM HH:mm').parse(value, true);
-                  if (date == null) {
-                    return 'Please enter a valid date and time';
-                  }
-                  if (date.isBefore(DateTime.now().add(Duration(minutes: 5)))) {
-                    return 'Please select a date and time at least 5 minutes from now';
-                  }
-                  if (date.isAfter(DateTime.now().add(Duration(days: 14)))) {
-                    return 'Please select a date and time within the next 14 days';
-                  }
-                  return null;
-                },
+                onTap: () => _pickDateTime(context),
+                validator: _validateDateTime,
               ),
               subtitle: tickingTimeWidget(_selectedDateTime),
             ),
           ],
         ),
-        actions: [
-          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-            /// Cancel button
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Row(
-                children: [
-                  Icon(Icons.cancel, color: Colors.red),
-                  formSpacer3,
-                  Text('Cancel'),
-                ],
-              ),
+      ),
+      actions: [
+        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          /// Cancel button
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Row(
+              children: [
+                Icon(Icons.cancel, color: Colors.red),
+                formSpacer3,
+                Text('Cancel'),
+              ],
             ),
+          ),
 
-            /// Confirm button
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close the dialog
-                try {
-                  int? minimumPrice = int.tryParse(_priceController.text);
-                  if (minimumPrice == null || minimumPrice < 0) {
-                    context.showSnackBarError(
-                        'Please enter a valid number for minimum price (should be a positive integer)');
-                    return;
-                  }
-                  // if (firePlayer) {
-                  //   minimumPrice = 0;
-                  // }
-
-                  // Validate the selected date
-                  if (
-                      // selectedDate.isBefore(
-                      //       DateTime.now().add(Duration(minutes: 30))) ||
-                      _selectedDateTime
-                          .isAfter(DateTime.now().add(Duration(days: 14)))) {
-                    context.showSnackBarError(
-                        'Please select a valid date between XXX and 14 days from now');
-                    return;
-                  }
-
-                  // Call the transfers_new_transfer function
-                  await supabase.rpc('transfers_handle_new_bid', params: {
-                    'inp_id_player': player.id,
-                    'inp_id_club_bidder':
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub
-                            ?.id,
-                    'inp_amount': minimumPrice,
-                    'inp_date_bid_end':
-                        _selectedDateTime.toUtc().toIso8601String(),
-                  });
-
-                  context.showSnackBarSuccess('${player.getPlayerNameString()} ' +
-                      // (firePlayer
-                      //     ? 'has been put to transfer list and will be fired if no bids are received'
-                      //     : 'has been put to transfer list'));
-                      'has been put to transfer list');
-                } on PostgrestException catch (error) {
-                  context.showSnackBarPostgreSQLError(error.message);
-                } catch (error) {
-                  context.showSnackBarError(error.toString());
+          /// Confirm button
+          TextButton(
+            onPressed: () async {
+              try {
+                int? minimumPrice = int.tryParse(_priceController.text);
+                if (minimumPrice == null || minimumPrice < 0) {
+                  context.showSnackBarError(
+                      'Please enter a valid number for minimum price (should be a positive integer)');
+                  return;
                 }
-              },
-              child: Row(
-                children: [
-                  Icon(Icons.gavel, color: Colors.green),
-                  formSpacer3,
-                  Text('Sell  ${player.getPlayerNameString()}'),
-                ],
-              ),
+                if (_firePlayer) {
+                  minimumPrice = 0;
+                }
+
+                // Call the transfers_new_transfer function
+                await supabase.rpc('transfers_handle_new_bid', params: {
+                  'inp_id_player': player.id,
+                  'inp_id_club_bidder':
+                      Provider.of<SessionProvider>(context, listen: false)
+                          .user!
+                          .selectedClub
+                          ?.id,
+                  'inp_amount': minimumPrice,
+                  'inp_date_bid_end':
+                      _selectedDateTime.toUtc().toIso8601String(),
+                });
+
+                context.showSnackBarSuccess('${player.getPlayerNameString()} ' +
+                    (_firePlayer
+                        ? 'has been put to transfer list and will be fired if no bids are received'
+                        : 'has been put to transfer list'));
+              } on PostgrestException catch (error) {
+                context.showSnackBarPostgreSQLError(error.message);
+              } catch (error) {
+                context.showSnackBarError(error.toString());
+              }
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: Row(
+              children: [
+                _firePlayer
+                    ? rowFirePlayer
+                    : rowSellPlayer, // Display the correct icon
+                formSpacer3,
+                Text(player.getPlayerNameString()),
+              ],
             ),
-          ])
-        ],
-      );
-    });
+          ),
+        ])
+      ],
+    );
   }
 }
