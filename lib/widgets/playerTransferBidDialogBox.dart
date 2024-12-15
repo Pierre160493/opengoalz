@@ -41,22 +41,6 @@ class _PlayerTransferBidDialogBoxState
         .eq('id', widget.idPlayer)
         .map((maps) => maps.map((map) => Player.fromMap(map)).first)
 
-        /// Fetch its club
-        .switchMap((Player player) {
-          if (player.idClub == null) {
-            return Stream.value(player);
-          }
-          return supabase
-              .from('clubs')
-              .stream(primaryKey: ['id'])
-              .eq('id', player.idClub!)
-              .map((maps) => maps.map((map) => Club.fromMap(map)).first)
-              .map((Club club) {
-                player.club = club;
-                return player;
-              });
-        })
-
         /// Fetch its transfers bids
         .switchMap((Player player) {
           return supabase
@@ -69,6 +53,37 @@ class _PlayerTransferBidDialogBoxState
               .map((List<TransferBid> transfersBids) {
                 player.transferBids.clear();
                 player.transferBids.addAll(transfersBids);
+                return player;
+              });
+        })
+
+        /// Fetch the player's club and the last club that bid on him (if any)
+        .switchMap((Player player) {
+          final List<int> clubIds = [];
+          if (player.idClub != null) {
+            clubIds.add(player.idClub!);
+          }
+          if (player.transferBids.isNotEmpty) {
+            clubIds.add(player.transferBids.last.idClub);
+          }
+          if (clubIds.isEmpty) {
+            return Stream.value(player);
+          }
+          return supabase
+              .from('clubs')
+              .stream(primaryKey: ['id'])
+              .inFilter('id', clubIds)
+              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+              .map((List<Club> clubs) {
+                if (player.idClub != null) {
+                  player.club =
+                      clubs.firstWhere((club) => club.id == player.idClub);
+                }
+                if (player.transferBids.isNotEmpty) {
+                  final Club club = clubs.firstWhere(
+                      (club) => club.id == player.transferBids.last.idClub);
+                  player.transferBids.last.club = club;
+                }
                 return player;
               });
         });
@@ -184,7 +199,9 @@ class _PlayerTransferBidDialogBoxState
                   ),
                   subtitle: currentHighestBid == null
                       ? null
-                      : Text('By: ${player.transferBids.last.nameClub}'),
+                      // : Text('By: ${player.transferBids.last.nameClub}'),
+                      : player.transferBids.last.club!
+                          .getClubNameClickable(context),
                 ),
                 ListTile(
                   shape: RoundedRectangleBorder(

@@ -35,7 +35,7 @@ class _TransferPageState extends State<TransferPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late Stream<List<TransferBid>> _IdPlayersTransferStream;
-  late Stream<List<Player>> _playerStream;
+  late Stream<List<Player>> _playersStream;
 
   @override
   void initState() {
@@ -50,7 +50,7 @@ class _TransferPageState extends State<TransferPage>
         .map((maps) => maps.map((map) => TransferBid.fromMap(map)).toList());
 
     // Stream to fetch players based on the player IDs from the transfer bids
-    _playerStream = _IdPlayersTransferStream.asyncExpand<List<Player>>(
+    _playersStream = _IdPlayersTransferStream.asyncExpand<List<Player>>(
         (List<TransferBid> transferBids) {
       List<int> playerIdsList =
           transferBids.map((bid) => bid.idPlayer).toList();
@@ -62,20 +62,42 @@ class _TransferPageState extends State<TransferPage>
           .order('date_birth', ascending: true)
           .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
           .switchMap((List<Player> players) {
-            // Fetch their clubs
+            // Fetch the club's players
+            return supabase
+                .from('players')
+                .stream(primaryKey: ['id'])
+                .eq(
+                    'id_club',
+                    widget
+                        .idClub) // Fetch the club's players to get their clubs
+                .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+                .map((List<Player> playersSell) {
+                  players.addAll(
+                      playersSell.where((player) => player.dateBidEnd != null));
+                  return players;
+                });
+          })
+          .switchMap((List<Player> players) {
+            // Fetch their clubs if there are any club IDs
+            final clubIds = players
+                .map((player) => player.idClub)
+                .where((idClub) => idClub != null)
+                .toSet()
+                .cast<Object>()
+                .toList();
+
+            if (clubIds.isEmpty) {
+              return Stream.value(players);
+            }
+
             return supabase
                 .from('clubs')
                 .stream(primaryKey: ['id'])
-                .inFilter(
-                    'id',
-                    players
-                        .map((player) => player.idClub)
-                        .toSet()
-                        .cast<Object>()
-                        .toList())
+                .inFilter('id', clubIds)
                 .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
                 .map((List<Club> clubs) {
-                  for (Player player in players) {
+                  for (Player player
+                      in players.where((player) => player.idClub != null)) {
                     player.club =
                         clubs.firstWhere((club) => club.id == player.idClub);
                   }
@@ -107,7 +129,7 @@ class _TransferPageState extends State<TransferPage>
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Player>>(
-        stream: _playerStream,
+        stream: _playersStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -118,13 +140,13 @@ class _TransferPageState extends State<TransferPage>
               child: Text('ERROR: ${snapshot.error}'),
             );
           } else {
-            final List<Player> players = snapshot.data ?? [];
-            final List<Player> playersSell = players.where((player) {
-              return player.idClub == widget.idClub;
-            }).toList();
-            final List<Player> playersBuy = players.where((player) {
-              return player.idClub != widget.idClub;
-            }).toList();
+            final players = snapshot.data ?? [];
+            final playersSell = players
+                .where((player) => player.idClub == widget.idClub)
+                .toList();
+            final playersBuy = players
+                .where((player) => player.idClub != widget.idClub)
+                .toList();
             return Scaffold(
                 appBar: AppBar(
                   title: Text(
@@ -175,29 +197,31 @@ class _TransferPageState extends State<TransferPage>
                         controller: _tabController,
                         tabs: [
                           buildTabWithIcon2(
-                              context,
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.local_offer,
-                                    color: Colors.green,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text('Sell (${playersSell.length})'),
-                                ],
-                              )),
+                            context,
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.local_offer,
+                                  color: Colors.green,
+                                ),
+                                SizedBox(width: 6),
+                                Text('Sell (${playersSell.length})'),
+                              ],
+                            ),
+                          ),
                           buildTabWithIcon2(
-                              context,
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.shopping_cart,
-                                    color: Colors.green,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text('Buy (${playersBuy.length})'),
-                                ],
-                              )),
+                            context,
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.shopping_cart,
+                                  color: Colors.green,
+                                ),
+                                SizedBox(width: 6),
+                                Text('Buy (${playersBuy.length})'),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                       Expanded(

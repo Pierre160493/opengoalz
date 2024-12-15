@@ -1,4 +1,8 @@
+import 'package:opengoalz/models/club/club.dart';
+
 class TransferBid {
+  Club? club;
+
   TransferBid({
     required this.id,
     required this.createdAt,
