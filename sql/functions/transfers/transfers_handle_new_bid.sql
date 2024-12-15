@@ -1,10 +1,6 @@
 -- DROP FUNCTION public.transfers_handle_new_bid(int8, int8, int8, timestamptz);
 
-CREATE OR REPLACE FUNCTION public.transfers_handle_new_bid(
-    inp_id_player bigint,
-    inp_id_club_bidder bigint,
-    inp_amount bigint,
-    inp_date_bid_end timestamp with time zone DEFAULT NULL::timestamp with time zone)
+CREATE OR REPLACE FUNCTION public.transfers_handle_new_bid(inp_id_player bigint, inp_id_club_bidder bigint, inp_amount bigint, inp_date_bid_end timestamp with time zone DEFAULT NULL::timestamp with time zone)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
@@ -70,15 +66,15 @@ BEGIN
             ELSEIF latest_bid IS NOT NULL AND ((inp_amount - latest_bid.amount) / GREATEST(1, latest_bid.amount)::numeric) < 0.01 THEN
                 RAISE EXCEPTION 'The new bid (%) should be greater than 1 percent of previous bid (%) for % !', inp_amount, latest_bid.amount, player.full_name;
             -- Check that the promised expenses is greater than the expected expenses
-            ELSEIF inp_amount < player.expenses_expected THEN
-                RAISE EXCEPTION '% wants at least % weekly expenses (you proposed: %)', player.full_name, player.expenses_expected, inp_amount;
+            --ELSEIF inp_amount < player.expenses_expected THEN
+            --    RAISE EXCEPTION '% wants at least % weekly expenses (you proposed: %)', player.full_name, player.expenses_expected, inp_amount;
             ELSEIF inp_amount < 0 THEN
                 RAISE EXCEPTION 'The bid (%) cannot be lower than 0', inp_amount;
             END IF;
 
             -- Insert the new bid
-            INSERT INTO transfers_bids (id_player, id_club, amount, name_club, count_bid)
-            VALUES (player.id, club.id, inp_amount, (SELECT name FROM clubs WHERE id = club.id), latest_bid.count_bid + 1);
+            INSERT INTO transfers_bids (id_player, id_club, amount, name_club)
+            VALUES (player.id, club.id, inp_amount, (SELECT name FROM clubs WHERE id = club.id));
 
             -- Update date_bid_end if it's in less than 5 minutes
             IF player.date_bid_end < (NOW() + INTERVAL '5 minutes') THEN
@@ -126,35 +122,35 @@ BEGIN
         -- If it's the first bid for setting player to transfer market
         IF latest_bid IS NULL THEN
 
-            -- Check that the player belongs to the club
-            IF player.id_club <> club.id THEN
-                RAISE EXCEPTION '% does not belong to the club: %', player.full_name, club.name;
-            -- Check that the player is not on the transfer market already
-            ELSEIF player.date_bid_end IS NOT NULL THEN
-                RAISE EXCEPTION '% is already in the transfer market', player.full_name;
-            END IF;
+            -- -- Check that the player belongs to the club
+            -- IF player.id_club <> club.id THEN
+            --     RAISE EXCEPTION '% does not belong to the club: %', player.full_name, club.name;
+            -- -- Check that the player is not on the transfer market already
+            -- ELSEIF player.date_bid_end IS NOT NULL THEN
+            --     RAISE EXCEPTION '% is already in the transfer market', player.full_name;
+            -- END IF;
 
-            -- Set default value for inp_date_bid_end if it is NULL
-            IF inp_date_bid_end IS NULL THEN
-                inp_date_bid_end := NOW() + (INTERVAL '7 days' / player.speed);
-            END IF;
+            -- -- Set default value for inp_date_bid_end if it is NULL
+            -- IF inp_date_bid_end IS NULL THEN
+            --     inp_date_bid_end := NOW() + (INTERVAL '7 days' / player.speed);
+            -- END IF;
 
-            -- Truncate seconds from inp_date_bid_end
-            inp_date_bid_end := date_trunc('minute', inp_date_bid_end);
+            -- -- Truncate seconds from inp_date_bid_end
+            -- inp_date_bid_end := date_trunc('minute', inp_date_bid_end);
 
-            -- Check that the date_bid_end is at least in 3 days and no more than 14 days
-            IF inp_date_bid_end < NOW() + INTERVAL '2 days 23 hours 55 minutes' THEN
-                --RAISE EXCEPTION 'The end of the bidding must be in at least 3 days';
-            ELSIF inp_date_bid_end > NOW() + INTERVAL '14 days 5 minutes' THEN
-                RAISE EXCEPTION 'The end of the bidding cannot be in more than 14 days';        
-            END IF;
+            -- -- Check that the date_bid_end is at least in 3 days and no more than 14 days
+            -- IF inp_date_bid_end < NOW() + INTERVAL '2 days 23 hours 55 minutes' THEN
+            --     --RAISE EXCEPTION 'The end of the bidding must be in at least 3 days';
+            -- ELSIF inp_date_bid_end > NOW() + INTERVAL '14 days 5 minutes' THEN
+            --     RAISE EXCEPTION 'The end of the bidding cannot be in more than 14 days';        
+            -- END IF;
 
-            -- Set the player to sell
-            UPDATE players SET date_bid_end = inp_date_bid_end WHERE id = inp_id_player;
+            -- -- Set the player to sell
+            -- UPDATE players SET date_bid_end = inp_date_bid_end WHERE id = inp_id_player;
 
-            -- Insert the first row in the transfers bids table
-            INSERT INTO transfers_bids (id_player, id_club, amount, name_club, count_bid)
-            VALUES (player.id, club.id, inp_amount, (SELECT name FROM clubs WHERE id = club.id), 0);
+            -- -- Insert the first row in the transfers bids table
+            -- INSERT INTO transfers_bids (id_player, id_club, amount, name_club, count_bid)
+            -- VALUES (player.id, club.id, inp_amount, (SELECT name FROM clubs WHERE id = club.id), 0);
 
         -- Then it's a normal bid
         ELSE
@@ -165,44 +161,53 @@ BEGIN
             -- Check: Club should have enough available cash
             ELSEIF club.cash < inp_amount THEN
                 RAISE EXCEPTION '% does not have enough cash (%) to place a bid of % on %', club.name, club.cash, inp_amount, player.full_name;
-            -- Check: Bid should be at least 1% increase
-            ELSEIF ((inp_amount - latest_bid.amount) / GREATEST(1, latest_bid.amount)::numeric) < 0.01 THEN
-                RAISE EXCEPTION 'Bid should be greater than 1 percent of previous bid !';
+            END IF;
+
+            -- If there was a previous bid
+            IF latest_bid IS NOT NULL THEN
+
+                -- Check: Bid should be at least 1% increase
+                IF ((inp_amount - latest_bid.amount) / GREATEST(1, latest_bid.amount)::numeric) < 0.01 THEN
+                    RAISE EXCEPTION 'Bid should be greater than 1 percent of previous bid !';
+                END IF;
+
+                -- Reset available cash for previous bidder
+                UPDATE clubs
+                    SET cash = cash + (latest_bid.amount)
+                WHERE id = latest_bid.id_club;
+            
+                -- Send message to previous bidder
+                INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                VALUES (
+                    latest_bid.id_club, 'Financial Advisor',
+                    'Outbided on ' || player.full_name,
+                    'A new bid of ' || inp_amount || ' was made on ' || player.full_name || ' by ' || club.name || '. We are not favourite anymore');
+            
             END IF;
 
             -- Insert the new bid
-            INSERT INTO transfers_bids (id_player, id_club, amount, name_club, count_bid)
-            VALUES (player.id, club.id, inp_amount, (SELECT name FROM clubs WHERE id = club.id), latest_bid.count_bid + 1);
-
-            -- Reset available cash for previous bidder (not on the first bid)
-            IF latest_bid.count_bid > 0 THEN
-                UPDATE clubs
-                    SET cash = cash + (latest_bid.amount)
-                    WHERE id = latest_bid.id_club;
-
-                -- Send message to previous bidder
-                INSERT INTO messages_mail (id_club_to, sender_role, title, message)
-                VALUES (latest_bid.id_club, 'Financial Advisor',
-                    'Outbided on ' || player.full_name,
-                    'A new bid of ' || inp_amount || ' was made on ' || player.full_name || ' by ' || club.name || '. We are not favourite anymore');
-
-            END IF;
+            INSERT INTO transfers_bids (id_player, id_club, amount, name_club)
+            VALUES (player.id, club.id, inp_amount, (SELECT name FROM clubs WHERE id = club.id));
 
             -- Update available cash for current bidder
             UPDATE clubs SET
                 cash =  cash - inp_amount
                 WHERE id = inp_id_club_bidder;
 
-            -- Update date_bid_end if it's in less than 5 minutes
-            IF player.date_bid_end < (NOW() + INTERVAL '5 minutes') THEN
-                -- Update date_bid_end to now + 5 minutes
-                UPDATE players 
-                    SET date_bid_end = date_trunc('minute', NOW()) + INTERVAL '5 minute'
-                    WHERE id = player.id;
-            END IF;
+            -- Update players table with the new transfer_price and date_bid_end
+            UPDATE players SET
+                transfer_price = CASE
+                    WHEN transfer_price < 0 THEN - inp_amount
+                    ELSE inp_amount
+                END,
+                date_bid_end = CASE
+                    WHEN date_bid_end < NOW() + INTERVAL '5 minutes' THEN
+                        date_trunc('minute', NOW()) + INTERVAL '5 minutes'
+                    ELSE date_bid_end
+                END
+            WHERE id = player.id;
 
         END IF;
-
     END IF;
 
 END;

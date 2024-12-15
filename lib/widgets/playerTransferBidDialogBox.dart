@@ -63,7 +63,7 @@ class _PlayerTransferBidDialogBoxState
               .from('transfers_bids')
               .stream(primaryKey: ['id'])
               .eq('id_player', player.id)
-              .order('count_bid', ascending: true)
+              .order('created_at', ascending: true)
               .map((maps) =>
                   maps.map((map) => TransferBid.fromMap(map)).toList())
               .map((List<TransferBid> transfersBids) {

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:opengoalz/models/player/player_card.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
@@ -90,7 +89,7 @@ class _TransferPageState extends State<TransferPage>
                 .stream(primaryKey: ['id'])
                 .inFilter('id_player',
                     players.map((player) => player.id).toSet().toList())
-                .order('count_bid', ascending: true)
+                .order('created_at', ascending: true)
                 .map((maps) =>
                     maps.map((map) => TransferBid.fromMap(map)).toList())
                 .map((List<TransferBid> transfersBids) {

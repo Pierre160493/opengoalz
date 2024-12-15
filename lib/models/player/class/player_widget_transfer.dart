@@ -2,16 +2,16 @@ part of 'player.dart';
 
 extension PlayerWidgetTransfer on Player {
   Widget playerTransferWidget(BuildContext context) {
-    final bids = transferBids;
-    List<FlSpot> chartData = [];
-    bids.forEach((bid) {
-      double amount = bid.amount.toDouble();
-      DateTime createdAt = bid.createdAt;
-      chartData.add(FlSpot(
-        createdAt.millisecondsSinceEpoch.toDouble(),
-        amount,
-      ));
-    });
+    // final bids = transferBids;
+    // List<FlSpot> chartData = [];
+    // bids.forEach((bid) {
+    //   double amount = bid.amount.toDouble();
+    //   DateTime createdAt = bid.createdAt;
+    //   chartData.add(FlSpot(
+    //     createdAt.millisecondsSinceEpoch.toDouble(),
+    //     amount,
+    //   ));
+    // });
     return ListTile(
       shape: RoundedRectangleBorder(
         borderRadius:
@@ -28,13 +28,13 @@ extension PlayerWidgetTransfer on Player {
       title: Row(
         children: [
           Text(
-            transferBids.length == 1
+            transferBids.length == 0
                 ? 'Starting price: '
                 : '${transferBids.last.nameClub}: ',
           ),
           formSpacer6,
           Text(
-            transferBids.last.amount.toString(),
+            transferPrice!.abs().toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.green, // Highlight the amount in a different color

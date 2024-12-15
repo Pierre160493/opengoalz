@@ -51,20 +51,24 @@ BEGIN
         IF random() < (20 - rec_player.motivation) / 20 THEN
         
             -- Update the date_firing for the selected player
-            PERFORM transfers_handle_new_bid(inp_id_player := rec_player.id,
-                inp_id_club_bidder := rec_player.id_club,
-                inp_amount := 0,
-                inp_date_bid_end := multiverse_now + (INTERVAL '6 days' / inp_multiverse.speed));
+            -- PERFORM transfers_handle_new_bid(inp_id_player := rec_player.id,
+            --     inp_id_club_bidder := rec_player.id_club,
+            --     inp_amount := 0,
+            --     inp_date_bid_end := multiverse_now + (INTERVAL '6 days' / inp_multiverse.speed));
+
+            -- Set date_bid_end for the demotivated players
+            UPDATE players SET
+                date_bid_end = multiverse_now + (INTERVAL '6 days' / inp_multiverse.speed),
+                transfer_price = - 100
+            WHERE id = rec_player.id;
 
             -- Create a new mail warning saying that the player is leaving club
             INSERT INTO messages_mail (
-                id_club_to, created_at, title, message, sender_role)
+                id_club_to, sender_role, created_at, title, message)
             VALUES
-                (rec_player.id_club,
-                multiverse_now,
+                (rec_player.id_club, 'Financial Advisor', multiverse_now,
                 rec_player.full_name || ' asked to leave the club !',
-                rec_player.full_name || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.',
-                'Financial Advisor');
+                rec_player.full_name || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
 
 --RAISE NOTICE '==> RageQuit => % (%) has asked to leave club [%]', rec_player.full_name, rec_player.id, rec_player.id_club;
 

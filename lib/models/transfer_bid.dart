@@ -6,7 +6,6 @@ class TransferBid {
     required this.idClub,
     required this.idPlayer,
     required this.nameClub,
-    required this.countBid,
   });
 
   final int id;
@@ -15,7 +14,6 @@ class TransferBid {
   final int idClub;
   final int idPlayer;
   final String nameClub;
-  final int countBid;
 
   TransferBid.fromMap(Map<String, dynamic> map)
       : id = map['id'],
@@ -23,6 +21,5 @@ class TransferBid {
         amount = map['amount'],
         idClub = map['id_club'],
         idPlayer = map['id_player'],
-        nameClub = map['name_club'],
-        countBid = map['count_bid'];
+        nameClub = map['name_club'];
 }

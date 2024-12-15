@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -31,6 +33,7 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
   bool _firePlayer = false;
   bool _isPriceValid = true;
   late bool _isDateValid;
+  Timer? _dateCheckTimer;
 
   final TextEditingController _priceController =
       TextEditingController(text: '100'); // Initialize with default value
@@ -41,14 +44,15 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
   @override
   void initState() {
     super.initState();
-    _initializeDateTime();
     _initializePlayerStream();
+    _initializeDateTime();
     _firePlayer = widget.firePlayer;
+    _startDateCheckTimer();
   }
 
   void _initializeDateTime() {
     _selectedDateTime = DateTime.now()
-        .add(Duration(minutes: 5))
+        .add(Duration(minutes: 1))
         .copyWith(second: 0, millisecond: 0, microsecond: 0);
     _isDateValid = true;
     _dateController.text =
@@ -80,12 +84,23 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
               .from('transfers_bids')
               .stream(primaryKey: ['id'])
               .eq('id_player', player.id)
-              .order('count_bid', ascending: true)
+              .order('created_at', ascending: true)
               .map((maps) =>
                   maps.map((map) => TransferBid.fromMap(map)).toList())
               .map((List<TransferBid> transfersBids) {
                 player.transferBids.clear();
                 player.transferBids.addAll(transfersBids);
+                return player;
+              });
+        })
+        .switchMap((Player player) {
+          return supabase
+              .from('multiverses')
+              .stream(primaryKey: ['id'])
+              .eq('id', player.idMultiverse)
+              .map((maps) => maps.map((map) => Multiverse.fromMap(map)).first)
+              .map((Multiverse multiverse) {
+                player.multiverse = multiverse;
                 return player;
               });
         });
@@ -97,11 +112,22 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
     });
   }
 
+  void _startDateCheckTimer() {
+    _dateCheckTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_selectedDateTime.isBefore(DateTime.now())) {
+        setState(() {
+          _formKey.currentState?.validate();
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
     _priceController.dispose();
     _dateController.dispose();
     _playerSubscription?.cancel(); // Cancel the stream subscription
+    _dateCheckTimer?.cancel(); // Cancel the date check timer
     super.dispose();
   }
 
@@ -142,9 +168,10 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
       return 'Date has passed already';
     }
 
-    if (_selectedDateTime.isAfter(DateTime.now().add(Duration(days: 14)))) {
-      return 'Date within the next 14 days';
-    }
+    // if (_selectedDateTime.isAfter(DateTime.now().add(
+    //     Duration(hours: (14 * 7 * 24 / _player!.multiverse!.speed).ceil())))) {
+    //   return 'Date within the next 2 weeks';
+    // }
 
     _isDateValid = true;
     return null;
@@ -310,70 +337,83 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
         ),
       ),
       actions: [
-        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          /// Cancel button
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Row(
-              children: [
-                Icon(Icons.cancel, color: Colors.red),
-                formSpacer3,
-                Text('Cancel'),
-              ],
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            /// Cancel button
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Row(
+                children: [
+                  Icon(Icons.cancel, color: Colors.red),
+                  formSpacer3,
+                  Text('Cancel'),
+                ],
+              ),
             ),
-          ),
 
-          /// Confirm button
-          TextButton(
-            onPressed: () async {
-              try {
-                int? minimumPrice = int.tryParse(_priceController.text);
-                if (minimumPrice == null || minimumPrice < 0) {
-                  context.showSnackBarError(
-                      'Please enter a valid number for minimum price (should be a positive integer)');
-                  return;
-                }
-                if (_firePlayer) {
-                  minimumPrice = 0;
-                }
+            /// Confirm button
+            TextButton(
+              onPressed: (_isDateValid && _isPriceValid)
+                  ? () async {
+                      int? minimumPrice = int.tryParse(_priceController.text);
+                      if (minimumPrice == null || minimumPrice < 0) {
+                        context.showSnackBarError(
+                            'Please enter a valid number for minimum price (should be a positive integer)');
+                        return;
+                      }
+                      if (_firePlayer) {
+                        minimumPrice = -100;
+                      }
 
-                // Call the transfers_new_transfer function
-                await supabase.rpc('transfers_handle_new_bid', params: {
-                  'inp_id_player': player.id,
-                  'inp_id_club_bidder':
-                      Provider.of<SessionProvider>(context, listen: false)
-                          .user!
-                          .selectedClub
-                          ?.id,
-                  'inp_amount': minimumPrice,
-                  'inp_date_bid_end':
-                      _selectedDateTime.toUtc().toIso8601String(),
-                });
+                      // Call the transfers_new_transfer function
+                      // await supabase.rpc('transfers_handle_new_bid', params: {
+                      //   'inp_id_player': player.id,
+                      //   'inp_id_club_bidder': Provider.of<SessionProvider>(
+                      //           context,
+                      //           listen: false)
+                      //       .user!
+                      //       .selectedClub
+                      //       ?.id,
+                      //   'inp_amount': minimumPrice,
+                      //   'inp_date_bid_end':
+                      //       _selectedDateTime.toUtc().toIso8601String(),
+                      // });
 
-                context.showSnackBarSuccess('${player.getPlayerNameString()} ' +
-                    (_firePlayer
-                        ? 'has been put to transfer list and will be fired if no bids are received'
-                        : 'has been put to transfer list'));
-              } on PostgrestException catch (error) {
-                context.showSnackBarPostgreSQLError(error.message);
-              } catch (error) {
-                context.showSnackBarError(error.toString());
-              }
-              Navigator.of(context).pop(); // Close the dialog
-            },
-            child: Row(
-              children: [
-                _firePlayer
-                    ? rowFirePlayer
-                    : rowSellPlayer, // Display the correct icon
-                formSpacer3,
-                Text(player.getPlayerNameString()),
-              ],
+                      bool isOK = await operationInDB(
+                          context, 'UPDATE', 'players',
+                          data: {
+                            'date_bid_end':
+                                _selectedDateTime.toUtc().toIso8601String(),
+                            'transfer_price': minimumPrice
+                          },
+                          matchCriteria: {
+                            'id': player.id
+                          });
+
+                      if (isOK) {
+                        context.showSnackBarSuccess(
+                            '${player.getPlayerNameString()} ' +
+                                (_firePlayer
+                                    ? 'has been put to transfer list and will be fired if no bids are received'
+                                    : 'has been put to transfer list'));
+                        Navigator.of(context).pop(); // Close the dialog
+                      }
+                    }
+                  : null,
+              child: Row(
+                children: [
+                  _firePlayer
+                      ? rowFirePlayer
+                      : rowSellPlayer, // Display the correct icon
+                  Text(player.getPlayerNameString()),
+                ],
+              ),
             ),
-          ),
-        ])
+          ],
+        )
       ],
     );
   }

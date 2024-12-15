@@ -68,62 +68,70 @@ extension PlayerWidgetsHelper on Player {
     return Row(
       children: [
         if (dateBidEnd != null) ...[
-          if (idClub == null)
-            Tooltip(
-              message: 'Free Player',
-              child: Stack(
-                children: [
-                  Icon(
-                    iconFreePlayer,
-                    color: Colors.green,
-                    size: iconSizeMedium,
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Text(
-                      dateBidEnd!
-                          .difference(currentDate)
-                          .inDays
-                          .toString(), // Change the number as needed
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontWeight: FontWeight.bold,
-                      ),
+          // if (idClub == null)
+          //   Tooltip(
+          //     message: 'Free Player',
+          //     child: Stack(
+          //       children: [
+          //         Icon(
+          //           iconFreePlayer,
+          //           color: Colors.green,
+          //           size: iconSizeMedium,
+          //         ),
+          //         Positioned(
+          //           top: 0,
+          //           right: 0,
+          //           child: Text(
+          //             dateBidEnd!
+          //                 .difference(currentDate)
+          //                 .inDays
+          //                 .toString(), // Change the number as needed
+          //             style: TextStyle(
+          //               color: Colors.white70,
+          //               fontWeight: FontWeight.bold,
+          //             ),
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // if (idClub != null)
+          Tooltip(
+            message:
+                // 'Transfer List [${dateBidEnd!.difference(currentDate).inDays == 0 ? dateBidEnd!.difference(currentDate).inHours : dateBidEnd!.difference(currentDate).inDays} ${dateBidEnd!.difference(currentDate).inDays == 0 ? 'hours' : 'days'}]',
+                'Auction deadline: ${DateFormat('EEE d \'at\' H:mm').format(dateBidEnd!)}',
+            child: Stack(
+              children: [
+                Icon(
+                  idClub == null
+                      ? iconFreePlayer
+                      : transferPrice! < 0
+                          ? iconLeaveClub
+                          : iconTransfers,
+                  color: Colors.red,
+                  size: iconSizeMedium,
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Text(
+                    () {
+                      final difference = dateBidEnd!.difference(currentDate);
+                      if (difference.inDays >= 1) {
+                        return difference.inDays.toString() + 'd';
+                      } else {
+                        return difference.inHours.toString() + 'h';
+                      }
+                    }(),
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          if (idClub != null)
-            Tooltip(
-              message:
-                  // 'Transfer List [${dateBidEnd!.difference(currentDate).inDays == 0 ? dateBidEnd!.difference(currentDate).inHours : dateBidEnd!.difference(currentDate).inDays} ${dateBidEnd!.difference(currentDate).inDays == 0 ? 'hours' : 'days'}]',
-                  'Transfer deadline: ${DateFormat('EEE d \'at\' H:mm').format(dateBidEnd!)}',
-              child: Stack(
-                children: [
-                  Icon(
-                    iconTransfers,
-                    color: Colors.red,
-                    size: iconSizeMedium,
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Text(
-                      dateBidEnd!
-                          .difference(currentDate)
-                          .inDays
-                          .toString(), // Change the number as needed
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          ),
         ],
         if (dateEndInjury != null)
           Stack(
@@ -178,9 +186,7 @@ extension PlayerWidgetsHelper on Player {
                   Expanded(child: getExpensesWidget(context)),
                 ],
               ),
-              if (transferBids.length > 0 &&
-                  dateBidEnd!.isAfter(DateTime.now()))
-                playerTransferWidget(context),
+              if (dateBidEnd != null) playerTransferWidget(context),
               if (dateEndInjury != null) getInjuryWidget(),
             ],
           );
@@ -192,9 +198,9 @@ extension PlayerWidgetsHelper on Player {
               getCountryNameWidget(context, idCountry),
               getAvgStatsWidget(),
               getExpensesWidget(context),
-              if (transferBids.length > 0 &&
-                  dateBidEnd!.isAfter(DateTime.now()))
-                playerTransferWidget(context),
+              // if (transferBids.length > 0 &&
+              //     dateBidEnd!.isAfter(DateTime.now()))
+              if (dateBidEnd != null) playerTransferWidget(context),
               if (dateEndInjury != null) getInjuryWidget(),
             ],
           );

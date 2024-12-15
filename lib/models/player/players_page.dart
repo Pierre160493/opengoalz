@@ -119,7 +119,7 @@ class _PlayersPageState extends State<PlayersPage> {
                 .stream(primaryKey: ['id'])
                 .inFilter('id_player',
                     players.map((player) => player.id).toSet().toList())
-                .order('count_bid', ascending: true)
+                .order('created_at', ascending: true)
                 .map((maps) =>
                     maps.map((map) => TransferBid.fromMap(map)).toList())
                 .map((List<TransferBid> transfersBids) {
@@ -271,7 +271,7 @@ class _PlayersPageState extends State<PlayersPage> {
                       },
                       child: PlayerCard(
                           player: player,
-                          index: players.length == 1 ? 0 : index + 1,
+                          index: players.length == 1 ? null : index + 1,
                           isExpanded: players.length == 1 ? true : false),
                     );
                   },

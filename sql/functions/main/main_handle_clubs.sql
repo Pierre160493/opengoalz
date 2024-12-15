@@ -80,7 +80,7 @@ BEGIN
             FROM players 
             WHERE id_club = clubs.id), 0),
         -- Update the staff weight of the club 
-        staff_weight = LEAST(5000, GREATEST(0, 
+        staff_weight = LEAST(5000, GREATEST(0.1, 
             (staff_weight + expenses_staff) * 0.5))
     WHERE id_multiverse = inp_multiverse.id;
 

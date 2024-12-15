@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/player_dialog_training_coef.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
@@ -31,6 +32,7 @@ part 'player_expenses_history.dart';
 class Player {
   Club? club;
   List<TransferBid> transferBids = [];
+  Multiverse? multiverse;
 
   Player({
     required this.id,
@@ -59,6 +61,7 @@ class Player {
     required this.winger,
     required this.dateEndInjury,
     required this.dateBidEnd,
+    required this.transferPrice,
     required this.dateArrival,
     required this.motivation,
     required this.form,
@@ -94,6 +97,7 @@ class Player {
   final double winger;
   final DateTime? dateEndInjury;
   final DateTime? dateBidEnd;
+  final int? transferPrice;
   final DateTime dateArrival;
   final double motivation;
   final double form;
@@ -137,6 +141,7 @@ class Player {
         dateBidEnd = map['date_bid_end'] != null
             ? DateTime.parse(map['date_bid_end']).toLocal()
             : null,
+        transferPrice = map['transfer_price'],
         dateArrival = DateTime.parse(map['date_arrival']).toLocal(),
         notes = map['notes'],
         performanceScore = (map['performance_score'] as num).toDouble();
