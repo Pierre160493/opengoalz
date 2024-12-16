@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverse_widget.dart';
 import 'package:table_calendar/table_calendar.dart';

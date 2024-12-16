@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/player_card.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -12,7 +12,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
-import 'package:opengoalz/widgets/searchTransferDialogBox.dart';
+import 'package:opengoalz/models/player/playerSearchDialogBox.dart';
 import 'package:provider/provider.dart';
 
 import '../constants.dart';

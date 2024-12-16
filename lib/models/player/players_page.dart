@@ -4,9 +4,9 @@ import 'package:opengoalz/models/player/players_sorting_function.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
-import 'package:opengoalz/widgets/searchTransferDialogBox.dart';
+import 'package:opengoalz/models/player/playerSearchDialogBox.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/models/player/player_card.dart';
@@ -87,9 +87,28 @@ class _PlayersPageState extends State<PlayersPage> {
           .order('date_birth', ascending: false)
           .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
 
-          /// Fetch their clubs
+          /// Fetch their transfers bids
           .switchMap((List<Player> players) {
-            print('Fetched player maps: ${players.length}');
+            return supabase
+                .from('transfers_bids')
+                .stream(primaryKey: ['id'])
+                .inFilter('id_player',
+                    players.map((player) => player.id).toSet().toList())
+                .order('created_at', ascending: true)
+                .map((maps) =>
+                    maps.map((map) => TransferBid.fromMap(map)).toList())
+                .map((List<TransferBid> transfersBids) {
+                  for (Player player in players) {
+                    player.transferBids.clear();
+                    player.transferBids.addAll(transfersBids
+                        .where((bid) => bid.idPlayer == player.id));
+                  }
+                  return players;
+                });
+          })
+
+          /// Fetch the clubs
+          .switchMap((List<Player> players) {
             return supabase
                 .from('clubs')
                 .stream(primaryKey: ['id'])
@@ -107,26 +126,6 @@ class _PlayersPageState extends State<PlayersPage> {
                       in players.where((player) => player.idClub != null)) {
                     player.club =
                         clubs.firstWhere((club) => club.id == player.idClub);
-                  }
-                  return players;
-                });
-          })
-
-          /// Fetch their transfers bids
-          .switchMap((List<Player> players) {
-            return supabase
-                .from('transfers_bids')
-                .stream(primaryKey: ['id'])
-                .inFilter('id_player',
-                    players.map((player) => player.id).toSet().toList())
-                .order('created_at', ascending: true)
-                .map((maps) =>
-                    maps.map((map) => TransferBid.fromMap(map)).toList())
-                .map((List<TransferBid> transfersBids) {
-                  for (Player player in players) {
-                    player.transferBids.clear();
-                    player.transferBids.addAll(transfersBids
-                        .where((bid) => bid.idPlayer == player.id));
                   }
                   return players;
                 });

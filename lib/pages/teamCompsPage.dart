@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/subs.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/models/teamcomp/teamComp_main_widget.dart';

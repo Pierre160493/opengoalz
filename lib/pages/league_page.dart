@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';

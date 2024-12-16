@@ -186,7 +186,7 @@ extension PlayerWidgetsHelper on Player {
                   Expanded(child: getExpensesWidget(context)),
                 ],
               ),
-              if (dateBidEnd != null) playerTransferWidget(context),
+              if (dateBidEnd != null) PlayerCardTransferWidget(player: this),
               if (dateEndInjury != null) getInjuryWidget(),
             ],
           );
@@ -198,9 +198,7 @@ extension PlayerWidgetsHelper on Player {
               getCountryNameWidget(context, idCountry),
               getAvgStatsWidget(),
               getExpensesWidget(context),
-              // if (transferBids.length > 0 &&
-              //     dateBidEnd!.isAfter(DateTime.now()))
-              if (dateBidEnd != null) playerTransferWidget(context),
+              if (dateBidEnd != null) PlayerCardTransferWidget(player: this),
               if (dateEndInjury != null) getInjuryWidget(),
             ],
           );

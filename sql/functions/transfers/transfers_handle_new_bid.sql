@@ -77,12 +77,17 @@ BEGIN
             VALUES (player.id, club.id, inp_amount, (SELECT name FROM clubs WHERE id = club.id));
 
             -- Update date_bid_end if it's in less than 5 minutes
-            IF player.date_bid_end < (NOW() + INTERVAL '5 minutes') THEN
-                -- Update date_bid_end to now + 5 minutes
-                UPDATE players 
-                    SET date_bid_end = date_trunc('minute', NOW()) + INTERVAL '5 minute'
-                    WHERE id = player.id;
-            END IF;
+            UPDATE players SET
+                transfer_price = CASE
+                    WHEN transfer_price < 0 THEN - inp_amount
+                    ELSE inp_amount
+                END,
+                date_bid_end = CASE
+                    WHEN date_bid_end < NOW() + INTERVAL '5 minutes' THEN
+                        date_trunc('minute', NOW()) + INTERVAL '5 minutes'
+                    ELSE date_bid_end
+                END
+            WHERE id = player.id;
 
             -- Send message to previous bidder
             IF latest_bid IS NOT NULL THEN

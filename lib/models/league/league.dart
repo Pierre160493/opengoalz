@@ -5,7 +5,7 @@ import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
-import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/player/class/player.dart';

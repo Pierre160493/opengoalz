@@ -1,4 +1,4 @@
-part of 'club.dart';
+part of 'class/club.dart';
 
 extension ClubCardWidget on Club {
   Widget getClubCard(BuildContext context, int index) {

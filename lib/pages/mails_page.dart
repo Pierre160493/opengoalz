@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/mail.dart';
 import 'package:opengoalz/constants.dart';

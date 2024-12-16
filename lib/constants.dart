@@ -73,7 +73,9 @@ const iconForm = Icons.directions_run;
 const iconExperience = Icons.school;
 
 /// Color for players or clubs belonging to the currently connected user
-const Color colorIsMine = Colors.purple;
+const Color colorDefault = Colors.blueGrey;
+const Color colorIsMine = Colors.pink;
+const Color colorIsSelected = Colors.purple;
 
 /// Text Styles
 const TextStyle styleItalicBlueGrey = TextStyle(

@@ -1,4 +1,4 @@
-import 'package:opengoalz/models/club/club.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 
 class TransferBid {
   Club? club;

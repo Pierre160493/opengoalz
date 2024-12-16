@@ -21,9 +21,11 @@ extension ClubWidgetHelper on Club {
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontStyle: isSelected ? FontStyle.italic : FontStyle.normal,
-        color: isMine ? colorIsMine : null,
-        decoration:
-            isSelected ? TextDecoration.underline : null, // Add this line
+        color: isSelected
+            ? colorIsSelected
+            : isMine
+                ? colorIsMine
+                : colorDefault,
       ),
       overflow: TextOverflow.fade, // or TextOverflow.ellipsis
       maxLines: 1,
