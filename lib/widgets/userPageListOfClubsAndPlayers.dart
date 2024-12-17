@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/clubCardWidget.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/class/player.dart';
@@ -37,7 +38,7 @@ Widget clubListWidget(BuildContext context, Profile user) {
           itemCount: user.clubs.length,
           itemBuilder: (context, index) {
             final Club club = user.clubs[index];
-            return club.getClubCard(context, index);
+            return getClubCard(context, club, index);
           },
         ),
       ),

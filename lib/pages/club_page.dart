@@ -14,6 +14,7 @@ import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -88,6 +89,9 @@ class _ClubPageState extends State<ClubPage> {
           return Scaffold(
             appBar: AppBar(
               title: club.getClubName(context),
+              actions: [
+                goBackIconButton(context),
+              ],
             ),
             drawer: const AppDrawer(),
             body: MaxWidthContainer(

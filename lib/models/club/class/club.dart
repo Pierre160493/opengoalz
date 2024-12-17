@@ -20,7 +20,6 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:provider/provider.dart';
 
 part 'clubWidgetHelper.dart';
-part '../clubCardWidget.dart';
 
 class Club {
   List<TeamComp> teamComps = []; //List of the teamcomps of the club
