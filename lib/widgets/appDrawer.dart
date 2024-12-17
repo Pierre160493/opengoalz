@@ -52,21 +52,26 @@ class AppDrawer extends StatelessWidget {
                 ),
               );
             },
-            subtitle:
-                !Provider.of<SessionProvider>(context, listen: false).user!.isConnectedUser
-                    ? Text('Currently visiting this profile')
-                    : null,
-            trailing:
-                !Provider.of<SessionProvider>(context, listen: false).user!.isConnectedUser
-                    ? Provider.of<SessionProvider>(context, listen: false)
-                        .user!
-                        .returnToConnectedUserIconButton(context)
-                    : null,
+            subtitle: !Provider.of<SessionProvider>(context, listen: false)
+                    .user!
+                    .isConnectedUser
+                ? Text('Currently visiting this profile')
+                : null,
+            trailing: !Provider.of<SessionProvider>(context, listen: false)
+                    .user!
+                    .isConnectedUser
+                ? Provider.of<SessionProvider>(context, listen: false)
+                    .user!
+                    .returnToConnectedUserIconButton(context)
+                : null,
           ),
           buildDrawerTitle('Club: ${selectedClub.name}'),
           buildDrawerOption(context, iconCalendar, 'Calendar',
               CalendarPage(idClub: selectedClub.id)), // Add the finances page
-          buildDrawerOption(context, iconMails, 'Mails',
+          buildDrawerOption(
+              context,
+              iconMails,
+              'Mails (${Provider.of<SessionProvider>(context, listen: false).user!.mails.length}) (${(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.length : 0)})',
               MailsPage(idClub: selectedClub.id)), // Add the finances page
           // buildDrawerOption(
           //     context,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/functions/stringValueSeparated.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -65,8 +66,7 @@ class _StaffPageState extends State<StaffPage> {
                         ),
                         SizedBox(width: 3.0),
                         Text(
-                          NumberFormat.decimalPattern()
-                              .format(club.expensesStaff),
+                          stringValueSeparated(club.expensesStaff),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -159,8 +159,7 @@ class _StaffPageState extends State<StaffPage> {
                       children: [
                         Text('Staff skill: '),
                         Text(
-                          NumberFormat.decimalPattern()
-                              .format(club.staffWeight),
+                          stringValueSeparated(club.staffWeight.round()),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/mail.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
@@ -90,6 +91,44 @@ class SessionProvider extends ChangeNotifier {
                 .map((List<Player> players) {
                   user.players = players;
                   return user;
+                });
+          })
+
+          /// Fetch the mails of the user
+          .switchMap((Profile profile) {
+            return supabase
+                .from('messages_mail')
+                .stream(primaryKey: ['id'])
+                .eq('username_to', profile.username)
+                .order('created_at', ascending: false)
+                .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
+                .map((List<Mail> mails) {
+                  profile.mails = mails;
+                  print('User mails: ${profile.mails.length}');
+                  return profile;
+                });
+          })
+
+          /// Fetch the mails of the clubs of the user
+          .switchMap((Profile profile) {
+            if (profile.clubs.isEmpty) {
+              return Stream.value(profile);
+            }
+            return supabase
+                .from('messages_mail')
+                .stream(primaryKey: ['id'])
+                .inFilter(
+                    'id_club_to', profile.clubs.map((club) => club.id).toList())
+                .order('created_at', ascending: false)
+                .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
+                .map((List<Mail> mails) {
+                  for (Club club in profile.clubs) {
+                    club.mails = mails
+                        .where((mail) => mail.idClubTo == club.id)
+                        .toList();
+                    print('Club mails: ${club.mails.length}');
+                  }
+                  return profile;
                 });
           })
           .listen((Profile user) {

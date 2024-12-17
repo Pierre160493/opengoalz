@@ -6,9 +6,11 @@ import 'package:opengoalz/models/mail.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MailsPage extends StatefulWidget {
@@ -26,69 +28,89 @@ class MailsPage extends StatefulWidget {
 }
 
 class _MailsPageState extends State<MailsPage> {
-  late Stream<Club> _clubStream;
+  // late Stream<Club> _clubStream;
 
   @override
   void initState() {
-    _clubStream = supabase
-        // Fetch the club
-        .from('clubs')
-        .stream(primaryKey: ['id'])
-        .eq('id', widget.idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
-        // Fetch its league
-        .switchMap((Club club) {
-          if (club.userName == null) {
-            Exception('The club does not have a username');
-          }
-          return supabase
-              .from('messages_mail')
-              .stream(primaryKey: ['id'])
-              .eq('username_to', club.userName!)
-              .order('created_at', ascending: false)
-              .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
-              .map((List<Mail> mails) {
-                club.userMails = mails;
-                return club;
-              });
-        })
-        .switchMap((Club club) {
-          return supabase
-              .from('messages_mail')
-              .stream(primaryKey: ['id'])
-              .eq('id_club_to', club.id)
-              .order('created_at', ascending: false)
-              .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
-              .map((List<Mail> mails) {
-                club.clubMails = mails;
-                return club;
-              });
-        });
+    // _clubStream = supabase
+    //     // Fetch the club
+    //     .from('clubs')
+    //     .stream(primaryKey: ['id'])
+    //     .eq('id', widget.idClub)
+    //     .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+    // Fetch the user mails
+    // .switchMap((Club club) {
+    //   if (club.userName == null) {
+    //     Exception('The club does not have a username');
+    //   }
+    //   return supabase
+    //       .from('messages_mail')
+    //       .stream(primaryKey: ['id'])
+    //       .eq('username_to', club.userName!)
+    //       .order('created_at', ascending: false)
+    //       .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
+    //       .map((List<Mail> mails) {
+    //         club.userMails = mails;
+    //         return club;
+    //       });
+    // })
+    // .switchMap((Club club) {
+    //   return supabase
+    //       .from('messages_mail')
+    //       .stream(primaryKey: ['id'])
+    //       .eq('id_club_to', club.id)
+    //       .order('created_at', ascending: false)
+    //       .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
+    //       .map((List<Mail> mails) {
+    //         club.mails = mails;
+    //         return club;
+    //       });
+    // });
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Club>(
-      // stream: _mailsStream,
-      stream: _clubStream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-        Club club = snapshot.data!;
+    // List<Mail> clubMails = Provider.of<SessionProvider>(context, listen: false)
+    //     .user!
+    //     .selectedClub!
+    //     .mails
+    //     .where((mail) => mail.dateDelete == null)
+    //     .toList();
+    // List<Mail> clubMailsThrash =
+    //     Provider.of<SessionProvider>(context, listen: false)
+    //         .user!
+    //         .selectedClub!
+    //         .mails
+    //         .where((mail) => mail.dateDelete != null)
+    //         .toList();
+    // List<Mail> userMails = Provider.of<SessionProvider>(context, listen: false)
+    //     .user!
+    //     .mails
+    //     .where((mail) => mail.dateDelete == null)
+    //     .toList();
+    // List<Mail> userMailsThrash =
+    //     Provider.of<SessionProvider>(context, listen: false)
+    //         .user!
+    //         .mails
+    //         .where((mail) => mail.dateDelete != null)
+    //         .toList();
 
-        List<Mail> clubMails =
-            club.clubMails.where((mail) => mail.dateDelete == null).toList();
-        List<Mail> clubMailsThrash =
-            club.clubMails.where((mail) => mail.dateDelete != null).toList();
-        List<Mail> userMails =
-            club.userMails.where((mail) => mail.dateDelete == null).toList();
-        List<Mail> userMailsThrash =
-            club.userMails.where((mail) => mail.dateDelete != null).toList();
+    return Consumer<SessionProvider>(
+      builder: (context, sessionProvider, child) {
+        final clubMails = sessionProvider.user!.selectedClub!.mails
+            .where((mail) => mail.dateDelete == null)
+            .toList();
+        final clubMailsThrash = sessionProvider.user!.selectedClub!.mails
+            .where((mail) => mail.dateDelete != null)
+            .toList();
+        final userMails = sessionProvider.user!.mails
+            .where((mail) => mail.dateDelete == null)
+            .toList();
+        final userMailsThrash = sessionProvider.user!.mails
+            .where((mail) => mail.dateDelete != null)
+            .toList();
 
         return Scaffold(
           appBar: AppBar(
@@ -275,12 +297,12 @@ class _MailsPageState extends State<MailsPage> {
                                 matchCriteria: {
                                   'id': mail.id,
                                 });
-                            if (isOk) {
-                              context.showSnackBar(
-                                  'The mail has been set to unread',
-                                  icon: Icon(Icons.mark_email_read,
-                                      color: Colors.green));
-                            }
+                            // if (isOk) {
+                            //   context.showSnackBar(
+                            //       'The mail has been set to unread',
+                            //       icon: Icon(Icons.mark_email_read,
+                            //           color: Colors.green));
+                            // }
                           } else {
                             await operationInDB(
                                 context, 'UPDATE', 'messages_mail',
@@ -311,12 +333,12 @@ class _MailsPageState extends State<MailsPage> {
                                 matchCriteria: {
                                   'id': mail.id,
                                 });
-                            if (isOk) {
-                              context.showSnackBar(
-                                  'The mail has been set to unread',
-                                  icon: Icon(Icons.mark_email_read,
-                                      color: Colors.green));
-                            }
+                            // if (isOk) {
+                            //   context.showSnackBar(
+                            //       'The mail has been set to unread',
+                            //       icon: Icon(Icons.mark_email_read,
+                            //           color: Colors.green));
+                            // }
                           } else {
                             await operationInDB(
                                 context, 'UPDATE', 'messages_mail',
@@ -397,12 +419,12 @@ class _MailsPageState extends State<MailsPage> {
                                   matchCriteria: {
                                     'id': mail.id,
                                   });
-                              if (isOk) {
-                                context.showSnackBar(
-                                    'The mail will be deleted in 7 days',
-                                    icon: Icon(Icons.mark_email_read,
-                                        color: Colors.green));
-                              }
+                              // if (isOk) {
+                              //   context.showSnackBar(
+                              //       'The mail will be deleted in 7 days',
+                              //       icon: Icon(Icons.mark_email_read,
+                              //           color: Colors.green));
+                              // }
                             },
                           ),
                         // Restore button
@@ -468,7 +490,6 @@ class _MailsPageState extends State<MailsPage> {
                       child: Text(
                         mail.message,
                         style: TextStyle(
-                          color: Colors.blueGrey,
                           fontStyle: FontStyle.italic,
                         ),
                       ),

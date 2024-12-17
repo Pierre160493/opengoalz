@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/profile.dart';
@@ -134,8 +136,8 @@ class _UserPageState extends State<UserPage> {
           user.isConnectedUser
               ? Tooltip(
                   message: 'Open Mails Page',
-                  child: IconButton(
-                    onPressed: () async {
+                  child: InkWell(
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -143,7 +145,34 @@ class _UserPageState extends State<UserPage> {
                                 MailsPage(idClub: user.selectedClub!.id)),
                       );
                     },
-                    icon: Icon(Icons.mail, size: iconSizeSmall),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Icon(iconMails, size: iconSizeMedium),
+                        Positioned(
+                          top: -8, // Adjust the position as needed
+                          right: -4, // Adjust the position as needed
+                          child: Container(
+                            padding: EdgeInsets.all(
+                                4), // Adjust the padding as needed
+                            decoration: BoxDecoration(
+                              color:
+                                  colorIsSelected, // Background color for the badge
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              // '99',
+                              '${min(99, Provider.of<SessionProvider>(context, listen: false).user!.mails.length + (Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.length : 0))}',
+                              style: TextStyle(
+                                color: Colors.white, // Text color
+                                fontSize: 12, // Adjust the font size as needed
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : Tooltip(
@@ -171,7 +200,8 @@ class _UserPageState extends State<UserPage> {
                             LoginPage.route(), (route) => false);
                       }
                     },
-                    icon: Icon(Icons.logout, size: iconSizeSmall),
+                    icon: Icon(Icons.logout,
+                        size: iconSizeSmall, color: Colors.red),
                   ),
                 )
               : Provider.of<SessionProvider>(context, listen: false)
