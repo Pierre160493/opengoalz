@@ -71,7 +71,7 @@ class AppDrawer extends StatelessWidget {
           buildDrawerOption(
               context,
               iconMails,
-              'Mails (${Provider.of<SessionProvider>(context, listen: false).user!.mails.length}) (${(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.length : 0)})',
+              'Mails (${Provider.of<SessionProvider>(context, listen: false).user!.mails.where((mail) => mail.dateDelete == null && mail.isRead == false).length}) (${(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.where((mail) => mail.dateDelete == null && mail.isRead == false).length : 0)})',
               MailsPage(idClub: selectedClub.id)), // Add the finances page
           // buildDrawerOption(
           //     context,

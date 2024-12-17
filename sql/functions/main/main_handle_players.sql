@@ -66,7 +66,7 @@ BEGIN
             INSERT INTO messages_mail (
                 id_club_to, sender_role, created_at, title, message)
             VALUES
-                (rec_player.id_club, 'Financial Advisor', multiverse_now,
+                (rec_player.id_club, 'Treasurer', multiverse_now,
                 rec_player.full_name || ' asked to leave the club !',
                 rec_player.full_name || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
 
@@ -76,13 +76,11 @@ BEGIN
 
             -- Create a new mail warning saying that the player is at risk leaving club
             INSERT INTO messages_mail (
-                id_club_to, created_at, title, message, sender_role)
+                id_club_to, sender_role, created_at, title, message)
             VALUES
-                (rec_player.id_club,
-                multiverse_now,
+                (rec_player.id_club, 'Coach', multiverse_now,
                 rec_player.full_name || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
-                rec_player.full_name || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club',
-                'Financial Advisor');
+                rec_player.full_name || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club');
 
         END IF;
     END LOOP;

@@ -162,7 +162,8 @@ class _UserPageState extends State<UserPage> {
                             ),
                             child: Text(
                               // '99',
-                              '${min(99, Provider.of<SessionProvider>(context, listen: false).user!.mails.length + (Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.length : 0))}',
+                              // '${min(99, Provider.of<SessionProvider>(context, listen: false).user!.mails.length + (Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.length : 0))}',
+                              '${min(99, Provider.of<SessionProvider>(context, listen: false).user!.mails.where((mail) => mail.dateDelete == null && mail.isRead == false).length + (Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.where((mail) => mail.dateDelete == null && mail.isRead == false).length : 0))}',
                               style: TextStyle(
                                 color: Colors.white, // Text color
                                 fontSize: 12, // Adjust the font size as needed

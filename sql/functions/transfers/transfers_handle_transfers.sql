@@ -48,7 +48,7 @@ BEGIN
 
                     -- Insert a message to say that the player was not sold
                     INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message) VALUES
-                        (player.id_club, 'Financial Advisor', player.date_bid_end,
+                        (player.id_club, 'Treasurer', player.date_bid_end,
                         player.full_name || ' not sold and leaves the club',
                         player.full_name || ' has not received any bid, the selling is over and he is not part of the club anymore. He is now clubless and was removed from the club''s teamcomps.');
 
@@ -90,7 +90,7 @@ BEGIN
                     INSERT INTO messages_mail (
                         id_club_to, created_at, sender_role, title, message)
                     VALUES
-                        (player.id_club, player.date_bid_end, 'Financial Advisor',
+                        (player.id_club, player.date_bid_end, 'Treasurer',
                         player.full_name || ' not sold and stays in the club',
                         player.full_name || ' has not received any bid, the selling is canceled and he will stay in the club');
 
@@ -116,7 +116,7 @@ BEGIN
                     player.date_bid_end,
                     player.full_name || ' (clubless player) bought for ' || last_bid.amount,
                     player.full_name || ' who was clubless has been bought for ' || last_bid.amount,
-                    'Financial Advisor');
+                    'Treasurer');
 
             ELSE
 
@@ -124,10 +124,10 @@ BEGIN
                 INSERT INTO messages_mail
                     (id_club_to, created_at, sender_role, title, message)
                 VALUES
-                    (player.id_club, player.date_bid_end, 'Financial Advisor',
+                    (player.id_club, player.date_bid_end, 'Treasurer',
                         player.full_name || ' has been sold for ' || last_bid.amount,
                         player.full_name || ' has been sold for ' || last_bid.amount || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
-                    (last_bid.id_club, player.date_bid_end, 'Financial Advisor',
+                    (last_bid.id_club, player.date_bid_end, 'Treasurer',
                         player.full_name || ' has been bought for ' || last_bid.amount,
                         player.full_name || ' has been bought for ' || last_bid.amount || '. I hope he will be a good addition to our team !');
 

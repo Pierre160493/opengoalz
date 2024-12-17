@@ -109,9 +109,31 @@ BEGIN
 
     END IF;
 
-    ------ Update league position for specific games
+    ------ Update message and league position for specific games
+    -- First leg games of barrage games
+    IF rec_game.id_games_description IN (211, 213, 311, 331) THEN
+        -- Draw
+        IF rec_game.score_diff_total = 0 THEN
+            text_title_left := text_title_left || ': Leg 1 Draw';
+            text_title_right := text_title_right || ': Leg 1 Draw';
+            text_message_left := text_message_left || '. The first leg of the barrage ended in a draw, nothing is lost, we can still make it in the second leg, let''s go !';
+            text_message_right := text_message_right || '. The first leg of the barrage ended in a draw, nothing is lost, we can still make it in the second leg, let''s go !';
+        -- Left club won
+        ELSIF rec_game.score_diff_total > 0 THEN
+            text_title_left := text_title_left || ': Leg 1 Victory';
+            text_title_right := text_title_right || ': Leg 1 Defeat';
+            text_message_left := text_message_left || '. Great victory in the first leg of the barrage, we are so close to promotion, keep the team focused !';
+            text_message_right := text_message_right || '. Unfortunately we have lost the first leg of the barrage. Nothing is lost, we can still make it in the second leg, let''s go !';
+        -- Right club won
+        ELSE
+            text_title_right := text_title_right || ': Leg 1 Victory';
+            text_title_left := text_title_left || ': Leg 1 Defeat';
+            text_message_right := text_message_right || '. Great victory in the first leg of the barrage, we are so close to promotion, keep the team focused !';
+            text_message_left := text_message_left || '. Unfortunately we have lost the first leg of the barrage. Nothing is lost, we can still make it in the second leg, let''s go !';
+        END IF; --End right club won
+
     -- Return game of the first barrage (between firsts of opposite leagues)
-    IF rec_game.id_games_description = 212 THEN
+    ELSIF rec_game.id_games_description = 212 THEN
 
         -- Left club won
         IF rec_game.score_diff_total > 0 THEN
@@ -136,8 +158,8 @@ RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %
             -- Send messages
             text_title_left := text_title_left || ': BARRAGE1 Victory => PROMOTION to upper league';
             text_title_right := text_title_right || ': BARRAGE1 Defeat => BARRAGE 2 to get promotion';
-            text_message_left := text_message_left || '. This victory in the BARRAGE 1 means that we will be playing in the upper league next season. Congratulations to you and all the players, it''s time to party !';
-            text_message_right := text_message_right || '. This defeat in the BARRAGE 1 means that we will have to play the BARRAGE 2 to get promoted to the upper league next season. We can do it, let''s go !';
+            text_message_left := text_message_left || '. This overall victory in the BARRAGE 1 means that we will be playing in the upper league next season. Congratulations to you and all the players, it''s time to party !';
+            text_message_right := text_message_right || '. This overall defeat in the BARRAGE 1 means that we will have to play the BARRAGE 2 to get promoted to the upper league next season. We can do it, let''s go !';
 
             -- Send message to the club who finished 6th of the upper league to say the league where is being demoted
             INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message) 
@@ -168,8 +190,8 @@ RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %
             -- Send messages
             text_title_right := text_title_right || ': BARRAGE1 Victory => PROMOTION to upper league';
             text_title_left := text_title_left || ': BARRAGE1 Defeat => BARRAGE 2 to get promotion';
-            text_message_right := text_message_right || '. This victory in the BARRAGE 1 means that we will be playing in the upper league next season. Congratulations to you and all the players, it''s time to party !';
-            text_message_left := text_message_left || '. This defeat in the BARRAGE 1 means that we will have to play the BARRAGE 2 to get promoted to the upper league next season. We can do it, let''s go !';
+            text_message_right := text_message_right || '. This overall victory in the BARRAGE 1 means that we will be playing in the upper league next season. Congratulations to you and all the players, it''s time to party !';
+            text_message_left := text_message_left || '. This overall defeat in the BARRAGE 1 means that we will have to play the BARRAGE 2 to get promoted to the upper league next season. We can do it, let''s go !';
 
             -- Send messages
             INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message) 
@@ -192,8 +214,8 @@ RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will
             -- Send messages
             text_title_left := text_title_left || ': BARRAGE2 Victory => We avoided relegation';
             text_title_right := text_title_right || ': BARRAGE2 Defeat => We failed to get promoted';
-            text_message_left := text_message_left || '. This victory in the 2nd barrage means that we avoided relegation in a lower league. Congratulations to you and all the players, what a relief !';
-            text_message_right := text_message_right || '. This defeat in the 2nd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_left := text_message_left || '. This overall victory in the 2nd barrage means that we avoided relegation in a lower league. Congratulations to you and all the players, what a relief !';
+            text_message_right := text_message_right || '. This overall defeat in the 2nd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
 
         -- Right club (loser of barrage 1) won so he is promoted to the league of the 5th of the upper league
         ELSE
@@ -216,8 +238,8 @@ RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will 
             -- Send messages
             text_title_left := text_title_left || ': BARRAGE2 Defeat => We are demoted...';
             text_title_right := text_title_right || ': BARRAGE2 Victory => We are promoted !';
-            text_message_left := text_message_left || '. This defeat in the 2nd barrage means that we are relegated to a lower league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
-            text_message_right := text_message_right || '. This victory in the 2nd barrage means that we are promoted to the upper league next season. Congratulations to you and all the players, we made it !';
+            text_message_left := text_message_left || '. This overall defeat in the 2nd barrage means that we are relegated to a lower league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_right := text_message_right || '. This overall victory in the 2nd barrage means that we are promoted to the upper league next season. Congratulations to you and all the players, we made it !';
 
         END IF;
 
@@ -232,8 +254,8 @@ RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will
             -- Send messages
             text_title_left := text_title_left || ': BARRAGE3 Victory => We avoided relegation';
             text_title_right := text_title_right || ': BARRAGE3 Defeat => We failed to get promoted';
-            text_message_left := text_message_left || '. This victory in the 3rd barrage means that we avoided relegation in a lower league. Congratulations to you and all the players, what a relief !';
-            text_message_right := text_message_right || '. This defeat in the 3rd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_left := text_message_left || '. This overall victory in the 3rd barrage means that we avoided relegation in a lower league. Congratulations to you and all the players, what a relief !';
+            text_message_right := text_message_right || '. This overall defeat in the 3rd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
 
         -- Right club (winner of the 2nd round of the barrage 2) won
         ELSE
@@ -258,8 +280,8 @@ RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will 
             -- Send messages
             text_title_left := text_title_left || ': BARRAGE3 Defeat => We are demoted...';
             text_title_right := text_title_right || ': BARRAGE3 Victory => We are promoted !';
-            text_message_left := text_message_left || '. This defeat in the 3rd barrage means that we are relegated to a lower league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
-            text_message_right := text_message_right || '. This victory in the 3rd barrage means that we are promoted to the upper league next season. Congratulations to you and all the players, we made it !';
+            text_message_left := text_message_left || '. This overall defeat in the 3rd barrage means that we are relegated to a lower league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_right := text_message_right || '. This overall victory in the 3rd barrage means that we are promoted to the upper league next season. Congratulations to you and all the players, we made it !';
 
         END IF; -- End right club won
     END IF; -- End of the barrage games

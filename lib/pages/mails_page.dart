@@ -114,7 +114,8 @@ class _MailsPageState extends State<MailsPage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('Mails (${clubMails.length}) (${userMails.length})'),
+            title: Text(
+                'Mails (${userMails.where((mail) => mail.isRead == false).length}) (${clubMails.where((mail) => mail.isRead == false).length})'),
           ),
           drawer: const AppDrawer(),
           body: MaxWidthContainer(
@@ -318,43 +319,40 @@ class _MailsPageState extends State<MailsPage> {
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (isNarrow)
-                      IconButton(
-                        icon: mail.isRead
-                            ? Icon(Icons.mark_email_read)
-                            : Icon(Icons.mail),
-                        onPressed: () async {
-                          if (mail.isRead) {
-                            bool isOk = await operationInDB(
-                                context, 'UPDATE', 'messages_mail',
-                                data: {
-                                  'is_read': false
-                                },
-                                matchCriteria: {
-                                  'id': mail.id,
-                                });
-                            // if (isOk) {
-                            //   context.showSnackBar(
-                            //       'The mail has been set to unread',
-                            //       icon: Icon(Icons.mark_email_read,
-                            //           color: Colors.green));
-                            // }
-                          } else {
-                            await operationInDB(
-                                context, 'UPDATE', 'messages_mail',
-                                data: {
-                                  'is_read': true,
-                                },
-                                matchCriteria: {
-                                  'id': mail.id,
-                                });
-                          }
-                        },
-                      ),
                     Row(
                       children: [
-                        Icon(Icons.send),
-                        formSpacer3,
+                        IconButton(
+                          icon: mail.isRead
+                              ? Icon(Icons.mark_email_read)
+                              : Icon(Icons.mail),
+                          onPressed: () async {
+                            if (mail.isRead) {
+                              bool isOk = await operationInDB(
+                                  context, 'UPDATE', 'messages_mail',
+                                  data: {
+                                    'is_read': false
+                                  },
+                                  matchCriteria: {
+                                    'id': mail.id,
+                                  });
+                              // if (isOk) {
+                              //   context.showSnackBar(
+                              //       'The mail has been set to unread',
+                              //       icon: Icon(Icons.mark_email_read,
+                              //           color: Colors.green));
+                              // }
+                            } else {
+                              await operationInDB(
+                                  context, 'UPDATE', 'messages_mail',
+                                  data: {
+                                    'is_read': true,
+                                  },
+                                  matchCriteria: {
+                                    'id': mail.id,
+                                  });
+                            }
+                          },
+                        ),
                         Text('From:'),
                         formSpacer3,
                         if (mail.userNameFrom != null)

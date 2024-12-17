@@ -26,15 +26,108 @@ BEGIN
             WHERE id_multiverse = inp_multiverse.id;
 
             -- Send mail to each club indicating their position in the league
-            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
+            -- INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message)
+            -- SELECT 
+            --     id AS id_club_to, 'Coach' AS sender_role, inp_multiverse.date_now,
+            --     'End of League Season ' || inp_multiverse.season_number || ': Position ' || pos_league AS title,
+            --     CASE
+            --         WHEN pos_league = 1 THEN
+            --             'We are the champions ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished first ! We finished in position. Good job !'
+            --         WHEN pos_league = 2 THEN
+            --             'Great job! The League Season ' || inp_multiverse.season_number || ' has ended and we finished second !'
+            --         WHEN pos_league = 3 THEN
+            --             'Great job! The League Season ' || inp_multiverse.season_number || ' has ended and we finished third !'
+            --         WHEN pos_league = 4 THEN
+            --             'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 4th !'
+            --         WHEN pos_league = 5 THEN
+            --             'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 5th !'
+            --         WHEN pos_league = 6 THEN
+            --             'Rough Season... The League Season ' || inp_multiverse.season_number || ' has ended and we finished last !'
+            --     END AS message
+            -- FROM clubs
+            -- WHERE id_multiverse = inp_multiverse.id;
+            WITH club_league_info AS (
                 SELECT 
-                    id AS id_club_to,
-                    inp_multiverse.date_now,
-                    'End of League Season ' || inp_multiverse.season_number || ': Position ' || pos_league AS title,
-                    'The League Season ' || inp_multiverse.season_number || ' has ended. We finished in position ' || pos_league || '.' AS message,
-                    'Coach' AS sender_role
-            FROM clubs
-            WHERE id_multiverse = inp_multiverse.id;
+                    clubs.id,
+                    clubs.id_multiverse,
+                    clubs.continent,
+                    clubs.id_country,
+                    clubs.id_league,
+                    leagues.season_number,
+                    leagues.id_upper_league,
+                    leagues.id_lower_league,
+                    -- Calculate overall points
+                    (10000000 - (leagues.level * 100000)) + ((7 - clubs.pos_league) * 10000) + (clubs.league_points * 1000) + clubs.league_goals_for - clubs.league_goals_against AS overall_points,
+                    leagues.level,
+                    clubs.pos_league,
+                    clubs.league_points,
+                    clubs.league_goals_for - clubs.league_goals_against AS goal_diff,
+                    -- Calculate overall ranking
+                    ROW_NUMBER() OVER (ORDER BY (10000000 - (leagues.level * 100000)) + ((7 - clubs.pos_league) * 10000) + (clubs.league_points * 1000) + clubs.league_goals_for - clubs.league_goals_against DESC) AS overall_ranking
+                FROM clubs
+                JOIN leagues ON leagues.id = clubs.id_league
+                WHERE clubs.id_multiverse = inp_multiverse.id
+                ORDER BY overall_points DESC
+            )
+            -- Send mail to each club indicating their position in the league
+            INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message)
+            SELECT 
+                id AS id_club_to, 
+                'Coach' AS sender_role, 
+                inp_multiverse.date_now,
+                'End of League Season ' || inp_multiverse.season_number || ': Position ' || pos_league AS title,
+                CASE
+                    -- 1st place
+                    WHEN pos_league = 1 THEN
+                        -- Highest league plays international games
+                        CASE WHEN id_upper_league IS NULL THEN
+                            'We are the champions ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 1st ! We will play the 1st international league during the interseason ! That''s fantastic !'
+                        -- Other leagues play barrages to win promotion
+                        ELSE
+                            'We are the champions ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 1st ! We will play the 1st barrage to try and win our promotion to the upper league ! Let''s do it !'
+                        END
+                    WHEN pos_league = 2 THEN
+                        -- Highest league plays international games
+                        CASE WHEN id_upper_league IS NULL THEN
+                            'Great job ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 2nd ! We will play the 2nd international league during the interseason ! That''s fantastic !'
+                        -- Other leagues play barrages to win promotion
+                        ELSE
+                            'Great job ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 2nd ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
+                        END
+                    WHEN pos_league = 3 THEN
+                        -- Highest league plays international games
+                        CASE WHEN id_upper_league IS NULL THEN
+                            'Great job ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 3rd ! We will play the 3rd international league during the interseason ! That''s fantastic !'
+                        -- Other leagues play barrages to win promotion
+                        ELSE
+                            'Great job ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 3rd ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
+                        END
+                    WHEN pos_league = 4 THEN
+                        -- Lowest league plays friendly games during interseason
+                        CASE WHEN id_lower_league IS NULL THEN
+                            'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 4th ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
+                        -- Other leagues play barrages to avoid relegation
+                        ELSE
+                            'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 4th ! We will play against the winner of the 2nd barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
+                        END
+                    WHEN pos_league = 5 THEN
+                        -- Lowest league plays friendly games during interseason
+                        CASE WHEN id_lower_league IS NULL THEN
+                            'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 5th ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
+                        -- Other leagues play barrages to avoid relegation
+                        ELSE
+                            'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 5th ! We will play against the team from the 1st barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
+                        END
+                    WHEN pos_league = 6 THEN
+                        -- Lowest league plays friendly games during interseason
+                        CASE WHEN id_lower_league IS NULL THEN
+                            'Rough season... The League Season ' || inp_multiverse.season_number || ' has ended and we finished last ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
+                        -- Other leagues play barrages to avoid relegation
+                        ELSE
+                            'Rought season... The League Season ' || inp_multiverse.season_number || ' has ended and we finished last ! We will be demoted to the lower league... But don''t give up, we will come back stronger next season !'
+                        END
+                END AS message
+            FROM club_league_info;
 
         ---- Handle the 13th week of the season ==> Intercontinental Cup Leagues are finished
         WHEN inp_multiverse.week_number = 13 THEN
@@ -73,6 +166,7 @@ BEGIN
                 season_number = season_number + 1,
                 id_league = id_league_next_season,
                 id_league_next_season = NULL,
+                revenues_sponsors_last_season = revenues_sponsors,
                 revenues_sponsors = (SELECT cash_last_season FROM leagues WHERE id = id_league) * 
                     CASE 
                         WHEN pos_league = 1 THEN 0.20
@@ -104,16 +198,23 @@ BEGIN
                 RAISE EXCEPTION 'League % does not contain exactly 6 clubs. Clubs: %', loc_record.league_id, loc_record.club_ids;
             END LOOP;
 
-            -- Send mail to each club indicating their position in the league
-            INSERT INTO messages_mail (id_club_to, created_at, title, message, sender_role)
+            WITH club_expenses AS (
                 SELECT 
-                    id AS id_club_to,
+                    id_club,
+                    SUM(expenses_expected) AS total_player_expenses
+                FROM players
+                GROUP BY id_club
+            )
+            -- Send mail to each club indicating their position in the league
+            INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message)
+                SELECT 
+                    id AS id_club_to, 'Treasurer' AS sender_role,
                     inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
-                    'New Season ' || inp_multiverse.season_number || ' is launched ' AS title,
-                    'The League Season ' || inp_multiverse.season_number || ' is ready to start. This season your revenues from sponsors will be ' || revenues_sponsors || ' per week' AS message,
-                    'Financial Manager' AS sender_role
-            FROM clubs
-            WHERE id_multiverse = inp_multiverse.id;
+                    'New Season ' || inp_multiverse.season_number + 1 || ' is launched ' AS title,
+                    'The League Season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(ce.total_player_expenses, 0) || ' per week and the staff expenses is ' || expenses_staff AS message
+                FROM clubs c
+                LEFT JOIN club_expenses ce ON c.id = ce.id_club
+            WHERE c.id_multiverse = inp_multiverse.id;
 
             -- Update players
             UPDATE players SET

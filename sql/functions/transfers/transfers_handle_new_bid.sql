@@ -82,7 +82,7 @@ BEGIN
             -- Send message to previous bidder
             INSERT INTO messages_mail (id_club_to, sender_role, title, message)
             VALUES (
-                latest_bid.id_club, 'Financial Advisor',
+                latest_bid.id_club, 'Treasurer',
                 'Outbided on ' || rec_player.full_name,
                 'A new bid of ' || inp_amount || ' was made on ' || rec_player.full_name || ' by ' || rec_club_bidder.name || '. We are not favourite anymore');
             

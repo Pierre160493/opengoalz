@@ -32,6 +32,7 @@ class League {
     required this.level,
     required this.number,
     required this.idUpperLeague,
+    required this.idLowerLeague,
     required this.isFinished,
   });
 
@@ -42,6 +43,7 @@ class League {
   final int level;
   final int number;
   final int? idUpperLeague;
+  final int? idLowerLeague;
   final bool? isFinished;
 
   League.fromMap(Map<String, dynamic> map,
@@ -53,5 +55,6 @@ class League {
         level = map['level'],
         number = map['number'],
         idUpperLeague = map['id_upper_league'],
+        idLowerLeague = map['id_lower_league'],
         isFinished = map['is_finished'];
 }
