@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/multiverse/multiverse_widget.dart';
+import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
@@ -114,7 +114,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   Text('Calendar'),
                   formSpacer6,
                   // club.multiverse.getWidget(context)
-                  getMultiverseWidget(context, club.idMultiverse),
+                  getMultiverseIconFromId_Clickable(context, club.idMultiverse),
                 ],
               ),
             ),

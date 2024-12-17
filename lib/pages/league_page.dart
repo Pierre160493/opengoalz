@@ -67,7 +67,6 @@ class _RankingPageState extends State<LeaguePage> {
                     .where(
                         (Game game) => game.seasonNumber == league.seasonNumber)
                     .toList();
-                print('testICI_games');
                 return league;
               });
         })
@@ -102,7 +101,6 @@ class _RankingPageState extends State<LeaguePage> {
                             'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
                   }
                 }
-                print('testICI_clubs');
                 return league;
               });
         })

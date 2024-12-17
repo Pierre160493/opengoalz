@@ -6,13 +6,10 @@ extension LeagueGamesTab on League {
     final List<Game> gamesIncoming = [];
     final List<Game> gamesPlayed = [];
 
-    DateTime now = DateTime.now();
-
     for (Game game in games) {
-      if (game.dateStart.isAfter(now) &&
-          game.dateStart.isBefore(now.add(const Duration(hours: 3)))) {
+      if (game.isPlaying == true) {
         gamesCurrent.add(game);
-      } else if (game.dateEnd != null) {
+      } else if (game.isPlaying == false) {
         gamesPlayed.add(game);
       } else {
         gamesIncoming.add(game);

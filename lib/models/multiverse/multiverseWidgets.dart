@@ -1,0 +1,126 @@
+import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/multiverse/multiverse.dart';
+import 'package:opengoalz/pages/multiverse_page.dart';
+
+Widget getMultiverseIconFromMultiverse(Multiverse multiverse) {
+  return Tooltip(
+    message:
+        'Multiverse Speed: ' + getMultiverseSpeedDescription(multiverse.speed),
+    child: Row(
+      children: [
+        Icon(iconMultiverseSpeed),
+        formSpacer3,
+        Text('X '),
+        Text(
+          multiverse.speed.toString(),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget getMultiverseIconFromId_Clickable(
+    BuildContext context, int idMultiverse) {
+  return FutureBuilder<Multiverse?>(
+    future: Multiverse.fromId(idMultiverse), // Remove the 3-second delay
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Container(
+          width: 60,
+          child: Row(
+            children: [
+              Icon(iconMultiverseSpeed),
+              formSpacer6,
+              Expanded(child: LinearProgressIndicator()),
+            ],
+          ),
+        );
+      } else if (snapshot.hasError) {
+        return Center(child: Text('Error: ${snapshot.error}'));
+      } else if (snapshot.hasData && snapshot.data != null) {
+        return getMultiverseIconFromMultiverse_Clickable(
+            context, snapshot.data!); // Display the multiverse widget
+      } else {
+        return Center(child: Text('No data available'));
+      }
+    },
+  );
+}
+
+Widget getMultiverseIconFromMultiverse_Clickable(
+    BuildContext context, Multiverse multiverse) {
+  return InkWell(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MultiversePage(id: multiverse.id),
+        ),
+      );
+    },
+    child: getMultiverseIconFromMultiverse(multiverse),
+  );
+}
+
+Widget getMultiverseIconFromMultiverse_Tooltip(Multiverse multiverse) {
+  return Tooltip(
+    message: 'Multiverse Speed',
+    child: getMultiverseIconFromMultiverse(multiverse),
+  );
+}
+
+Widget getMultiverseListTileFromMultiverse(
+    BuildContext context, Multiverse multiverse) {
+  return ListTile(
+    shape: shapePersoRoundedBorder,
+    leading: Icon(iconMultiverseSpeed),
+    title: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('Multiverse: ${multiverse.name}'),
+        getMultiverseIconFromMultiverse(multiverse),
+      ],
+    ),
+    subtitle: Text(getMultiverseSpeedDescription(multiverse.speed),
+        style: styleItalicBlueGrey),
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MultiversePage(id: multiverse.id),
+        ),
+      );
+    },
+  );
+}
+
+Widget getMultiverseListTileFromId(BuildContext context, int idMultiverse) {
+  return FutureBuilder<Multiverse?>(
+    future: Multiverse.fromId(idMultiverse), // Remove the 3-second delay
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      } else if (snapshot.hasError) {
+        return Center(child: Text('Error: ${snapshot.error}'));
+      } else if (snapshot.hasData && snapshot.data != null) {
+        return getMultiverseListTileFromMultiverse(
+            context, snapshot.data!); // Display the multiverse widget
+      } else {
+        return Center(child: Text('No data available'));
+      }
+    },
+  );
+}
+
+String getMultiverseSpeedDescription(int speed) {
+  if (speed <= 7)
+    return '$speed games per week';
+  else if (speed < 7 * 24)
+    return '${speed / 7} games per day';
+  else
+    return '${speed / (7 * 24)} games per hour';
+}

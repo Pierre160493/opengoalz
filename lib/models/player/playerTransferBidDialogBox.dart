@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/models/club/clubWidgets.dart';
 import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:rxdart/rxdart.dart';
@@ -169,10 +170,10 @@ class _PlayerTransferBidDialogBoxState
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Provider.of<SessionProvider>(context, listen: false)
-                          .user!
-                          .selectedClub!
-                          .getCashListTile(),
+                      getClubCashListTile(
+                          Provider.of<SessionProvider>(context, listen: false)
+                              .user!
+                              .selectedClub!),
                       PlayerCardTransferWidget(player: player),
                       ListTile(
                         shape: RoundedRectangleBorder(
@@ -261,6 +262,16 @@ class _PlayerTransferBidDialogBoxState
                     if (_bidAmount != null)
                       TextButton(
                         onPressed: () async {
+                          print({
+                            'inp_id_player': player.id,
+                            'inp_id_club_bidder': Provider.of<SessionProvider>(
+                                    context,
+                                    listen: false)
+                                .user!
+                                .selectedClub!
+                                .id,
+                            'inp_amount': int.parse(_bidController.text)
+                          });
                           bool isOK = await operationInDB(
                               context, 'FUNCTION', 'transfers_handle_new_bid',
                               data: {

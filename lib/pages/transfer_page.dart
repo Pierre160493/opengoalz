@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/models/club/clubWidgets.dart';
 import 'package:opengoalz/models/player/player_card.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
@@ -189,10 +190,10 @@ class _TransferPageState extends State<TransferPage>
                 body: MaxWidthContainer(
                   child: Column(
                     children: [
-                      Provider.of<SessionProvider>(context, listen: false)
-                          .user!
-                          .selectedClub!
-                          .getCashListTile(),
+                      getClubCashListTile(
+                          Provider.of<SessionProvider>(context, listen: false)
+                              .user!
+                              .selectedClub!),
                       TabBar(
                         controller: _tabController,
                         tabs: [

@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/multiverse/multiverse_widget_extension.dart';
+import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
@@ -109,7 +109,8 @@ class _MultiversePageState extends State<MultiversePage> {
                   Text('Multiverse'),
                   formSpacer6,
                   if (_selectedMultiverse != null)
-                    _selectedMultiverse!.getWidget(),
+                    getMultiverseIconFromMultiverse_Tooltip(
+                        _selectedMultiverse!)
                 ],
               ),
             ),
@@ -322,10 +323,7 @@ class _MultiversePageState extends State<MultiversePage> {
               )
             ],
           ),
-          subtitle: Text(
-              multiverse.speed < 7
-                  ? 'Games per week: ${multiverse.speed}'
-                  : 'Games per day ${multiverse.speed / 7}',
+          subtitle: Text(getMultiverseSpeedDescription(multiverse.speed),
               style: styleItalicBlueGrey),
         ),
         ListTile(

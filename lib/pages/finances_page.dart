@@ -94,7 +94,7 @@ class _FinancesPageState extends State<FinancesPage> {
         children: [
           ListTile(
             leading: Icon(
-              icon_finance,
+              iconCash,
               size: iconSizeMedium,
             ),
             title: Row(

@@ -29,7 +29,7 @@ const maxWidth = 600.0;
 /// Icons
 
 const icon_home = Icons.home;
-const icon_finance = Icons.savings_outlined;
+const iconCash = Icons.savings_outlined;
 const icon_fans = Icons.campaign_outlined;
 const icon_stadium = Icons.stadium_outlined;
 const iconStaff = Icons.engineering_outlined;

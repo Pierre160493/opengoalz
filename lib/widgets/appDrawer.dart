@@ -75,7 +75,7 @@ class AppDrawer extends StatelessWidget {
           //     FinancesPage(idClub: selectedClub.id)), // Add the finances page
           ListTile(
             leading: Icon(
-              icon_finance,
+              iconCash,
               size: iconSizeMedium,
             ),
             title: Text(
