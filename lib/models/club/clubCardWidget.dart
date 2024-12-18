@@ -38,7 +38,13 @@ Widget getClubCard(BuildContext context, Club club, int index) {
               color: Colors.blueGrey, // Border color
             ),
           ),
-          hoverColor: Colors.brown,
+          hoverColor: club.id ==
+                  Provider.of<SessionProvider>(context, listen: false)
+                      .user!
+                      .selectedClub
+                      ?.id
+              ? null
+              : Colors.blue[700],
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

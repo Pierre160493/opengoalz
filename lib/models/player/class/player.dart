@@ -68,6 +68,7 @@ class Player {
     required this.stamina,
     required this.experience,
     required this.notes,
+    required this.notesSmall,
     required this.performanceScore,
   });
 
@@ -103,7 +104,8 @@ class Player {
   final double form;
   final double stamina;
   final double experience;
-  final String? notes;
+  final String notes;
+  final String notesSmall;
   final double performanceScore;
 
   Player.fromMap(Map<String, dynamic> map)
@@ -144,6 +146,7 @@ class Player {
         transferPrice = map['transfer_price'],
         dateArrival = DateTime.parse(map['date_arrival']).toLocal(),
         notes = map['notes'],
+        notesSmall = map['notes_small'],
         performanceScore = (map['performance_score'] as num).toDouble();
 
   double get age {
@@ -225,6 +228,8 @@ class Player {
         return experience;
       case 'notes':
         return notes;
+      case 'notes_small':
+        return notesSmall;
       default:
         throw ArgumentError('Property not found');
     }

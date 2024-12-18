@@ -39,24 +39,38 @@ BEGIN
         date_birth, experience,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         training_coef,
-        notes, shirt_number
+        shirt_number, notes, notes_small
     ) VALUES (
         inp_id_multiverse, inp_id_club, inp_id_country,
         players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age), 3.0 * (inp_age - 15.0),
         inp_stats[1], inp_stats[2], inp_stats[3], inp_stats[4], inp_stats[5], inp_stats[6], inp_stats[7],
-        ARRAY[
-            FLOOR(inp_stats[1]),
-            FLOOR(inp_stats[2]),
-            FLOOR(inp_stats[3]),
-            FLOOR(inp_stats[4]),
-            FLOOR(inp_stats[5]),
-            FLOOR(inp_stats[6]),
-            FLOOR(inp_stats[7])],
-        inp_notes, inp_shirt_number)
+        loc_training_coef,
+        inp_shirt_number, inp_notes,
+        -- Small notes
+        CASE
+            WHEN inp_notes = 'Experienced GoalKeeper' THEN 'GK1'
+            WHEN inp_notes = 'Young GoalKeeper' THEN 'GK2'
+            WHEN inp_notes = 'Experienced Back Winger' THEN 'BW1'
+            WHEN inp_notes = 'Intermediate Age Back Winger' THEN 'BW2'
+            WHEN inp_notes = 'Young Back Winger' THEN 'BW3'
+            WHEN inp_notes = 'Experienced Central Back' THEN 'CB1'
+            WHEN inp_notes = 'Intermediate Age Central Back' THEN 'CB1'
+            WHEN inp_notes = 'Young Central Back' THEN 'CB3'
+            WHEN inp_notes = 'Experienced Midfielder' THEN 'MF1'
+            WHEN inp_notes = 'Intermediate Age Midfielder' THEN 'MF2'
+            WHEN inp_notes = 'Young Midfielder' THEN 'MF3'
+            WHEN inp_notes = 'Experienced Winger' THEN 'WG1'
+            WHEN inp_notes = 'Intermediate Age Winger' THEN 'WG2'
+            WHEN inp_notes = 'Young Winger' THEN 'WG3'
+            WHEN inp_notes = 'Experienced Striker' THEN 'ST1'
+            WHEN inp_notes = 'Intermediate Age Striker' THEN 'ST2'
+            WHEN inp_notes = 'Young Striker' THEN 'ST2'
+            WHEN inp_notes = 'Old Experienced player' THEN 'OLDXP'
+            WHEN inp_notes = 'Youngster 1' THEN 'YOUNG1'
+            WHEN inp_notes = 'Youngster 2' THEN 'YOUNG2'
+            ELSE NULL
+        END)
     RETURNING id INTO loc_new_player_id;
-
-    ------ Calculate the performance score
-    PERFORM players_calculate_performance_score(inp_id_player := loc_new_player_id);
 
     ------ Log player history
     INSERT INTO players_history (id_player, id_club, description)
