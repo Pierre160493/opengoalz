@@ -369,6 +369,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                       formSpacer3,
                       widget.isClub
                           ? Text('Assign Club')
+                          // ? Text('Become owner of ${selectedClub!.name}')
                           : Text('Create Player'),
                     ],
                   ),

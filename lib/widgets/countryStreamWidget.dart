@@ -21,8 +21,11 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
     //               'iso2': map['iso2'],
     //             })
     //         .first),
-    stream: supabase.from('countries').stream(primaryKey: ['id']).map(
-        (maps) => maps.map((map) => Country.fromMap(map)).first),
+    stream: supabase
+        .from('countries')
+        .stream(primaryKey: ['id'])
+        .eq('id', idCountry)
+        .map((maps) => maps.map((map) => Country.fromMap(map)).first),
 
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
