@@ -251,13 +251,7 @@ class _PlayerTransferBidDialogBoxState
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: Row(
-                        children: [
-                          Icon(Icons.cancel, color: Colors.red),
-                          formSpacer3,
-                          Text('Cancel'),
-                        ],
-                      ),
+                      child: persoCancelRow,
                     ),
                     if (_bidAmount != null)
                       TextButton(

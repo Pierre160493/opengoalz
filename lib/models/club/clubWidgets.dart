@@ -5,7 +5,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 
 Widget getClubCashListTile(Club club) {
   return ListTile(
-    shape: shapePersoRoundedBorder,
+    shape: shapePersoRoundedBorder(),
     leading: Icon(iconCash,
         color: club.cash >= 0 ? Colors.green : Colors.red,
         size: iconSizeMedium),

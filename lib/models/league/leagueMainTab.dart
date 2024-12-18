@@ -49,7 +49,7 @@ extension LeagueMainTab on League {
             child: ListView.builder(
               itemCount: clubs.length,
               itemBuilder: (context, index) {
-                final club = clubs[index];
+                Club club = clubs[index];
                 if (club.idLeague == id)
                   return ListTile(
                     shape: RoundedRectangleBorder(
@@ -191,8 +191,11 @@ extension LeagueMainTab on League {
                     onTap: () async {
                       /// If the page must return a CLub, return the clicked club
                       if (isReturningBotClub) {
-                        if (await context.showConfirmationDialog(
-                                'Are you sure you want to select this club ?') ==
+                        if (club.userName != null)
+                          context.showSnackBarError(
+                              'The club already belongs to a user: ${club.userName}');
+                        else if (await context.showConfirmationDialog(
+                                'Are you sure you want to select ${club.name} ?') ==
                             true) {
                           Navigator.pop(context, club);
                           return;

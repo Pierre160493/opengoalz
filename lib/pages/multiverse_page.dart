@@ -104,15 +104,9 @@ class _MultiversePageState extends State<MultiversePage> {
 
           return Scaffold(
             appBar: AppBar(
-              title: Row(
-                children: [
-                  Text('Multiverse'),
-                  formSpacer6,
-                  if (_selectedMultiverse != null)
-                    getMultiverseIconFromMultiverse_Tooltip(
-                        _selectedMultiverse!)
-                ],
-              ),
+              title: _selectedMultiverse == null
+                  ? Text('Multiverses Page')
+                  : Text('Multiverse: ${_selectedMultiverse!.name}'),
             ),
             floatingActionButton:
                 widget.isReturningMultiverse && _selectedMultiverse != null
@@ -205,7 +199,9 @@ class _MultiversePageState extends State<MultiversePage> {
                                           ),
                                         ),
                                         Tooltip(
-                                          message: 'Number of games per weak',
+                                          message:
+                                              getMultiverseSpeedDescription(
+                                                  multiverse.speed),
                                           child: Text(
                                               'Speed: ${multiverse.speed}'),
                                         )
@@ -244,7 +240,7 @@ class _MultiversePageState extends State<MultiversePage> {
                                             icon: Icon(Icons.reply),
                                           )
                                         : null,
-                                    hoverColor: Colors.brown,
+                                    // hoverColor: Colors.blueAccent,
                                     onTap: () {
                                       setState(() {
                                         _selectedMultiverse = multiverse;
@@ -318,7 +314,7 @@ class _MultiversePageState extends State<MultiversePage> {
                 ),
               ),
               Tooltip(
-                message: 'Number of games per weak',
+                message: getMultiverseSpeedDescription(multiverse.speed),
                 child: Text('Speed: ${multiverse.speed}'),
               )
             ],

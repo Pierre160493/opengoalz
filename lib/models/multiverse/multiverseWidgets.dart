@@ -76,7 +76,7 @@ Widget getMultiverseIconFromMultiverse_Tooltip(Multiverse multiverse) {
 Widget getMultiverseListTileFromMultiverse(
     BuildContext context, Multiverse multiverse) {
   return ListTile(
-    shape: shapePersoRoundedBorder,
+    shape: shapePersoRoundedBorder(),
     leading: Icon(iconMultiverseSpeed),
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -123,4 +123,50 @@ String getMultiverseSpeedDescription(int speed) {
     return '${speed / 7} games per day';
   else
     return '${speed / (7 * 24)} games per hour';
+}
+
+Widget getMultiverseSelectionListTile(
+    BuildContext context, Multiverse? multiverse) {
+  return ListTile(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12.0),
+      side: BorderSide(
+          color: multiverse == null ? Colors.red : Colors.green, width: 2.0),
+    ),
+    title: ElevatedButton(
+      onPressed: () async {
+        multiverse = await Navigator.push<Multiverse>(
+          context,
+          MultiversePage.route(
+            1,
+            isReturningMultiverse: true,
+          ),
+        );
+      },
+      child: multiverse == null
+          ? Row(
+              children: [
+                Icon(iconError, color: Colors.red),
+                formSpacer6,
+                Text('Select Multiverse'),
+              ],
+            )
+          : Row(
+              children: [
+                Icon(iconSuccessfulOperation, color: Colors.green),
+                formSpacer6,
+                Text('Multiverse: ${multiverse.name}'),
+              ],
+            ),
+    ),
+    trailing: multiverse == null
+        ? null
+        : IconButton(
+            tooltip: 'Reset the selected multiverse',
+            onPressed: () {
+              multiverse = null;
+            },
+            icon: Icon(Icons.delete_forever, color: Colors.red),
+          ),
+  );
 }

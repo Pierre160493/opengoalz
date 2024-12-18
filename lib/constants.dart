@@ -85,12 +85,27 @@ const TextStyle styleItalicBlueGrey = TextStyle(
   color: Colors.blueGrey,
 );
 
-RoundedRectangleBorder shapePersoRoundedBorder = RoundedRectangleBorder(
-  borderRadius: BorderRadius.circular(12), // Adjust border radius as needed
-  side: BorderSide(
-    color: Colors.blueGrey, // Border color
-  ),
+const Row persoCancelRow = Row(
+  children: [
+    Icon(iconCancel, color: Colors.red),
+    formSpacer3,
+    Text('Cancel'),
+  ],
 );
+
+RoundedRectangleBorder shapePersoRoundedBorder([bool? isOK = null]) {
+  return RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(12), // Adjust border radius as needed
+    side: BorderSide(
+      color: isOK == null
+          ? Colors.blueGrey
+          : isOK
+              ? Colors.green
+              : Colors.red, // Border color
+      width: 2.0, // Border width
+    ),
+  );
+}
 
 double iconSizeSmall = 24.0;
 double iconSizeMedium = 30.0;

@@ -384,7 +384,7 @@ extension PlayerWidgetsHelper on Player {
 
   Widget getAvgStatsWidget() {
     return ListTile(
-      shape: shapePersoRoundedBorder,
+      shape: shapePersoRoundedBorder(),
       leading: Icon(
         Icons.query_stats_outlined,
         size: iconSize,
@@ -438,7 +438,7 @@ extension PlayerWidgetsHelper on Player {
     IconData icon = getIcon(label);
 
     return ListTile(
-      shape: shapePersoRoundedBorder,
+      shape: shapePersoRoundedBorder(),
       leading: Icon(
         icon,
         size: iconSize,

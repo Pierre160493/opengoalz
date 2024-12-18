@@ -176,13 +176,7 @@ class _PlayerShirtNumberDialogBoxState
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Row(
-                    children: [
-                      Icon(Icons.cancel, color: Colors.red),
-                      formSpacer3,
-                      Text('Cancel'),
-                    ],
-                  ),
+                  child: persoCancelRow,
                 ),
                 if (_isShirtNumberValid)
                   TextButton(

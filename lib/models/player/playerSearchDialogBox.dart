@@ -357,13 +357,7 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Row(
-                  children: [
-                    Icon(Icons.cancel, color: Colors.red),
-                    formSpacer3,
-                    Text('Cancel'),
-                  ],
-                ),
+                child: persoCancelRow,
               ),
               FutureBuilder<List<int>>(
                 future: playerSearchCriterias.fetchPlayerIds(),

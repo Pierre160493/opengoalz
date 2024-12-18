@@ -12,6 +12,7 @@ import 'package:opengoalz/pages/settings_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/clubAndPlayerCreationDialogBox.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';

@@ -1,25 +1,29 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/country.dart';
 
 Widget getCountryNameWidget(BuildContext context, int? idCountry) {
   if (idCountry == null) {
     return Text('ERROR: No country !');
   }
 
-  return StreamBuilder<Map>(
-    stream: supabase
-        .from('countries')
-        .stream(primaryKey: ['id'])
-        .eq('id', idCountry)
-        .map((maps) => maps
-            .map((map) => {
-                  'id': map['id'],
-                  'continent': map['continent'],
-                  'name': map['name'],
-                  'iso2': map['iso2'],
-                })
-            .first),
+  return StreamBuilder<Country>(
+    // stream: supabase
+    //     .from('countries')
+    //     .stream(primaryKey: ['id'])
+    //     .eq('id', idCountry)
+    //     .map((maps) => maps
+    //         .map((map) => {
+    //               'id': map['id'],
+    //               'continent': map['continent'],
+    //               'name': map['name'],
+    //               'iso2': map['iso2'],
+    //             })
+    //         .first),
+    stream: supabase.from('countries').stream(primaryKey: ['id']).map(
+        (maps) => maps.map((map) => Country.fromMap(map)).first),
+
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         // Placeholder row while loading
@@ -57,10 +61,7 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
       } else if (snapshot.hasError) {
         return Text('ERROR: ${snapshot.error}');
       } else {
-        final country = snapshot.data!;
-        if (country.isEmpty) {
-          return Text('ERROR: Country with id ${idCountry} not found');
-        }
+        Country country = snapshot.data!;
         // Actual row with data
         return ListTile(
           onTap: () {
@@ -82,27 +83,12 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
           //   width: 36,
           //   height: 24,
           // ),
-          title: Row(
-            children: [
-              getCountryFlag(country['iso2']),
-              formSpacer3,
-              Expanded(
-                child: Text(
-                  country['name'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+          title: getCountryFlagAndNameWidget(country),
           subtitle: Row(
             children: [
-              // Icon(Icons.language, size: iconSizeSmall),
               Icon(Icons.public, size: iconSizeSmall),
               formSpacer3,
-              Text(country['continent'],
+              Text(country.continents.first ?? 'Unknown',
                   style: TextStyle(
                       fontStyle: FontStyle.italic, color: Colors.blueGrey)),
             ],
@@ -125,5 +111,26 @@ Widget getCountryFlag(String countryCode) {
     countryCode,
     width: 36,
     height: 24,
+  );
+}
+
+Widget getCountryFlagAndNameWidget(Country country) {
+  return Tooltip(
+    message: 'Continent: ${country.continents.first ?? 'Unknown'}',
+    child: Row(
+      children: [
+        getCountryFlag(country.iso2),
+        formSpacer6,
+        Expanded(
+          child: Text(
+            country.name,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    ),
   );
 }

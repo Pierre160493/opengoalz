@@ -71,16 +71,7 @@ extension ConfirmationDialog on BuildContext {
                   },
                 ),
                 TextButton(
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.cancel,
-                        color: Colors.red,
-                      ),
-                      SizedBox(width: 3.0),
-                      Text('Cancel'),
-                    ],
-                  ),
+                  child: persoCancelRow,
                   onPressed: () {
                     Navigator.of(context).pop(false); // Return false
                   },

@@ -58,7 +58,9 @@ void sendMailDialog(BuildContext context, {int? idClub, String? username}) {
                   'message': messageController.text,
                   'username_to': username,
                   'username_from':
-                      Provider.of<SessionProvider>(context, listen: false).user!.username,
+                      Provider.of<SessionProvider>(context, listen: false)
+                          .user!
+                          .username,
                 },
               );
 
@@ -81,13 +83,7 @@ void sendMailDialog(BuildContext context, {int? idClub, String? username}) {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Row(
-              children: [
-                Icon(Icons.cancel, color: Colors.red),
-                formSpacer3,
-                Text('Cancel'),
-              ],
-            ),
+            child: persoCancelRow,
           ),
         ],
       );
