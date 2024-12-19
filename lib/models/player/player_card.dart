@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
+import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
@@ -184,7 +185,7 @@ class _PlayerCardState extends State<PlayerCard>
                       ),
 
                       /// Stats Tab
-                      widget.player.playerCardStatsWidget(context),
+                      PlayerCardStatsWidget(player: widget.player),
 
                       /// Games tab
                       // Placeholder(),
@@ -325,7 +326,7 @@ class _PlayerCardState extends State<PlayerCard>
                       ),
 
                       /// Stats Tab
-                      widget.player.playerCardStatsWidget(context),
+                      PlayerCardStatsWidget(player: widget.player),
 
                       /// Games tab
                       // Placeholder(),

@@ -230,7 +230,7 @@ class _RankingPageState extends State<LeaguePage> {
                         buildTabWithIcon(
                             Icons.format_list_numbered, 'Rankings'),
                         buildTabWithIcon(Icons.event, 'Games'),
-                        buildTabWithIcon(Icons.query_stats, 'Stats'),
+                        buildTabWithIcon(iconStats, 'Stats'),
                       ],
                     ),
                     Expanded(

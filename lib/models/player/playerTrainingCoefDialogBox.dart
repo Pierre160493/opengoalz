@@ -53,7 +53,7 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: ListTile(
-        leading: Icon(Icons.query_stats, color: Colors.green),
+        leading: Icon(iconStats, color: Colors.green),
         title: Text(
             'Here is the targeted progression of ${widget.player.getFullName()}'),
         subtitle: Text(
@@ -65,7 +65,7 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
           children: [
             for (int i = 0; i < 7; i++)
               ListTile(
-                leading: Icon(Icons.query_stats),
+                leading: Icon(iconStats),
                 title: Text(
                   '${[
                     'Keeper',

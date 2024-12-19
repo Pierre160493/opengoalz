@@ -419,7 +419,8 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  Widget getStatLinearWidget(String label, double value, BuildContext context) {
+  Widget getStatLinearWidget(
+      String label, double valueNow, double? valueOld, BuildContext context) {
     IconData getIcon(String label) {
       switch (label) {
         case 'Motivation':
@@ -430,12 +431,18 @@ extension PlayerWidgetsHelper on Player {
           return iconForm;
         case 'Experience':
           return iconExperience;
+        case 'Energy':
+          return iconEnergy;
         default:
           return iconBug;
       }
     }
 
     IconData icon = getIcon(label);
+
+    // valueNow = 25;
+    // valueOld = 50;
+    print('valueNow: $valueNow - valueOld: $valueOld');
 
     return ListTile(
       shape: shapePersoRoundedBorder(),
@@ -450,22 +457,59 @@ extension PlayerWidgetsHelper on Player {
             width: 100, // Fixed width for the label
             child: Text(label),
           ),
-          SizedBox(
-            width: 120,
-            height: 24, // Height of the bar
-            child: ClipRRect(
-              borderRadius:
-                  BorderRadius.circular(10), // Rounded corners for the bar
-              child: LinearProgressIndicator(
-                value: value / 100, // Assuming value ranges from 0 to 100
-                backgroundColor:
-                    Colors.grey[300], // Background color of the bar
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.green, // Color of the filled portion of the bar
-                ),
-              ),
+          // SizedBox(
+          //   width: 120,
+          //   height: 24, // Height of the bar
+          //   child: ClipRRect(
+          //     borderRadius:
+          //         BorderRadius.circular(10), // Rounded corners for the bar
+          //     child: LinearProgressIndicator(
+          //       value: valueNow / 100, // Assuming value ranges from 0 to 100
+          //       backgroundColor:
+          //           Colors.grey[300], // Background color of the bar
+          //       valueColor: AlwaysStoppedAnimation<Color>(
+          //         Colors.green, // Color of the filled portion of the bar
+          //       ),
+          //     ),
+          //   ),
+          // ),
+        ],
+      ),
+      subtitle: Stack(
+        children: [
+          // Container(
+          //   height: 12, // Set the desired height here
+          //   // width: 120,
+          //   child: LinearProgressIndicator(
+          //     value: 100,
+          //     backgroundColor: Colors.grey,
+          //   ),
+          // ),
+          // if (valueOld != null)
+          Container(
+            height: 12, // Set the desired height here
+            // width: 120,
+            child: LinearProgressIndicator(
+              value:
+                  (valueOld == null ? valueNow : max(valueNow, valueOld)) / 100,
+              backgroundColor: Colors.grey,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                  valueOld == null || valueNow > valueOld
+                      ? Colors.green
+                      : Colors.red),
             ),
           ),
+          if (valueOld != null)
+            Container(
+              height: 12, // Set the desired height here
+              // width: 120,
+              child: LinearProgressIndicator(
+                value: min(valueNow, valueOld) / 100,
+                backgroundColor:
+                    valueNow != valueOld ? Colors.transparent : Colors.grey,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
+            ),
         ],
       ),
       onTap: () async {

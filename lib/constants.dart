@@ -71,6 +71,7 @@ const iconMultiverseSpeed = Icons.shutter_speed;
 const iconCountries = Icons.public;
 const iconMotivation = Icons.emoji_emotions;
 const iconStamina = Icons.ev_station;
+const iconEnergy = Icons.electric_bolt;
 const iconForm = Icons.directions_run;
 const iconExperience = Icons.school;
 

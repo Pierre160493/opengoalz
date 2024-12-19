@@ -1,11 +1,11 @@
+import 'dart:math';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/player/player_dialog_training_coef.dart';
 import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
@@ -15,17 +15,13 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
-import 'package:opengoalz/models/player/playerTransferBidDialogBox.dart';
 import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_radar_chart/flutter_radar_chart.dart'
-    as flutter_radar_chart;
 
 part 'player_widget_helper.dart';
 part 'player_widget_actions.dart';
 part 'player_card_details.dart';
-part 'player_card_stats.dart';
 part 'player_card_history.dart';
 part 'player_expenses_history.dart';
 

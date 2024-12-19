@@ -9,18 +9,7 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
   }
 
   return StreamBuilder<Country>(
-    // stream: supabase
-    //     .from('countries')
-    //     .stream(primaryKey: ['id'])
-    //     .eq('id', idCountry)
-    //     .map((maps) => maps
-    //         .map((map) => {
-    //               'id': map['id'],
-    //               'continent': map['continent'],
-    //               'name': map['name'],
-    //               'iso2': map['iso2'],
-    //             })
-    //         .first),
+
     stream: supabase
         .from('countries')
         .stream(primaryKey: ['id'])

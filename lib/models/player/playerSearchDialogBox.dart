@@ -287,7 +287,7 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                     },
                     child: Row(
                       children: [
-                        Icon(Icons.query_stats, color: Colors.green),
+                        Icon(iconStats, color: Colors.green),
                         formSpacer6,
                         Text('Select stats'),
                       ],
