@@ -51,6 +51,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
         .eq('id', widget.idClub)
         .map((maps) => maps.map((map) => Club.fromMap(map)).first)
         .switchMap((Club club) {
+          print('Club: ${club.name}');
           return supabase
               .from('games_teamcomp')
               .stream(primaryKey: ['id'])
@@ -82,6 +83,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
               });
         })
         .switchMap((Club club) {
+          print('Number Teamcomps: ${club.teamComps.length}');
           return supabase
               .from('players')
               .stream(primaryKey: ['id'])
@@ -101,16 +103,20 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                   ].toSet().toList())
               .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
               .map((players) {
+                print('Number players: ${players.length}');
                 for (TeamComp teamComp
                     in club.teamComps + club.defaultTeamComps) {
-                  teamComp.initPlayers(players
-                      .where((player) => player.idClub == club.id)
-                      .toList());
+                  print('passage ici');
+                  // teamComp.initPlayers(players
+                  //     .where((player) => player.idClub == club.id)
+                  //     .toList());
+                  teamComp.initPlayers(players);
                 }
                 return club;
               });
         })
         .switchMap((Club club) {
+          print('Number Teamcomps2: ${club.teamComps.length}');
           return supabase
               .from('game_orders')
               .stream(primaryKey: ['id'])
@@ -125,6 +131,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
               .order('minute', ascending: true)
               .map((maps) => maps.map((map) => GameSub.fromMap(map)).toList())
               .map((subs) {
+                print('Number subs: ${subs.length}');
                 for (TeamComp teamComp
                     in club.teamComps + club.defaultTeamComps) {
                   teamComp.subs = subs

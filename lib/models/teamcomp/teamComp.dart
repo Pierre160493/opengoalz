@@ -223,7 +223,7 @@ class TeamComp {
         in players.where((player) => player['id'] != null).toList()) {
       player['player'] =
           list_players.firstWhere((lp) => lp!.id == player['id']);
-      // print(player['player']);
+      print(player['player']);
       if (player['player'] == null) {
         throw Exception(
             'No player found with id {${player['id']}} for the club with id {{$idClub}} for the game {{}}');

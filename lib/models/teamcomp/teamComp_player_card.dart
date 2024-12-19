@@ -3,7 +3,6 @@ part of 'teamComp.dart';
 extension TeamCompPlayerCard on TeamComp {
   Widget _playerTeamCompCard(
       BuildContext context, double width, Map<String, dynamic>? playerMap) {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     if (playerMap == null || playerMap.isEmpty) {
       return Container(
           color: Colors.blueGrey,
@@ -300,6 +299,7 @@ extension TeamCompPlayerCard on TeamComp {
                   return PlayersPage(
                     playerSearchCriterias:
                         PlayerSearchCriterias(idClub: [idClub]),
+                    isReturningPlayer: true,
                   );
                 },
                 transitionsBuilder:

@@ -219,10 +219,11 @@ BEGIN
             -- Update players
             UPDATE players SET
                 expenses_expected = FLOOR(
-                    (expenses_expected + 100 +
-                    keeper + defense + playmaking + passes + winger + scoring + freekick +
-                    training_points_available)
-                    * 0.5),
+                    (expenses_expected * 0.75 + 
+                    (100 +
+                    GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) +
+                    (keeper + defense + playmaking + passes + winger + scoring + freekick) / 3
+                    ) * 0.25)),
                 training_points_used = 0
             WHERE id_multiverse = inp_multiverse.id;
 
