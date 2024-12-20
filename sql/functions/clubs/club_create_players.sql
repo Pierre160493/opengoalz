@@ -349,7 +349,7 @@ BEGIN
 
     ------ 3 Other players
     -- Old experienced player
-    loc_id_player := players_create_player(
+/*    loc_id_player := players_create_player(
         inp_id_multiverse := loc_id_multiverse,
         inp_id_club := inp_id_club,
         inp_id_country := loc_id_country,
@@ -400,6 +400,7 @@ BEGIN
         inp_age := 15 + RANDOM(),
         inp_shirt_number := 20,
         inp_notes := 'Youngster 2');
+*/
 
     ------ Store the array of players in the default teamcomp
     UPDATE games_teamcomp SET 

@@ -171,6 +171,7 @@ class _PlayerTransferBidDialogBoxState
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       getClubCashListTile(
+                          context,
                           Provider.of<SessionProvider>(context, listen: false)
                               .user!
                               .selectedClub!),

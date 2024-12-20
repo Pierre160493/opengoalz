@@ -251,23 +251,25 @@ class _PlayersPageState extends State<PlayersPage> {
                   itemBuilder: (context, index) {
                     final Player player = players[index];
                     return InkWell(
-                      onTap: () {
-                        if (widget.isReturningPlayer) {
-                          Navigator.of(context).pop(player);
-                        } else if (players.length > 1) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlayersPage(
-                                playerSearchCriterias: PlayerSearchCriterias(
-                                    idPlayer: [player.id]),
-                              ),
-                            ),
-                          );
-                        } else {
-                          // Handle logic for single player directly
-                        }
-                      },
+                      onTap: widget.isReturningPlayer || players.length > 1
+                          ? () {
+                              if (widget.isReturningPlayer) {
+                                Navigator.of(context).pop(player);
+                              } else if (players.length > 1) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PlayersPage(
+                                      playerSearchCriterias:
+                                          PlayerSearchCriterias(
+                                        idPlayer: [player.id],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          : null,
                       child: PlayerCard(
                           player: player,
                           index: players.length == 1 ? null : index + 1,

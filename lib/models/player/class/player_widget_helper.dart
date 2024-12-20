@@ -342,7 +342,7 @@ extension PlayerWidgetsHelper on Player {
                             onPressed: () async {
                               bool isOK = await operationInDB(
                                   context, 'UPDATE', 'players',
-                                  data: {'missed_expenses': 0},
+                                  data: {'expenses_missed': 0},
                                   matchCriteria: {'id': id});
                               if (isOK) {
                                 context.showSnackBar(
@@ -449,6 +449,11 @@ extension PlayerWidgetsHelper on Player {
       leading: Icon(
         icon,
         size: iconSize,
+        color: valueNow > 50
+            ? Colors.green
+            : valueNow > 20
+                ? Colors.orange
+                : Colors.red,
       ),
       title: Row(
         children: [
@@ -520,7 +525,7 @@ extension PlayerWidgetsHelper on Player {
               title: Text(label),
               content: Container(
                 width: double.maxFinite,
-                height: 200,
+                // height: 400,
                 child: StreamBuilder(
                   stream: supabase
                       .from('players_history_stats')

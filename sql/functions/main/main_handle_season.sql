@@ -211,7 +211,7 @@ BEGIN
                     id AS id_club_to, 'Treasurer' AS sender_role,
                     inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
                     'New Season ' || inp_multiverse.season_number + 1 || ' is launched ' AS title,
-                    'The League Season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(ce.total_player_expenses, 0) || ' per week and the staff expenses is ' || expenses_staff AS message
+                    'The League Season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(ce.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_staff_target AS message
                 FROM clubs c
                 LEFT JOIN club_expenses ce ON c.id = ce.id_club
             WHERE c.id_multiverse = inp_multiverse.id;

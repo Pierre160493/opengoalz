@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/club/clubWidgets.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/financesGraphDialogBox.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
@@ -26,26 +28,26 @@ class FinancesPage extends StatefulWidget {
 }
 
 class _FinancesPageState extends State<FinancesPage> {
-  late final Stream<List<Map<String, dynamic>>> _financeStream;
+  // late final Stream<List<Map<String, dynamic>>> _financeStream;
   bool _showCashCurve = true;
   bool _showRevenuesCurve = true;
   bool _showExpensesCurve = true;
 
   @override
   void initState() {
-    _financeStream = supabase
-        .from('finances')
-        .stream(primaryKey: ['id'])
-        .eq('id_club', widget.idClub)
-        .order('created_at')
-        .map((maps) => maps
-            .map((map) => {
-                  'id': map['id'],
-                  'created_at': map['created_at'],
-                  'amount': map['amount'],
-                  'description': map['description'],
-                })
-            .toList());
+    // _financeStream = supabase
+    //     .from('finances')
+    //     .stream(primaryKey: ['id'])
+    //     .eq('id_club', widget.idClub)
+    //     .order('created_at')
+    //     .map((maps) => maps
+    //         .map((map) => {
+    //               'id': map['id'],
+    //               'created_at': map['created_at'],
+    //               'amount': map['amount'],
+    //               'description': map['description'],
+    //             })
+    //         .toList());
 
     super.initState();
   }
@@ -71,12 +73,14 @@ class _FinancesPageState extends State<FinancesPage> {
               Expanded(
                 child: TabBarView(
                   children: [
-                    _getFinances(Provider.of<SessionProvider>(context, listen: false)
-                        .user!
-                        .selectedClub!),
-                    _getFinancesHistory(Provider.of<SessionProvider>(context, listen: false)
-                        .user!
-                        .selectedClub!),
+                    _getFinances(
+                        Provider.of<SessionProvider>(context, listen: false)
+                            .user!
+                            .selectedClub!),
+                    _getFinancesHistory(
+                        Provider.of<SessionProvider>(context, listen: false)
+                            .user!
+                            .selectedClub!),
                   ],
                 ),
               ),
@@ -92,31 +96,10 @@ class _FinancesPageState extends State<FinancesPage> {
       scrollDirection: Axis.vertical,
       child: Column(
         children: [
-          ListTile(
-            leading: Icon(
-              iconCash,
-              size: iconSizeMedium,
-            ),
-            title: Row(
-              children: [
-                Text(
-                  NumberFormat.decimalPattern().format(club.cash),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: club.cash > 0 ? Colors.green : Colors.red),
-                ),
-                formSpacer6,
-                Icon(iconMoney)
-              ],
-            ),
-            subtitle: Text(
-              'Available Cash',
-              style: TextStyle(
-                fontStyle: FontStyle.italic,
-                color: Colors.blueGrey,
-              ),
-            ),
-          ),
+          /// Club cash
+          getClubCashListTile(context, club),
+
+          /// Start table
           Text(
             'Last week revenues and expenses',
             style: TextStyle(
@@ -129,33 +112,64 @@ class _FinancesPageState extends State<FinancesPage> {
             child: DataTable(
               columns: [
                 DataColumn(
-                  label: buildTabWithIcon(Icons.trending_up, 'Revenues'),
+                  label: InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return FinancesGraphDialog(
+                            nameCurves: 'Revenues',
+                            dataPoints: club.lisRevenues,
+                          );
+                        },
+                      );
+                    },
+                    child: buildTabWithIcon(Icons.trending_up, 'Revenues'),
+                  ),
                 ),
                 DataColumn(
-                    label: buildTabWithIcon(Icons.trending_down, 'Expenses')),
+                  label: InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return FinancesGraphDialog(
+                            nameCurves: 'Expenses',
+                            dataPoints: club.lisExpenses,
+                          );
+                        },
+                      );
+                    },
+                    child: buildTabWithIcon(Icons.trending_down, 'Expenses'),
+                  ),
+                ),
               ],
               rows: [
                 DataRow(cells: [
+                  DataCell(Tooltip(
+                    message:
+                        'Last Season: ${club.revenuesSponsorsLastSeason == null ? 'None' : club.revenuesSponsorsLastSeason}',
+                    child: _getDataCellRow(
+                        'Sponsors', club.lisRevenuesSponsors, Colors.green),
+                  )),
                   DataCell(_getDataCellRow(
-                      'Sponsors', club.revenuesSponsors, Colors.green)),
-                  DataCell(_getDataCellRow(
-                      'Salaries', club.expensesPlayers, Colors.red)),
+                      'Salaries', club.lisExpensesPlayers, Colors.red)),
                 ]),
                 DataRow(cells: [
                   DataCell(Text('')),
-                  DataCell(
-                      _getDataCellRow('Staff', club.expensesStaff, Colors.red)),
+                  DataCell(_getDataCellRow(
+                      'Staff', club.lisExpensesStaff, Colors.red)),
                 ]),
                 DataRow(cells: [
                   DataCell(Text('')),
-                  DataCell(
-                      _getDataCellRow('Taxes', club.expensesTax, Colors.red)),
+                  DataCell(_getDataCellRow(
+                      'Taxes', club.lisExpensesTax, Colors.red)),
                 ]),
                 DataRow(cells: [
-                  DataCell(_getDataCellRow(
-                      'Total', club.revenuesTotal, Colors.green)),
                   DataCell(
-                      _getDataCellRow('Total', club.expensesTotal, Colors.red)),
+                      _getDataCellRow('Total', club.lisRevenues, Colors.green)),
+                  DataCell(
+                      _getDataCellRow('Total', club.lisExpenses, Colors.red)),
                 ]),
               ],
             ),
@@ -165,16 +179,30 @@ class _FinancesPageState extends State<FinancesPage> {
     );
   }
 
-  Widget _getDataCellRow(String title, int value, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('${title}:    '),
-        Text(
-          NumberFormat.decimalPattern().format(value),
-          style: TextStyle(fontWeight: FontWeight.bold, color: color),
-        ),
-      ],
+  Widget _getDataCellRow(String title, List<int> data, Color color) {
+    return ListTile(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(width: 120, child: Text(title, style: styleItalicBlueGrey)),
+          Text(
+            NumberFormat.decimalPattern().format(data.last),
+            style: TextStyle(fontWeight: FontWeight.bold, color: color),
+          ),
+        ],
+      ),
+      // shape: shapePersoRoundedBorder(),
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return FinancesGraphDialog(
+              nameCurves: title,
+              dataPoints: data,
+            );
+          },
+        );
+      },
     );
   }
 

@@ -66,7 +66,7 @@ class Profile {
   Widget getUserName(BuildContext context) {
     return Row(
       children: [
-        Icon(iconUser),
+        Icon(iconUser, color: isConnectedUser ? colorIsSelected : Colors.blue),
         formSpacer3,
         Text(username),
         formSpacer3,
@@ -163,27 +163,24 @@ Widget getUserName(BuildContext context, {String? userName, int? idClub}) {
   if (userName == null) {
     return Row(
       children: [
-        Icon(iconBot),
-        SizedBox(width: 3),
+        Icon(iconBot, color: Colors.red),
+        formSpacer3,
         Text(' No User'),
       ],
     );
   }
 
+  bool isSelected = userName ==
+      Provider.of<SessionProvider>(context, listen: false).user?.username;
+
   return Row(
     children: [
-      Icon(iconUser),
-      SizedBox(width: 3),
+      Icon(iconUser, color: isSelected ? colorIsSelected : Colors.blue),
+      formSpacer3,
       Text(userName),
-      if (userName ==
-          Provider.of<SessionProvider>(context, listen: false)
-              .user
-              ?.username) // If the user is the connected user
+      if (isSelected) // If the user is the connected user
         Icon(Icons.check_circle, color: Colors.green),
-      if (userName !=
-          Provider.of<SessionProvider>(context, listen: false)
-              .user
-              ?.username) // If the user is not the connected user
+      if (!isSelected) // If the user is not the connected user
         Tooltip(
           message: 'Send Mail',
           child: IconButton(

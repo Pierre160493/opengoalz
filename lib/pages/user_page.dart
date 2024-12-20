@@ -258,7 +258,11 @@ class _UserPageState extends State<UserPage> {
                         title: Text('Username: ${user.username}'),
                         subtitle: Row(
                           children: [
-                            Icon(Icons.timer),
+                            Icon(
+                              Icons.timer,
+                              size: iconSizeSmall,
+                              color: Colors.green,
+                            ),
                             Text(
                               'Since: ${DateFormat.yMMMMd('en_US').format(user.createdAt)}',
                               style: TextStyle(

@@ -85,40 +85,51 @@ BEGIN
         END IF;
     END LOOP;
 
+    ------ Store player's stats in the history
+    INSERT INTO players_history_stats
+        (created_at, id_player, performance_score,
+        expenses_payed, expenses_expected, expenses_missed,
+        keeper, defense, passes, playmaking, winger, scoring, freekick,
+        motivation, form, stamina, experience, training_points_used)
+    SELECT
+        multiverse_now, id, performance_score,
+        expenses_payed, expenses_expected, expenses_missed,
+        keeper, defense, passes, playmaking, winger, scoring, freekick,
+        motivation, form, stamina, experience, training_points_used
+    FROM players
+    WHERE id_multiverse = inp_multiverse.id;
+
     ------ Update players stats based on the training points
     WITH player_data AS (
-        SELECT 
+    SELECT 
             players.id, -- Player's id
-            players_calculate_age(inp_multiverse.speed, players.date_birth) AS age, -- Player's age
+            players_calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
             training_points_available, -- Initial training points
             training_coef, -- Array of coef for each stat
             COALESCE(clubs.staff_weight, 1000) AS staff_weight, -- Staff weight of the club
             (COALESCE(clubs.staff_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
             SUM(coef) AS sum_training_coef -- Sum of the training_coef array
         FROM players
-        LEFT JOIN clubs ON clubs.id = players.id_club,
+        LEFT JOIN clubs ON clubs.id = players.id_club
+        -- LEFT JOIN multiverses ON multiverses.id = 1,
+        LEFT JOIN multiverses ON multiverses.id = inp_multiverse.id,
         LATERAL UNNEST(training_coef) AS coef
-        GROUP BY players.id, training_points_available, training_coef, clubs.staff_weight
+        GROUP BY players.id, training_points_available, training_coef, clubs.staff_weight, multiverses.speed
     ), player_data2 AS (
         SELECT 
             id, -- Player's id
-            training_points_available + 10 * (0.5 + 0.5 * staff_coef) * (
-                CASE
-                    WHEN player_data.age <= 15 THEN 1.25
-                    WHEN player_data.age <= 25 THEN  
-                        1.25 - ((player_data.age - 15) / 10) * 0.5
-                    ELSE 
-                        0.75 - ((player_data.age - 25) / 5) * 0.75
-                END
+            training_points_available + 3 * (0.5 + 0.5 * staff_coef) * (
+                LEAST(1.0,
+                    1.0 - (player_data.age - 15.0) / 10.0)
             ) AS updated_training_points_available, -- Updated training points based on age and staff weight
             training_coef, -- Array of coef for each stat
             staff_weight, -- Staff weight of the club
             staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
             sum_training_coef, -- Sum of the training_coef array
             ARRAY(
-                SELECT (1 - staff_coef) + CASE WHEN sum_training_coef = 0 THEN 1.0 ELSE coef / sum_training_coef END
+                SELECT (1 - staff_coef) + CASE WHEN sum_training_coef = 0 THEN 1.0 ELSE coef / sum_training_coef::float END
                 FROM UNNEST(training_coef) AS coef
-            ) AS updated_training_coef -- Updated training_coef array
+            ) AS updated_training_coef -- Updated training_coef ARRAY
         FROM player_data
     ), player_data3 AS (
         SELECT 
@@ -174,20 +185,6 @@ BEGIN
         ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
         motivation, form, experience, energy, stamina]
     )
-    WHERE id_multiverse = inp_multiverse.id;
-
-    ------ Store player's stats in the history
-    INSERT INTO players_history_stats
-        (created_at, id_player, performance_score,
-        expenses_payed, expenses_expected, expenses_missed,
-        keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, experience, training_points_used)
-    SELECT
-        multiverse_now, id, performance_score,
-        expenses_payed, expenses_expected, expenses_missed,
-        keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, experience, training_points_used
-    FROM players
     WHERE id_multiverse = inp_multiverse.id;
 
 END;

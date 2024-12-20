@@ -7,7 +7,7 @@ Widget buildTabWithIcon(IconData icon, String text) {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(icon, size: iconSizeSmall),
-        SizedBox(width: 3), // Add some spacing between the icon and text
+        formSpacer3,
         Text(text),
       ],
     ),

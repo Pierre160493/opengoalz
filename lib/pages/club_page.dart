@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/clubWidgets.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
@@ -11,6 +12,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/user_page.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -86,6 +88,9 @@ class _ClubPageState extends State<ClubPage> {
           return const Center(child: CircularProgressIndicator());
         } else {
           Club club = snapshot.data!;
+          bool isSelectedClub =
+              Provider.of<SessionProvider>(context).user?.selectedClub!.id ==
+                  club.id;
           return Scaffold(
             appBar: AppBar(
               title: club.getClubName(context),
@@ -103,39 +108,78 @@ class _ClubPageState extends State<ClubPage> {
                     leading: Icon(
                       icon_club,
                       size: 48,
+                      color: isSelectedClub ? colorIsSelected : Colors.green,
                     ), // Icon to indicate club
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            club.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 24, // Increase the font size as needed
-                            ),
-                          ),
+                    title: InkWell(
+                      onTap: () {
+                        isSelectedClub
+                            ? showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  String inputText = '';
+                                  return AlertDialog(
+                                    title: const Text('Change Club Name'),
+                                    content: TextField(
+                                      onChanged: (value) {
+                                        inputText = value;
+                                      },
+                                      decoration: const InputDecoration(
+                                          hintText: "Enter the new club name"),
+                                    ),
+                                    actions: <Widget>[
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          TextButton(
+                                            child: persoCancelRow,
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: Row(
+                                              children: [
+                                                Icon(iconSuccessfulOperation,
+                                                    color: Colors.green),
+                                                formSpacer3,
+                                                const Text('Submit'),
+                                              ],
+                                            ),
+                                            onPressed: () async {
+                                              bool isOK = await operationInDB(
+                                                  context, 'UPDATE', 'clubs',
+                                                  data: {
+                                                    'name': inputText
+                                                  },
+                                                  matchCriteria: {
+                                                    'id': club.id
+                                                  });
+
+                                              if (isOK) {
+                                                context.showSnackBarSuccess(
+                                                    'Successfully updated the club name to $inputText');
+                                                Navigator.of(context)
+                                                    .pop(); // Close the dialog
+                                              }
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  );
+                                },
+                              )
+                            : null;
+                      },
+                      child: Text(
+                        club.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24, // Increase the font size as needed
                         ),
-                        const SizedBox(width: 6.0),
-                        // club.getLastResults(),
-                        // if (club.id_club ==
-                        //     Provider.of<SessionProvider>(
-                        //             context)
-                        //         .selectedClub
-                        //         .id_club)
-                        //   const Icon(
-                        //     Icons.check_circle,
-                        //     color: Colors.green,
-                        //     size:
-                        //         30, // Increase the icon size as needed
-                        //   )
-                        // else
-                        //   const Icon(
-                        //     Icons.cancel,
-                        //     color: Colors.red,
-                        //     size:
-                        //         30, // Increase the icon size as needed
-                        //   )
-                      ],
+                      ),
                     ),
                     subtitle: Row(
                       children: [
@@ -155,21 +199,15 @@ class _ClubPageState extends State<ClubPage> {
 
                   /// Username of the club owner
                   ListTile(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            24), // Adjust border radius as needed
-                        side: const BorderSide(
-                          color: Colors.blueGrey, // Border color
-                        ),
-                      ),
+                      shape: shapePersoRoundedBorder(),
                       title: getUserName(context, userName: club.userName),
                       subtitle: club.userSince == null
                           ? null
                           : Text(
-                              'Since: ' +
+                              'Club Owner Since: ' +
                                   DateFormat.yMMMMd('en_US')
                                       .format(club.userSince!),
-                            ),
+                              style: styleItalicBlueGrey),
                       onTap: () async => {
                             /// Reset the user to the user that is being visited
                             await Provider.of<SessionProvider>(context,
@@ -215,16 +253,11 @@ class _ClubPageState extends State<ClubPage> {
                         ),
                       );
                     },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          24), // Adjust border radius as needed
-                      side: const BorderSide(
-                        color: Colors.blueGrey, // Border color
-                      ),
-                    ),
+                    shape: shapePersoRoundedBorder(),
                     leading: const Icon(
                       Icons.people,
                       size: 30,
+                      color: Colors.green,
                     ), // Icon to indicate players
                     title: Text(
                       'Number of players: ${club.players.length}',
@@ -244,16 +277,11 @@ class _ClubPageState extends State<ClubPage> {
                         ),
                       );
                     },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          24), // Adjust border radius as needed
-                      side: const BorderSide(
-                        color: Colors.blueGrey, // Border color
-                      ),
-                    ),
+                    shape: shapePersoRoundedBorder(),
                     leading: const Icon(
                       icon_league,
                       size: 30,
+                      color: Colors.green,
                     ), // Icon to indicate players
                     title: club.league == null
                         ? Text('League Not Found')
@@ -274,7 +302,7 @@ class _ClubPageState extends State<ClubPage> {
 
                   /// Finances
                   const SizedBox(height: 6),
-                  getClubCashListTile(club),
+                  getClubCashListTile(context, club),
                 ],
               ),
             ),

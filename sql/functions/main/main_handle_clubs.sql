@@ -13,7 +13,7 @@ BEGIN
             clubs.id AS id_club, -- Club's id
             clubs.cash, -- Club's cash
             CASE
-                WHEN clubs.cash > 0 THEN clubs.expenses_staff
+                WHEN clubs.cash >= clubs.expenses_staff_target THEN clubs.expenses_staff_target
                 ELSE 0
             END AS expenses_staff_applied, -- Staff expenses applied this week
             -- SUM(players.expenses_expected) AS total_expenses_expected, -- Total expenses expected for the players
@@ -52,7 +52,7 @@ BEGIN
     AND total_expenses_missed_to_pay > 0)
     -- Update clubs' finances based on calculations
     UPDATE clubs SET
-        expenses_staff = clubs_finances.expenses_staff_applied,
+        expenses_staff_applied = clubs_finances.expenses_staff_applied,
         expenses_players_ratio = clubs_finances.expenses_players_ratio_applied
     FROM clubs_finances
     WHERE clubs.id = clubs_finances.id_club;
@@ -81,13 +81,13 @@ BEGIN
             WHERE id_club = clubs.id), 0),
         -- Update the staff weight of the club 
         staff_weight = LEAST(5000, GREATEST(0.1, 
-            (staff_weight + expenses_staff) * 0.5))
+            (staff_weight + expenses_staff_applied) * 0.5))
     WHERE id_multiverse = inp_multiverse.id;
 
     -- Update the clubs revenues and expenses in the list
     UPDATE clubs SET
         revenues_total = revenues_sponsors,
-        expenses_total = expenses_tax + expenses_players + expenses_staff
+        expenses_total = expenses_tax + expenses_players + expenses_staff_applied
     WHERE id_multiverse = inp_multiverse.id;
 
     -- Update the club's cash
@@ -97,6 +97,11 @@ BEGIN
 
     ------ Store the history
     UPDATE clubs SET
+        lis_revenues_sponsors = lis_revenues_sponsors || revenues_sponsors,
+        lis_expenses_staff = lis_expenses_staff || expenses_staff_applied,
+        lis_staff_weight = lis_staff_weight || staff_weight,
+        lis_expenses_players = lis_expenses_players || expenses_players,
+        lis_expenses_tax = lis_expenses_tax || expenses_tax,
         lis_cash = lis_cash || cash,
         lis_revenues = lis_revenues || revenues_total,
         lis_expenses = lis_expenses || expenses_total

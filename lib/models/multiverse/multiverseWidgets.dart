@@ -77,7 +77,11 @@ Widget getMultiverseListTileFromMultiverse(
     BuildContext context, Multiverse multiverse) {
   return ListTile(
     shape: shapePersoRoundedBorder(),
-    leading: Icon(iconMultiverseSpeed),
+    leading: Icon(
+      iconMultiverseSpeed,
+      size: iconSizeMedium,
+      color: Colors.green,
+    ),
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

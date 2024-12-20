@@ -1,12 +1,9 @@
-//ignore_for_file: non_constant_identifier_names
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/models/mail.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
@@ -22,20 +19,19 @@ import 'package:provider/provider.dart';
 part 'clubWidgetHelper.dart';
 
 class Club {
-  List<TeamComp> teamComps = []; //List of the teamcomps of the club
-  List<TeamComp> defaultTeamComps = []; //List of the teamcomps of the club
-  List<Game> games = []; //games of this club
+  List<TeamComp> teamComps = []; // List of the teamcomps of the club
+  List<TeamComp> defaultTeamComps = []; // List of the teamcomps of the club
+  List<Game> games = []; // Games of this club
   List<Player> players = []; // List of players of the club
   List<Mail> mails = []; // List of mails for the club
-  // List<Mail> userMails = []; // List of mails for the user of the club
   Multiverse? multiverse; // Multiverse of the club
   League? league; // League of the club
-  int points = 0; // points of the club
-  int victories = 0; // victories of the club
-  int draws = 0; // draws of the club
-  int defeats = 0; // defeats of the club
-  int goalsScored = 0; // goals scored of the club
-  int goalsTaken = 0; // goals taken of the club
+  int points = 0; // Points of the club
+  int victories = 0; // Victories of the club
+  int draws = 0; // Draws of the club
+  int defeats = 0; // Defeats of the club
+  int goalsScored = 0; // Goals scored of the club
+  int goalsTaken = 0; // Goals taken of the club
 
   bool isBelongingToConnectedUser =
       false; // If the club belongs to the current user
@@ -51,20 +47,23 @@ class Club {
     required this.name,
     required this.cash,
     required this.lisCash,
-    required this.lisRevenues,
-    required this.lisExpenses,
-    // required this.lisSponsors,
-    // required this.lisTax,
-    // required this.lisPlayersExpenses,
-    // required this.lisStaffExpenses,
     required this.revenuesSponsors,
+    required this.revenuesSponsorsLastSeason,
+    required this.lisRevenuesSponsors,
     required this.revenuesTotal,
-    required this.expensesPlayers,
-    required this.expensesPlayersRatio,
-    required this.expensesStaff,
-    required this.expensesTax,
+    required this.lisRevenues,
     required this.expensesTotal,
+    required this.lisExpenses,
+    required this.expensesPlayersRatio,
+    required this.expensesPlayers,
+    required this.lisExpensesPlayers,
+    required this.expensesStaffTarget,
+    required this.expensesStaffApplied,
+    required this.lisExpensesStaff,
+    required this.expensesTax,
+    required this.lisExpensesTax,
     required this.staffWeight,
+    required this.lisStaffWeight,
     required this.numberFans,
     required this.idCountry,
     required this.leaguePoints,
@@ -73,6 +72,13 @@ class Club {
     required this.seasonNumber,
     required this.idLeagueNextSeason,
     this.posLeagueNextSeason,
+    required this.posLastSeason,
+    required this.canUpdateName,
+    required this.continent,
+    required this.playersExpanses,
+    required this.expensesPlayersRatioTarget,
+    required this.leagueGoalsFor,
+    required this.leagueGoalsAgainst,
   });
 
   final int id;
@@ -86,15 +92,13 @@ class Club {
   final List<int> lisCash;
   final List<int> lisRevenues;
   final List<int> lisExpenses;
-  // final List<int> lisSponsors;
-  // final List<int> lisTax;
-  // final List<int> lisPlayersExpenses;
-  // final List<int> lisStaffExpenses;
   final int revenuesSponsors;
+  final int? revenuesSponsorsLastSeason;
   final int revenuesTotal;
   final int expensesPlayers;
   final double expensesPlayersRatio;
-  final int expensesStaff;
+  final int expensesStaffTarget;
+  final int expensesStaffApplied;
   final int expensesTax;
   final int expensesTotal;
   final double staffWeight;
@@ -106,14 +110,24 @@ class Club {
   final int seasonNumber;
   final int? idLeagueNextSeason;
   final int? posLeagueNextSeason;
+  final int? posLastSeason;
+  final bool canUpdateName;
+  final String continent;
+  final int playersExpanses;
+  final double expensesPlayersRatioTarget;
+  final int leagueGoalsFor;
+  final int leagueGoalsAgainst;
+  final List<int> lisExpensesStaff;
+  final List<int> lisExpensesPlayers;
+  final List<int> lisExpensesTax;
+  final List<int> lisStaffWeight;
+  final List<int> lisRevenuesSponsors;
 
   Club.fromMap(Map<String, dynamic> map,
       {List<int>? myClubsIds, int? idSelectedClub})
       : id = map['id'],
-        isBelongingToConnectedUser = myClubsIds?.contains(map['id']) ??
-            false, // Set isUser to true if the club id is in myClubsIds
-        isCurrentlySelected =
-            idSelectedClub == map['id'], // Is the club selected
+        isBelongingToConnectedUser = myClubsIds?.contains(map['id']) ?? false,
+        isCurrentlySelected = idSelectedClub == map['id'],
         createdAt = DateTime.parse(map['created_at']).toLocal(),
         userSince = map['user_since'] != null
             ? DateTime.parse(map['user_since']).toLocal()
@@ -126,16 +140,19 @@ class Club {
         lisCash = List<int>.from(map['lis_cash']),
         lisRevenues = List<int>.from(map['lis_revenues']),
         lisExpenses = List<int>.from(map['lis_expenses']),
-        // lisSponsors = List<int>.from(map['lis_sponsors']),
-        // lisTax = List<int>.from(map['lis_tax']),
-        // lisPlayersExpenses = List<int>.from(map['lis_players_expenses']),
-        // lisStaffExpenses = List<int>.from(map['lis_staff_expenses']),
+        lisExpensesStaff = List<int>.from(map['lis_expenses_staff']),
+        lisExpensesPlayers = List<int>.from(map['lis_expenses_players']),
+        lisExpensesTax = List<int>.from(map['lis_expenses_tax']),
+        lisStaffWeight = List<int>.from(map['lis_staff_weight']),
+        lisRevenuesSponsors = List<int>.from(map['lis_revenues_sponsors']),
         revenuesSponsors = map['revenues_sponsors'],
+        revenuesSponsorsLastSeason = map['revenues_sponsors_last_season'],
         revenuesTotal = map['revenues_total'],
         expensesPlayers = map['expenses_players'],
         expensesPlayersRatio =
             (map['expenses_players_ratio'] as num).toDouble(),
-        expensesStaff = map['expenses_staff'],
+        expensesStaffTarget = map['expenses_staff_target'],
+        expensesStaffApplied = map['expenses_staff_applied'],
         expensesTax = map['expenses_tax'],
         expensesTotal = map['expenses_total'],
         staffWeight = (map['staff_weight'] as num).toDouble(),
@@ -146,5 +163,13 @@ class Club {
         posLeague = map['pos_league'],
         seasonNumber = map['season_number'],
         idLeagueNextSeason = map['id_league_next_season'],
-        posLeagueNextSeason = map['pos_league_next_season'];
+        posLeagueNextSeason = map['pos_league_next_season'],
+        posLastSeason = map['pos_last_season'],
+        canUpdateName = map['can_update_name'],
+        continent = map['continent'],
+        playersExpanses = map['players_expanses'],
+        expensesPlayersRatioTarget =
+            (map['expenses_players_ratio_target'] as num).toDouble(),
+        leagueGoalsFor = map['league_goals_for'],
+        leagueGoalsAgainst = map['league_goals_against'];
 }
