@@ -3,19 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/country.dart';
 
-Widget getCountryNameWidget(BuildContext context, int? idCountry) {
+Widget getCountryListTile(BuildContext context, int? idCountry) {
   if (idCountry == null) {
     return Text('ERROR: No country !');
   }
 
   return StreamBuilder<Country>(
-
     stream: supabase
         .from('countries')
         .stream(primaryKey: ['id'])
         .eq('id', idCountry)
         .map((maps) => maps.map((map) => Country.fromMap(map)).first),
-
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         // Placeholder row while loading
@@ -62,13 +60,7 @@ Widget getCountryNameWidget(BuildContext context, int? idCountry) {
             //   CountryPage.route(country['id']),
             // );
           },
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(12), // Adjust border radius as needed
-            side: const BorderSide(
-              color: Colors.blueGrey, // Border color
-            ),
-          ),
+          shape: shapePersoRoundedBorder(),
           // leading: CountryFlag.fromCountryCode(
           //   shape: Rectangle(),
           //   country['iso2'],

@@ -33,6 +33,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
   final TextEditingController lastNameController = TextEditingController();
   double selectedAge = 15.0;
   DateTime? dateBirth;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -277,102 +278,136 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                     },
                     child: persoCancelRow),
                 TextButton(
-                  onPressed: () async {
-                    // Check if all the required fields are filled
-                    if (_selectedMultiverse == null) {
-                      context.showSnackBarError(
-                          'No multiverse selected, ${widget.isClub ? 'club assignement' : 'player creation'} aborted');
-                      return;
-                    }
-                    if (selectedCountry == null) {
-                      context.showSnackBarError(
-                          'No country selected, ${widget.isClub ? 'club assignement' : 'player creation'} aborted');
-                      return;
-                    }
-                    if (widget.isClub) {
-                      if (selectedClub == null) {
-                        context.showSnackBarError(
-                            'No club selected, club assignement aborted');
-                        return;
-                      }
-                      // // Update the club in the database
-                      bool isOK = await operationInDB(
-                          context, 'UPDATE', 'clubs',
-                          data: {
-                            'username': Provider.of<SessionProvider>(context,
-                                    listen: false)
-                                .user!
-                                .username,
-                            'id_country': selectedCountry!.id,
-                          },
-                          matchCriteria: {
-                            'id': selectedClub!.id,
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          setState(() {
+                            isLoading = true;
                           });
-                      print('isOK: $isOK');
+                          // Check if all the required fields are filled
+                          if (_selectedMultiverse == null) {
+                            context.showSnackBarError(
+                                'No multiverse selected, ${widget.isClub ? 'club assignement' : 'player creation'} aborted');
+                            setState(() {
+                              isLoading = false;
+                            });
+                            return;
+                          }
+                          if (selectedCountry == null) {
+                            context.showSnackBarError(
+                                'No country selected, ${widget.isClub ? 'club assignement' : 'player creation'} aborted');
+                            setState(() {
+                              isLoading = false;
+                            });
+                            return;
+                          }
+                          if (widget.isClub) {
+                            if (selectedClub == null) {
+                              context.showSnackBarError(
+                                  'No club selected, club assignement aborted');
+                              setState(() {
+                                isLoading = false;
+                              });
+                              return;
+                            }
+                            // // Update the club in the database
+                            bool isOK = await operationInDB(
+                                context, 'UPDATE', 'clubs',
+                                data: {
+                                  'username': Provider.of<SessionProvider>(
+                                          context,
+                                          listen: false)
+                                      .user!
+                                      .username,
+                                  'id_country': selectedCountry!.id,
+                                },
+                                matchCriteria: {
+                                  'id': selectedClub!.id,
+                                });
+                            print('isOK: $isOK');
 
-                      if (isOK) {
-                        context.showSnackBarSuccess(
-                            'You are now the happy owner of a new club in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
-                        Navigator.of(context).pop();
-                      }
-                    } else {
-                      if (selectedCountry!.selectedContinent == null) {
-                        context.showSnackBarError(
-                            'ERROR: No continent selected, player creation aborted');
-                        return;
-                      }
-                      if (selectedCountry!.selectedContinent == 'Others') {
-                        context.showSnackBarError(
-                            'Cannot select country from continent "Others", player creation aborted');
-                        return;
-                      }
-                      if (dateBirth == null) {
-                        context.showSnackBarError(
-                            'Cannot select date of birth, player creation aborted');
-                        return;
-                      }
-                      if (await context.showConfirmationDialog(
-                              'Are you sure you want to create a new player (${firstNameController.text} ${lastNameController.text}) from ${selectedCountry!.name} ?') !=
-                          true) {
-                        context.showSnackBarError('Player creation aborted');
-                        return;
-                      }
+                            if (isOK) {
+                              context.showSnackBarSuccess(
+                                  'You are now the happy owner of a new club in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
+                              Navigator.of(context).pop();
+                            }
+                          } else {
+                            if (selectedCountry!.selectedContinent == null) {
+                              context.showSnackBarError(
+                                  'ERROR: No continent selected, player creation aborted');
+                              setState(() {
+                                isLoading = false;
+                              });
+                              return;
+                            }
+                            if (selectedCountry!.selectedContinent ==
+                                'Others') {
+                              context.showSnackBarError(
+                                  'Cannot select country from continent "Others", player creation aborted');
+                              setState(() {
+                                isLoading = false;
+                              });
+                              return;
+                            }
+                            if (dateBirth == null) {
+                              context.showSnackBarError(
+                                  'Cannot select date of birth, player creation aborted');
+                              setState(() {
+                                isLoading = false;
+                              });
+                              return;
+                            }
+                            if (await context.showConfirmationDialog(
+                                    'Are you sure you want to create a new player (${firstNameController.text} ${lastNameController.text}) from ${selectedCountry!.name} ?') !=
+                                true) {
+                              context
+                                  .showSnackBarError('Player creation aborted');
+                              setState(() {
+                                isLoading = false;
+                              });
+                              return;
+                            }
 
-                      // Insert the player in the database
-                      bool isOK = await operationInDB(
-                          context, 'INSERT', 'players',
-                          data: {
-                            'username': Provider.of<SessionProvider>(context,
-                                    listen: false)
-                                .user!
-                                .username,
-                            'id_country': selectedCountry!.id,
-                            'id_multiverse': _selectedMultiverse!.id,
-                            'first_name': firstNameController.text,
-                            'last_name': lastNameController.text,
-                            'date_birth': dateBirth!.toIso8601String(),
-                            'training_points_available': selectedAge * 2,
+                            // Insert the player in the database
+                            bool isOK = await operationInDB(
+                                context, 'INSERT', 'players',
+                                data: {
+                                  'username': Provider.of<SessionProvider>(
+                                          context,
+                                          listen: false)
+                                      .user!
+                                      .username,
+                                  'id_country': selectedCountry!.id,
+                                  'id_multiverse': _selectedMultiverse!.id,
+                                  'first_name': firstNameController.text,
+                                  'last_name': lastNameController.text,
+                                  'date_birth': dateBirth!.toIso8601String(),
+                                  'training_points_available': selectedAge * 2,
+                                });
+                            if (isOK) {
+                              context.showSnackBarSuccess(
+                                  'You now incarne ${firstNameController.text} ${lastNameController.text} in the continent: ${selectedCountry!.selectedContinent} !');
+                              Navigator.of(context).pop();
+                            }
+                          }
+                          setState(() {
+                            isLoading = false;
                           });
-                      if (isOK) {
-                        context.showSnackBarSuccess(
-                            'You now incarne ${firstNameController.text} ${lastNameController.text} in the continent: ${selectedCountry!.selectedContinent} !');
-                        Navigator.of(context).pop();
-                      }
-                    }
-                  },
-                  child: Row(
-                    children: [
-                      Icon(
-                        iconSuccessfulOperation,
-                        color: Colors.green,
-                      ),
-                      formSpacer3,
-                      widget.isClub
-                          ? Text('Assign Club')
-                          // ? Text('Become owner of ${selectedClub!.name}')
-                          : Text('Create Player'),
-                    ],
-                  ),
+                        },
+                  child: isLoading
+                      ? CircularProgressIndicator()
+                      : Row(
+                          children: [
+                            Icon(
+                              iconSuccessfulOperation,
+                              color: Colors.green,
+                            ),
+                            formSpacer3,
+                            widget.isClub
+                                ? Text('Assign Club')
+                                : Text('Create Player'),
+                          ],
+                        ),
                 ),
               ],
             ),

@@ -311,9 +311,9 @@ class _PlayerCardState extends State<PlayerCard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             widget.player.getAgeWidget(),
-                            getCountryNameWidget(
+                            getCountryListTile(
                                 context, widget.player.idCountry),
-                            widget.player.getAvgStatsWidget(),
+                            widget.player.getPerformanceScoreListTile(context),
                             widget.player.getExpensesWidget(context),
                             // if (widget.player.transferBids.length > 0 &&
                             //     widget.player.dateBidEnd!

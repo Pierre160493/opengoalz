@@ -1,8 +1,10 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/widgets/financesGraphDialogBox.dart';
+import 'package:opengoalz/widgets/graphWidget.dart';
 
 Widget getClubCashListTile(BuildContext context, Club club) {
   return ListTile(
@@ -23,7 +25,7 @@ Widget getClubCashListTile(BuildContext context, Club club) {
       ],
     ),
     subtitle: Text(
-      'Club\'s Available Cash',
+      'Available Cash',
       style: styleItalicBlueGrey,
     ),
     onTap: () {
@@ -34,6 +36,21 @@ Widget getClubCashListTile(BuildContext context, Club club) {
             nameCurves: 'Cash',
             dataPoints: club.lisCash,
           );
+
+          // final chartData = ChartData(
+          //   xAxisLabel: 'Time (in weeks)',
+          //   yAxisLabel: 'Cash',
+          //   // xValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+          //   yValues: club.lisCash.map((e) => e.toDouble()).toList(),
+          // );
+
+          // return Container(
+          //   height: 300,
+          //   width: 300,
+          //   // height: MediaQuery.of(context).size.height * 0.8,
+          //   // width: MediaQuery.of(context).size.width * 0.8,
+          //   child: PlayerLineChart(chartData: chartData),
+          // );
         },
       );
     },

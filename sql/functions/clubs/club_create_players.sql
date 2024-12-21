@@ -53,10 +53,10 @@ BEGIN
             0 + RANDOM() * 5, -- scoring
             10 + RANDOM() * 15], -- freekick
         inp_age := 16 + 4 * RANDOM(),
-        inp_shirt_number := 16,
+        inp_shirt_number := 12,
         inp_notes := 'Young GoalKeeper');
     -- Set in the array
-    array_id_players[15] := loc_id_player;
+    array_id_players[12] := loc_id_player;
 
     ------ Defenders
     -- First (experienced) back winger
@@ -95,7 +95,7 @@ BEGIN
         inp_shirt_number := 3,
         inp_notes := 'Intermediate Age Back Winger');
     -- Set in the array
-    array_id_players[6] := loc_id_player;
+    array_id_players[3] := loc_id_player;
     
     -- Third (young) back winger
     loc_id_player := players_create_player(
@@ -111,10 +111,10 @@ BEGIN
             0 + RANDOM() * 5, -- scoring
             0 + POWER(RANDOM(), 3) * 10], -- freekick
         inp_age := 16 + 4 * RANDOM(),
-        inp_shirt_number := 12,
+        inp_shirt_number := 13,
         inp_notes := 'Young Back Winger');
     -- Set in the array
-    array_id_players[16] := loc_id_player;
+    array_id_players[13] := loc_id_player;
 
     -- First (experienced) central defender
     loc_id_player := players_create_player(
@@ -133,7 +133,7 @@ BEGIN
         inp_shirt_number := 4,
         inp_notes := 'Experienced Central Back');
     -- Set in the array
-    array_id_players[3] := loc_id_player;
+    array_id_players[4] := loc_id_player;
 
     -- Second (younger) central defender
     loc_id_player := players_create_player(
@@ -168,10 +168,10 @@ BEGIN
             0 + RANDOM() * 5, -- scoring
             0 + POWER(RANDOM(), 3) * 10], -- freekick
         inp_age := 16 + 4 * RANDOM(),
-        inp_shirt_number := 13,
+        inp_shirt_number := 14,
         inp_notes := 'Young Central Back');
     -- Set in the array
-    array_id_players[17] := loc_id_player;
+    array_id_players[14] := loc_id_player;
 
     ------ Midfielders
     -- First (experienced) midfielder
@@ -191,7 +191,7 @@ BEGIN
         inp_shirt_number := 6,
         inp_notes := 'Experienced Midfielder');
     -- Set in the array
-    array_id_players[10] := loc_id_player;
+    array_id_players[6] := loc_id_player;
 
     -- Second (younger) midfielder
     loc_id_player := players_create_player(
@@ -210,7 +210,7 @@ BEGIN
         inp_shirt_number := 10,
         inp_notes := 'Intermediate Age Midfielder');
     -- Set in the array
-    array_id_players[8] := loc_id_player;
+    array_id_players[10] := loc_id_player;
 
     -- Third (younger) midfielder
     loc_id_player := players_create_player(
@@ -226,10 +226,10 @@ BEGIN
             0 + RANDOM() * 5, -- scoring
             0 + POWER(RANDOM(), 3) * 10], -- freekick
         inp_age := 16 + 4 * RANDOM(),
-        inp_shirt_number := 14,
+        inp_shirt_number := 15,
         inp_notes := 'Young Midfielder');
     -- Set in the array
-    array_id_players[18] := loc_id_player;
+    array_id_players[15] := loc_id_player;
 
     ------ Wingers
     -- First (experienced) winger
@@ -268,7 +268,7 @@ BEGIN
         inp_shirt_number := 8,
         inp_notes := 'Intermediate Age Winger');
     -- Set in the array
-    array_id_players[11] := loc_id_player;
+    array_id_players[8] := loc_id_player;
 
     -- Third (younger) winger
     loc_id_player := players_create_player(
@@ -284,10 +284,10 @@ BEGIN
             0 + RANDOM() * 5, -- scoring
             0 + POWER(RANDOM(), 3) * 10], -- freekick
         inp_age := 16 + 4 * RANDOM(),
-        inp_shirt_number := 15,
+        inp_shirt_number := 16,
         inp_notes := 'Young Winger');
     -- Set in the array
-    array_id_players[19] := loc_id_player;
+    array_id_players[16] := loc_id_player;
 
     ------ Strikers
     -- First (experienced) striker
@@ -307,7 +307,7 @@ BEGIN
         inp_shirt_number := 9,
         inp_notes := 'Experienced Striker');
     -- Set in the array
-    array_id_players[12] := loc_id_player;
+    array_id_players[9] := loc_id_player;
 
     -- Second (younger) striker
     loc_id_player := players_create_player(
@@ -326,7 +326,7 @@ BEGIN
         inp_shirt_number := 11,
         inp_notes := 'Intermediate Age Striker');
     -- Set in the array
-    array_id_players[14] := loc_id_player;
+    array_id_players[11] := loc_id_player;
 
     -- Third (young) striker
     loc_id_player := players_create_player(
@@ -345,7 +345,7 @@ BEGIN
         inp_shirt_number := 17,
         inp_notes := 'Young Striker');
     -- Set in the array
-    array_id_players[20] := loc_id_player;
+    array_id_players[17] := loc_id_player;
 
     ------ 3 Other players
     -- Old experienced player
@@ -404,30 +404,111 @@ BEGIN
 
     ------ Store the array of players in the default teamcomp
     UPDATE games_teamcomp SET 
+        description = 'Default Teamcomp',
         idgoalkeeper = array_id_players[1],
         idleftbackwinger = array_id_players[2],
-        idleftcentralback = array_id_players[3],
-        idcentralback = array_id_players[4],
-        idrightcentralback = array_id_players[5],
-        idrightbackwinger = array_id_players[6],
-        idleftwinger = array_id_players[7],
-        idleftmidfielder = array_id_players[8],
-        idcentralmidfielder = array_id_players[9],
+        idleftcentralback = array_id_players[5],
+        idcentralback = NULL,
+        idrightcentralback = array_id_players[4],
+        idrightbackwinger = array_id_players[3],
+        idleftwinger = array_id_players[8],
+        idleftmidfielder = array_id_players[6],
+        idcentralmidfielder = NULL,
         idrightmidfielder = array_id_players[10],
-        idrightwinger = array_id_players[11],
-        idleftstriker = array_id_players[12],
-        idcentralstriker = array_id_players[13],
-        idrightstriker = array_id_players[14],
-        idsub1 = array_id_players[15],
-        idsub2 = array_id_players[16],
-        idsub3 = array_id_players[17],
-        idsub4 = array_id_players[18],
-        idsub5 = array_id_players[19],
-        idsub6 = array_id_players[20],
-        idsub7 = array_id_players[21]
+        idrightwinger = array_id_players[7],
+        idleftstriker = array_id_players[9],
+        idcentralstriker = NULL,
+        idrightstriker = array_id_players[11],
+        idsub1 = array_id_players[12],
+        idsub2 = array_id_players[13],
+        idsub3 = array_id_players[14],
+        idsub4 = array_id_players[15],
+        idsub5 = array_id_players[16],
+        idsub6 = array_id_players[17]
     WHERE id_club = inp_id_club
         AND season_number = 0
         AND week_number = 1;
+
+    ------ Store the teamcomp of the young team
+    UPDATE games_teamcomp SET
+        description = 'Young Team',
+        idgoalkeeper = array_id_players[12],
+        idleftbackwinger = array_id_players[13],
+        idleftcentralback = array_id_players[5],
+        idcentralback = NULL,
+        idrightcentralback = array_id_players[14],
+        idrightbackwinger = array_id_players[3],
+        idleftwinger = array_id_players[16],
+        idleftmidfielder = array_id_players[15],
+        idcentralmidfielder = NULL,
+        idrightmidfielder = array_id_players[10],
+        idrightwinger = array_id_players[17],
+        idleftstriker = array_id_players[9],
+        idcentralstriker = NULL,
+        idrightstriker = array_id_players[11],
+        idsub1 = array_id_players[1],
+        idsub2 = array_id_players[2],
+        idsub3 = array_id_players[4],
+        idsub4 = array_id_players[6],
+        idsub5 = array_id_players[7],
+        idsub6 = array_id_players[9]
+    WHERE id_club = inp_id_club
+        AND season_number = 0
+        AND week_number = 2;
+
+        ------ Store the array of players in the default teamcomp
+    UPDATE games_teamcomp SET 
+        description = 'Stronger Left Wing',
+        idgoalkeeper = array_id_players[1],
+        idleftbackwinger = array_id_players[2],
+        idleftcentralback = array_id_players[4],
+        idcentralback = NULL,
+        idrightcentralback = array_id_players[5],
+        idrightbackwinger = array_id_players[3],
+        idleftwinger = array_id_players[7],
+        idleftmidfielder = array_id_players[6],
+        idcentralmidfielder = NULL,
+        idrightmidfielder = array_id_players[10],
+        idrightwinger = array_id_players[8],
+        idleftstriker = array_id_players[9],
+        idcentralstriker = NULL,
+        idrightstriker = array_id_players[11],
+        idsub1 = array_id_players[12],
+        idsub2 = array_id_players[13],
+        idsub3 = array_id_players[14],
+        idsub4 = array_id_players[15],
+        idsub5 = array_id_players[16],
+        idsub6 = array_id_players[17]
+    WHERE id_club = inp_id_club
+        AND season_number = 0
+        AND week_number = 3;
+
+        ------ Store the array of players in the default teamcomp
+    UPDATE games_teamcomp SET 
+        description = 'Stronger Right Wing',
+        idgoalkeeper = array_id_players[1],
+        idleftbackwinger = array_id_players[3],
+        idleftcentralback = array_id_players[5],
+        idcentralback = NULL,
+        idrightcentralback = array_id_players[4],
+        idrightbackwinger = array_id_players[2],
+        idleftwinger = array_id_players[8],
+        idleftmidfielder = array_id_players[10],
+        idcentralmidfielder = NULL,
+        idrightmidfielder = array_id_players[6],
+        idrightwinger = array_id_players[7],
+        idleftstriker = array_id_players[11],
+        idcentralstriker = NULL,
+        idrightstriker = array_id_players[9],
+        idsub1 = array_id_players[12],
+        idsub2 = array_id_players[13],
+        idsub3 = array_id_players[14],
+        idsub4 = array_id_players[15],
+        idsub5 = array_id_players[16],
+        idsub6 = array_id_players[17]
+    WHERE id_club = inp_id_club
+        AND season_number = 0
+        AND week_number = 4;
 
 END;
 $function$

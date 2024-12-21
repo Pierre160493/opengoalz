@@ -177,12 +177,12 @@ extension PlayerWidgetsHelper on Player {
               Row(
                 children: [
                   Expanded(child: getAgeWidget()),
-                  Expanded(child: getCountryNameWidget(context, idCountry)),
+                  Expanded(child: getCountryListTile(context, idCountry)),
                 ],
               ),
               Row(
                 children: [
-                  Expanded(child: getAvgStatsWidget()),
+                  Expanded(child: getPerformanceScoreListTile(context)),
                   Expanded(child: getExpensesWidget(context)),
                 ],
               ),
@@ -195,8 +195,8 @@ extension PlayerWidgetsHelper on Player {
           return Column(
             children: [
               getAgeWidget(),
-              getCountryNameWidget(context, idCountry),
-              getAvgStatsWidget(),
+              getCountryListTile(context, idCountry),
+              getPerformanceScoreListTile(context),
               getExpensesWidget(context),
               if (dateBidEnd != null) PlayerCardTransferWidget(player: this),
               if (dateEndInjury != null) getInjuryWidget(),
@@ -211,13 +211,7 @@ extension PlayerWidgetsHelper on Player {
 
   Widget getAgeWidget() {
     return ListTile(
-      shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(12), // Adjust border radius as needed
-        side: const BorderSide(
-          color: Colors.blueGrey, // Border color
-        ),
-      ),
+      shape: shapePersoRoundedBorder(),
       // leading: Icon(
       //   Icons.cake_outlined,
       //   size: iconSize,
@@ -251,20 +245,12 @@ extension PlayerWidgetsHelper on Player {
           Text(age.toStringAsFixed(1)),
         ],
       ),
-      waitDuration: const Duration(seconds: 1),
     );
   }
 
   Widget getExpensesWidget(BuildContext context) {
     return ListTile(
-      onTap: () => showPlayerExpensesHistory(context),
-      shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(12), // Adjust border radius as needed
-        side: const BorderSide(
-          color: Colors.blueGrey, // Border color
-        ),
-      ),
+      shape: shapePersoRoundedBorder(),
       // leading: Icon(
       //   iconMoney,
       //   size: iconSize, // Adjust icon size as needed
@@ -276,7 +262,12 @@ extension PlayerWidgetsHelper on Player {
             children: [
               Icon(
                 iconMoney,
-                size: iconSize, // Adjust icon size as needed
+                size: iconSize,
+                color: expensesExpected > 0
+                    ? expensesMissed > 0
+                        ? Colors.red
+                        : Colors.green
+                    : Colors.blueGrey,
               ),
               formSpacer3,
               Text(
@@ -379,15 +370,26 @@ extension PlayerWidgetsHelper on Player {
           color: Colors.blueGrey,
         ),
       ),
+      onTap: () => showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('${getFullName()} Expenses History'),
+            content: getPlayerHistoryStreamGraph(
+                context, id, 'expenses_expected', 'Expenses'),
+          );
+        },
+      ),
     );
   }
 
-  Widget getAvgStatsWidget() {
+  Widget getPerformanceScoreListTile(BuildContext context) {
     return ListTile(
       shape: shapePersoRoundedBorder(),
       leading: Icon(
-        Icons.query_stats_outlined,
+        iconStats,
         size: iconSize,
+        color: Colors.green,
       ),
       title: Text(
         performanceScore.toStringAsFixed(0),
@@ -398,6 +400,18 @@ extension PlayerWidgetsHelper on Player {
       subtitle: Text(
         'Performance Score',
         style: styleItalicBlueGrey,
+      ),
+      onTap: () => showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('${getFullName()} Performance Score History'),
+            content:
+                getPlayerHistoryStreamGraph(
+                    context, id, 'performance_score', 'Performance Score'),
+                // Text('test'),
+          );
+        },
       ),
     );
   }
@@ -438,6 +452,8 @@ extension PlayerWidgetsHelper on Player {
       }
     }
 
+    String postgreSqlField = label.toLowerCase();
+
     IconData icon = getIcon(label);
 
     // valueNow = 25;
@@ -462,35 +478,10 @@ extension PlayerWidgetsHelper on Player {
             width: 100, // Fixed width for the label
             child: Text(label),
           ),
-          // SizedBox(
-          //   width: 120,
-          //   height: 24, // Height of the bar
-          //   child: ClipRRect(
-          //     borderRadius:
-          //         BorderRadius.circular(10), // Rounded corners for the bar
-          //     child: LinearProgressIndicator(
-          //       value: valueNow / 100, // Assuming value ranges from 0 to 100
-          //       backgroundColor:
-          //           Colors.grey[300], // Background color of the bar
-          //       valueColor: AlwaysStoppedAnimation<Color>(
-          //         Colors.green, // Color of the filled portion of the bar
-          //       ),
-          //     ),
-          //   ),
-          // ),
         ],
       ),
       subtitle: Stack(
         children: [
-          // Container(
-          //   height: 12, // Set the desired height here
-          //   // width: 120,
-          //   child: LinearProgressIndicator(
-          //     value: 100,
-          //     backgroundColor: Colors.grey,
-          //   ),
-          // ),
-          // if (valueOld != null)
           Container(
             height: 12, // Set the desired height here
             // width: 120,
@@ -518,66 +509,69 @@ extension PlayerWidgetsHelper on Player {
         ],
       ),
       onTap: () async {
+        // showDialog(
+        //   context: context,
+        //   builder: (BuildContext context) {
+        //     return AlertDialog(
+        //       title: Text(label),
+        //       content: Container(
+        //         width: double.maxFinite,
+        //         // height: 400,
+        //         child: StreamBuilder(
+        //           stream: supabase
+        //               .from('players_history_stats')
+        //               .stream(primaryKey: ['id'])
+        //               .eq('id_player', id)
+        //               .order('created_at', ascending: true),
+        //           builder: (context, snapshot) {
+        //             if (snapshot.hasError) {
+        //               return Text('Error: ${snapshot.error}');
+        //             } else if (snapshot.connectionState ==
+        //                 ConnectionState.waiting) {
+        //               return CircularProgressIndicator();
+        //             } else if (!snapshot.hasData) {
+        //               return Text('Error: No data');
+        //             }
+        //             // final data = snapshot.data;
+        //             // List<FlSpot> values = data!
+        //             //     .map((e) => FlSpot(e['created_at'].toDouble(),
+        //             //         e['motivation'].toDouble()))
+        //             //     .toList();
+
+        //             final data = snapshot.map((item) {
+        //               final DateTime dateEvent =
+        //                   DateTime.parse(item['created_at']);
+        //               final double value = item[field].toDouble();
+        //               return FlSpot(
+        //                   dateEvent.millisecondsSinceEpoch.toDouble(), value);
+        //             }).toList();
+
+        //             return PlayerLineChart(
+        //               data: values,
+        //               yAxisLabel: 'Value',
+        //               xAxisLabel: 'Time',
+        //             );
+        //           },
+        //         ),
+        //       ),
+        //       actions: [
+        //         TextButton(
+        //           onPressed: () {
+        //             Navigator.of(context).pop();
+        //           },
+        //           child: Text('Close'),
+        //         ),
+        //       ],
+        //     );
+        //   },
+        // );
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text(label),
-              content: Container(
-                width: double.maxFinite,
-                // height: 400,
-                child: StreamBuilder(
-                  stream: supabase
-                      .from('players_history_stats')
-                      .stream(primaryKey: ['id'])
-                      .eq('id_player', id)
-                      .order('created_at', ascending: true),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return CircularProgressIndicator();
-                    } else if (!snapshot.hasData) {
-                      return Text('Error: No data');
-                    }
-                    final data = snapshot.data;
-                    List<double> values = data!
-                        .map((e) => e[label.toLowerCase()].toDouble() as double)
-                        .toList();
-                    // List<DateTime> dates = data
-                    //     .map((e) => DateTime.parse(e['created_at'] as String))
-                    //     .toList();
-
-                    return Container(
-                      child: LineChart(
-                        LineChartData(
-                          minY: 0,
-                          maxY: 100,
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: values.asMap().entries.map((e) {
-                                return FlSpot(e.key.toDouble(), e.value);
-                              }).toList(),
-                              isCurved: true,
-                              barWidth: 2,
-                              belowBarData: BarAreaData(show: false),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Close'),
-                ),
-              ],
+              title: Text('${getFullName()} ${label} History'),
+              content: getPlayerHistoryStreamGraph(
+                  context, id, postgreSqlField, 'Expenses'),
             );
           },
         );

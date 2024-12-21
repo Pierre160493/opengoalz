@@ -7,6 +7,7 @@ import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
+import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
@@ -16,6 +17,7 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
 import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
+import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -23,7 +25,6 @@ part 'player_widget_helper.dart';
 part 'player_widget_actions.dart';
 part 'player_card_details.dart';
 part 'player_card_history.dart';
-part 'player_expenses_history.dart';
 
 class Player {
   Club? club;
@@ -232,6 +233,6 @@ class Player {
   }
 
   String getFullName() {
-    return '$firstName ${lastName.toUpperCase()} ${surName != null ? '(${surName!})' : ''}';
+    return '$firstName ${lastName.toUpperCase()}${surName != null ? ' (${surName!})' : ''}';
   }
 }

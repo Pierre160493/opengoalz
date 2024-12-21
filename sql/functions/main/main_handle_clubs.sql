@@ -13,7 +13,7 @@ BEGIN
             clubs.id AS id_club, -- Club's id
             clubs.cash, -- Club's cash
             CASE
-                WHEN clubs.cash >= clubs.expenses_staff_target THEN clubs.expenses_staff_target
+                WHEN clubs.cash >= 3 * clubs.expenses_staff_target THEN clubs.expenses_staff_target
                 ELSE 0
             END AS expenses_staff_applied, -- Staff expenses applied this week
             -- SUM(players.expenses_expected) AS total_expenses_expected, -- Total expenses expected for the players

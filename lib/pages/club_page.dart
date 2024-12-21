@@ -16,6 +16,7 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/countryStreamWidget.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
@@ -195,7 +196,7 @@ class _ClubPageState extends State<ClubPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  formSpacer6,
 
                   /// Username of the club owner
                   ListTile(
@@ -234,13 +235,13 @@ class _ClubPageState extends State<ClubPage> {
                               ),
                             ),
                           }),
+                  formSpacer6,
 
                   /// Multiverse
-                  const SizedBox(height: 6),
                   getMultiverseListTileFromId(context, club.idMultiverse),
+                  formSpacer6,
 
                   /// Players
-                  const SizedBox(height: 6),
                   ListTile(
                     onTap: () {
                       Navigator.push(
@@ -263,9 +264,9 @@ class _ClubPageState extends State<ClubPage> {
                       'Number of players: ${club.players.length}',
                     ),
                   ),
+                  formSpacer6,
 
                   /// League
-                  const SizedBox(height: 6),
                   ListTile(
                     onTap: () {
                       Navigator.push(
@@ -286,22 +287,14 @@ class _ClubPageState extends State<ClubPage> {
                     title: club.league == null
                         ? Text('League Not Found')
                         : club.league!.getLeagueName(),
-                    subtitle: Row(
-                      children: [
-                        Text(
-                          'Country: ',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        // Text('${club.name_country}'),
-                        Text('Country'),
-                      ],
-                    ),
                   ),
+                  formSpacer6,
+
+                  /// Country
+                  getCountryListTile(context, club.idCountry),
+                  formSpacer6,
 
                   /// Finances
-                  const SizedBox(height: 6),
                   getClubCashListTile(context, club),
                 ],
               ),

@@ -4,6 +4,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerNotesDialogBox.dart';
 import 'package:opengoalz/models/player/playerShirtNumberDialogBox.dart';
 import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:provider/provider.dart';
 
 Widget playerShirtNumberIcon(BuildContext context, Player player) {
@@ -66,6 +67,7 @@ Widget playerSmallNotesIcon(BuildContext context, Player player) {
             color: Colors.green,
           ),
           Text(
+            // ignore: unnecessary_null_comparison
             player.notesSmall == null ? '' : player.notesSmall.toString(),
             style: const TextStyle(
               fontStyle: FontStyle.italic,
@@ -75,5 +77,52 @@ Widget playerSmallNotesIcon(BuildContext context, Player player) {
         ],
       ),
     ),
+  );
+}
+
+Widget getPlayerHistoryStreamGraph(
+    BuildContext context, int id, String field, String yAxisLabel) {
+  Stream<List<Map>> _historyStream = supabase
+      .from('players_history_stats')
+      .stream(primaryKey: ['id'])
+      .eq('id_player', id)
+      .order('created_at', ascending: true)
+      .map((maps) => maps
+          .map((map) => {
+                'created_at': map['created_at'],
+                field: map[field],
+              })
+          .toList());
+
+  return StreamBuilder<List<Map>>(
+    stream: _historyStream,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return Text('Error: ${snapshot.error}');
+      } else if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      } else if (!snapshot.hasData) {
+        return Text('Error: No data');
+      }
+      final historyData = snapshot.data!;
+
+      final chartData = ChartData(
+        xAxisLabel: 'Time (in weeks)',
+        yAxisLabel: yAxisLabel,
+        // xValues: historyData
+        //     .map((item) => DateTime.parse(item['created_at'])
+        //         .millisecondsSinceEpoch
+        //         .toDouble())
+        //     .toList(),
+        yValues:
+            historyData.map((item) => (item[field] as num).toDouble()).toList(),
+      );
+
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        width: MediaQuery.of(context).size.width * 0.8,
+        child: PlayerLineChart(chartData: chartData),
+      );
+    },
   );
 }

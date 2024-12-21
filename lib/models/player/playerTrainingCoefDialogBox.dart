@@ -70,8 +70,8 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
                   '${[
                     'Keeper',
                     'Defense',
-                    'Playmaking',
                     'Passes',
+                    'Playmaking',
                     'Winger',
                     'Scoring',
                     'Freekick'
