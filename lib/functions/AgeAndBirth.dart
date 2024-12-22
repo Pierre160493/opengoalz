@@ -34,9 +34,3 @@ Widget getAgeStringRow(double age, int multiverseSpeed) {
     ),
   ]);
 }
-
-// DateTime calculateDateBirth2(double age, int multiverseSpeed) {
-//   return DateTime.now().subtract(Duration(
-//     days: (age * 14 * 7 / multiverseSpeed).round(),
-//   ));
-// }

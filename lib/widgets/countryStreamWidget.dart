@@ -54,20 +54,15 @@ Widget getCountryListTile(BuildContext context, int? idCountry) {
         Country country = snapshot.data!;
         // Actual row with data
         return ListTile(
-          onTap: () {
-            // Navigator.push(
-            //   context,
-            //   CountryPage.route(country['id']),
-            // );
-          },
-          shape: shapePersoRoundedBorder(),
-          // leading: CountryFlag.fromCountryCode(
-          //   shape: Rectangle(),
-          //   country['iso2'],
-          //   width: 36,
-          //   height: 24,
-          // ),
-          title: getCountryFlagAndNameWidget(country),
+          title: Expanded(
+            child: Text(
+              country.name,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           subtitle: Row(
             children: [
               Icon(Icons.public, size: iconSizeSmall),
@@ -77,12 +72,14 @@ Widget getCountryListTile(BuildContext context, int? idCountry) {
                       fontStyle: FontStyle.italic, color: Colors.blueGrey)),
             ],
           ),
-          // trailing: CountryFlag.fromCountryCode(
-          //   shape: Rectangle(),
-          //   country['iso2'],
-          //   width: 48,
-          //   height: 36,
-          // ),
+          onTap: () {
+            // Navigator.push(
+            //   context,
+            //   CountryPage.route(country['id']),
+            // );
+          },
+          shape: shapePersoRoundedBorder(),
+          leading: getCountryFlag(country.iso2),
         );
       }
     },
@@ -93,8 +90,8 @@ Widget getCountryFlag(String countryCode) {
   return CountryFlag.fromCountryCode(
     shape: Rectangle(),
     countryCode,
-    width: 36,
-    height: 24,
+    width: 36 * 1.5,
+    height: 24 * 1.5,
   );
 }
 

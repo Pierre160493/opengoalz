@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/models/club/clubWidgets.dart';
+import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:rxdart/rxdart.dart';

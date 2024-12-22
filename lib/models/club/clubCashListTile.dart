@@ -28,29 +28,16 @@ Widget getClubCashListTile(BuildContext context, Club club) {
       'Available Cash',
       style: styleItalicBlueGrey,
     ),
-    onTap: () {
+    onTap: () async {
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return FinancesGraphDialog(
-            nameCurves: 'Cash',
-            dataPoints: club.lisCash,
+          final chartData = ChartData(
+            title: 'Available Cash History (per weeks)',
+            yValues: club.lisCash.map((e) => e.toDouble()).toList(),
           );
 
-          // final chartData = ChartData(
-          //   xAxisLabel: 'Time (in weeks)',
-          //   yAxisLabel: 'Cash',
-          //   // xValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          //   yValues: club.lisCash.map((e) => e.toDouble()).toList(),
-          // );
-
-          // return Container(
-          //   height: 300,
-          //   width: 300,
-          //   // height: MediaQuery.of(context).size.height * 0.8,
-          //   // width: MediaQuery.of(context).size.width * 0.8,
-          //   child: PlayerLineChart(chartData: chartData),
-          // );
+          return PlayerLineChartDialogBox(chartData: chartData);
         },
       );
     },

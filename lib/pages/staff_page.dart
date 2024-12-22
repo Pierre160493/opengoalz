@@ -4,10 +4,11 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/stringValueSeparated.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/models/club/clubWidgets.dart';
+import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/financesGraphDialogBox.dart';
+import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
 class StaffPage extends StatefulWidget {
@@ -159,10 +160,19 @@ class _StaffPageState extends State<StaffPage> {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
-                          return FinancesGraphDialog(
-                            nameCurves: 'Staff Expenses',
-                            dataPoints: club.lisExpensesStaff,
+                          // return FinancesGraphDialog(
+                          //   nameCurves: 'Staff Expenses',
+                          //   dataPoints: club.lisExpensesStaff,
+                          // );
+
+                          final chartData = ChartData(
+                            title: 'Staff Expenses History (per weeks)',
+                            yValues: club.lisExpensesStaff
+                                .map((e) => e.toDouble())
+                                .toList(),
                           );
+
+                          return PlayerLineChartDialogBox(chartData: chartData);
                         },
                       );
                     },
@@ -190,10 +200,14 @@ class _StaffPageState extends State<StaffPage> {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
-                          return FinancesGraphDialog(
-                            nameCurves: 'Staff Skill',
-                            dataPoints: club.lisStaffWeight,
+                          final chartData = ChartData(
+                            title: 'Staff Skill History (per weeks)',
+                            yValues: club.lisStaffWeight
+                                .map((e) => e.toDouble())
+                                .toList(),
                           );
+
+                          return PlayerLineChartDialogBox(chartData: chartData);
                         },
                       );
                     },

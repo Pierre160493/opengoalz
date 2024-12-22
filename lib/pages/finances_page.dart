@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/models/club/clubWidgets.dart';
+import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/widgets/financesGraphDialogBox.dart';
+import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +50,20 @@ class _FinancesPageState extends State<FinancesPage> {
     //         .toList());
 
     super.initState();
+  }
+
+  void _showChartDialog(BuildContext context, String title, List<num> data) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final chartData = ChartData(
+          title: title,
+          yValues: data,
+        );
+
+        return PlayerLineChartDialogBox(chartData: chartData);
+      },
+    );
   }
 
   @override
@@ -114,15 +128,7 @@ class _FinancesPageState extends State<FinancesPage> {
                 DataColumn(
                   label: InkWell(
                     onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return FinancesGraphDialog(
-                            nameCurves: 'Revenues',
-                            dataPoints: club.lisRevenues,
-                          );
-                        },
-                      );
+                      _showChartDialog(context, 'Revenues', club.lisRevenues);
                     },
                     child: buildTabWithIcon(Icons.trending_up, 'Revenues'),
                   ),
@@ -130,15 +136,8 @@ class _FinancesPageState extends State<FinancesPage> {
                 DataColumn(
                   label: InkWell(
                     onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return FinancesGraphDialog(
-                            nameCurves: 'Expenses',
-                            dataPoints: club.lisExpenses,
-                          );
-                        },
-                      );
+                      _showChartDialog(
+                          context, 'Expenses', club.lisExpensesPlayers);
                     },
                     child: buildTabWithIcon(Icons.trending_down, 'Expenses'),
                   ),
@@ -191,17 +190,8 @@ class _FinancesPageState extends State<FinancesPage> {
           ),
         ],
       ),
-      // shape: shapePersoRoundedBorder(),
       onTap: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return FinancesGraphDialog(
-              nameCurves: title,
-              dataPoints: data,
-            );
-          },
-        );
+        _showChartDialog(context, title, data);
       },
     );
   }

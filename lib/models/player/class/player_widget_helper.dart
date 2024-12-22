@@ -176,7 +176,7 @@ extension PlayerWidgetsHelper on Player {
             children: [
               Row(
                 children: [
-                  Expanded(child: getAgeWidget()),
+                  Expanded(child: getAgeListTile(this)),
                   Expanded(child: getCountryListTile(context, idCountry)),
                 ],
               ),
@@ -194,7 +194,7 @@ extension PlayerWidgetsHelper on Player {
           // Display information for smaller screens
           return Column(
             children: [
-              getAgeWidget(),
+              getAgeListTile(this),
               getCountryListTile(context, idCountry),
               getPerformanceScoreListTile(context),
               getExpensesWidget(context),
@@ -209,30 +209,30 @@ extension PlayerWidgetsHelper on Player {
 
   static double iconSize = iconSizeSmall;
 
-  Widget getAgeWidget() {
-    return ListTile(
-      shape: shapePersoRoundedBorder(),
-      // leading: Icon(
-      //   Icons.cake_outlined,
-      //   size: iconSize,
-      // ),
-      title: Row(
-        children: [
-          Icon(iconAge, size: iconSize),
-          getAgeStringRow(age, multiverseSpeed),
-        ],
-      ),
-      subtitle: Row(
-        children: [
-          Icon(Icons.event, size: iconSize),
-          formSpacer3,
-          Text(DateFormat('dd MMMM yyyy').format(dateBirth),
-              style: TextStyle(
-                  fontStyle: FontStyle.italic, color: Colors.blueGrey)),
-        ],
-      ),
-    );
-  }
+  // Widget getAgeWidget() {
+  //   return ListTile(
+  //     shape: shapePersoRoundedBorder(),
+  //     // leading: Icon(
+  //     //   Icons.cake_outlined,
+  //     //   size: iconSize,
+  //     // ),
+  //     title: Row(
+  //       children: [
+  //         Icon(iconAge, size: iconSize),
+  //         getAgeStringRow(age, multiverseSpeed),
+  //       ],
+  //     ),
+  //     subtitle: Row(
+  //       children: [
+  //         Icon(Icons.event, size: iconSize),
+  //         formSpacer3,
+  //         Text(DateFormat('dd MMMM yyyy').format(dateBirth),
+  //             style: TextStyle(
+  //                 fontStyle: FontStyle.italic, color: Colors.blueGrey)),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget getAgeWidgetSmall() {
     return Tooltip(
@@ -373,11 +373,8 @@ extension PlayerWidgetsHelper on Player {
       onTap: () => showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('${getFullName()} Expenses History'),
-            content: getPlayerHistoryStreamGraph(
-                context, id, 'expenses_expected', 'Expenses'),
-          );
+          return getPlayerHistoryStreamGraph(
+              context, id, 'expenses_expected', 'Expenses');
         },
       ),
     );
@@ -404,13 +401,8 @@ extension PlayerWidgetsHelper on Player {
       onTap: () => showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('${getFullName()} Performance Score History'),
-            content:
-                getPlayerHistoryStreamGraph(
-                    context, id, 'performance_score', 'Performance Score'),
-                // Text('test'),
-          );
+          return getPlayerHistoryStreamGraph(context, id, 'performance_score',
+              'Performance Score History (${getShortName()})');
         },
       ),
     );
@@ -568,11 +560,8 @@ extension PlayerWidgetsHelper on Player {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('${getFullName()} ${label} History'),
-              content: getPlayerHistoryStreamGraph(
-                  context, id, postgreSqlField, 'Expenses'),
-            );
+            return getPlayerHistoryStreamGraph(context, id, postgreSqlField,
+                'Expenses History (${getShortName()})');
           },
         );
       },

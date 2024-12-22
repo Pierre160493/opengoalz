@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
@@ -17,7 +16,6 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/countryStreamWidget.dart';
 import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -234,5 +232,9 @@ class Player {
 
   String getFullName() {
     return '$firstName ${lastName.toUpperCase()}${surName != null ? ' (${surName!})' : ''}';
+  }
+
+  String getShortName() {
+    return '${firstName[0].toUpperCase()}.${lastName.toUpperCase()}${surName != null ? ' (${surName!})' : ''}';
   }
 }

@@ -310,7 +310,7 @@ class _PlayerCardState extends State<PlayerCard>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            widget.player.getAgeWidget(),
+                            getAgeListTile(widget.player),
                             getCountryListTile(
                                 context, widget.player.idCountry),
                             widget.player.getPerformanceScoreListTile(context),
