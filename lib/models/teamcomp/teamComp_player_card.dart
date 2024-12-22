@@ -14,7 +14,7 @@ extension TeamCompPlayerCard on TeamComp {
     /// If there is a player
     if (player != null) {
       return Tooltip(
-        message: player.firstName + ' ' + player.lastName.toUpperCase(),
+        message: player.getFullName(),
         child: InkWell(
           onTap: () async {
             /// Display the dialog box before navigating
@@ -251,22 +251,13 @@ extension TeamCompPlayerCard on TeamComp {
                   : Colors.green,
               elevation: 3.0,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          player.getAgeWidgetSmall(),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          if (player.shirtNumber != null)
-                            Text('# ' + player.shirtNumber.toString()),
-                          SizedBox(width: 3.0),
-                        ],
-                      ),
+                      player.getAgeWidgetSmall(),
+                      playerShirtNumberIcon(context, player),
                     ],
                   ),
                   Column(
@@ -277,6 +268,13 @@ extension TeamCompPlayerCard on TeamComp {
                         size: iconSizeLarge,
                       ),
                       player.getPlayerNameToolTip(context),
+                    ],
+                  ),
+                  Row(
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // playerSmallNotesIcon(context, player),
+                      playerSmallNotesIcon(context, player),
                     ],
                   ),
                 ],
@@ -322,9 +320,8 @@ extension TeamCompPlayerCard on TeamComp {
                   data: {playerMap['database']: returnedPlayer.id},
                   matchCriteria: {'id': id});
               if (isOK) {
-                context.showSnackBar(
-                    'Successfully set ${returnedPlayer.firstName} ${returnedPlayer.lastName} as ${playerMap['name']}',
-                    icon: Icon(iconSuccessfulOperation, color: Colors.green));
+                context.showSnackBarSuccess(
+                    'Successfully set ${returnedPlayer.getFullName()} as ${playerMap['name']}');
               }
             }
           },

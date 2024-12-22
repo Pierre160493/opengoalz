@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
@@ -26,7 +27,7 @@ class _TeamCompWidgetState extends State<TeamCompWidget> {
                 Row(
                   children: [
                     Icon(
-                      Icons.preview,
+                      iconTeamComp,
                       color: widget.teamComp.errors == null ? null : Colors.red,
                     ),
                     SizedBox(width: 3),

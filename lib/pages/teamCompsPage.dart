@@ -197,8 +197,6 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                       TabBar(
                         tabs: [
                           buildTabWithIcon(Icons.save, 'Defaults'),
-                          // buildTabWithIcon(
-                          //     Icons.update, 'Season ${_seasonNumber}'),
                           buildTabWithIcon2(
                               context,
                               Row(

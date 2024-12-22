@@ -79,10 +79,9 @@ class AppDrawer extends StatelessWidget {
           //     'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.cash)} €',
           //     FinancesPage(idClub: selectedClub.id)), // Add the finances page
           ListTile(
-            leading: Icon(
-              iconCash,
-              size: iconSizeMedium,
-            ),
+            leading: Icon(iconCash,
+                size: iconSizeMedium,
+                color: selectedClub.cash >= 0 ? Colors.green : Colors.red),
             title: Text(
               'Finances',
             ),
@@ -204,10 +203,7 @@ Widget buildDrawerTitle(String title) {
 Widget buildDrawerOption(BuildContext context, IconData icon, String title,
     [Widget? page]) {
   return ListTile(
-    leading: Icon(
-      icon,
-      size: iconSizeMedium,
-    ),
+    leading: Icon(icon, size: iconSizeMedium, color: Colors.green),
     title: Text(title),
     onTap: page != null
         ? () {

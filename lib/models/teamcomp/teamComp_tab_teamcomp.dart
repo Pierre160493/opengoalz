@@ -17,85 +17,193 @@ extension TeamCompTab on TeamComp {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            /// Display errors if any
             if (errors != null && errors!.isNotEmpty)
-              Column(
-                children: errors!.map((error) {
-                  return Text(
-                    error,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  );
-                }).toList(),
-              ),
-            if (isPlayed == false)
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(
-                      icon: Row(
-                        children: [
-                          Icon(Icons.layers_clear, color: Colors.red),
-                        ],
-                      ),
-                      onPressed: () async {
-                        bool confirm = await context.showConfirmationDialog(
-                            'Are you sure you want to clean the teamcomp?');
-
-                        if (!confirm) return;
-                        bool isOK = await operationInDB(
-                            context, 'FUNCTION', 'teamcomps_copy_previous',
-                            data: {
-                              'inp_id_teamcomp': id,
-                              'inp_season_number': -999
-                            }); // Use index to modify id
-                        if (isOK) {
-                          context.showSnackBar(
-                              'The teamcomp has successfully being cleaned',
-                              icon: Icon(iconSuccessfulOperation,
-                                  color: Colors.green));
-                        }
-                      },
-                    ),
-                    ...List.generate(7, (index) {
-                      return IconButton(
-                        icon: Row(
-                          children: [
-                            Icon(Icons.save),
-                            Text((index + 1).toString()),
-                          ],
-                        ),
-                        onPressed: () async {
-                          bool confirm = await context.showConfirmationDialog(
-                              'Are you sure you want to apply the default ${index + 1} teamcomp to this teamcomp ?');
-
-                          if (!confirm) return;
-                          bool isOK = await operationInDB(
-                              context, 'FUNCTION', 'teamcomps_copy_previous',
-                              data: {
-                                'inp_id_teamcomp': id,
-                                'inp_week_number': index + 1
-                              }); // Use index to modify id
-                          if (isOK) {
-                            context.showSnackBar(
-                                'The teamcomp has successfully being applied',
-                                icon: Icon(iconSuccessfulOperation,
-                                    color: Colors.green));
-                          }
-                        },
-                      );
-                    }),
-                  ],
+              ListTile(
+                shape: shapePersoRoundedBorder(false),
+                // leading: Icon(iconBug, color: Colors.red, size: iconSizeMedium),
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: errors!.map((error) {
+                    return ListTile(
+                      leading: Icon(iconBug, color: Colors.red),
+                      title: Text(error),
+                    );
+                  }).toList(),
                 ),
               ),
-            const SizedBox(height: 12.0), // Add spacing between rows
+
+            /// If the game is not played yet, the user can clean the teamcomp or apply a default teamcomp
+            ListTile(
+              shape: shapePersoRoundedBorder(),
+              title: Text(name),
+              leading: Icon(
+                iconTeamComp,
+                color: Colors.green,
+                size: iconSizeMedium,
+              ),
+              subtitle: Text(description, style: styleItalicBlueGrey),
+              trailing: isPlayed
+                  ? null
+                  : IconButton(
+                      icon: Icon(Icons.more_vert, color: Colors.green),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  formSpacer12,
+                                  ListTile(
+                                    leading: Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                    shape: shapePersoRoundedBorder(false),
+                                    title: Text('Remove all'),
+                                    subtitle: Text(
+                                        'Remove all players from the teamcomp',
+                                        style: styleItalicBlueGrey),
+                                    onTap: () async {
+                                      bool confirm =
+                                          await context.showConfirmationDialog(
+                                              'Are you sure you want to remove all players from the teamcomp?');
+
+                                      if (!confirm) return;
+                                      bool isOK = await operationInDB(context,
+                                          'FUNCTION', 'teamcomp_copy_previous',
+                                          data: {
+                                            'inp_id_teamcomp': id,
+                                            'inp_season_number': -999
+                                          }); // Use index to modify id
+                                      if (isOK) {
+                                        context.showSnackBar(
+                                            'The teamcomp has successfully being cleaned',
+                                            icon: Icon(iconSuccessfulOperation,
+                                                color: Colors.green));
+                                      }
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  ...List.generate(7, (index) {
+                                    return ListTile(
+                                      leading: Icon(Icons.save),
+                                      shape: shapePersoRoundedBorder(),
+                                      title: Text(
+                                          'Apply default ${index + 1} teamcomp'),
+                                      subtitle: Text(
+                                          'Apply the default ${index + 1} teamcomp to this teamcomp',
+                                          style: styleItalicBlueGrey),
+                                      onTap: () async {
+                                        bool confirm = await context
+                                            .showConfirmationDialog(
+                                                'Are you sure you want to apply the default ${index + 1} teamcomp to this teamcomp ?');
+
+                                        if (!confirm) return;
+                                        bool isOK = await operationInDB(
+                                            context,
+                                            'FUNCTION',
+                                            'teamcomp_copy_previous',
+                                            data: {
+                                              'inp_id_teamcomp': id,
+                                              'inp_week_number': index + 1
+                                            }); // Use index to modify id
+                                        if (isOK) {
+                                          context.showSnackBar(
+                                              'The teamcomp has successfully being applied',
+                                              icon: Icon(
+                                                  iconSuccessfulOperation,
+                                                  color: Colors.green));
+                                        }
+                                        Navigator.pop(context);
+                                      },
+                                    );
+                                  }),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      }),
+              onTap: () async {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    String inputName = '';
+                    String inputDescription = '';
+                    return AlertDialog(
+                      title: const Text('Change Teamcomp'),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            TextField(
+                              onChanged: (valueName) {
+                                inputName = valueName;
+                              },
+                              decoration: const InputDecoration(
+                                  hintText: "Enter the new name"),
+                            ),
+                            TextField(
+                              onChanged: (valueDescription) {
+                                inputDescription = valueDescription;
+                              },
+                              decoration: const InputDecoration(
+                                  hintText: "Enter the new description"),
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              child: persoCancelRow,
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: Row(
+                                children: [
+                                  Icon(iconSuccessfulOperation,
+                                      color: Colors.green),
+                                  formSpacer3,
+                                  const Text('Submit'),
+                                ],
+                              ),
+                              onPressed: () async {
+                                bool isOK = await operationInDB(
+                                    context, 'UPDATE', 'games_teamcomp', data: {
+                                  'name': inputName,
+                                  'description': inputDescription
+                                }, matchCriteria: {
+                                  'id': id
+                                });
+
+                                if (isOK) {
+                                  context.showSnackBarSuccess(
+                                      'Successfully updated the teamcomp');
+                                  Navigator.of(context)
+                                      .pop(); // Close the dialog
+                                }
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              // trailing: IconButton(iconDetails),
+            ),
+            formSpacer12, // Add spacing between rows
             _getStartingTeam(context, width),
-            const SizedBox(height: 12.0), // Add spacing between rows
+            formSpacer12, // Add spacing between rows
             _getSubstitutes(context, width)
           ],
         ),

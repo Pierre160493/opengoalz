@@ -69,8 +69,7 @@ Widget playerSmallNotesIcon(BuildContext context, Player player) {
             color: Colors.green,
           ),
           Text(
-            // ignore: unnecessary_null_comparison
-            player.notesSmall == null ? '' : player.notesSmall.toString(),
+            player.notesSmall.toString(),
             style: const TextStyle(
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.bold,
