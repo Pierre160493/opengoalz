@@ -5,7 +5,6 @@ import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SettingsPage extends StatelessWidget {
   static Route route() {
@@ -34,6 +33,16 @@ class SettingsPage extends StatelessWidget {
                       .toggleTheme();
                 },
               ),
+              shape: shapePersoRoundedBorder(),
+            ),
+            ListTile(
+              // leading: Icon(Icons.brightness_6),
+              title: Tooltip(
+                message: 'Release version',
+                child: Text('Version 1.1.1'),
+              ),
+
+              shape: shapePersoRoundedBorder(),
             ),
             ListTile(
               leading: Icon(Icons.local_activity),
@@ -82,6 +91,27 @@ class SettingsPage extends StatelessWidget {
                 context.showSnackBar('Invitation sent successfully to ${email}',
                     icon: Icon(Icons.email, color: Colors.green));
               },
+              shape: shapePersoRoundedBorder(),
+            ),
+            ListTile(
+              title: AboutListTile(
+                icon: Icon(Icons.info),
+                applicationIcon: Container(
+                  width: 120, // Set width
+                  height: 120, // Set height
+                  child: Image.asset('assets/icon/opengoalz.png'),
+                ),
+                applicationName: 'OpenGoalZ',
+                applicationVersion: '0.0.0',
+                applicationLegalese: '© OpenGoalZ 2024',
+                aboutBoxChildren: <Widget>[
+                  Text('Thank you for using our app !'),
+                  Text('Hope you\'re enjoying it.'),
+                  Text(
+                      'Feel free to contact us on our discord server if you have questions.'),
+                ],
+              ),
+              shape: shapePersoRoundedBorder(),
             ),
             ListTile(
               leading: Icon(
@@ -110,23 +140,7 @@ class SettingsPage extends StatelessWidget {
                   }
                 }
               },
-            ),
-            AboutListTile(
-              icon: Icon(Icons.info),
-              applicationIcon: Container(
-                width: 120, // Set width
-                height: 120, // Set height
-                child: Image.asset('assets/icon/opengoalz.png'),
-              ),
-              applicationName: 'OpenGoalZ',
-              applicationVersion: '0.0.0',
-              applicationLegalese: '© OpenGoalZ 2024',
-              aboutBoxChildren: <Widget>[
-                Text('Thank you for using our app !'),
-                Text('Hope you\'re enjoying it.'),
-                Text(
-                    'Feel free to contact us on our discord server if you have questions.'),
-              ],
+              shape: shapePersoRoundedBorder(false),
             ),
           ],
         ),
