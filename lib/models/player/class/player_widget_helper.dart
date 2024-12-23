@@ -177,7 +177,7 @@ extension PlayerWidgetsHelper on Player {
               Row(
                 children: [
                   Expanded(child: getAgeListTile(this)),
-                  // Expanded(child: getCountryListTile(context, idCountry)),
+                  Expanded(child: getCountryListTile(context, idCountry)),
                 ],
               ),
               Row(

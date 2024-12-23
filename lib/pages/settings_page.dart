@@ -39,7 +39,7 @@ class SettingsPage extends StatelessWidget {
               // leading: Icon(Icons.brightness_6),
               title: Tooltip(
                 message: 'Release version',
-                child: Text('Version 1.1.2'),
+                child: Text('Version 1.1.9'),
               ),
 
               shape: shapePersoRoundedBorder(),
