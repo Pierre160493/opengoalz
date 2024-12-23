@@ -183,7 +183,7 @@ extension PlayerWidgetsHelper on Player {
               Row(
                 children: [
                   Expanded(child: getPerformanceScoreListTile(context)),
-                  // Expanded(child: getExpensesWidget(context)),
+                  Expanded(child: getExpensesWidget(context)),
                 ],
               ),
               if (dateBidEnd != null) PlayerCardTransferWidget(player: this),
