@@ -5,6 +5,7 @@ import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerTrainingCoefDialogBox.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
 class PlayerCardStatsWidget extends StatefulWidget {
   final Player player;
@@ -49,6 +50,30 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
 
   @override
   Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          TabBar(
+            tabs: [
+              buildTabWithIcon(iconHistory, 'Main Stats'),
+              buildTabWithIcon(iconHistory, 'Other Stats'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                WidgetMainStats(),
+                WidgetOtherStats(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget WidgetMainStats() {
     final statsNow = [
       widget.player.keeper,
       widget.player.defense,
@@ -58,7 +83,6 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
       widget.player.scoring,
       widget.player.freekick,
     ];
-
     var statsHistoric = [];
     if (listPlayerHistoricStats.isNotEmpty) {
       statsHistoric = [
@@ -76,108 +100,17 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
     final List<double> statsTrainingCoef = widget.player.trainingCoef
         .map((coef) => 100 * coef / maxStat.toDouble())
         .toList();
-
     return SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ListTile(
-            leading: Icon(
-              iconHistory,
-              size: iconSizeMedium,
-              color: Colors.green,
-            ),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _playerHistoricStatsLength > 0
-                      ? 'Player Stats History'
-                      : 'No Stats History',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios),
-                      onPressed: () {
-                        setState(() {
-                          _playerHistoricStatsToDisplay =
-                              max(0, _playerHistoricStatsToDisplay - 1);
-                        });
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
-                        setState(() {
-                          _playerHistoricStatsToDisplay = min(
-                              _playerHistoricStatsLength - 1,
-                              _playerHistoricStatsToDisplay + 1);
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            subtitle: Text(
-              'Data from ${_playerHistoricStatsToDisplay + 1} weeks ago',
-              style: styleItalicBlueGrey,
-            ),
-          ),
+          moveHistoricDataListTile(),
 
-          widget.player.getStatLinearWidget(
-              'Motivation',
-              widget.player.motivation,
-              listPlayerHistoricStats.isNotEmpty
-                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
-                          ['motivation']
-                      .toDouble()
-                  : null,
-              context),
-          widget.player.getStatLinearWidget(
-              'Form',
-              widget.player.form,
-              listPlayerHistoricStats.isNotEmpty
-                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
-                          ['form']
-                      .toDouble()
-                  : null,
-              context),
-          widget.player.getStatLinearWidget(
-              'Stamina',
-              widget.player.stamina,
-              listPlayerHistoricStats.isNotEmpty
-                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
-                          ['stamina']
-                      .toDouble()
-                  : null,
-              context),
-          widget.player.getStatLinearWidget(
-              'Experience',
-              widget.player.experience,
-              listPlayerHistoricStats.isNotEmpty
-                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
-                          ['experience']
-                      .toDouble()
-                  : null,
-              context),
           SizedBox(
             width: double.infinity,
             height: 240, // Adjust the height as needed
             child: RadarChart.dark(
               ticks: const [25, 50, 75, 100],
-              // features: const [
-              //   'GK',
-              //   'DF',
-              //   'PA',
-              //   'PL',
-              //   'WI',
-              //   'SC',
-              //   'FK',
-              // ],
               features: const [
                 'GoalKeeping',
                 'Defending',
@@ -232,6 +165,112 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget WidgetOtherStats() {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          moveHistoricDataListTile(),
+          widget.player.getStatLinearWidget(
+              'Motivation',
+              widget.player.motivation,
+              listPlayerHistoricStats.isNotEmpty
+                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
+                          ['motivation']
+                      .toDouble()
+                  : null,
+              context),
+          widget.player.getStatLinearWidget(
+              'Form',
+              widget.player.form,
+              listPlayerHistoricStats.isNotEmpty
+                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
+                          ['form']
+                      .toDouble()
+                  : null,
+              context),
+          widget.player.getStatLinearWidget(
+              'Stamina',
+              widget.player.stamina,
+              listPlayerHistoricStats.isNotEmpty
+                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
+                          ['stamina']
+                      .toDouble()
+                  : null,
+              context),
+          // widget.player.getStatLinearWidget(
+          //     'Energy',
+          //     widget.player.experience,
+          //     listPlayerHistoricStats.isNotEmpty
+          //         ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
+          //                 ['energy']
+          //             .toDouble()
+          //         : null,
+          //     context),
+          widget.player.getStatLinearWidget(
+              'Experience',
+              widget.player.experience,
+              listPlayerHistoricStats.isNotEmpty
+                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
+                          ['experience']
+                      .toDouble()
+                  : null,
+              context),
+        ],
+      ),
+    );
+  }
+
+  Widget moveHistoricDataListTile() {
+    return ListTile(
+      leading: Icon(
+        iconHistory,
+        size: iconSizeMedium,
+        color: Colors.green,
+      ),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            _playerHistoricStatsLength > 0
+                ? 'Player Stats History'
+                : 'No Stats History',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios),
+                onPressed: () {
+                  setState(() {
+                    _playerHistoricStatsToDisplay =
+                        max(0, _playerHistoricStatsToDisplay - 1);
+                  });
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward_ios),
+                onPressed: () {
+                  setState(() {
+                    _playerHistoricStatsToDisplay = min(
+                        _playerHistoricStatsLength - 1,
+                        _playerHistoricStatsToDisplay + 1);
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+      subtitle: Text(
+        'Data from ${_playerHistoricStatsToDisplay + 1} weeks ago',
+        style: styleItalicBlueGrey,
+      ),
+      shape: shapePersoRoundedBorder(),
     );
   }
 }

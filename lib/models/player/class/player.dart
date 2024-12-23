@@ -61,6 +61,7 @@ class Player {
     required this.motivation,
     required this.form,
     required this.stamina,
+    required this.energy,
     required this.experience,
     required this.notes,
     required this.notesSmall,
@@ -98,6 +99,7 @@ class Player {
   final double motivation;
   final double form;
   final double stamina;
+  final double energy;
   final double experience;
   final String notes;
   final String notesSmall;
@@ -131,6 +133,7 @@ class Player {
         form = (map['form'] as num).toDouble(),
         motivation = (map['motivation'] as num).toDouble(),
         stamina = (map['stamina'] as num).toDouble(),
+        energy = (map['energy'] as num).toDouble(),
         experience = (map['experience'] as num).toDouble(),
         dateEndInjury = map['date_end_injury'] != null
             ? DateTime.parse(map['date_end_injury']).toLocal()
@@ -219,6 +222,8 @@ class Player {
         return form;
       case 'stamina':
         return stamina;
+      case 'energy':
+        return energy;
       case 'experience':
         return experience;
       case 'notes':
