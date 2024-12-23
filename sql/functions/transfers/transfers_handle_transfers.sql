@@ -36,7 +36,7 @@ BEGIN
                 -- Update player to make bidding next week
                 UPDATE players SET
                     date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / rec_multiverse.speed),
-                    expenses_expected = FLOOR(0.9 * expenses_expected),
+                    expenses_expected = CEIL(0.9 * expenses_expected),
                     transfer_price = 100
                 WHERE id = player.id;
             

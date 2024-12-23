@@ -4,6 +4,23 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/country.dart';
 
 Widget getCountryListTile(BuildContext context, int? idCountry) {
+  return ListTile(
+    title: Expanded(
+      child: Text(
+        idCountry.toString(),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    ),
+    subtitle: Text('Country (a corriger)', style: styleItalicBlueGrey),
+    shape: shapePersoRoundedBorder(),
+    leading: Icon(Icons.public, color: Colors.green),
+  );
+}
+
+Widget getCountryListTile_erreur(BuildContext context, int? idCountry) {
   if (idCountry == null) {
     return Text('ERROR: No country !');
   }
