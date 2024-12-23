@@ -3,31 +3,31 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/country.dart';
 
-Widget getCountryListTile(BuildContext context, int? idCountry) {
-  return ListTile(
-    // title: Expanded(
-    //   child: Text(
-    //     idCountry.toString(),
-    //     style: TextStyle(
-    //       fontWeight: FontWeight.bold,
-    //     ),
-    //     overflow: TextOverflow.ellipsis,
-    //   ),
-    // ),
-    title: Text(
-      idCountry.toString(),
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-      ),
-      overflow: TextOverflow.ellipsis,
-    ),
-    subtitle: Text('Country (a corriger)', style: styleItalicBlueGrey),
-    shape: shapePersoRoundedBorder(),
-    leading: Icon(Icons.public, color: Colors.green),
-  );
-}
+// Widget getCountryListTile(BuildContext context, int? idCountry) {
+//   return ListTile(
+//     // title: Expanded(
+//     //   child: Text(
+//     //     idCountry.toString(),
+//     //     style: TextStyle(
+//     //       fontWeight: FontWeight.bold,
+//     //     ),
+//     //     overflow: TextOverflow.ellipsis,
+//     //   ),
+//     // ),
+//     title: Text(
+//       idCountry.toString(),
+//       style: TextStyle(
+//         fontWeight: FontWeight.bold,
+//       ),
+//       overflow: TextOverflow.ellipsis,
+//     ),
+//     subtitle: Text('Country (a corriger)', style: styleItalicBlueGrey),
+//     shape: shapePersoRoundedBorder(),
+//     leading: Icon(Icons.public, color: Colors.green),
+//   );
+// }
 
-Widget getCountryListTile_erreur(BuildContext context, int? idCountry) {
+Widget getCountryListTile(BuildContext context, int? idCountry) {
   if (idCountry == null) {
     return Text('ERROR: No country !');
   }
@@ -78,14 +78,12 @@ Widget getCountryListTile_erreur(BuildContext context, int? idCountry) {
         Country country = snapshot.data!;
         // Actual row with data
         return ListTile(
-          title: Expanded(
-            child: Text(
-              country.name,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
+          title: Text(
+            country.name,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
           subtitle: Row(
             children: [
@@ -103,7 +101,7 @@ Widget getCountryListTile_erreur(BuildContext context, int? idCountry) {
             // );
           },
           shape: shapePersoRoundedBorder(),
-          // leading: getCountryFlag(country.iso2),
+          leading: getCountryFlag(country.iso2),
         );
       }
     },

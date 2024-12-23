@@ -3,10 +3,10 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/pages/login_page.dart';
+import 'package:opengoalz/pages/offline_page.dart'; // Import the offline page
 import 'package:provider/provider.dart';
 import '../constants.dart';
 
-/// Page to redirect users to the appropriate page depending on the initial auth state
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
 
@@ -15,16 +15,18 @@ class SplashPage extends StatefulWidget {
 }
 
 class SplashPageState extends State<SplashPage> {
+  bool _showOfflineButton = false;
+  bool _isConnected = false;
+
   @override
   void initState() {
     super.initState();
     _redirect();
+    _startTimeout();
   }
 
   Future<void> _redirect() async {
-    print('Redirecting to the appropriate page');
-    await Future.delayed(Duration
-        .zero); // await for for the widget to mount, otherwise app freezes
+    await Future.delayed(Duration.zero); // Await for the widget to mount
 
     if (supabase.auth.currentSession == null) {
       print('############ supabase.auth.currentSession is null');
@@ -38,6 +40,9 @@ class SplashPageState extends State<SplashPage> {
             .providerFetchUser(context, userId: supabase.auth.currentUser!.id);
 
         print('############ User found, try to launch UserPage');
+        setState(() {
+          _isConnected = true;
+        });
         Navigator.of(context)
             .pushAndRemoveUntil(UserPage.route(), (route) => false);
       } catch (error) {
@@ -69,11 +74,50 @@ class SplashPageState extends State<SplashPage> {
         Navigator.of(context)
             .pushAndRemoveUntil(LoginPage.route(), (route) => false);
       }
+      print('############ End of _redirect()');
     }
+  }
+
+  void _startTimeout() {
+    Future.delayed(Duration(seconds: 10), () {
+      if (mounted) {
+        setState(() {
+          _showOfflineButton = true;
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: preloader);
+    return Scaffold(
+      body: Stack(
+        children: [
+          Center(child: preloader),
+          if (_showOfflineButton)
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                        OfflinePage.route(onReturn: _onReturnFromOffline));
+                  },
+                  child: Text('Go to Offline Page'),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _onReturnFromOffline() {
+    if (_isConnected) {
+      Navigator.of(context)
+          .pushAndRemoveUntil(UserPage.route(), (route) => false);
+    }
   }
 }

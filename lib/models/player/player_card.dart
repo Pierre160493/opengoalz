@@ -5,7 +5,7 @@ import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/countryStreamWidget.dart';
+import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/playersNotes.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';

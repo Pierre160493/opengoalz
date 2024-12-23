@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/widgets/countryStreamWidget.dart';
+import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
 class CountriesPage extends StatefulWidget {

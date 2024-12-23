@@ -16,7 +16,7 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/widgets/countryStreamWidget.dart';
+import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
