@@ -79,7 +79,7 @@ Widget getCountryListTile(BuildContext context, int? idCountry) {
             // );
           },
           shape: shapePersoRoundedBorder(),
-          leading: getCountryFlag(country.iso2),
+          // leading: getCountryFlag(country.iso2),
         );
       }
     },
