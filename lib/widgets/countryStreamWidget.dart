@@ -5,14 +5,21 @@ import 'package:opengoalz/models/country.dart';
 
 Widget getCountryListTile(BuildContext context, int? idCountry) {
   return ListTile(
-    title: Expanded(
-      child: Text(
-        idCountry.toString(),
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-        overflow: TextOverflow.ellipsis,
+    // title: Expanded(
+    //   child: Text(
+    //     idCountry.toString(),
+    //     style: TextStyle(
+    //       fontWeight: FontWeight.bold,
+    //     ),
+    //     overflow: TextOverflow.ellipsis,
+    //   ),
+    // ),
+    title: Text(
+      idCountry.toString(),
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
       ),
+      overflow: TextOverflow.ellipsis,
     ),
     subtitle: Text('Country (a corriger)', style: styleItalicBlueGrey),
     shape: shapePersoRoundedBorder(),
