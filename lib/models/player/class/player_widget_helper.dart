@@ -251,10 +251,11 @@ extension PlayerWidgetsHelper on Player {
   Widget getExpensesWidget(BuildContext context) {
     return ListTile(
       shape: shapePersoRoundedBorder(),
-      // leading: Icon(
-      //   iconMoney,
-      //   size: iconSize, // Adjust icon size as needed
-      // ),
+      leading: Icon(
+        iconMoney,
+        color: Colors.green,
+        size: iconSizeMedium, // Adjust icon size as needed
+      ),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -363,11 +364,11 @@ extension PlayerWidgetsHelper on Player {
             ),
         ],
       ),
-      subtitle: Text(
-        'Expected expenses per week',
-        style: TextStyle(
-          fontStyle: FontStyle.italic,
-          color: Colors.blueGrey,
+      subtitle: Tooltip(
+        message: 'Weekly expected expenses of the player',
+        child: Text(
+          'Expected expenses',
+          style: styleItalicBlueGrey,
         ),
       ),
       onTap: () => showDialog(
@@ -385,7 +386,7 @@ extension PlayerWidgetsHelper on Player {
       shape: shapePersoRoundedBorder(),
       leading: Icon(
         iconStats,
-        size: iconSize,
+        size: iconSizeMedium,
         color: Colors.green,
       ),
       title: Text(
@@ -425,8 +426,8 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  Widget getStatLinearWidget(
-      String label, double valueNow, double? valueOld, BuildContext context) {
+  Widget getStatLinearWidget(String label, List<double> lisStatsHistoryAll,
+      int indexHistoryToDisplay, BuildContext context) {
     IconData getIcon(String label) {
       switch (label) {
         case 'Motivation':
@@ -444,13 +445,10 @@ extension PlayerWidgetsHelper on Player {
       }
     }
 
-    String postgreSqlField = label.toLowerCase();
-
     IconData icon = getIcon(label);
 
-    // valueNow = 25;
-    // valueOld = 50;
-    print('valueNow: $valueNow - valueOld: $valueOld');
+    double valueNow = lisStatsHistoryAll.last;
+    double valueOld = lisStatsHistoryAll[indexHistoryToDisplay];
 
     return ListTile(
       shape: shapePersoRoundedBorder(),
@@ -474,94 +472,49 @@ extension PlayerWidgetsHelper on Player {
       ),
       subtitle: Stack(
         children: [
-          Container(
-            height: 12, // Set the desired height here
-            // width: 120,
-            child: LinearProgressIndicator(
-              value:
-                  (valueOld == null ? valueNow : max(valueNow, valueOld)) / 100,
-              backgroundColor: Colors.grey,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                  valueOld == null || valueNow > valueOld
-                      ? Colors.green
-                      : Colors.red),
-            ),
-          ),
-          if (valueOld != null)
+          /// Display the first bar (only if the values are different)
+          if (valueNow != valueOld)
             Container(
               height: 12, // Set the desired height here
               // width: 120,
               child: LinearProgressIndicator(
-                value: min(valueNow, valueOld) / 100,
-                backgroundColor:
-                    valueNow != valueOld ? Colors.transparent : Colors.grey,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                value: (max(valueNow, valueOld)) / 100,
+                backgroundColor: Colors.grey,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    valueNow > valueOld ? Colors.green : Colors.red),
               ),
             ),
+
+          /// Display the second bar (on top of first)
+          Container(
+            height: 12, // Set the desired height here
+            // width: 120,
+            child: LinearProgressIndicator(
+              value: min(valueNow, valueOld) / 100,
+              backgroundColor:
+                  valueNow != valueOld ? Colors.transparent : Colors.grey,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            ),
+          ),
         ],
       ),
       onTap: () async {
         // showDialog(
         //   context: context,
         //   builder: (BuildContext context) {
-        //     return AlertDialog(
-        //       title: Text(label),
-        //       content: Container(
-        //         width: double.maxFinite,
-        //         // height: 400,
-        //         child: StreamBuilder(
-        //           stream: supabase
-        //               .from('players_history_stats')
-        //               .stream(primaryKey: ['id'])
-        //               .eq('id_player', id)
-        //               .order('created_at', ascending: true),
-        //           builder: (context, snapshot) {
-        //             if (snapshot.hasError) {
-        //               return Text('Error: ${snapshot.error}');
-        //             } else if (snapshot.connectionState ==
-        //                 ConnectionState.waiting) {
-        //               return CircularProgressIndicator();
-        //             } else if (!snapshot.hasData) {
-        //               return Text('Error: No data');
-        //             }
-        //             // final data = snapshot.data;
-        //             // List<FlSpot> values = data!
-        //             //     .map((e) => FlSpot(e['created_at'].toDouble(),
-        //             //         e['motivation'].toDouble()))
-        //             //     .toList();
-
-        //             final data = snapshot.map((item) {
-        //               final DateTime dateEvent =
-        //                   DateTime.parse(item['created_at']);
-        //               final double value = item[field].toDouble();
-        //               return FlSpot(
-        //                   dateEvent.millisecondsSinceEpoch.toDouble(), value);
-        //             }).toList();
-
-        //             return PlayerLineChart(
-        //               data: values,
-        //               yAxisLabel: 'Value',
-        //               xAxisLabel: 'Time',
-        //             );
-        //           },
-        //         ),
-        //       ),
-        //       actions: [
-        //         TextButton(
-        //           onPressed: () {
-        //             Navigator.of(context).pop();
-        //           },
-        //           child: Text('Close'),
-        //         ),
-        //       ],
-        //     );
+        //     return getPlayerHistoryStreamGraph(context, id, postgreSqlField,
+        //         'Expenses History (${getShortName()})');
         //   },
         // );
+        final chartData = ChartData(
+          title: 'Player $label History',
+          yValues: lisStatsHistoryAll,
+        );
+
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return getPlayerHistoryStreamGraph(context, id, postgreSqlField,
-                'Expenses History (${getShortName()})');
+            return PlayerLineChartDialogBox(chartData: chartData);
           },
         );
       },

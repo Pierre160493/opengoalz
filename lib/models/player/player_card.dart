@@ -87,35 +87,44 @@ class _PlayerCardState extends State<PlayerCard>
                       (widget.index!).toString(),
                     ),
             ),
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(12), // Adjust border radius as needed
-              side: const BorderSide(
-                color: Colors.blueGrey, // Border color
-                width: 2.0,
-              ),
-            ),
+            shape: shapePersoRoundedBorder(),
             title: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                widget.player.getPlayerNameToolTip(context),
-                widget.player.getStatusRow(),
-                if (Provider.of<SessionProvider>(context, listen: false)
-                        .user!
-                        .players
-                        .any(
-                            (Player player) => player.id == widget.player.id) ||
-                    Provider.of<SessionProvider>(context, listen: false)
+                Row(
+                  children: [
+                    widget.player.getPlayerNameToolTip(context),
+                    widget.player.getStatusRow(),
+                    if (Provider.of<SessionProvider>(context, listen: false)
                             .user!
-                            .selectedClub!
-                            .id ==
-                        widget.player.idClub)
-                  Row(
-                    children: [
-                      SizedBox(width: 3.0),
-                      widget.player.playerPopUpMenuItem(context, widget.index),
-                    ],
-                  )
+                            .players
+                            .any((Player player) =>
+                                player.id == widget.player.id) ||
+                        Provider.of<SessionProvider>(context, listen: false)
+                                .user!
+                                .selectedClub!
+                                .id ==
+                            widget.player.idClub)
+                      Row(
+                        children: [
+                          SizedBox(width: 3.0),
+                          widget.player
+                              .playerPopUpMenuItem(context, widget.index),
+                        ],
+                      ),
+                  ],
+                ),
+                IconButton(
+                  icon: Icon(_developed
+                      ? Icons.expand_less
+                      : Icons.expand_circle_down_outlined),
+                  iconSize: iconSizeSmall,
+                  onPressed: () {
+                    setState(() {
+                      _developed = !_developed;
+                    });
+                  },
+                ),
               ],
             ),
             subtitle: Row(
@@ -140,17 +149,17 @@ class _PlayerCardState extends State<PlayerCard>
             // subtitle: Text(
             //   'Born: ${DateFormat('yyyy-MM-dd').format(widget.player.dateBirth)}',
             // ),
-            trailing: IconButton(
-              icon: Icon(_developed
-                  ? Icons.expand_less
-                  : Icons.expand_circle_down_outlined),
-              iconSize: iconSizeSmall,
-              onPressed: () {
-                setState(() {
-                  _developed = !_developed;
-                });
-              },
-            ),
+            // trailing: IconButton(
+            //   icon: Icon(_developed
+            //       ? Icons.expand_less
+            //       : Icons.expand_circle_down_outlined),
+            //   iconSize: iconSizeSmall,
+            //   onPressed: () {
+            //     setState(() {
+            //       _developed = !_developed;
+            //     });
+            //   },
+            // ),
           ),
           if (!_developed) widget.player.getPlayerMainInformation(context),
           if (_developed)
@@ -217,14 +226,7 @@ class _PlayerCardState extends State<PlayerCard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(12), // Adjust border radius as needed
-              side: const BorderSide(
-                color: Colors.blueGrey, // Border color
-                width: 2.0,
-              ),
-            ),
+            shape: shapePersoRoundedBorder(),
             title: Row(
               // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

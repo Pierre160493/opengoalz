@@ -6,7 +6,7 @@ Widget buildTabWithIcon(IconData icon, String text) {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: iconSizeSmall),
+        Icon(icon, size: iconSizeSmall, color: Colors.green),
         formSpacer3,
         Text(text),
       ],

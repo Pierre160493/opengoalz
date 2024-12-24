@@ -42,7 +42,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
       setState(() {
         listPlayerHistoricStats = data;
         _playerHistoricStatsLength = listPlayerHistoricStats.length;
-        _playerHistoricStatsToDisplay = min(14, _playerHistoricStatsLength) - 1;
+        _playerHistoricStatsToDisplay = min(15, _playerHistoricStatsLength) - 1;
         print('Player historic stats: $_playerHistoricStatsLength');
       });
     });
@@ -57,7 +57,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
           TabBar(
             tabs: [
               buildTabWithIcon(iconHistory, 'Main Stats'),
-              buildTabWithIcon(iconHistory, 'Other Stats'),
+              buildTabWithIcon(Icons.query_stats, 'Other Stats'),
             ],
           ),
           Expanded(
@@ -84,7 +84,8 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
       widget.player.freekick,
     ];
     var statsHistoric = [];
-    if (listPlayerHistoricStats.isNotEmpty) {
+    if (listPlayerHistoricStats.isNotEmpty &&
+        _playerHistoricStatsToDisplay > 0) {
       statsHistoric = [
         listPlayerHistoricStats[_playerHistoricStatsToDisplay]['keeper'],
         listPlayerHistoricStats[_playerHistoricStatsToDisplay]['defense'],
@@ -130,15 +131,10 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
           ),
 
           /// Player training coefficients for training
-          MouseRegion(
-            onEnter: (_) {
+          GestureDetector(
+            onLongPress: () {
               setState(() {
-                _showTrainingCoef = true;
-              });
-            },
-            onExit: (_) {
-              setState(() {
-                _showTrainingCoef = false;
+                _showTrainingCoef = !_showTrainingCoef;
               });
             },
             child: ListTile(
@@ -176,48 +172,58 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
           moveHistoricDataListTile(),
           widget.player.getStatLinearWidget(
               'Motivation',
-              widget.player.motivation,
-              listPlayerHistoricStats.isNotEmpty
-                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
-                          ['motivation']
-                      .toDouble()
-                  : null,
+              [
+                if (listPlayerHistoricStats.isNotEmpty)
+                  ...listPlayerHistoricStats
+                      .map((stat) => stat['motivation'].toDouble())
+                      .toList(),
+                widget.player.motivation
+              ],
+              _playerHistoricStatsToDisplay,
               context),
           widget.player.getStatLinearWidget(
               'Form',
-              widget.player.form,
-              listPlayerHistoricStats.isNotEmpty
-                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
-                          ['form']
-                      .toDouble()
-                  : null,
+              [
+                if (listPlayerHistoricStats.isNotEmpty)
+                  ...listPlayerHistoricStats
+                      .map((stat) => stat['form'].toDouble())
+                      .toList(),
+                widget.player.form
+              ],
+              _playerHistoricStatsToDisplay,
               context),
           widget.player.getStatLinearWidget(
               'Stamina',
-              widget.player.stamina,
-              listPlayerHistoricStats.isNotEmpty
-                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
-                          ['stamina']
-                      .toDouble()
-                  : null,
+              [
+                if (listPlayerHistoricStats.isNotEmpty)
+                  ...listPlayerHistoricStats
+                      .map((stat) => stat['stamina'].toDouble())
+                      .toList(),
+                widget.player.stamina
+              ],
+              _playerHistoricStatsToDisplay,
               context),
-          // widget.player.getStatLinearWidget(
-          //     'Energy',
-          //     widget.player.experience,
-          //     listPlayerHistoricStats.isNotEmpty
-          //         ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
-          //                 ['energy']
-          //             .toDouble()
-          //         : null,
-          //     context),
+          widget.player.getStatLinearWidget(
+              'Energy',
+              [
+                if (listPlayerHistoricStats.isNotEmpty)
+                  ...listPlayerHistoricStats
+                      .map((stat) => stat['energy'].toDouble())
+                      .toList(),
+                widget.player.energy
+              ],
+              _playerHistoricStatsToDisplay,
+              context),
           widget.player.getStatLinearWidget(
               'Experience',
-              widget.player.experience,
-              listPlayerHistoricStats.isNotEmpty
-                  ? listPlayerHistoricStats[_playerHistoricStatsToDisplay]
-                          ['experience']
-                      .toDouble()
-                  : null,
+              [
+                if (listPlayerHistoricStats.isNotEmpty)
+                  ...listPlayerHistoricStats
+                      .map((stat) => stat['experience'].toDouble())
+                      .toList(),
+                widget.player.experience
+              ],
+              _playerHistoricStatsToDisplay,
               context),
         ],
       ),
@@ -238,7 +244,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
             _playerHistoricStatsLength > 0
                 ? 'Player Stats History'
                 : 'No Stats History',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            // style: TextStyle(fontWeight: FontWeight.bold),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -247,8 +253,9 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
                 icon: const Icon(Icons.arrow_back_ios),
                 onPressed: () {
                   setState(() {
-                    _playerHistoricStatsToDisplay =
-                        max(0, _playerHistoricStatsToDisplay - 1);
+                    _playerHistoricStatsToDisplay = min(
+                        _playerHistoricStatsLength - 1,
+                        _playerHistoricStatsToDisplay + 1);
                   });
                 },
               ),
@@ -256,9 +263,8 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
                 icon: const Icon(Icons.arrow_forward_ios),
                 onPressed: () {
                   setState(() {
-                    _playerHistoricStatsToDisplay = min(
-                        _playerHistoricStatsLength - 1,
-                        _playerHistoricStatsToDisplay + 1);
+                    _playerHistoricStatsToDisplay =
+                        max(0, _playerHistoricStatsToDisplay - 1);
                   });
                 },
               ),
@@ -267,7 +273,11 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
         ],
       ),
       subtitle: Text(
-        'Data from ${_playerHistoricStatsToDisplay + 1} weeks ago',
+        _playerHistoricStatsToDisplay == 0
+            ? 'No comparison'
+            : _playerHistoricStatsToDisplay == 1
+                ? 'Compare with last week'
+                : 'Compare with ${_playerHistoricStatsToDisplay} weeks ago',
         style: styleItalicBlueGrey,
       ),
       shape: shapePersoRoundedBorder(),

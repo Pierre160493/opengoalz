@@ -90,12 +90,12 @@ BEGIN
         (created_at, id_player, performance_score,
         expenses_payed, expenses_expected, expenses_missed,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, experience, training_points_used)
+        motivation, form, stamina, energy, experience, training_points_used)
     SELECT
         multiverse_now, id, performance_score,
         expenses_payed, expenses_expected, expenses_missed,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, experience, training_points_used
+        motivation, form, stamina, energy, experience, training_points_used
     FROM players
     WHERE id_multiverse = inp_multiverse.id;
 
