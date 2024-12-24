@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
+import 'package:opengoalz/models/player/playerHistoryWidget.dart';
 import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -177,7 +178,7 @@ class _PlayerCardState extends State<PlayerCard>
                       buildTabWithIcon(iconDetails, 'Details'),
                       buildTabWithIcon(iconTraining, 'Stats'),
                       // buildTabWithIcon(iconGames, 'Games'),
-                      buildTabWithIcon(iconHistory, 'Others')
+                      buildTabWithIcon(Icons.more_horiz, 'Others')
                     ],
                   ),
                   body: TabBarView(
@@ -201,7 +202,8 @@ class _PlayerCardState extends State<PlayerCard>
 
                       /// History tab
                       // widget.player.playerCardStatsWidget(context),
-                      PostItNote(player: widget.player),
+                      // PostItNote(player: widget.player),
+                      PlayerOtherTab()
                     ],
                   ),
                 ),
@@ -301,7 +303,7 @@ class _PlayerCardState extends State<PlayerCard>
                     tabs: [
                       buildTabWithIcon(iconDetails, 'Details'),
                       buildTabWithIcon(iconTraining, 'Stats'),
-                      buildTabWithIcon(iconHistory, 'Others')
+                      buildTabWithIcon(Icons.more_horiz, 'Others')
                     ],
                   ),
                   body: TabBarView(
@@ -335,13 +337,36 @@ class _PlayerCardState extends State<PlayerCard>
 
                       /// Others tab
                       // widget.player.playerCardStatsWidget(context),
-                      PostItNote(player: widget.player),
+                      // PostItNote(player: widget.player),
+                      PlayerOtherTab()
                     ],
                   ),
                 ),
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget PlayerOtherTab() {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: TabBar(
+          tabs: [
+            buildTabWithIcon(iconGames, 'Games'),
+            buildTabWithIcon(iconHistory, 'History'),
+          ],
+        ),
+        body: TabBarView(
+          children: [
+            // PlayerCardStatsWidget(player: widget.player),
+            PostItNote(player: widget.player),
+            // Placeholder(),
+            PlayerCardHistoryWidget(player: widget.player),
+          ],
+        ),
       ),
     );
   }

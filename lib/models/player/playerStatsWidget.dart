@@ -34,10 +34,10 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
         .eq('id_player', widget.player.id)
         .order('created_at');
 
-    _listenToPlayerHistoricStats();
+    _listenToPlayerHistoricStream();
   }
 
-  void _listenToPlayerHistoricStats() {
+  void _listenToPlayerHistoricStream() {
     _playerHistoricStatsStream.listen((data) {
       setState(() {
         listPlayerHistoricStats = data;

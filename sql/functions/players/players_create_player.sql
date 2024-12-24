@@ -74,21 +74,7 @@ BEGIN
 
     ------ Log player history
     INSERT INTO players_history (id_player, id_club, description)
-    VALUES (loc_new_player_id, inp_id_club, 'Joined a club as a free player');
-
-    -- ------ Store player's stats in the history
-    -- INSERT INTO players_history_stats
-    --     (id_player, performance_score,
-    --     expenses_payed, expenses_expected, expenses_missed,
-    --     keeper, defense, passes, playmaking, winger, scoring, freekick,
-    --     motivation, form, stamina, experience, training_points_used)
-    -- SELECT
-    --     id, performance_score,
-    --     expenses_payed, expenses_expected, expenses_missed,
-    --     keeper, defense, passes, playmaking, winger, scoring, freekick,
-    --     motivation, form, stamina, experience, training_points_used
-    -- FROM players
-    -- WHERE id = loc_new_player_id;
+    VALUES (loc_new_player_id, inp_id_club, 'Joined {' || (SELECT name FROM clubs WHERE id = inp_id_club) || '} as a free player');
 
     ------ Return the new player's ID
     RETURN loc_new_player_id;

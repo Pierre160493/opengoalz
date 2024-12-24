@@ -172,4 +172,21 @@ class Club {
             (map['expenses_players_ratio_target'] as num).toDouble(),
         leagueGoalsFor = map['league_goals_for'],
         leagueGoalsAgainst = map['league_goals_against'];
+
+  /// Fetch the club from its id
+  static Future<Club?> fromId(int id) async {
+    final stream = supabase
+        .from('clubs')
+        .stream(primaryKey: ['id'])
+        .eq('id', id)
+        .map((maps) => maps.map((map) => Club.fromMap(map)).first);
+
+    try {
+      final club = await stream.first;
+      return club;
+    } catch (e) {
+      print('Error fetching club: $e');
+      return null;
+    }
+  }
 }

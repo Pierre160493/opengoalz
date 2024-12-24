@@ -134,7 +134,7 @@ Widget getAgeListTile(Player player) {
     title: Row(
       children: [
         // Icon(iconAge, size: iconSizeMedium),
-        getAgeStringRow(player.age, player.multiverseSpeed),
+        getAgeStringRow(player.age),
       ],
     ),
     subtitle: Row(

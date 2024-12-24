@@ -6,12 +6,17 @@ DateTime calculateDateBirth(double age, int multiverseSpeed) {
   ));
 }
 
-double calculateAge(DateTime dateBirth, int multiverseSpeed) {
-  return DateTime.now().difference(dateBirth).inSeconds /
+double calculateAge(DateTime dateBirth, int multiverseSpeed, {DateTime? date}) {
+  date ??= DateTime.now();
+  return date.difference(dateBirth).inSeconds /
       (14 * 7 * 24 * 3600 / multiverseSpeed);
 }
 
-Widget getAgeStringRow(double age, int multiverseSpeed) {
+String getAgeString(double age) {
+  return '${age.truncate()} & ${(age % 1 * 14 * 7).floor()} days';
+}
+
+Widget getAgeStringRow(double age) {
   return Row(children: [
     Text(
       age.truncate().toString(),
@@ -23,7 +28,6 @@ Widget getAgeStringRow(double age, int multiverseSpeed) {
       ' & ',
     ),
     Text(
-      // ((age - age.truncate()) * 14 * 7 / multiverseSpeed).floor().toString(),
       ((age % 1) * 14 * 7).floor().toString(),
       style: TextStyle(
         fontWeight: FontWeight.bold,
