@@ -109,6 +109,8 @@ RoundedRectangleBorder shapePersoRoundedBorder([bool? isOK = null]) {
   );
 }
 
+String persoDateFormat = 'EEE dd MMM HH:mm';
+
 double iconSizeSmall = 24.0;
 double iconSizeMedium = 30.0;
 double iconSizeLarge = 36.0;

@@ -104,63 +104,82 @@ BEGIN
                             'Rough season... The League Season ' || inp_multiverse.season_number || ' has ended and we finished last ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
                         -- Other leagues play barrages to avoid relegation
                         ELSE
-                            'Rought season... The League Season ' || inp_multiverse.season_number || ' has ended and we finished last ! We will be demoted to the lower league... But don''t give up, we will come back stronger next season !'
+                            'Rough season... The League Season ' || inp_multiverse.season_number || ' has ended and we finished last ! We will be demoted to the lower league... But don''t give up, we will come back stronger next season !'
                         END
                 END AS message
             FROM club_league_info;
 
-            -- -- Insert into clubs_history table
-            -- INSERT INTO clubs_history (id_club, description)
-            -- SELECT
-            --     id AS id_club,
-            --     CASE
-            --         WHEN pos_league = 1 THEN
-            --             CASE WHEN id_upper_league IS NULL THEN
-            --                 'Champions of the highest league of the continent !'
-            --             ELSE
-            --                 'Champions of the league !'
-            --             END
-            --         WHEN pos_league = 2 THEN
-            --             CASE WHEN id_upper_league IS NULL THEN
-            --                 'Finished 2nd in the highest league of the continent !'
-            --             ELSE
-            --                 'Finished 2nd in the league !'
-            --             END
-            --         WHEN pos_league = 3 THEN
-            --             CASE WHEN id_upper_league IS NULL THEN
-            --                 'Finished 3rd in the highest league of the continent !'
-            --             ELSE
-            --                 'Finished 3rd in the league !'
-            --             END
-            --         WHEN pos_league = 4 THEN
-            --             CASE 
-            --                 WHEN id_upper_league IS NULL THEN
-            --                     'Finished 4th in the highest league of the continent !'
-            --                 WHEN id_lower_league IS NULL THEN
-            --                     'Finished 4th in the lowest league !'
-            --                 ELSE
-            --                     'Finished 4th in the league !'
-            --             END
-            --         WHEN pos_league = 5 THEN
-            --             CASE 
-            --                 WHEN id_upper_league IS NULL THEN
-            --                     'Finished 5th in the highest league of the continent !'
-            --                 WHEN id_lower_league IS NULL THEN
-            --                     'Finished 5th in the lowest league !'
-            --                 ELSE
-            --                     'Finished 5th in the league !'
-            --             END
-            --         WHEN pos_league = 6 THEN
-            --             CASE 
-            --                 WHEN id_upper_league IS NULL THEN
-            --                     'Finished 6th in the highest league of the continent !'
-            --                 WHEN id_lower_league IS NULL THEN
-            --                     'Finished 6th in the lowest league !'
-            --                 ELSE
-            --                     'Finished 6th in the league !'
-            --             END
-            --     END AS description
-            -- FROM club_league_info;
+            ------ Insert into clubs_history table
+            INSERT INTO clubs_history (id_club, description)
+            SELECT
+                clubs.id AS id_club,
+                CASE
+                    WHEN pos_league = 1 THEN
+                        CASE WHEN id_upper_league IS NULL THEN
+                            'Champions of the highest league of the continent !'
+                        ELSE
+                            'Champions of the league !'
+                        END
+                    WHEN pos_league = 2 THEN
+                        CASE WHEN id_upper_league IS NULL THEN
+                            'Finished 2nd in the highest league of the continent !'
+                        ELSE
+                            'Finished 2nd in the league !'
+                        END
+                    WHEN pos_league = 3 THEN
+                        CASE WHEN id_upper_league IS NULL THEN
+                            'Finished 3rd in the highest league of the continent !'
+                        ELSE
+                            'Finished 3rd in the league !'
+                        END
+                    WHEN pos_league = 4 THEN
+                        CASE 
+                            WHEN id_upper_league IS NULL THEN
+                                'Finished 4th in the highest league of the continent !'
+                            WHEN id_lower_league IS NULL THEN
+                                'Finished 4th in the lowest league !'
+                            ELSE
+                                'Finished 4th in the league !'
+                        END
+                    WHEN pos_league = 5 THEN
+                        CASE 
+                            WHEN id_upper_league IS NULL THEN
+                                'Finished 5th in the highest league of the continent !'
+                            WHEN id_lower_league IS NULL THEN
+                                'Finished 5th in the lowest league !'
+                            ELSE
+                                'Finished 5th in the league !'
+                        END
+                    WHEN pos_league = 6 THEN
+                        CASE 
+                            WHEN id_upper_league IS NULL THEN
+                                'Finished 6th in the highest league of the continent !'
+                            WHEN id_lower_league IS NULL THEN
+                                'Finished 6th in the lowest league !'
+                            ELSE
+                                'Finished 6th in the league !'
+                        END
+                END AS description
+            FROM clubs
+            JOIN leagues ON clubs.id_league = leagues.id
+            WHERE clubs.id_multiverse = inp_multiverse.id;
+
+            -- Insert into players_history table
+            INSERT INTO players_history (id_player, id_club, description)
+            SELECT
+                players.id AS id_player, players.id_club AS id_club,
+                'End of season ' || inp_multiverse.season_number || ': ' || 
+                CASE
+                    WHEN clubs.pos_league = 1 THEN 'Champions of the league !'
+                    WHEN clubs.pos_league = 2 THEN 'Finished 2nd in the league !'
+                    WHEN clubs.pos_league = 3 THEN 'Finished 3rd in the league !'
+                    WHEN clubs.pos_league = 4 THEN 'Finished 4th in the league !'
+                    WHEN clubs.pos_league = 5 THEN 'Finished 5th in the league !'
+                    WHEN clubs.pos_league = 6 THEN 'Finished 6th in the league !'
+                END AS description
+            FROM players
+            JOIN clubs ON players.id_club = clubs.id
+            WHERE clubs.id_multiverse = inp_multiverse.id;
 
         ---- Handle the 13th week of the season ==> Intercontinental Cup Leagues are finished
         WHEN inp_multiverse.week_number = 13 THEN

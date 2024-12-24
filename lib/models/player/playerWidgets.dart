@@ -141,7 +141,7 @@ Widget getAgeListTile(Player player) {
       children: [
         Icon(Icons.event, size: iconSizeSmall),
         formSpacer3,
-        Text(DateFormat('dd MMMM yyyy').format(player.dateBirth),
+        Text(DateFormat(persoDateFormat).format(player.dateBirth),
             style:
                 TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey)),
       ],

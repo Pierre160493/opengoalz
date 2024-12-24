@@ -355,16 +355,15 @@ class _PlayerCardState extends State<PlayerCard>
       child: Scaffold(
         appBar: TabBar(
           tabs: [
-            buildTabWithIcon(iconGames, 'Games'),
+            // buildTabWithIcon(iconGames, 'Games'),
             buildTabWithIcon(iconHistory, 'History'),
+            buildTabWithIcon(iconNotesBig, 'Notes'),
           ],
         ),
         body: TabBarView(
           children: [
-            // PlayerCardStatsWidget(player: widget.player),
-            PostItNote(player: widget.player),
-            // Placeholder(),
             PlayerCardHistoryWidget(player: widget.player),
+            PostItNote(player: widget.player),
           ],
         ),
       ),

@@ -92,7 +92,7 @@ class _PlayerCardHistoryWidgetState extends State<PlayerCardHistoryWidget> {
                             size: iconSizeSmall,
                           ),
                           Text(
-                            'Date: ${DateFormat('yyyy-MM-dd – kk:mm').format(DateTime.parse(history['created_at']))}',
+                            'Date: ${DateFormat(persoDateFormat).format(DateTime.parse(history['created_at']))}',
                             style: styleItalicBlueGrey,
                           ),
                         ],

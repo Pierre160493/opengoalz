@@ -54,7 +54,7 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
         .copyWith(second: 0, millisecond: 0, microsecond: 0);
     _isDateValid = true;
     _dateController.text =
-        DateFormat('EEE dd MMM HH:mm').format(_selectedDateTime);
+        DateFormat(persoDateFormat).format(_selectedDateTime);
   }
 
   void _initializePlayerStream() {
@@ -152,7 +152,7 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
             pickedTime.minute,
           );
           _dateController.text =
-              DateFormat('EEE dd MMM HH:mm').format(_selectedDateTime);
+              DateFormat(persoDateFormat).format(_selectedDateTime);
           _formKey.currentState?.validate();
         });
       }
