@@ -16,6 +16,7 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/clubCardHistoryWidget.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -111,76 +112,90 @@ class _ClubPageState extends State<ClubPage> {
                       size: 48,
                       color: isSelectedClub ? colorIsSelected : Colors.green,
                     ), // Icon to indicate club
-                    title: InkWell(
-                      onTap: () {
-                        isSelectedClub
-                            ? showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  String inputText = '';
-                                  return AlertDialog(
-                                    title: const Text('Change Club Name'),
-                                    content: TextField(
-                                      onChanged: (value) {
-                                        inputText = value;
-                                      },
-                                      decoration: const InputDecoration(
-                                          hintText: "Enter the new club name"),
-                                    ),
-                                    actions: <Widget>[
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          TextButton(
-                                            child: persoCancelRow,
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
-                                          TextButton(
-                                            child: Row(
-                                              children: [
-                                                Icon(iconSuccessfulOperation,
-                                                    color: Colors.green),
-                                                formSpacer3,
-                                                const Text('Submit'),
-                                              ],
-                                            ),
-                                            onPressed: () async {
-                                              bool isOK = await operationInDB(
-                                                  context, 'UPDATE', 'clubs',
-                                                  data: {
-                                                    'name': inputText
-                                                  },
-                                                  matchCriteria: {
-                                                    'id': club.id
-                                                  });
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        /// Club name with possibility to change it
+                        InkWell(
+                          onTap: () {
+                            isSelectedClub
+                                ? showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      String inputText = '';
+                                      return AlertDialog(
+                                        title: const Text('Change Club Name'),
+                                        content: TextField(
+                                          onChanged: (value) {
+                                            inputText = value;
+                                          },
+                                          decoration: const InputDecoration(
+                                              hintText:
+                                                  "Enter the new club name"),
+                                        ),
+                                        actions: <Widget>[
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              TextButton(
+                                                child: persoCancelRow,
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                        iconSuccessfulOperation,
+                                                        color: Colors.green),
+                                                    formSpacer3,
+                                                    const Text('Submit'),
+                                                  ],
+                                                ),
+                                                onPressed: () async {
+                                                  bool isOK =
+                                                      await operationInDB(
+                                                          context,
+                                                          'UPDATE',
+                                                          'clubs',
+                                                          data: {
+                                                        'name': inputText
+                                                      },
+                                                          matchCriteria: {
+                                                        'id': club.id
+                                                      });
 
-                                              if (isOK) {
-                                                context.showSnackBarSuccess(
-                                                    'Successfully updated the club name to $inputText');
-                                                Navigator.of(context)
-                                                    .pop(); // Close the dialog
-                                              }
-                                              Navigator.of(context).pop();
-                                            },
+                                                  if (isOK) {
+                                                    context.showSnackBarSuccess(
+                                                        'Successfully updated the club name to $inputText');
+                                                    Navigator.of(context)
+                                                        .pop(); // Close the dialog
+                                                  }
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                            ],
                                           ),
                                         ],
-                                      ),
-                                    ],
-                                  );
-                                },
-                              )
-                            : null;
-                      },
-                      child: Text(
-                        club.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24, // Increase the font size as needed
+                                      );
+                                    },
+                                  )
+                                : null;
+                          },
+                          child: Text(
+                            club.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24, // Increase the font size as needed
+                            ),
+                          ),
                         ),
-                      ),
+
+                        /// Get last results
+                        club.getLastResultsWidget(context),
+                      ],
                     ),
                     subtitle: Row(
                       children: [
@@ -195,6 +210,16 @@ class _ClubPageState extends State<ClubPage> {
                         ),
                       ],
                     ),
+                    shape: shapePersoRoundedBorder(),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ClubCardHistoryWidget(club: club),
+                        ),
+                      );
+                    },
                   ),
                   formSpacer6,
 

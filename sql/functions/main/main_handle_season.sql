@@ -113,53 +113,14 @@ BEGIN
             INSERT INTO clubs_history (id_club, description)
             SELECT
                 clubs.id AS id_club,
+                'Finished ' ||
                 CASE
-                    WHEN pos_league = 1 THEN
-                        CASE WHEN id_upper_league IS NULL THEN
-                            'Champions of the highest league of the continent !'
-                        ELSE
-                            'Champions of the league !'
-                        END
-                    WHEN pos_league = 2 THEN
-                        CASE WHEN id_upper_league IS NULL THEN
-                            'Finished 2nd in the highest league of the continent !'
-                        ELSE
-                            'Finished 2nd in the league !'
-                        END
-                    WHEN pos_league = 3 THEN
-                        CASE WHEN id_upper_league IS NULL THEN
-                            'Finished 3rd in the highest league of the continent !'
-                        ELSE
-                            'Finished 3rd in the league !'
-                        END
-                    WHEN pos_league = 4 THEN
-                        CASE 
-                            WHEN id_upper_league IS NULL THEN
-                                'Finished 4th in the highest league of the continent !'
-                            WHEN id_lower_league IS NULL THEN
-                                'Finished 4th in the lowest league !'
-                            ELSE
-                                'Finished 4th in the league !'
-                        END
-                    WHEN pos_league = 5 THEN
-                        CASE 
-                            WHEN id_upper_league IS NULL THEN
-                                'Finished 5th in the highest league of the continent !'
-                            WHEN id_lower_league IS NULL THEN
-                                'Finished 5th in the lowest league !'
-                            ELSE
-                                'Finished 5th in the league !'
-                        END
-                    WHEN pos_league = 6 THEN
-                        CASE 
-                            WHEN id_upper_league IS NULL THEN
-                                'Finished 6th in the highest league of the continent !'
-                            WHEN id_lower_league IS NULL THEN
-                                'Finished 6th in the lowest league !'
-                            ELSE
-                                'Finished 6th in the league !'
-                        END
-                END AS description
+                    WHEN pos_league = 1 THEN '1st'
+                    WHEN pos_league = 2 THEN '2nd'
+                    WHEN pos_league = 3 THEN '3rd'
+                    ELSE pos_league || 'th'
+                END
+                || ' of league ' || leagues.level || '.' || leagues.number AS description
             FROM clubs
             JOIN leagues ON clubs.id_league = leagues.id
             WHERE clubs.id_multiverse = inp_multiverse.id;
@@ -177,8 +138,8 @@ BEGIN
                     WHEN clubs.pos_league = 5 THEN '5th'
                     WHEN clubs.pos_league = 6 THEN '6th'
                 END
-                || ' with {' || clubs.name || '} in the league' ||
-                leagues.level || '.' || leagues.number || ' of ' || leagues.continent || '}'
+                || ' with {' || clubs.name || '} in the league ' ||
+                leagues.level || '.' || leagues.number || ' of ' || leagues.continent
                 AS description
             FROM players
             JOIN clubs ON players.id_club = clubs.id

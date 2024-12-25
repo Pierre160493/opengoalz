@@ -1,31 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/functions/AgeAndBirth.dart';
-import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 
-class PlayerCardHistoryWidget extends StatefulWidget {
-  final Player player;
+class ClubCardHistoryWidget extends StatefulWidget {
+  final Club club;
 
-  const PlayerCardHistoryWidget({Key? key, required this.player})
-      : super(key: key);
+  const ClubCardHistoryWidget({Key? key, required this.club}) : super(key: key);
 
   @override
-  _PlayerCardHistoryWidgetState createState() =>
-      _PlayerCardHistoryWidgetState();
+  _ClubCardHistoryWidgetState createState() => _ClubCardHistoryWidgetState();
 }
 
-class _PlayerCardHistoryWidgetState extends State<PlayerCardHistoryWidget> {
-  late Stream<List<Map>> _playerHistoryStream;
+class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
+  late Stream<List<Map>> _clubHistoryStream;
 
   @override
   void initState() {
     super.initState();
 
-    _playerHistoryStream = supabase
-        .from('players_history')
+    _clubHistoryStream = supabase
+        .from('clubs_history')
         .stream(primaryKey: ['id'])
-        .eq('id_player', widget.player.id)
+        .eq('id_club', widget.club.id)
         .order('created_at');
   }
 
@@ -58,7 +55,7 @@ class _PlayerCardHistoryWidgetState extends State<PlayerCardHistoryWidget> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Map>>(
-      stream: _playerHistoryStream,
+      stream: _clubHistoryStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -67,12 +64,12 @@ class _PlayerCardHistoryWidgetState extends State<PlayerCardHistoryWidget> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(child: Text('No data available'));
         } else {
-          List<Map> listPlayerHistory = snapshot.data!;
+          List<Map> listClubHistory = snapshot.data!;
           return Expanded(
             child: ListView.builder(
-              itemCount: listPlayerHistory.length,
+              itemCount: listClubHistory.length,
               itemBuilder: (context, index) {
-                final history = listPlayerHistory[index];
+                final history = listClubHistory[index];
                 return ListTile(
                   leading: Icon(iconHistory,
                       color: Colors.green, size: iconSizeMedium),
@@ -81,35 +78,15 @@ class _PlayerCardHistoryWidgetState extends State<PlayerCardHistoryWidget> {
                         history['description'] ?? 'No description'),
                   ),
                   subtitle: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            iconCalendar,
-                            color: Colors.blueGrey,
-                            size: iconSizeSmall,
-                          ),
-                          Text(
-                            'Date: ${DateFormat(persoDateFormat).format(DateTime.parse(history['created_at']))}',
-                            style: styleItalicBlueGrey,
-                          ),
-                        ],
+                      Icon(
+                        iconCalendar,
+                        color: Colors.blueGrey,
+                        size: iconSizeSmall,
                       ),
-                      Row(
-                        children: [
-                          Icon(
-                            iconAge,
-                            color: Colors.blueGrey,
-                            size: iconSizeSmall,
-                          ),
-                          Text(
-                            getAgeString(calculateAge(widget.player.dateBirth,
-                                widget.player.multiverseSpeed,
-                                date: DateTime.parse(history['created_at']))),
-                            style: styleItalicBlueGrey,
-                          ),
-                        ],
+                      Text(
+                        'Date: ${DateFormat(persoDateFormat).format(DateTime.parse(history['created_at']))}',
+                        style: styleItalicBlueGrey,
                       ),
                     ],
                   ),

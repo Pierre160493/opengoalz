@@ -20,7 +20,6 @@ class PlayerLineChartDialogBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('chartData.yValues: ${chartData.yValues}');
     if (chartData.yValues.isEmpty) {
       return Center(
         child: Text(
@@ -65,7 +64,6 @@ class PlayerLineChartDialogBox extends StatelessWidget {
                   showTitles: true,
                   reservedSize: 40,
                   getTitlesWidget: (value, meta) {
-                    print('value: $value');
                     if (value == data.length - 1) {
                       return Text(
                         'now',

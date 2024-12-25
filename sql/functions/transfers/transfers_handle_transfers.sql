@@ -52,13 +52,21 @@ BEGIN
                         player.full_name || ' not sold and leaves the club',
                         player.full_name || ' has not received any bid, the selling is over and he is not part of the club anymore. He is now clubless and was removed from the club''s teamcomps.');
 
+                    -- Insert a new row in the clubs_history table
+                    INSERT INTO clubs_history
+                        (id_club, description)
+                        VALUES (
+                            player.id_club,
+                            '{' || player.full_name || '} was fired because no bids were made on him'
+                    );
+
                     -- Insert a new row in the players_history table
                     INSERT INTO players_history
                         (id_player, id_club, description)
                         VALUES (
                             player.id, player.id_club,
-                            'Left club because no bids were made on him'
-                        );
+                            'Left {' || (SELECT name FROM clubs WHERE id = id_club) || '} because no bids were made on him'
+                    );
 
                     -- Update the player to set him as clubless
                     UPDATE players SET
@@ -93,6 +101,15 @@ BEGIN
                         (player.id_club, player.date_bid_end, 'Treasurer',
                         player.full_name || ' not sold and stays in the club',
                         player.full_name || ' has not received any bid, the selling is canceled and he will stay in the club');
+
+                    -- Insert a new row in the players_history table
+                    INSERT INTO players_history
+                        (id_player, id_club, description)
+                    VALUES (
+                        player.id,
+                        player.id_club,
+                        'Put on transfer list by {' || (SELECT name FROM clubs WHERE id = player.id_club) || '} but no bids were made'
+                    );
 
                     -- Update the player to remove the date bid end
                     UPDATE players SET
@@ -150,13 +167,21 @@ BEGIN
 
             END IF;
 
+            -- Insert a new row in the clubs_history table
+            INSERT INTO clubs_history
+                (id_club, description)
+            VALUES (
+                player.id_club,
+                '{' || player.full_name || '} joined the club for ' || last_bid.amount
+            );
+
             -- Insert a new row in the players_history table
             INSERT INTO players_history
                 (id_player, id_club, description)
                 VALUES (
                     player.id,
                     player.id_club,
-                    'Transfered to new club for ' || last_bid.amount
+                    'Joined {' || (SELECT name FROM clubs WHERE id = player.id_club) || '} for ' || last_bid.amount
                 );
 
             -- Update id_club of player
