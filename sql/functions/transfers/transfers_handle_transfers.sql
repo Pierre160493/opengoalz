@@ -80,7 +80,7 @@ BEGIN
                         PERFORM teamcomp_check_or_correct_errors(
                             inp_id_teamcomp := teamcomp.id,
                             inp_bool_try_to_correct := TRUE,
-                            inp_bool_notify_user := TRUE);
+                            inp_bool_notify_user := FALSE);
                     END LOOP;
 
                 -- Then the player is not sold
@@ -145,7 +145,7 @@ BEGIN
                     PERFORM teamcomp_check_or_correct_errors(
                         inp_id_teamcomp := teamcomp.id,
                         inp_bool_try_to_correct := TRUE,
-                        inp_bool_notify_user := TRUE);
+                        inp_bool_notify_user := FALSE);
                 END LOOP;
 
             END IF;

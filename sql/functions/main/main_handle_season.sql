@@ -170,16 +170,21 @@ BEGIN
                 players.id AS id_player, players.id_club AS id_club,
                 'End of season ' || inp_multiverse.season_number || ': ' || 
                 CASE
-                    WHEN clubs.pos_league = 1 THEN 'Champions of the league !'
-                    WHEN clubs.pos_league = 2 THEN 'Finished 2nd in the league !'
-                    WHEN clubs.pos_league = 3 THEN 'Finished 3rd in the league !'
-                    WHEN clubs.pos_league = 4 THEN 'Finished 4th in the league !'
-                    WHEN clubs.pos_league = 5 THEN 'Finished 5th in the league !'
-                    WHEN clubs.pos_league = 6 THEN 'Finished 6th in the league !'
-                END AS description
+                    WHEN clubs.pos_league = 1 THEN 'Champions'
+                    WHEN clubs.pos_league = 2 THEN '2nd'
+                    WHEN clubs.pos_league = 3 THEN '3rd'
+                    WHEN clubs.pos_league = 4 THEN '4th'
+                    WHEN clubs.pos_league = 5 THEN '5th'
+                    WHEN clubs.pos_league = 6 THEN '6th'
+                END
+                || ' with {' || clubs.name || '} in the league' ||
+                leagues.level || '.' || leagues.number || ' of ' || leagues.continent || '}'
+                AS description
             FROM players
             JOIN clubs ON players.id_club = clubs.id
-            WHERE clubs.id_multiverse = inp_multiverse.id;
+            JOIN leagues ON leagues.id = clubs.id_league
+            WHERE clubs.id_multiverse = inp_multiverse.id
+            AND id_club IS NOT NULL;
 
         ---- Handle the 13th week of the season ==> Intercontinental Cup Leagues are finished
         WHEN inp_multiverse.week_number = 13 THEN
