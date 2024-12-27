@@ -1,6 +1,13 @@
 -- DROP FUNCTION public.players_create_player(int8, int8, int8, _float8, float8, int8, text);
 
-CREATE OR REPLACE FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_stats double precision[], inp_age double precision, inp_shirt_number bigint DEFAULT NULL::bigint, inp_notes text DEFAULT NULL::text)
+CREATE OR REPLACE FUNCTION public.players_create_player(
+    inp_id_multiverse bigint,
+    inp_id_club bigint,
+    inp_id_country bigint,
+    inp_stats double precision[],
+    inp_age double precision,
+    inp_shirt_number bigint DEFAULT NULL::bigint,
+    inp_notes text DEFAULT NULL::text)
  RETURNS bigint
  LANGUAGE plpgsql
 AS $function$
@@ -68,7 +75,7 @@ BEGIN
             WHEN inp_notes = 'Old Experienced player' THEN 'OLDXP'
             WHEN inp_notes = 'Youngster 1' THEN 'YOUNG1'
             WHEN inp_notes = 'Youngster 2' THEN 'YOUNG2'
-            ELSE NULL
+            ELSE 'None'
         END)
     RETURNING id INTO loc_new_player_id;
 

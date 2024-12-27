@@ -3,6 +3,7 @@
 CREATE OR REPLACE FUNCTION public.simulate_game_fetch_random_player_id_based_on_weight_array(
     inp_array_player_ids bigint[],
     inp_array_weights real[] DEFAULT NULL::real[],
+    inp_offset_values real DEFAULT NULL::real,
     inp_null_possible boolean DEFAULT false)
  RETURNS bigint
  LANGUAGE plpgsql
@@ -16,6 +17,11 @@ BEGIN
     IF inp_array_weights IS NULL THEN
         FOR I IN 1..loc_number_of_elements LOOP
             inp_array_weights[I] := 1;
+        END LOOP;
+    END IF;
+    IF inp_offset_values IS NOT NULL THEN
+        FOR I IN 1..loc_number_of_elements LOOP
+            inp_array_weights[I] := inp_array_weights[I] + inp_offset_values;
         END LOOP;
     END IF;
 

@@ -52,19 +52,19 @@ start_time := clock_timestamp();
         
             -- Measure time for main_handle_clubs
 --RAISE NOTICE '*** MAIN: Running Handle Clubs...';
-start_time := clock_timestamp();
+--start_time := clock_timestamp();
             PERFORM main_handle_clubs(multiverse);
 --RAISE NOTICE 'XXXXXX => Took: % seconds', EXTRACT(EPOCH FROM (clock_timestamp() - start_time));
 
             -- Measure time for main_handle_players
 --RAISE NOTICE '*** MAIN: Running Handle Players...';
-start_time := clock_timestamp();
+--start_time := clock_timestamp();
             PERFORM main_handle_players(multiverse);
 --RAISE NOTICE '=> Took: % seconds', EXTRACT(EPOCH FROM (clock_timestamp() - start_time));
 
             -- Measure time for main_handle_season
 -- RAISE NOTICE '*** MAIN: Running Handle Season...';
-start_time := clock_timestamp();
+--start_time := clock_timestamp();
             PERFORM main_handle_season(multiverse);
 --RAISE NOTICE '=> Took: % seconds', EXTRACT(EPOCH FROM (clock_timestamp() - start_time));
 
@@ -76,6 +76,8 @@ start_time := clock_timestamp();
 
             -- Refresh the multiverse record to get the updated week_number
             SELECT * INTO multiverse FROM multiverses WHERE id = multiverse.id;
+
+            EXIT;
 
         END LOOP; -- End of the WHILE loop
 

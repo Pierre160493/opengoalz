@@ -118,10 +118,10 @@ BEGIN
     ), player_data2 AS (
         SELECT 
             id, -- Player's id
-            training_points_available + 3 * (0.5 + 0.5 * staff_coef) * (
-                LEAST(1.0,
-                    1.0 - (player_data.age - 15.0) / 10.0)
-            ) AS updated_training_points_available, -- Updated training points based on age and staff weight
+            training_points_available + 3
+                * (0.5 + 0.5 * staff_coef) 
+                * (25 - player_data.age) / 10.0
+                AS updated_training_points_available, -- Updated training points based on age and staff weight
             training_coef, -- Array of coef for each stat
             staff_weight, -- Staff weight of the club
             staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]

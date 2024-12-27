@@ -30,7 +30,6 @@ BEGIN
                 AND now() > date_start
                 ORDER BY season_number, week_number, id)
         LOOP
---RAISE NOTICE 'game.date_start = %', game.date_start;
 
             -- Simulate the game
             PERFORM simulate_game_main(inp_id_game := game.id);

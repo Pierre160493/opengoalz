@@ -1,6 +1,9 @@
 -- DROP FUNCTION public.simulate_game_goal_opportunity(record, game_context, bool);
 
-CREATE OR REPLACE FUNCTION public.simulate_game_goal_opportunity(rec_game record, context game_context, is_left_club boolean)
+CREATE OR REPLACE FUNCTION public.simulate_game_goal_opportunity(
+    rec_game record,
+    context game_context,
+    is_left_club boolean)
  RETURNS TABLE(is_goal boolean)
  LANGUAGE plpgsql
 AS $function$
@@ -79,10 +82,11 @@ BEGIN
             FOR J IN 1..14 LOOP
                 loc_array_weights[J] := loc_array_attack_multiplier[J] * loc_matrix_side_multiplier[J][I] * loc_matrix_player_stats_attack[J][loc_pos_striking]; -- Calculate the multiplier to fetch players for the event
             END LOOP;
---RAISE NOTICE '*** Fetch Attacker: %', loc_array_weights;
+RAISE NOTICE '*** Fetch Attacker: %', loc_array_weights;
             loc_id_player_attack = simulate_game_fetch_random_player_id_based_on_weight_array(
                 inp_array_player_ids := loc_array_player_ids_attack[1:14],
                 inp_array_weights := loc_array_weights,
+                inp_offset_values := 1,
                 inp_null_possible := true); -- Fetch the player who scored for this event
             
             -- Fetch the player who made the pass if an attacker was found
@@ -93,10 +97,11 @@ BEGIN
                         loc_array_weights[J] = 0; -- Set the attacker to 0 cause he cant be passer
                     END IF;
                 END LOOP;
---RAISE NOTICE '*** Fetch Passer: %', loc_array_weights;
+RAISE NOTICE '*** Fetch Passer: %', loc_array_weights;
                 loc_id_player_passer = simulate_game_fetch_random_player_id_based_on_weight_array(
                     inp_array_player_ids := loc_array_player_ids_attack[1:14],
                     inp_array_weights := loc_array_weights,
+                    inp_offset_values := 1,
                     inp_null_possible := true); -- Fetch the player who passed the ball to the striker for this event
             END IF;
 
@@ -108,10 +113,11 @@ BEGIN
                     loc_array_weights[J] = 0;
                 END IF;
             END LOOP;
---RAISE NOTICE '*** Fetch Defender: %', loc_array_weights;
+RAISE NOTICE '*** Fetch Defender: %', loc_array_weights;
             loc_id_player_defense = simulate_game_fetch_random_player_id_based_on_weight_array(
                 inp_array_player_ids := loc_array_player_ids_defense[1:14],
                 inp_array_weights := loc_array_weights,
+                inp_offset_values := 1,
                 inp_null_possible := true); -- Fetch the opponent player responsible for the goal (only for description)
 
              -- Weight of the attack

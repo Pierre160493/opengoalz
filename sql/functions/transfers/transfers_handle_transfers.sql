@@ -65,7 +65,7 @@ BEGIN
                         (id_player, id_club, description)
                         VALUES (
                             player.id, player.id_club,
-                            'Left {' || (SELECT name FROM clubs WHERE id = id_club) || '} because no bids were made on him'
+                            'Left {' || (SELECT name FROM clubs WHERE id = player.id_club) || '} because no bids were made on him'
                     );
 
                     -- Update the player to set him as clubless
@@ -171,7 +171,7 @@ BEGIN
             INSERT INTO clubs_history
                 (id_club, description)
             VALUES (
-                player.id_club,
+                last_bid.id_club,
                 '{' || player.full_name || '} joined the club for ' || last_bid.amount
             );
 

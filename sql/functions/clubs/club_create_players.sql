@@ -85,8 +85,8 @@ BEGIN
         inp_id_country := loc_id_country,
         inp_stats := ARRAY[
             0 + POWER(RANDOM(), 3) * 5, -- keeper
-            20 + RANDOM() * 5, -- defense
-            10 + RANDOM() * 5, -- passes
+            20 + RANDOM() * 10, -- defense
+            15 + RANDOM() * 5, -- passes
             5 + RANDOM() * 5, -- playmaking
             10 + RANDOM() * 5, -- winger
             5 + RANDOM() * 5, -- scoring
@@ -105,9 +105,9 @@ BEGIN
         inp_stats := ARRAY[
             0 + POWER(RANDOM(), 3) * 5, -- keeper
             10 + RANDOM() * 5, -- defense
-            5 + RANDOM() * 5, -- passes
+            10 + RANDOM() * 5, -- passes
             0 + RANDOM() * 5, -- playmaking
-            5 + RANDOM() * 5, -- winger
+            10 + RANDOM() * 5, -- winger
             0 + RANDOM() * 5, -- scoring
             0 + POWER(RANDOM(), 3) * 10], -- freekick
         inp_age := 16 + 4 * RANDOM(),
@@ -143,7 +143,7 @@ BEGIN
         inp_stats := ARRAY[
             0 + POWER(RANDOM(), 3) * 5, -- keeper
             20 + RANDOM() * 10, -- defense
-            10 + RANDOM() * 5, -- passes
+            20 + RANDOM() * 5, -- passes
             10 + RANDOM() * 5, -- playmaking
             0 + RANDOM() * 5, -- winger
             0 + RANDOM() * 5, -- scoring
@@ -162,7 +162,7 @@ BEGIN
         inp_stats := ARRAY[
             0 + POWER(RANDOM(), 3) * 5, -- keeper
             10 + RANDOM() * 5, -- defense
-            5 + RANDOM() * 5, -- passes
+            10 + RANDOM() * 5, -- passes
             5 + RANDOM() * 5, -- playmaking
             0 + RANDOM() * 5, -- winger
             0 + RANDOM() * 5, -- scoring
@@ -278,7 +278,7 @@ BEGIN
         inp_stats := ARRAY[
             0 + POWER(RANDOM(), 3) * 5, -- keeper
             5 + RANDOM() * 5, -- defense
-            5 + RANDOM() * 5, -- passes
+            10 + RANDOM() * 5, -- passes
             0 + RANDOM() * 5, -- playmaking
             10 + RANDOM() * 5, -- winger
             0 + RANDOM() * 5, -- scoring
@@ -336,7 +336,7 @@ BEGIN
         inp_stats := ARRAY[
             0 + POWER(RANDOM(), 3) * 5, -- keeper
             0 + RANDOM() * 5, -- defense
-            5 + RANDOM() * 5, -- passes
+            10 + RANDOM() * 5, -- passes
             5 + RANDOM() * 5, -- playmaking
             0 + RANDOM() * 5, -- winger
             10 + RANDOM() * 10, -- scoring

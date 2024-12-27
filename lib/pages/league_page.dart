@@ -13,12 +13,14 @@ import '../constants.dart';
 class LeaguePage extends StatefulWidget {
   final int idLeague;
   final int? idSelectedClub;
+  final int? seasonNumber;
   final bool isReturningBotClub;
 
   const LeaguePage({
     Key? key,
     required this.idLeague,
     this.idSelectedClub,
+    this.seasonNumber,
     this.isReturningBotClub = false,
   }) : super(key: key);
 
@@ -39,12 +41,16 @@ class LeaguePage extends StatefulWidget {
 
 class _RankingPageState extends State<LeaguePage> {
   late Stream<League> _leagueStream;
+  late int? _selectedSeason;
 
   @override
   void initState() {
     super.initState();
+    _selectedSeason = widget.seasonNumber;
+    _fetchLeagueData();
+  }
 
-    // Fetch the league data
+  void _fetchLeagueData() {
     _leagueStream = supabase
         .from('leagues')
         .stream(primaryKey: ['id'])
@@ -53,6 +59,13 @@ class _RankingPageState extends State<LeaguePage> {
             .map((map) =>
                 League.fromMap(map, idSelectedClub: widget.idSelectedClub))
             .first)
+        .map((League league) {
+          if (_selectedSeason == null) {
+            _selectedSeason = league
+                .seasonNumber; // Initialize with the season number from the stream
+          }
+          return league;
+        })
         .switchMap((League league) {
           return supabase
               .from('games')
@@ -64,8 +77,7 @@ class _RankingPageState extends State<LeaguePage> {
                   .toList())
               .map((games) {
                 league.games = games
-                    .where(
-                        (Game game) => game.seasonNumber == league.seasonNumber)
+                    .where((Game game) => game.seasonNumber == _selectedSeason)
                     .toList();
                 return league;
               });
@@ -225,6 +237,32 @@ class _RankingPageState extends State<LeaguePage> {
                 length: 3,
                 child: Column(
                   children: [
+                    ListTile(
+                      leading: IconButton(
+                        icon: Icon(Icons.arrow_back),
+                        onPressed: () {
+                          setState(() {
+                            if (_selectedSeason != null) {
+                              _selectedSeason = (_selectedSeason! - 1)
+                                  .clamp(1, _selectedSeason!);
+                              _fetchLeagueData();
+                            }
+                          });
+                        },
+                      ),
+                      title: Text('Season ${_selectedSeason ?? 'N/A'}'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.arrow_forward),
+                        onPressed: () {
+                          setState(() {
+                            if (_selectedSeason != null) {
+                              _selectedSeason = _selectedSeason! + 1;
+                              _fetchLeagueData();
+                            }
+                          });
+                        },
+                      ),
+                    ),
                     TabBar(
                       tabs: [
                         buildTabWithIcon(
