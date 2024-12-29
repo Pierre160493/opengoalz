@@ -41,7 +41,7 @@ class LeaguePage extends StatefulWidget {
 
 class _RankingPageState extends State<LeaguePage> {
   late Stream<League> _leagueStream;
-  late int? _selectedSeason;
+  int? _selectedSeason;
 
   @override
   void initState() {
@@ -50,7 +50,7 @@ class _RankingPageState extends State<LeaguePage> {
     _fetchLeagueData();
   }
 
-  void _fetchLeagueData() {
+  Future<void> _fetchLeagueData() async {
     _leagueStream = supabase
         .from('leagues')
         .stream(primaryKey: ['id'])
@@ -59,26 +59,30 @@ class _RankingPageState extends State<LeaguePage> {
             .map((map) =>
                 League.fromMap(map, idSelectedClub: widget.idSelectedClub))
             .first)
-        .map((League league) {
+        .asyncExpand((League league) async* {
           if (_selectedSeason == null) {
             _selectedSeason = league
                 .seasonNumber; // Initialize with the season number from the stream
           }
-          return league;
-        })
-        .switchMap((League league) {
-          return supabase
+          print('Selected season: $_selectedSeason');
+          List<int> gamesIds = await supabase
+              .from('games')
+              .select('id')
+              .eq('id_league', widget.idLeague)
+              .eq('season_number', _selectedSeason!)
+              .then((value) => value.map((e) => e['id'] as int).toList());
+          print('Games ids: $gamesIds');
+          yield league;
+          yield* supabase
               .from('games')
               .stream(primaryKey: ['id'])
-              .eq('id_league', league.id)
+              .inFilter('id', gamesIds)
               .order('date_start', ascending: true)
               .map((maps) => maps
                   .map((map) => Game.fromMap(map, widget.idSelectedClub))
                   .toList())
-              .map((games) {
-                league.games = games
-                    .where((Game game) => game.seasonNumber == _selectedSeason)
-                    .toList();
+              .map((List<Game> games) {
+                league.games = games;
                 return league;
               });
         })
