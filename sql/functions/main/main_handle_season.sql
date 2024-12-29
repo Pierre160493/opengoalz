@@ -114,14 +114,15 @@ BEGIN
             INSERT INTO clubs_history (id_club, description)
             SELECT
                 clubs.id AS id_club,
-                'Finished ' ||
+                'Season ' || inp_multiverse.season_number || 'Finished ' ||
                 CASE
                     WHEN pos_league = 1 THEN '1st'
                     WHEN pos_league = 2 THEN '2nd'
                     WHEN pos_league = 3 THEN '3rd'
                     ELSE pos_league || 'th'
                 END
-                || ' of league ' || leagues.level || '.' || leagues.number AS description
+                -- || ' of {idLeague: ' || leagues.id || ',S:' || inp_multiverse.season_number || ',league' || leagues.level || '.' || leagues.number || '}' AS description
+                || ' of {idLeague: ' || leagues.id || ',league' || leagues.level || '.' || leagues.number || '} of {Continent: ' || leagues.continent || '}' AS description
             FROM clubs
             JOIN leagues ON clubs.id_league = leagues.id
             WHERE clubs.id_multiverse = inp_multiverse.id;
@@ -130,7 +131,7 @@ BEGIN
             INSERT INTO players_history (id_player, id_club, description)
             SELECT
                 players.id AS id_player, players.id_club AS id_club,
-                'End of season ' || inp_multiverse.season_number || ': ' || 
+                'Season ' || inp_multiverse.season_number || ': ' || 
                 CASE
                     WHEN clubs.pos_league = 1 THEN 'Champions'
                     WHEN clubs.pos_league = 2 THEN '2nd'
@@ -139,8 +140,8 @@ BEGIN
                     WHEN clubs.pos_league = 5 THEN '5th'
                     WHEN clubs.pos_league = 6 THEN '6th'
                 END
-                || ' with {' || clubs.name || '} in the league ' ||
-                leagues.level || '.' || leagues.number || ' of ' || leagues.continent
+                || ' of {idLeague:' || leagues.id || ',S:' || inp_multiverse.season_number || ',league' || leagues.level || '.' || leagues.number || '}
+                with {idClub:' || clubs.id || ',' || clubs.name || '}'
                 AS description
             FROM players
             JOIN clubs ON players.id_club = clubs.id
@@ -285,7 +286,7 @@ BEGIN
                 VALUES
                     (loc_record.id, 'Coach', inp_multiverse.date_now,
                     'New young player from scouting network',
-                    '{' || players_get_full_name(loc_id_player) || '} joined the squad from our scouting network, they say it''s a future star !');
+                    '{idPlayer:' || loc_id_player || ',' || player_get_full_name(loc_id_player) || '} joined the squad from our scouting network, they say it''s a future star !');
 
             END LOOP;
 

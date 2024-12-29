@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
@@ -12,6 +11,7 @@ import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
+import 'package:quiver/iterables.dart' as quiver;
 
 class FinancesPage extends StatefulWidget {
   final int idClub;
@@ -29,9 +29,22 @@ class FinancesPage extends StatefulWidget {
 
 class _FinancesPageState extends State<FinancesPage> {
   // late final Stream<List<Map<String, dynamic>>> _financeStream;
+  late Club _club;
   bool _showCashCurve = true;
   bool _showRevenuesCurve = true;
   bool _showExpensesCurve = true;
+  late int _selectedWeek;
+  int? _revenuesSponsors;
+  int? _revenuesTransfersDone;
+  int? _expensesSalaries;
+  int? _expensesStaff;
+  int? _expensesScouts;
+  int? _expensesTaxes;
+  int? _expensesTransfersDone;
+  int? _revenuesTotal;
+  int? _expensesTotal;
+  int? _weeklyTotal;
+  List<int> _lisWeeklyTotal = [];
 
   @override
   void initState() {
@@ -49,6 +62,19 @@ class _FinancesPageState extends State<FinancesPage> {
     //             })
     //         .toList());
 
+    _club = Provider.of<SessionProvider>(context, listen: false)
+        .user!
+        .selectedClub!;
+
+    _selectedWeek = 0;
+
+    _calculateValues();
+
+    _lisWeeklyTotal = quiver
+        .zip([_club.lisRevenues, _club.lisExpenses])
+        .map((pair) => pair[0] - pair[1])
+        .toList();
+
     super.initState();
   }
 
@@ -64,6 +90,65 @@ class _FinancesPageState extends State<FinancesPage> {
         return PlayerLineChartDialogBox(chartData: chartData);
       },
     );
+  }
+
+  void _calculateValues() {
+    if (_selectedWeek == 0) {
+      _revenuesSponsors = _club.revenuesSponsors;
+      _expensesSalaries = _club.expensesPlayers;
+      _expensesStaff = _club.expensesStaffTarget;
+      _expensesScouts = _club.expensesScoutsTarget;
+      _expensesTaxes = (_club.cash * 0.05).floor();
+      _revenuesTransfersDone = _club.revenuesTransfersDone;
+      _expensesTransfersDone = _club.expensesTransfersDone;
+      _revenuesTotal = _revenuesSponsors! + _revenuesTransfersDone!;
+      _expensesTotal = _expensesSalaries! +
+          _expensesStaff! +
+          _expensesScouts! +
+          _expensesTaxes! +
+          _expensesTransfersDone!;
+    } else {
+      /// Sponsors
+      _revenuesSponsors =
+          _getValueFromList(_club.lisRevenuesSponsors, _selectedWeek);
+
+      /// Salaries
+      _expensesSalaries =
+          _getValueFromList(_club.lisExpensesPlayers, _selectedWeek);
+
+      /// Staff
+      _expensesStaff = _getValueFromList(_club.lisExpensesStaff, _selectedWeek);
+
+      /// Scouts
+      _expensesScouts =
+          _getValueFromList(_club.lisExpensesScouts, _selectedWeek);
+
+      /// Taxes
+      _expensesTaxes = _getValueFromList(_club.lisExpensesTax, _selectedWeek);
+
+      /// Transfers
+      _revenuesTransfersDone =
+          _getValueFromList(_club.lisRevenuesTransfers, _selectedWeek);
+
+      _expensesTransfersDone =
+          _getValueFromList(_club.lisExpensesTransfers, _selectedWeek);
+
+      /// Total
+      _revenuesTotal = _getValueFromList(_club.lisRevenues, _selectedWeek);
+
+      _expensesTotal = _getValueFromList(_club.lisExpenses, _selectedWeek);
+    }
+
+    try {
+      _weeklyTotal = _revenuesTotal! - _expensesTotal!;
+    } catch (e) {
+      _weeklyTotal = null;
+    }
+  }
+
+  int? _getValueFromList(List<int> list, int selectedWeek) {
+    int length = list.length;
+    return length >= selectedWeek ? list[length - selectedWeek] : null;
   }
 
   @override
@@ -113,18 +198,79 @@ class _FinancesPageState extends State<FinancesPage> {
           /// Club cash
           getClubCashListTile(context, club),
 
-          /// Start table
-          Text(
-            'Last week revenues and expenses',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              decoration: TextDecoration.underline,
+          ListTile(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _selectedWeek == 0
+                      ? 'Current Week'
+                      : _selectedWeek == 1
+                          ? 'Last week'
+                          : '${_selectedWeek} weeks ago',
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Previous 7 weeks',
+                      icon: Icon(Icons.keyboard_double_arrow_left),
+                      onPressed: () {
+                        setState(() {
+                          _selectedWeek = _selectedWeek + 7;
+                          _calculateValues();
+                        });
+                      },
+                    ),
+                    IconButton(
+                      tooltip: 'Previous week',
+                      icon: Icon(Icons.keyboard_arrow_left),
+                      onPressed: () {
+                        setState(() {
+                          _selectedWeek = _selectedWeek + 1;
+                          _calculateValues();
+                        });
+                      },
+                    ),
+                    IconButton(
+                      tooltip: 'Next week',
+                      icon: Icon(Icons.keyboard_arrow_right),
+                      onPressed: _selectedWeek == 0
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedWeek = max(0, _selectedWeek - 1);
+                                _calculateValues();
+                              });
+                            },
+                    ),
+                    IconButton(
+                      tooltip: 'Next 7 weeks',
+                      icon: Icon(Icons.keyboard_double_arrow_right),
+                      onPressed: _selectedWeek == 0
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedWeek = max(0, _selectedWeek - 7);
+                                _calculateValues();
+                              });
+                            },
+                    ),
+                  ],
+                ),
+              ],
             ),
+            leading: Icon(Icons.more_time,
+                color: Colors.green, size: iconSizeMedium),
+            shape: shapePersoRoundedBorder(),
           ),
+
+          /// Table
+
           Center(
             child: DataTable(
+              /// Table header
               columns: [
+                /// Revenues
                 DataColumn(
                   label: InkWell(
                     onTap: () {
@@ -133,6 +279,8 @@ class _FinancesPageState extends State<FinancesPage> {
                     child: buildTabWithIcon(Icons.trending_up, 'Revenues'),
                   ),
                 ),
+
+                /// Expenses
                 DataColumn(
                   label: InkWell(
                     onTap: () {
@@ -144,31 +292,87 @@ class _FinancesPageState extends State<FinancesPage> {
                 ),
               ],
               rows: [
+                /// 1st row
                 DataRow(cells: [
-                  DataCell(Tooltip(
-                    message:
-                        'Last Season: ${club.revenuesSponsorsLastSeason == null ? 'None' : club.revenuesSponsorsLastSeason}',
-                    child: _getDataCellRow(
-                        'Sponsors', club.lisRevenuesSponsors, Colors.green),
+                  /// Revenues Sponsors
+                  DataCell(_getDataCellRow(
+                      'Sponsors',
+                      'Last Season: ${club.revenuesSponsorsLastSeason == null ? 'None' : club.revenuesSponsorsLastSeason}',
+                      _revenuesSponsors,
+                      club.lisRevenuesSponsors,
+                      Colors.green)),
+
+                  /// Expenses Players
+                  DataCell(_getDataCellRow('Salaries', 'Last week paied salary',
+                      _expensesSalaries, club.lisExpensesPlayers, Colors.red)),
+                ]),
+
+                /// 2nd row
+                DataRow(cells: [
+                  DataCell(Text('')),
+                  DataCell(_getDataCellRow('Staff', 'Staff per week',
+                      _expensesStaff, club.lisExpensesStaff, Colors.red)),
+                ]),
+
+                /// 3rd row
+                DataRow(cells: [
+                  DataCell(Text('')),
+                  DataCell(_getDataCellRow('Scouts', 'Scouts per week',
+                      _expensesScouts, club.lisExpensesStaff, Colors.red)),
+                ]),
+
+                /// 4th row
+                DataRow(cells: [
+                  DataCell(Text('')),
+                  DataCell(_getDataCellRow('Taxes', '5% of the club' 's cash',
+                      _expensesTaxes, club.lisExpensesTax, Colors.red)),
+                ]),
+                DataRow(cells: [
+                  DataCell(_getDataCellRow(
+                      'Transfers',
+                      'Revenues from sold players',
+                      _revenuesTransfersDone,
+                      club.lisRevenuesTransfers,
+                      Colors.green)),
+                  DataCell(_getDataCellRow(
+                      'Transfers',
+                      'Expenses from bought players',
+                      _expensesTransfersDone,
+                      club.lisExpensesTransfers,
+                      Colors.red)),
+                ]),
+                if (_selectedWeek == 0)
+                  DataRow(cells: [
+                    DataCell(_getDataCellRow(
+                        '    (expected)',
+                        'Expected revenues from selling players',
+                        club.revenuesTransfersExpected,
+                        club.lisRevenuesTransfers,
+                        Colors.green)),
+                    DataCell(_getDataCellRow(
+                        '    (expected)',
+                        'Expected revenues from buying players',
+                        club.expensesTransfersExpected,
+                        club.lisExpensesTransfers,
+                        Colors.red)),
+                  ]),
+
+                /// Total
+                DataRow(cells: [
+                  DataCell(_getDataCellRow('Total', 'Weekly Revenues',
+                      _revenuesTotal, club.lisRevenues, Colors.green)),
+                  DataCell(_getDataCellRow('Total', 'Weekly expenses',
+                      _expensesTotal, club.lisExpenses, Colors.red)),
+                ]),
+                DataRow(cells: [
+                  DataCell(Text('')),
+                  DataCell(_getDataCellRow(
+                    'Total',
+                    'Difference between revenues and expenses',
+                    _weeklyTotal,
+                    _lisWeeklyTotal,
+                    (_weeklyTotal ?? 0) < 0 ? Colors.red : Colors.green,
                   )),
-                  DataCell(_getDataCellRow(
-                      'Salaries', club.lisExpensesPlayers, Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('')),
-                  DataCell(_getDataCellRow(
-                      'Staff', club.lisExpensesStaff, Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('')),
-                  DataCell(_getDataCellRow(
-                      'Taxes', club.lisExpensesTax, Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(
-                      _getDataCellRow('Total', club.lisRevenues, Colors.green)),
-                  DataCell(
-                      _getDataCellRow('Total', club.lisExpenses, Colors.red)),
                 ]),
               ],
             ),
@@ -178,21 +382,26 @@ class _FinancesPageState extends State<FinancesPage> {
     );
   }
 
-  Widget _getDataCellRow(String title, List<int> data, Color color) {
-    return ListTile(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(width: 120, child: Text(title, style: styleItalicBlueGrey)),
-          Text(
-            NumberFormat.decimalPattern().format(data.last),
-            style: TextStyle(fontWeight: FontWeight.bold, color: color),
-          ),
-        ],
+  Widget _getDataCellRow(String title, String tooltipMessage, int? value,
+      List<int> data, Color color) {
+    return Tooltip(
+      message: tooltipMessage,
+      child: ListTile(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+                width: 120, child: Text(title, style: styleItalicBlueGrey)),
+            Text(
+              value == null ? '?' : persoFormatCurrency(value),
+              style: TextStyle(fontWeight: FontWeight.bold, color: color),
+            ),
+          ],
+        ),
+        onTap: () {
+          _showChartDialog(context, title, data);
+        },
       ),
-      onTap: () {
-        _showChartDialog(context, title, data);
-      },
     );
   }
 

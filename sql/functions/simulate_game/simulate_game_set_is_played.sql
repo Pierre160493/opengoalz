@@ -32,25 +32,25 @@ BEGIN
                 WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
                 ELSE rec_game.score_left || '-' || rec_game.score_right
             END || 
-            ' against ' || rec_game.club_right_name;
+            ' against {idClub:' || rec_game.id_club_right || ',' || rec_game.club_right_name || '}';
         text_title_right := 'S' || rec_game.season_number || 'W' || rec_game.week_number || ': Defeat ' ||
             CASE 
                 WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
                 ELSE rec_game.score_right || '-' || rec_game.score_left
             END || 
-            ' against ' || rec_game.club_left_name;
+            ' against {idClub:' || rec_game.id_club_left || ',' || rec_game.club_left_name || '}';
         text_message_left := 'We have won ' || 
             CASE 
                 WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
                 ELSE rec_game.score_left || '-' || rec_game.score_right
             END ||
-            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_right_name;
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against {idClub:' || rec_game.id_club_right || ',' || rec_game.club_right_name || '}';
         text_message_right := 'We have lost ' ||
             CASE 
                 WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
                 ELSE rec_game.score_right || '-' || rec_game.score_left
             END ||
-            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_left_name;
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against {idClub:' || rec_game.id_club_left || ',' || rec_game.club_left_name || '}';
 
     -- Right club won
     ELSEIF rec_game.score_diff < 0 THEN
@@ -59,25 +59,25 @@ BEGIN
                 WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
                 ELSE rec_game.score_left || '-' || rec_game.score_right
             END || 
-            ' against ' || rec_game.club_right_name;
+            ' against {idClub:' || rec_game.id_club_right || ',' || rec_game.club_right_name || '}';
         text_title_right := 'S' || rec_game.season_number || 'W' || rec_game.week_number || ': Victory ' ||
             CASE 
                 WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
                 ELSE rec_game.score_right || '-' || rec_game.score_left
             END || 
-            ' against ' || rec_game.club_left_name;
+            ' against {idClub:' || rec_game.id_club_left || ',' || rec_game.club_left_name || '}';
         text_message_left := 'We have lost ' ||
             CASE 
                 WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
                 ELSE rec_game.score_left || '-' || rec_game.score_right
             END ||
-            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_right_name;
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against {idClub:' || rec_game.id_club_right || ',' || rec_game.club_right_name || '}';
         text_message_right := 'We have won ' ||
             CASE 
                 WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
                 ELSE rec_game.score_right || '-' || rec_game.score_left
             END ||
-            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_left_name;
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against {idClub:' || rec_game.id_club_left || ',' || rec_game.club_left_name || '}';
 
     -- Draw
     ELSE
@@ -87,25 +87,25 @@ BEGIN
                 WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
                 ELSE rec_game.score_left || '-' || rec_game.score_right
             END || 
-            ' against ' || rec_game.club_right_name;
+            ' against {idClub:' || rec_game.id_club_right || ',' || rec_game.club_right_name || '}';
         text_title_right := 'S' || rec_game.season_number || 'W' || rec_game.week_number || ': Draw ' ||
             CASE 
                 WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
                 ELSE rec_game.score_right || '-' || rec_game.score_left
             END || 
-            ' against ' || rec_game.club_left_name;
+            ' against {idClub:' || rec_game.id_club_left || ',' || rec_game.club_left_name || '}';
         text_message_left := 'We have drawn ' ||
             CASE 
                 WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
                 ELSE rec_game.score_left || '-' || rec_game.score_right
             END ||
-            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_right_name;
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against {idClub:' || rec_game.id_club_right || ',' || rec_game.club_right_name || '}';
         text_message_right := 'We have drawn ' ||
             CASE 
                 WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
                 ELSE rec_game.score_right || '-' || rec_game.score_left
             END ||
-            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.club_left_name;
+            ' the game of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against {idClub:' || rec_game.id_club_left || ',' || rec_game.club_left_name || '}';
 
     END IF;
 
@@ -138,8 +138,8 @@ BEGIN
         -- Left club won
         IF rec_game.score_diff_total > 0 THEN
             
-RAISE NOTICE '*** 1A: Left Club % (from league= %) won the game % (type= 212) and will be promoted to league: %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.id_league;
-RAISE NOTICE '*** 1A: Right Club % (from league= %) lost the game % (type= 212) and will play barrage game against 5th of upper league', rec_game.id_club_right, rec_game.club_right_league, rec_game.id;
+-- RAISE NOTICE '*** 1A: Left Club % (from league= %) won the game % (type= 212) and will be promoted to league: %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.id_league;
+-- RAISE NOTICE '*** 1A: Right Club % (from league= %) lost the game % (type= 212) and will play barrage game against 5th of upper league', rec_game.id_club_right, rec_game.club_right_league, rec_game.id;
             -- Left club won barrage 1, he is promoted to the upper league
             UPDATE clubs SET
                 pos_league_next_season = 6,
@@ -147,7 +147,7 @@ RAISE NOTICE '*** 1A: Right Club % (from league= %) lost the game % (type= 212) 
                 id_league_next_season = rec_game.id_league
             WHERE id = rec_game.id_club_left;
 
-RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %', (SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), rec_game.id_league, rec_game.club_left_league;
+-- RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %', (SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), rec_game.id_league, rec_game.club_left_league;
             -- 6th of the upper league is automatically droped down to the league of the winner of barrage 1
             UPDATE clubs SET
                 pos_league_next_season = 3,
@@ -171,15 +171,15 @@ RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %
         -- Right club won
         ELSE
 
-RAISE NOTICE '*** 1B: Left Club % (from league= %) lost the game % (type= 212) and will play barrage game against 5th of upper league', rec_game.id_club_left, rec_game.club_left_league, rec_game.id;
-RAISE NOTICE '*** 1B: Right Club % (from league= %) won the game % (type= 212) and will be promoted to league: %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.id_league;
+-- RAISE NOTICE '*** 1B: Left Club % (from league= %) lost the game % (type= 212) and will play barrage game against 5th of upper league', rec_game.id_club_left, rec_game.club_left_league, rec_game.id;
+-- RAISE NOTICE '*** 1B: Right Club % (from league= %) won the game % (type= 212) and will be promoted to league: %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.id_league;
             -- Right club won barrage 1, he is promoted to the upper league
             UPDATE clubs SET
                 pos_league_next_season = 6,
                 id_league_next_season = rec_game.id_league
             WHERE id = rec_game.id_club_right;
 
-RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %', (SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), rec_game.id_league, rec_game.club_right_league;
+-- RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %', (SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), rec_game.id_league, rec_game.club_right_league;
 
             -- 6th of the upper league is automatically droped down to the league of the winner of barrage 1
             UPDATE clubs SET
@@ -208,8 +208,8 @@ RAISE NOTICE 'Club % (from league= %) who finished 6th will go down to league: %
         -- Left club (5th of upper league) won so both clubs stay in their league
         IF rec_game.score_diff > 0 THEN
             -- 5th of upper league won, both clubs stay at their place and league
-RAISE NOTICE '*** 2A: Left Club % (from league= %) won the game % (type= 214) and will stay in current league %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.club_left_league;
-RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will stay in current league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_right_league;
+-- RAISE NOTICE '*** 2A: Left Club % (from league= %) won the game % (type= 214) and will stay in current league %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.club_left_league;
+-- RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will stay in current league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_right_league;
 
             -- Send messages
             text_title_left := text_title_left || ': BARRAGE2 Victory => We avoided relegation';
@@ -220,8 +220,8 @@ RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will
         -- Right club (loser of barrage 1) won so he is promoted to the league of the 5th of the upper league
         ELSE
 
-RAISE NOTICE '*** 2B: Left Club % (from league= %) lost the game % (type= 214) and will be demoted to league %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.club_right_league;
-RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will be promoted to league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_left_league;
+-- RAISE NOTICE '*** 2B: Left Club % (from league= %) lost the game % (type= 214) and will be demoted to league %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.club_right_league;
+-- RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will be promoted to league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_left_league;
             -- 5th of upper league lost, 5th of upper league will be demoted to the league of the winner of the game (loser of barrage 1)
             UPDATE clubs SET
                 -- pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_right),
@@ -248,8 +248,8 @@ RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will 
         -- Left club (4th of upper league) won, both clubs stay in their league
         IF rec_game.score_diff > 0 THEN
 
-RAISE NOTICE '*** 3A: Left Club % (from league= %) won the game % (type= 214) and will stay in current league %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.club_left_league;
-RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will stay in current league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_right_league;
+-- RAISE NOTICE '*** 3A: Left Club % (from league= %) won the game % (type= 214) and will stay in current league %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.club_left_league;
+-- RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will stay in current league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_right_league;
 
             -- Send messages
             text_title_left := text_title_left || ': BARRAGE3 Victory => We avoided relegation';
@@ -260,8 +260,8 @@ RAISE NOTICE 'Right Club % (from league= %) lost the game % (type= 214) and will
         -- Right club (winner of the 2nd round of the barrage 2) won
         ELSE
 
-RAISE NOTICE '*** 3B: Left Club % (from league= %) lost the game % (type= 214) and will be demoted to league %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.club_right_league;
-RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will be promoted to league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_left_league;
+-- RAISE NOTICE '*** 3B: Left Club % (from league= %) lost the game % (type= 214) and will be demoted to league %', rec_game.id_club_left, rec_game.club_left_league, rec_game.id, rec_game.club_right_league;
+-- RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will be promoted to league %', rec_game.id_club_right, rec_game.club_right_league, rec_game.id, rec_game.club_left_league;
 
             UPDATE clubs SET
                 -- pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_right),

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/widgets/descriptionParser.dart';
 
 class PlayerCardHistoryWidget extends StatefulWidget {
   final Player player;
@@ -29,32 +30,6 @@ class _PlayerCardHistoryWidgetState extends State<PlayerCardHistoryWidget> {
         .order('created_at');
   }
 
-  TextSpan _parseDescription(String description) {
-    final RegExp regex = RegExp(r'\{(.+?)\}');
-    final List<TextSpan> spans = [];
-    int start = 0;
-
-    for (final match in regex.allMatches(description)) {
-      if (match.start > start) {
-        spans.add(TextSpan(text: description.substring(start, match.start)));
-      }
-      spans.add(TextSpan(
-        text: match.group(1),
-        style: TextStyle(
-          color: Colors.blue,
-          decoration: TextDecoration.underline,
-        ),
-      ));
-      start = match.end;
-    }
-
-    if (start < description.length) {
-      spans.add(TextSpan(text: description.substring(start)));
-    }
-
-    return TextSpan(children: spans);
-  }
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Map>>(
@@ -77,8 +52,8 @@ class _PlayerCardHistoryWidgetState extends State<PlayerCardHistoryWidget> {
                   leading: Icon(iconHistory,
                       color: Colors.green, size: iconSizeMedium),
                   title: RichText(
-                    text: _parseDescription(
-                        history['description'] ?? 'No description'),
+                    text: parseDescriptionTextSpan(
+                        context, history['description'] ?? 'No description'),
                   ),
                   subtitle: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

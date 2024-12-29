@@ -5,6 +5,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/pages/calendar_page.dart';
 import 'package:opengoalz/pages/mails_page.dart';
+import 'package:opengoalz/pages/scouts_page.dart';
 import 'package:opengoalz/pages/staff_page.dart';
 import 'package:opengoalz/pages/teamCompsPage.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -119,6 +120,12 @@ class AppDrawer extends StatelessWidget {
             iconStaff,
             'Staff',
             StaffPage(idClub: selectedClub.id),
+          ), // Add the Staff page
+          buildDrawerOption(
+            context,
+            iconScouts,
+            'Scouts',
+            ScoutsPage(idClub: selectedClub.id),
           ), // Add the Staff page
           // buildDrawerOption(
           //   context,

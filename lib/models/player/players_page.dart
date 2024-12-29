@@ -207,7 +207,7 @@ class _PlayersPageState extends State<PlayersPage> {
                     _initializeStreams();
                   });
                 },
-                icon: Icon(Icons.refresh, color: Colors.green),
+                icon: Icon(Icons.refresh, color: Colors.orange),
               ),
             IconButton(
               tooltip: 'Modify Search Criterias',
@@ -228,14 +228,15 @@ class _PlayersPageState extends State<PlayersPage> {
                   }
                 });
               },
-              icon: Icon(Icons.person_search),
+              icon: Icon(Icons.person_search, color: Colors.green),
             ),
             IconButton(
                 tooltip: 'Sort players by...',
                 onPressed: () {
                   showSortingOptions(context, setState, players);
                 },
-                icon: Icon(Icons.align_horizontal_left_rounded)),
+                icon: Icon(Icons.align_horizontal_left_rounded,
+                    color: Colors.green)),
           ],
         ),
         drawer: (widget.isReturningPlayer || players.length == 1)

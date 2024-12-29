@@ -8,6 +8,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/descriptionParser.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
@@ -456,15 +457,18 @@ class _MailsPageState extends State<MailsPage> {
                     Expanded(
                       child: Tooltip(
                         message: mail.title,
-                        child: Text(
-                          mail.title,
-                          style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                            fontWeight: FontWeight.bold,
-                            // color: Colors.blueGrey
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
+                        // child: Text(
+                        //   mail.title,
+                        //   style: TextStyle(
+                        //     fontStyle: FontStyle.italic,
+                        //     fontWeight: FontWeight.bold,
+                        //     // color: Colors.blueGrey
+                        //   ),
+                        //   overflow: TextOverflow.ellipsis,
+                        //   maxLines: 1,
+                        // ),
+                        child: RichText(
+                          text: parseDescriptionTextSpan(context, mail.title),
                         ),
                       ),
                     ),
@@ -485,11 +489,14 @@ class _MailsPageState extends State<MailsPage> {
                     padding: const EdgeInsets.all(16.0),
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        mail.message,
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                        ),
+                      // child: Text(
+                      //   mail.message,
+                      //   style: TextStyle(
+                      //     fontStyle: FontStyle.italic,
+                      //   ),
+                      // ),
+                      child: RichText(
+                        text: parseDescriptionTextSpan(context, mail.message),
                       ),
                     ),
                   ),

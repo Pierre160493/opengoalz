@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supabase client
@@ -33,7 +34,7 @@ const iconCash = Icons.savings_outlined;
 const icon_fans = Icons.campaign_outlined;
 const icon_stadium = Icons.stadium_outlined;
 const iconStaff = Icons.engineering_outlined;
-const icon_scouts = Icons.camera_indoor_outlined;
+const iconScouts = Icons.manage_search;
 const iconInjury = Icons.healing;
 const icon_players = Icons.group;
 const iconTransfers = Icons.currency_exchange;
@@ -107,6 +108,18 @@ RoundedRectangleBorder shapePersoRoundedBorder([bool? isOK = null]) {
       width: 2.0, // Border width
     ),
   );
+}
+
+String persoFormatCurrency(int amount) {
+  return NumberFormat.currency(
+    locale: 'en_US',
+    symbol: '',
+    decimalDigits: 0,
+  ).format(amount).replaceAll(',', ' ');
+}
+
+String formatDate(DateTime date) {
+  return DateFormat(persoDateFormat).format(date);
 }
 
 String persoDateFormat = 'EEE dd MMM HH:mm';

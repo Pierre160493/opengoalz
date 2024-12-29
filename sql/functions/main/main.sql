@@ -46,7 +46,6 @@ start_time := clock_timestamp();
 --RAISE NOTICE '=> Took: % seconds', EXTRACT(EPOCH FROM (clock_timestamp() - start_time));
         
             if bool_week_finished = FALSE THEN
-                RAISE NOTICE '****** MAIN: Multiverse [%] S% WEEK % is not finished yet', multiverse.name, multiverse.season_number, multiverse.week_number;
                 EXIT;
             END IF;
         
@@ -74,10 +73,13 @@ start_time := clock_timestamp();
                 week_number = week_number + 1
             WHERE id = multiverse.id;
 
-            -- Refresh the multiverse record to get the updated week_number
+            ------ Refresh the multiverse record to get the updated week_number
             SELECT * INTO multiverse FROM multiverses WHERE id = multiverse.id;
 
-            EXIT;
+            ------ Check if the multiverse is at a new season
+            IF multiverse.week_number = 1 THEN
+                EXIT;
+            END IF;
 
         END LOOP; -- End of the WHILE loop
 

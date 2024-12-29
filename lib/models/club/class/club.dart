@@ -79,6 +79,18 @@ class Club {
     required this.expensesPlayersRatioTarget,
     required this.leagueGoalsFor,
     required this.leagueGoalsAgainst,
+    required this.scoutsWeight,
+    required this.expensesScoutsTarget,
+    required this.lisScoutsWeight,
+    required this.lisExpensesScouts,
+    required this.scoutingSearch,
+    required this.expensesScoutsApplied,
+    required this.expensesTransfersDone,
+    required this.expensesTransfersExpected,
+    required this.lisExpensesTransfers,
+    required this.revenuesTransfersDone,
+    required this.revenuesTransfersExpected,
+    required this.lisRevenuesTransfers,
   });
 
   final int id;
@@ -122,6 +134,18 @@ class Club {
   final List<int> lisExpensesTax;
   final List<int> lisStaffWeight;
   final List<int> lisRevenuesSponsors;
+  final double scoutsWeight;
+  final int expensesScoutsTarget;
+  final List<int> lisScoutsWeight;
+  final List<int> lisExpensesScouts;
+  final List<int> scoutingSearch;
+  final int expensesScoutsApplied;
+  final int expensesTransfersDone;
+  final int expensesTransfersExpected;
+  final List<int> lisExpensesTransfers;
+  final int revenuesTransfersDone;
+  final int revenuesTransfersExpected;
+  final List<int> lisRevenuesTransfers;
 
   Club.fromMap(Map<String, dynamic> map,
       {List<int>? myClubsIds, int? idSelectedClub})
@@ -171,7 +195,19 @@ class Club {
         expensesPlayersRatioTarget =
             (map['expenses_players_ratio_target'] as num).toDouble(),
         leagueGoalsFor = map['league_goals_for'],
-        leagueGoalsAgainst = map['league_goals_against'];
+        leagueGoalsAgainst = map['league_goals_against'],
+        scoutsWeight = (map['scouts_weight'] as num).toDouble(),
+        expensesScoutsTarget = map['expenses_scouts_target'],
+        lisScoutsWeight = List<int>.from(map['lis_scouts_weight']),
+        lisExpensesScouts = List<int>.from(map['lis_expenses_scouts']),
+        scoutingSearch = List<int>.from(map['scouting_search']),
+        expensesScoutsApplied = map['expenses_scouts_applied'],
+        expensesTransfersDone = map['expenses_transfers_done'],
+        expensesTransfersExpected = map['expenses_transfers_expected'],
+        lisExpensesTransfers = List<int>.from(map['lis_expenses_transfers']),
+        revenuesTransfersDone = map['revenues_transfers_done'],
+        revenuesTransfersExpected = map['revenues_transfers_expected'],
+        lisRevenuesTransfers = List<int>.from(map['lis_revenues_transfers']);
 
   /// Fetch the club from its id
   static Future<Club?> fromId(int id) async {

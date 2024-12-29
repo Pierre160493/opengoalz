@@ -75,9 +75,17 @@ BEGIN
             END IF;
 
             -- Reset available cash for previous bidder
-            UPDATE clubs
-                SET cash = cash + (latest_bid.amount)
+            UPDATE clubs SET
+                cash = cash + latest_bid.amount,
+                expenses_transfers_expected = expenses_transfers_expected - latest_bid.amount
             WHERE id = latest_bid.id_club;
+
+            -- Update the selling club expected revenues
+            IF rec_player.id_club IS NOT NULL THEN
+                UPDATE clubs SET
+                    revenues_transfers_expected = revenues_transfers_expected - latest_bid.amount
+                WHERE id = rec_player.id_club;
+            END IF;
             
             -- Send message to previous bidder
             INSERT INTO messages_mail (id_club_to, sender_role, title, message)
@@ -94,8 +102,16 @@ BEGIN
 
         ---- Decrease available cash for current bidder
         UPDATE clubs SET
-            cash =  cash - inp_amount
+            cash =  cash - inp_amount,
+            expenses_transfers_expected = expenses_transfers_expected + inp_amount
             WHERE id = inp_id_club_bidder;
+
+        ---- Update the selling club expected revenues
+        IF rec_player.id_club IS NOT NULL THEN
+            UPDATE clubs SET
+                revenues_transfers_expected = revenues_transfers_expected + inp_amount
+            WHERE id = rec_player.id_club;
+        END IF;
 
         ---- Update players table with the new transfer_price and date_bid_end
         UPDATE players SET

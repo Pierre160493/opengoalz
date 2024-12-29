@@ -57,7 +57,7 @@ BEGIN
                         (id_club, description)
                         VALUES (
                             player.id_club,
-                            '{' || player.full_name || '} was fired because no bids were made on him'
+                            '{idPlayer:' || player.id || ',' || player.full_name || '} was fired because no bids were made on him'
                     );
 
                     -- Insert a new row in the players_history table
@@ -65,7 +65,7 @@ BEGIN
                         (id_player, id_club, description)
                         VALUES (
                             player.id, player.id_club,
-                            'Left {' || (SELECT name FROM clubs WHERE id = player.id_club) || '} because no bids were made on him'
+                            'Left {idClub:' || player.id_club || ',' || (SELECT name FROM clubs WHERE id = player.id_club) || '} because no bids were made on him'
                     );
 
                     -- Update the player to set him as clubless
@@ -108,7 +108,7 @@ BEGIN
                     VALUES (
                         player.id,
                         player.id_club,
-                        'Put on transfer list by {' || (SELECT name FROM clubs WHERE id = player.id_club) || '} but no bids were made'
+                        'Put on transfer list by {idClub:' || player.id_club || ',' || (SELECT name FROM clubs WHERE id = player.id_club) || '} but no bids were made'
                     );
 
                     -- Update the player to remove the date bid end
@@ -127,13 +127,11 @@ BEGIN
 
                 -- Insert a message to say that the player was sold
                 INSERT INTO messages_mail (
-                    id_club_to, created_at, title, message, sender_role)
+                    id_club_to, created_at, sender_role, title, message)
                 VALUES
-                    (last_bid.id_club,
-                    player.date_bid_end,
+                    (last_bid.id_club, player.date_bid_end, 'Treasurer',
                     player.full_name || ' (clubless player) bought for ' || last_bid.amount,
-                    player.full_name || ' who was clubless has been bought for ' || last_bid.amount,
-                    'Treasurer');
+                    player.full_name || ' who was clubless has been bought for ' || last_bid.amount);
 
             ELSE
 
@@ -142,15 +140,17 @@ BEGIN
                     (id_club_to, created_at, sender_role, title, message)
                 VALUES
                     (player.id_club, player.date_bid_end, 'Treasurer',
-                        player.full_name || ' has been sold for ' || last_bid.amount,
+                        player.full_name || ' sold for ' || last_bid.amount,
                         player.full_name || ' has been sold for ' || last_bid.amount || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
                     (last_bid.id_club, player.date_bid_end, 'Treasurer',
-                        player.full_name || ' has been bought for ' || last_bid.amount,
+                        player.full_name || ' bought for ' || last_bid.amount,
                         player.full_name || ' has been bought for ' || last_bid.amount || '. I hope he will be a good addition to our team !');
 
                 -- Update the selling club's cash
                 UPDATE clubs SET
-                    cash = cash + last_bid.amount
+                    cash = cash + last_bid.amount,
+                    revenues_transfers_expected = revenues_transfers_expected - last_bid.amount,
+                    revenues_transfers_done = revenues_transfers_done + last_bid.amount
                     WHERE id = player.id_club;
 
                 -- Remove the player from the club's teamcomps where he appears
@@ -167,12 +167,18 @@ BEGIN
 
             END IF;
 
+            -- Update the buying club's cash
+            UPDATE clubs SET
+                expenses_transfers_expected = expenses_transfers_expected - last_bid.amount,
+                expenses_transfers_done = expenses_transfers_done + last_bid.amount
+            WHERE id = last_bid.id_club;
+
             -- Insert a new row in the clubs_history table
             INSERT INTO clubs_history
                 (id_club, description)
             VALUES (
                 last_bid.id_club,
-                '{' || player.full_name || '} joined the club for ' || last_bid.amount
+                '{idPlayer:' || player.id || ',' || player.full_name || '} joined the club for ' || last_bid.amount
             );
 
             -- Insert a new row in the players_history table
@@ -181,7 +187,7 @@ BEGIN
                 VALUES (
                     player.id,
                     player.id_club,
-                    'Joined {' || (SELECT name FROM clubs WHERE id = player.id_club) || '} for ' || last_bid.amount
+                    'Joined {idClub:' || last_bid.id_club || ',' || (SELECT name FROM clubs WHERE id = last_bid.id_club) || '} for ' || last_bid.amount
                 );
 
             -- Update id_club of player

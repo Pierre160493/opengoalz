@@ -93,21 +93,25 @@ BEGIN
         -- Update the scouting network weight
         -- scouts_weight = LEAST(5000, GREATEST(0.1, 
         --     (scouts_weight + expenses_scouts_applied) * 0.5))
-        scouts_weight = expenses_scouts_applied
+        scouts_weight = scouts_weight + expenses_scouts_applied
     WHERE id_multiverse = inp_multiverse.id;
 
     -- Update the clubs revenues and expenses in the list
     UPDATE clubs SET
-        revenues_total = revenues_sponsors,
+        revenues_total = revenues_sponsors
+            + revenues_transfers_done,
         expenses_total = expenses_tax +
             expenses_players +
             expenses_staff_applied +
-            expenses_scouts_applied
+            expenses_scouts_applied +
+            expenses_transfers_done
     WHERE id_multiverse = inp_multiverse.id;
 
-    -- Update the club's cash
+    ------ Update the club's cash
     UPDATE clubs SET
         cash = cash + revenues_total - expenses_total
+        -- We need to handle the revenues and expenses that were already paid in the cash
+            - revenues_transfers_done + expenses_transfers_done
     WHERE id_multiverse = inp_multiverse.id;
 
     ------ Store the history
@@ -121,7 +125,12 @@ BEGIN
         lis_expenses_tax = lis_expenses_tax || expenses_tax,
         lis_cash = lis_cash || cash,
         lis_revenues = lis_revenues || revenues_total,
-        lis_expenses = lis_expenses || expenses_total
+        lis_expenses = lis_expenses || expenses_total,
+        ---- Handle history of transfers
+        lis_revenues_transfers = lis_revenues_transfers || revenues_transfers_done,
+        revenues_transfers_done = 0,
+        lis_expenses_transfers = lis_expenses_transfers || expenses_transfers_done,
+        expenses_transfers_done = 0
     WHERE id_multiverse = inp_multiverse.id;
 
     ------ Update the leagues cash by paying club expenses and players salaries and cash last season
@@ -175,7 +184,7 @@ BEGIN
             (id_club, description)
         VALUES (
             club.id,
-            '{' || (SELECT player_get_full_name(loc_id_player) FROM players WHERE id = loc_id_player) || '} joined the club because of a lack of players'
+            '{idPlayer:' || club.id || ',' || (SELECT player_get_full_name(loc_id_player) FROM players WHERE id = loc_id_player) || '} joined the club because of a lack of players'
         );
 
     END LOOP;
