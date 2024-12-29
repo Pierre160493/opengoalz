@@ -7,19 +7,44 @@ import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:rxdart/rxdart.dart';
 
 class TeamCompPage extends StatefulWidget {
-  final int idClub;
-  final int seasonNumber;
-  final int weekNumber;
-  const TeamCompPage(
-      {Key? key,
-      required this.idClub,
-      required this.seasonNumber,
-      required this.weekNumber})
-      : super(key: key);
+  final int? idClub;
+  final int? seasonNumber;
+  final int? weekNumber;
+  final int? id;
 
-  static Route<void> route(int idClub, int seasonNumber, int weekNumber) {
+  const TeamCompPage({
+    Key? key,
+    this.idClub,
+    this.seasonNumber,
+    this.weekNumber,
+    this.id,
+  }) : super(key: key);
+
+  TeamCompPage.withId({
+    Key? key,
+    required this.id,
+  })  : idClub = null,
+        seasonNumber = null,
+        weekNumber = null,
+        super(key: key);
+
+  TeamCompPage.withDetails({
+    Key? key,
+    required this.idClub,
+    required this.seasonNumber,
+    required this.weekNumber,
+  })  : id = null,
+        super(key: key);
+
+  static Route<void> routeWithId(int id) {
     return MaterialPageRoute(
-      builder: (context) => TeamCompPage(
+      builder: (context) => TeamCompPage.withId(id: id),
+    );
+  }
+
+  static Route<void> routeWithDetails(int idClub, int seasonNumber, int weekNumber) {
+    return MaterialPageRoute(
+      builder: (context) => TeamCompPage.withDetails(
           idClub: idClub, seasonNumber: seasonNumber, weekNumber: weekNumber),
     );
   }
@@ -37,47 +62,54 @@ class _TeamCompPageState extends State<TeamCompPage> {
   void initState() {
     super.initState();
 
-    _clubStream = supabase
-        .from('clubs')
-        .stream(primaryKey: ['id'])
-        .eq('id', widget.idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
-        .switchMap((Club club) {
-          return supabase
-              .from('games_teamcomp')
-              .stream(primaryKey: ['id'])
-              .eq('id_club', club.id)
-              .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
-              .map((teamComps) {
-                for (TeamComp teamComp in teamComps.where((TeamComp teamcomp) =>
-                    teamcomp.seasonNumber == widget.seasonNumber &&
-                    teamcomp.weekNumber == widget.weekNumber)) {
-                  club.teamComps
-                      .clear(); // Clear otherwise it appends the new element to the list when stream emits new data
-                  club.teamComps.add(teamComp);
-                }
-                return club;
-              });
-        })
-        .switchMap((Club club) {
-          return supabase
-              .from('players')
-              .stream(primaryKey: ['id'])
-              .inFilter('id', [
-                ...club.teamComps.first
-                    .playersIdToListOfInt()
-                    .where((id) => id != null)
-                    .cast<int>()
-              ])
-              .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
-              .map((players) {
-                club.teamComps.first.initPlayers(players
-                    .where((player) => player.idClub == club.id)
-                    .toList());
+    if (widget.id != null) {
+      _clubStream = supabase
+          .from('clubs')
+          .stream(primaryKey: ['id'])
+          .eq('id', widget.id!)
+          .map((maps) => maps.map((map) => Club.fromMap(map)).first);
+    } else if (widget.idClub != null && widget.seasonNumber != null && widget.weekNumber != null) {
+      _clubStream = supabase
+          .from('clubs')
+          .stream(primaryKey: ['id'])
+          .eq('id', widget.idClub!)
+          .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+          .switchMap((Club club) {
+            return supabase
+                .from('games_teamcomp')
+                .stream(primaryKey: ['id'])
+                .eq('id_club', club.id)
+                .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
+                .map((teamComps) {
+                  for (TeamComp teamComp in teamComps.where((TeamComp teamcomp) =>
+                      teamcomp.seasonNumber == widget.seasonNumber &&
+                      teamcomp.weekNumber == widget.weekNumber)) {
+                    club.teamComps.clear();
+                    club.teamComps.add(teamComp);
+                  }
+                  return club;
+                });
+          })
+          .switchMap((Club club) {
+            return supabase
+                .from('players')
+                .stream(primaryKey: ['id'])
+                .inFilter('id', [
+                  ...club.teamComps.first
+                      .playersIdToListOfInt()
+                      .where((id) => id != null)
+                      .cast<int>()
+                ])
+                .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+                .map((players) {
+                  club.teamComps.first.initPlayers(players
+                      .where((player) => player.idClub == club.id)
+                      .toList());
 
-                return club;
-              });
-        });
+                  return club;
+                });
+          });
+    }
   }
 
   @override

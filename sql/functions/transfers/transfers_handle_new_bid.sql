@@ -91,8 +91,8 @@ BEGIN
             INSERT INTO messages_mail (id_club_to, sender_role, title, message)
             VALUES (
                 latest_bid.id_club, 'Treasurer',
-                'Outbided on ' || rec_player.full_name,
-                'A new bid of ' || inp_amount || ' was made on ' || rec_player.full_name || ' by ' || rec_club_bidder.name || '. We are not favourite anymore');
+                'Outbided on ' || string_parser(rec_player.id, 'player'),
+                'A new bid of ' || inp_amount || ' was made on ' || string_parser(rec_player.id, 'player') || ' by ' || string_parser(rec_club_bidder.id, 'club') || '. We are not favourite anymore');
             
         END IF;
 

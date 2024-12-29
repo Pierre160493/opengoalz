@@ -3,10 +3,15 @@ import 'package:flutter/gestures.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
+import 'package:opengoalz/pages/teamCompPage.dart';
+import 'package:opengoalz/provider_user.dart';
+import 'package:provider/provider.dart';
 
 TextSpan parseDescriptionTextSpan(BuildContext context, String description) {
-  final RegExp regex = RegExp(r'\{id(Player|Club|League):(\d+),([^}]+)\}');
+  final RegExp regex =
+      RegExp(r'\{id(Player|Club|League|Game|Teamcomp):(\d+),([^}]+)\}');
   final List<TextSpan> spans = [];
   int start = 0;
 
@@ -47,6 +52,21 @@ TextSpan parseDescriptionTextSpan(BuildContext context, String description) {
             Navigator.push(
               context,
               LeaguePage.route(int.parse(id)),
+            );
+          } else if (type == 'game') {
+            Navigator.push(
+              context,
+              GamePage.route(
+                  int.parse(id),
+                  Provider.of<SessionProvider>(context, listen: false)
+                      .user!
+                      .selectedClub!
+                      .id),
+            );
+          } else if (type == 'teamcomp') {
+            Navigator.push(
+              context,
+              TeamCompPage.routeWithId(int.parse(id)),
             );
           }
         },

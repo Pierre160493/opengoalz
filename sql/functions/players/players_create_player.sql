@@ -81,7 +81,7 @@ BEGIN
 
     ------ Log player history
     INSERT INTO players_history (id_player, id_club, description)
-    VALUES (loc_new_player_id, inp_id_club, 'Joined {idClub:' || inp_id_club || ',' || (SELECT name FROM clubs WHERE id = inp_id_club) || '} as a free player');
+    VALUES (loc_new_player_id, inp_id_club, 'Joined ' || string_parser(inp_id_club, 'club') || ' as a free player');
 
     ------ Return the new player's ID
     RETURN loc_new_player_id;

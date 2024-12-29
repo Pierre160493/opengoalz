@@ -67,8 +67,8 @@ BEGIN
                 id_club_to, sender_role, created_at, title, message)
             VALUES
                 (rec_player.id_club, 'Treasurer', multiverse_now,
-                rec_player.full_name || ' asked to leave the club !',
-                rec_player.full_name || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
+                string_parser(rec_player.id, 'player') || ' asked to leave the club !',
+                string_parser(rec_player.id, 'player') || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
 
 --RAISE NOTICE '==> RageQuit => % (%) has asked to leave club [%]', rec_player.full_name, rec_player.id, rec_player.id_club;
 
@@ -79,8 +79,8 @@ BEGIN
                 id_club_to, sender_role, created_at, title, message)
             VALUES
                 (rec_player.id_club, 'Coach', multiverse_now,
-                rec_player.full_name || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
-                rec_player.full_name || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club');
+                string_parser(rec_player.id, 'player') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
+                string_parser(rec_player.id, 'player') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club');
 
         END IF;
     END LOOP;

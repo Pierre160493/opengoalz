@@ -56,56 +56,64 @@ BEGIN
                 id AS id_club_to, 
                 'Coach' AS sender_role, 
                 inp_multiverse.date_now,
-                'End of League Season ' || inp_multiverse.season_number || ': Position ' || pos_league AS title,
+                'End of ' || string_parser(id_league, 'league') || ' in season ' || inp_multiverse.season_number || ': Position ' || pos_league AS title,
+                'Finished ' || 
+                CASE 
+                    WHEN pos_league = 1 THEN '1st'
+                    WHEN pos_league = 2 THEN '2nd'
+                    WHEN pos_league = 3 THEN '3rd'
+                    ELSE pos_league || 'th'
+                END
+                || ' of ' || string_parser(id_league, 'league') || ' in season ' || inp_multiverse.season_number AS title,
                 CASE
                     -- 1st place
                     WHEN pos_league = 1 THEN
                         -- Highest league plays international games
                         CASE WHEN id_upper_league IS NULL THEN
-                            'We are the champions ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 1st ! We will play the 1st international league during the interseason ! That''s fantastic !'
+                            'We are the champions of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 1st international league during the interseason ! That''s fantastic !'
                         -- Other leagues play barrages to win promotion
                         ELSE
-                            'We are the champions ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 1st ! We will play the 1st barrage to try and win our promotion to the upper league ! Let''s do it !'
+                            'We are the champions of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 1st barrage to try and win our promotion to the upper league ! Let''s do it !'
                         END
                     WHEN pos_league = 2 THEN
                         -- Highest league plays international games
                         CASE WHEN id_upper_league IS NULL THEN
-                            'Great job ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 2nd ! We will play the 2nd international league during the interseason ! That''s fantastic !'
+                            'We finished 2nd of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 2nd international league during the interseason ! That''s fantastic !'
                         -- Other leagues play barrages to win promotion
                         ELSE
-                            'Great job ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 2nd ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
+                            'We finished 2nd of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
                         END
                     WHEN pos_league = 3 THEN
                         -- Highest league plays international games
                         CASE WHEN id_upper_league IS NULL THEN
-                            'Great job ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 3rd ! We will play the 3rd international league during the interseason ! That''s fantastic !'
+                            'We finished 3rd of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 3rd international league during the interseason ! That''s fantastic !'
                         -- Other leagues play barrages to win promotion
                         ELSE
-                            'Great job ! The League Season ' || inp_multiverse.season_number || ' has ended and we finished 3rd ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
+                            'We finished 3rd of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
                         END
                     WHEN pos_league = 4 THEN
                         -- Lowest league plays friendly games during interseason
                         CASE WHEN id_lower_league IS NULL THEN
-                            'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 4th ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
+                            'We finished 4th of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
                         -- Other leagues play barrages to avoid relegation
                         ELSE
-                            'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 4th ! We will play against the winner of the 2nd barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
+                            'We finished 4th of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play against the winner of the 2nd barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
                         END
                     WHEN pos_league = 5 THEN
                         -- Lowest league plays friendly games during interseason
                         CASE WHEN id_lower_league IS NULL THEN
-                            'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 5th ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
+                            'We finished 5th of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
                         -- Other leagues play barrages to avoid relegation
                         ELSE
-                            'The League Season ' || inp_multiverse.season_number || ' has ended and we finished 5th ! We will play against the team from the 1st barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
+                            'We finished 5th of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play against the team from the 1st barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
                         END
                     WHEN pos_league = 6 THEN
                         -- Lowest league plays friendly games during interseason
                         CASE WHEN id_lower_league IS NULL THEN
-                            'Rough season... The League Season ' || inp_multiverse.season_number || ' has ended and we finished last ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
+                            'Rough season... We finished last of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
                         -- Other leagues play barrages to avoid relegation
                         ELSE
-                            'Rough season... The League Season ' || inp_multiverse.season_number || ' has ended and we finished last ! We will be demoted to the lower league... But don''t give up, we will come back stronger next season !'
+                            'Rough season... We finished last of ' || string_parser(id_league, 'league') || ' for season ' || inp_multiverse.season_number || ' ! We will be demoted to the lower league... But don''t give up, we will come back stronger next season !'
                         END
                 END AS message
             FROM club_league_info;
@@ -121,8 +129,7 @@ BEGIN
                     WHEN pos_league = 3 THEN '3rd'
                     ELSE pos_league || 'th'
                 END
-                -- || ' of {idLeague: ' || leagues.id || ',S:' || inp_multiverse.season_number || ',league' || leagues.level || '.' || leagues.number || '}' AS description
-                || ' of {idLeague: ' || leagues.id || ',league' || leagues.level || '.' || leagues.number || '} of {Continent: ' || leagues.continent || '}' AS description
+                || ' of ' || string_parser(leagues.id, 'league') || ' of ' || leagues.continent AS description
             FROM clubs
             JOIN leagues ON clubs.id_league = leagues.id
             WHERE clubs.id_multiverse = inp_multiverse.id;
@@ -140,9 +147,8 @@ BEGIN
                     WHEN clubs.pos_league = 5 THEN '5th'
                     WHEN clubs.pos_league = 6 THEN '6th'
                 END
-                || ' of {idLeague:' || leagues.id || ',S:' || inp_multiverse.season_number || ',league' || leagues.level || '.' || leagues.number || '}
-                with {idClub:' || clubs.id || ',' || clubs.name || '}'
-                AS description
+                || ' of ' || string_parser(clubs.id_league, 'league') || '
+                with ' || string_parser(clubs.id, 'club') || ' in ' || clubs.continent AS description
             FROM players
             JOIN clubs ON players.id_club = clubs.id
             JOIN leagues ON leagues.id = clubs.id_league
@@ -231,7 +237,7 @@ BEGIN
                     id AS id_club_to, 'Treasurer' AS sender_role,
                     inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
                     'New Season ' || inp_multiverse.season_number + 1 || ' is launched ' AS title,
-                    'The League Season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(ce.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_staff_target AS message
+                    string_parser(c.id_league, 'league') || ' season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(ce.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_staff_target AS message
                 FROM clubs c
                 LEFT JOIN club_expenses ce ON c.id = ce.id_club
             WHERE c.id_multiverse = inp_multiverse.id;
@@ -285,8 +291,8 @@ BEGIN
                 INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message)
                 VALUES
                     (loc_record.id, 'Coach', inp_multiverse.date_now,
-                    'New young player from scouting network',
-                    '{idPlayer:' || loc_id_player || ',' || player_get_full_name(loc_id_player) || '} joined the squad from our scouting network, they say it''s a future star !');
+                    string_parser(loc_id_player, 'player') || ' from scouting network',
+                    string_parser(loc_id_player, 'player') || ' joined the squad from our scouting network, they say it''s a future star !');
 
             END LOOP;
 

@@ -49,15 +49,15 @@ BEGIN
                     -- Insert a message to say that the player was not sold
                     INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message) VALUES
                         (player.id_club, 'Treasurer', player.date_bid_end,
-                        player.full_name || ' not sold and leaves the club',
-                        player.full_name || ' has not received any bid, the selling is over and he is not part of the club anymore. He is now clubless and was removed from the club''s teamcomps.');
+                        string_parser(player.id, 'player') || ' found no bidder and leaves the club',
+                        string_parser(player.id, 'player') || ' has not received any bid, the selling is over and he is not part of the club anymore. He is now clubless and was removed from the club''s teamcomps.');
 
                     -- Insert a new row in the clubs_history table
                     INSERT INTO clubs_history
                         (id_club, description)
                         VALUES (
                             player.id_club,
-                            '{idPlayer:' || player.id || ',' || player.full_name || '} was fired because no bids were made on him'
+                            string_parser(player.id, 'player') || ' was fired because no bids were made on him'
                     );
 
                     -- Insert a new row in the players_history table
@@ -65,7 +65,7 @@ BEGIN
                         (id_player, id_club, description)
                         VALUES (
                             player.id, player.id_club,
-                            'Left {idClub:' || player.id_club || ',' || (SELECT name FROM clubs WHERE id = player.id_club) || '} because no bids were made on him'
+                            'Left ' || string_parser(player.id_club, 'club') || ' because no bids were made on him'
                     );
 
                     -- Update the player to set him as clubless
@@ -99,8 +99,8 @@ BEGIN
                         id_club_to, created_at, sender_role, title, message)
                     VALUES
                         (player.id_club, player.date_bid_end, 'Treasurer',
-                        player.full_name || ' not sold and stays in the club',
-                        player.full_name || ' has not received any bid, the selling is canceled and he will stay in the club');
+                        string_parser(player.id, 'player') || ' not sold and stays in the club',
+                        string_parser(player.id, 'player') || ' has not received any bid, the selling is canceled and he will stay in the club');
 
                     -- Insert a new row in the players_history table
                     INSERT INTO players_history
@@ -108,7 +108,7 @@ BEGIN
                     VALUES (
                         player.id,
                         player.id_club,
-                        'Put on transfer list by {idClub:' || player.id_club || ',' || (SELECT name FROM clubs WHERE id = player.id_club) || '} but no bids were made'
+                        'Put on transfer list by ' || string_parser(player.id_club, 'club') || ' but no bids were made'
                     );
 
                     -- Update the player to remove the date bid end
@@ -130,8 +130,8 @@ BEGIN
                     id_club_to, created_at, sender_role, title, message)
                 VALUES
                     (last_bid.id_club, player.date_bid_end, 'Treasurer',
-                    player.full_name || ' (clubless player) bought for ' || last_bid.amount,
-                    player.full_name || ' who was clubless has been bought for ' || last_bid.amount);
+                    string_parser(player.id, 'player') || ' (clubless player) bought for ' || last_bid.amount,
+                    string_parser(player.id, 'player') || ' who was clubless has been bought for ' || last_bid.amount);
 
             ELSE
 
@@ -140,11 +140,11 @@ BEGIN
                     (id_club_to, created_at, sender_role, title, message)
                 VALUES
                     (player.id_club, player.date_bid_end, 'Treasurer',
-                        player.full_name || ' sold for ' || last_bid.amount,
-                        player.full_name || ' has been sold for ' || last_bid.amount || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
+                        string_parser(player.id, 'player') || ' sold for ' || last_bid.amount,
+                        string_parser(player.id, 'player') || ' has been sold for ' || last_bid.amount || ' to ' || string_parser(last_bid.id_club, 'club') || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
                     (last_bid.id_club, player.date_bid_end, 'Treasurer',
-                        player.full_name || ' bought for ' || last_bid.amount,
-                        player.full_name || ' has been bought for ' || last_bid.amount || '. I hope he will be a good addition to our team !');
+                        string_parser(player.id, 'player') || ' bought for ' || last_bid.amount,
+                        string_parser(player.id, 'player') || ' has been bought for ' || last_bid.amount || '. I hope he will be a good addition to our team !');
 
                 -- Update the selling club's cash
                 UPDATE clubs SET
@@ -178,7 +178,7 @@ BEGIN
                 (id_club, description)
             VALUES (
                 last_bid.id_club,
-                '{idPlayer:' || player.id || ',' || player.full_name || '} joined the club for ' || last_bid.amount
+                string_parser(player.id, 'player') || ' joined the club for ' || last_bid.amount
             );
 
             -- Insert a new row in the players_history table
@@ -187,7 +187,7 @@ BEGIN
                 VALUES (
                     player.id,
                     player.id_club,
-                    'Joined {idClub:' || last_bid.id_club || ',' || (SELECT name FROM clubs WHERE id = last_bid.id_club) || '} for ' || last_bid.amount
+                    'Joined ' || string_parser(last_bid.id_club, 'club') || ' for ' || last_bid.amount
                 );
 
             -- Update id_club of player

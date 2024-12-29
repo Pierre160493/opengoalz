@@ -77,9 +77,9 @@ start_time := clock_timestamp();
             SELECT * INTO multiverse FROM multiverses WHERE id = multiverse.id;
 
             ------ Check if the multiverse is at a new season
-            IF multiverse.week_number = 1 THEN
+            --IF multiverse.week_number = 1 THEN
                 EXIT;
-            END IF;
+            --END IF;
 
         END LOOP; -- End of the WHILE loop
 

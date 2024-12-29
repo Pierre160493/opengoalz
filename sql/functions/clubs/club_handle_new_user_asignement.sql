@@ -37,7 +37,7 @@ BEGIN
 
     -- Log history
     INSERT INTO clubs_history (id_club, description)
-    VALUES (NEW.id, 'User {idUser:X,' || NEW.username || '} has been assigned to the club');
+    VALUES (NEW.id, 'User {' || NEW.username || '} has been assigned to the club');
 
     -- Update the club row
     UPDATE clubs SET can_update_name = TRUE, user_since = Now() WHERE id = NEW.id;
@@ -45,7 +45,7 @@ BEGIN
     ------ The players of the old club become free players
     -- Log the history of the players
     INSERT INTO players_history (id_player, id_club, description)
-        SELECT id, id_club, 'Left {idClub:' || id_club || ',' || (SELECT name FROM clubs WHERE id = id_club) || '} because a new owner took control'
+        SELECT id, id_club, 'Left ' || string_parser(id_club, 'club') || ' because a new owner took control'
         FROM players WHERE id_club = NEW.id;
   
     -- Release the players
