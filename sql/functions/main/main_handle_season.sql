@@ -53,10 +53,7 @@ BEGIN
             -- Send mail to each club indicating their position in the league
             INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message)
             SELECT 
-                id AS id_club_to, 
-                'Coach' AS sender_role, 
-                inp_multiverse.date_now,
-                'End of ' || string_parser(id_league, 'league') || ' in season ' || inp_multiverse.season_number || ': Position ' || pos_league AS title,
+                id AS id_club_to, 'Coach' AS sender_role, inp_multiverse.date_now,
                 'Finished ' || 
                 CASE 
                     WHEN pos_league = 1 THEN '1st'

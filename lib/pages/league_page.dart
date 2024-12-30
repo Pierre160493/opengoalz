@@ -47,6 +47,7 @@ class _RankingPageState extends State<LeaguePage> {
   void initState() {
     super.initState();
     _selectedSeason = widget.seasonNumber;
+    _leagueStream = Stream.empty(); // Initialize with an empty stream
     _fetchLeagueData();
   }
 
@@ -55,10 +56,15 @@ class _RankingPageState extends State<LeaguePage> {
         .from('leagues')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idLeague)
-        .map((maps) => maps
-            .map((map) =>
-                League.fromMap(map, idSelectedClub: widget.idSelectedClub))
-            .first)
+        .map((maps) {
+          if (maps.isEmpty) {
+            throw StateError('No league found with id ${widget.idLeague}');
+          }
+          return maps
+              .map((map) =>
+                  League.fromMap(map, idSelectedClub: widget.idSelectedClub))
+              .first;
+        })
         .asyncExpand((League league) async* {
           if (_selectedSeason == null) {
             _selectedSeason = league
@@ -71,7 +77,7 @@ class _RankingPageState extends State<LeaguePage> {
               .eq('id_league', widget.idLeague)
               .eq('season_number', _selectedSeason!)
               .then((value) => value.map((e) => e['id'] as int).toList());
-          print('Games ids: $gamesIds');
+          print('Games ids: ${gamesIds.length}');
           yield league;
           yield* supabase
               .from('games')
@@ -87,31 +93,42 @@ class _RankingPageState extends State<LeaguePage> {
               });
         })
         .switchMap((League league) {
+          List<int> clubsIds = league.games
+              .map((game) => [game.idClubLeft, game.idClubRight])
+              .expand((element) => element)
+              .where((element) => element != null)
+              .toSet()
+              .toList()
+              .cast<int>();
+          print('Clubs id Before Fetch' + clubsIds.toString());
           return supabase
               .from('clubs')
               .stream(primaryKey: ['id'])
-              .inFilter(
-                  'id',
-                  league.games
-                      .map((game) => [game.idClubLeft, game.idClubRight])
-                      .expand((element) => element)
-                      .where((element) => element != null)
-                      .toSet()
-                      .toList()
-                      .cast<int>())
+              .inFilter('id', clubsIds)
               .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((clubs) {
-                league.clubs = clubs;
+                league.clubsAll = clubs;
+                print(league.games
+                    .where((game) => game.weekNumber == 1)
+                    .expand((game) => [game.idClubLeft, game.idClubRight]));
+                league.clubsLeague = clubs
+                    .where((Club club) => league.games
+                        .where((game) => game.weekNumber == 1)
+                        .expand((game) => [game.idClubLeft, game.idClubRight])
+                        .contains(club.id))
+                    .toList();
+                print('Clubs id After Fetch: ' +
+                    league.clubsLeague.length.toString());
                 for (Game game in league.games) {
                   if (game.idClubLeft != null) {
-                    game.leftClub = league.clubs.firstWhere(
+                    game.leftClub = league.clubsAll.firstWhere(
                       (club) => club.id == game.idClubLeft,
                       orElse: () => throw Exception(
                           'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'),
                     );
                   }
                   if (game.idClubRight != null) {
-                    game.rightClub = league.clubs.firstWhere(
+                    game.rightClub = league.clubsAll.firstWhere(
                         (club) => club.id == game.idClubRight,
                         orElse: () => throw Exception(
                             'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
@@ -135,7 +152,10 @@ class _RankingPageState extends State<LeaguePage> {
               .map((map) {
                 for (Game game in league.games) {
                   game.description = map.firstWhere(
-                      (map) => map['id'] == game.idDescription)['description'];
+                          (map) => map['id'] == game.idDescription,
+                          orElse: () => throw StateError(
+                              'No description found for game with id ${game.idDescription}'))[
+                      'description'];
                 }
                 return league;
               });
@@ -153,55 +173,55 @@ class _RankingPageState extends State<LeaguePage> {
                       .where((GameEvent event) => event.idGame == game.id)
                       .toList();
                   if (game.dateEnd != null) {
-                    league.clubs
+                    league.clubsLeague
                         .firstWhere((club) => club.id == game.idClubLeft)
                         .goalsScored += game.scoreLeft!;
-                    league.clubs
+                    league.clubsLeague
                         .firstWhere((club) => club.id == game.idClubRight)
                         .goalsTaken += game.scoreLeft!;
-                    league.clubs
+                    league.clubsLeague
                         .firstWhere((club) => club.id == game.idClubLeft)
                         .goalsTaken += game.scoreRight!;
-                    league.clubs
+                    league.clubsLeague
                         .firstWhere((club) => club.id == game.idClubRight)
                         .goalsScored += game.scoreRight!;
                     if (game.scoreLeft! > game.scoreRight!) {
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubLeft)
                           .points += 3;
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubLeft)
                           .victories += 1;
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubRight)
                           .defeats += 1;
                     } else if (game.scoreLeft! < game.scoreRight!) {
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubLeft)
                           .defeats += 1;
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubRight)
                           .victories += 1;
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubRight)
                           .points += 3;
                     } else {
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubLeft)
                           .draws += 1;
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubLeft)
                           .points += 1;
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubRight)
                           .draws += 1;
-                      league.clubs
+                      league.clubsLeague
                           .firstWhere((club) => club.id == game.idClubRight)
                           .points += 1;
                     }
                   }
                 }
-                league.clubs.sort((a, b) {
+                league.clubsLeague.sort((a, b) {
                   int compare = b.points.compareTo(a.points);
                   if (compare != 0) {
                     return compare;
@@ -228,12 +248,16 @@ class _RankingPageState extends State<LeaguePage> {
           return Center(
             child: Text('ERROR: ${snapshot.error}'),
           );
+        } else if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         } else {
           League league = snapshot.data!;
           return Scaffold(
             appBar: AppBar(
               title: Text(
-                  'L${league.level.toString()}.${league.number.toString()} of ${league.continent}'),
+                  'League${league.level.toString()}.${league.number.toString()} of ${league.continent}'),
             ),
             drawer: const AppDrawer(),
             body: MaxWidthContainer(

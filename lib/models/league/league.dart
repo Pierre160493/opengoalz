@@ -21,7 +21,9 @@ part 'leagueStatsTab.dart';
 
 class League {
   List<Game> games = []; // List of games in the league
-  List<Club> clubs = []; // List of clubs in the league
+  List<Club> clubsAll =
+      []; // All clubs that played in the league + qualification games
+  List<Club> clubsLeague = []; // All 6 clubs in the league
   int? idSelectedClub; // id of the club selected in the club tab
 
   League({

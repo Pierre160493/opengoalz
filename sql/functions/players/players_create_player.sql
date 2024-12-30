@@ -75,13 +75,20 @@ BEGIN
             WHEN inp_notes = 'Old Experienced player' THEN 'OLDXP'
             WHEN inp_notes = 'Youngster 1' THEN 'YOUNG1'
             WHEN inp_notes = 'Youngster 2' THEN 'YOUNG2'
+            WHEN inp_notes = 'Young Scouted' THEN 'YOUNG'
             ELSE 'None'
         END)
     RETURNING id INTO loc_new_player_id;
 
     ------ Log player history
     INSERT INTO players_history (id_player, id_club, description)
-    VALUES (loc_new_player_id, inp_id_club, 'Joined ' || string_parser(inp_id_club, 'club') || ' as a free player');
+    VALUES (loc_new_player_id, inp_id_club,
+    'Joined ' || string_parser(inp_id_club, 'club') ||
+    CASE
+        WHEN inp_notes = 'Young Scouted' THEN ' as a young scouted player'
+        WHEN inp_notes = 'Old Experienced player' THEN ' as an old experienced player'
+        ELSE ' as a free player'
+    END);
 
     ------ Return the new player's ID
     RETURN loc_new_player_id;

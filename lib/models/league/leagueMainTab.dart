@@ -47,175 +47,186 @@ extension LeagueMainTab on League {
           // ),
           child: Expanded(
             child: ListView.builder(
-              itemCount: clubs.length,
+              itemCount: clubsLeague.length,
               itemBuilder: (context, index) {
-                Club club = clubs[index];
-                if (club.idLeague == id)
-                  return ListTile(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          24), // Adjust border radius as needed
-                      side: const BorderSide(
-                        color: Colors.blueGrey, // Border color
-                      ),
-                    ),
-                    leading: Tooltip(
-                      message: index == 0 // First club
-                          ? level == 1
+                print(
+                    'LeagueMainTab: clubsLeague.length: ${clubsLeague.length}');
+                Club club = clubsLeague[index];
+
+                return ListTile(
+                  shape: shapePersoRoundedBorder(),
+                  // RoundedRectangleBorder(
+                  //   borderRadius: BorderRadius.circular(
+                  //       24), // Adjust border radius as needed
+                  //   side: const BorderSide(
+                  //     color: Colors.blueGrey, // Border color
+                  //   ),
+                  // ),
+                  leading: Tooltip(
+                    message: (() {
+                      switch (index) {
+                        case 0:
+                          return level == 1
                               ? 'Plays International League'
-                              : 'Plays First Barrage Games'
-                          : index == 1 // Second club
-                              ? level == 1
-                                  ? 'Plays Second International League'
-                                  : 'Plays Second Barrage Game against 3rd of the opposite league'
-                              : index == 2 // Third club
-                                  ? level == 1
-                                      ? 'Plays Third International League'
-                                      : 'Plays Second Barrage Game against 2nd of the opposite league'
-                                  : index == 3 // Fourth club
-                                      ? 'Plays Against Winner of Second Barrage Games of lower leagues'
-                                      : index == 4 // Fifth club
-                                          ? 'Plays Against Loser of First Barrage Games of lower leagues'
-                                          : index == 5 // Sixth  and last club
-                                              ? 'Plays Against Winner of First Barrage Games of lower leagues'
-                                              : 'Plays Against Winner of First Barrage Games of lower leagues',
-                      child: CircleAvatar(
-                        backgroundColor: index == 0
-                            ? Colors.yellow
-                            : index == 1
-                                ? Colors.grey
-                                : index == 2
-                                    ? Colors.amber
-                                    : Colors
-                                        .blue, // Set the background color of the circleAvatar
-                        child: Text(
-                          '${index + 1}',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                    ),
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        club.getClubNameClickable(context),
-                        club.getLastResultsWidget(context),
-                      ],
-                    ),
-                    subtitle: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Tooltip(
-                          message: 'Number of Victories / Draws / Loss',
-                          child: Row(
-                            children: [
-                              Icon(Icons.emoji_events),
-                              formSpacer3,
-                              Text(
-                                club.victories.toString(),
-                                style: TextStyle(
-                                  color: Colors
-                                      .green, // Set the text color to green
-                                  fontWeight:
-                                      FontWeight.bold, // Make the text bold
-                                ),
-                              ),
-                              Text(' / '),
-                              Text(
-                                club.draws.toString(),
-                                style: TextStyle(
-                                  color: Colors
-                                      .grey, // Set the text color to green
-                                  fontWeight:
-                                      FontWeight.bold, // Make the text bold
-                                ),
-                              ),
-                              Text(' / '),
-                              Text(
-                                club.defeats.toString(),
-                                style: TextStyle(
-                                  color:
-                                      Colors.red, // Set the text color to green
-                                  fontWeight:
-                                      FontWeight.bold, // Make the text bold
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Tooltip(
-                          message: 'Goal Difference (Goals For / Against)',
-                          child: Row(
-                            children: [
-                              Text(
-                                club.goalsScored - club.goalsTaken > 0
-                                    ? '+'
-                                    : '',
-                                style: TextStyle(
-                                  color: Colors
-                                      .grey, // Set the text color to green
-                                  fontWeight:
-                                      FontWeight.bold, // Make the text bold
-                                ),
-                              ),
-                              Text(
-                                (club.goalsScored - club.goalsTaken).toString(),
-                                style: TextStyle(
-                                  color: Colors
-                                      .grey, // Set the text color to green
-                                  fontWeight:
-                                      FontWeight.bold, // Make the text bold
-                                ),
-                              ),
-                              Text(' ( '),
-                              Text(
-                                club.goalsScored.toString(),
-                                style: TextStyle(
-                                  color: Colors
-                                      .green, // Set the text color to green
-                                ),
-                              ),
-                              Text(' / '),
-                              Text(
-                                club.goalsTaken.toString(),
-                                style: TextStyle(
-                                  color:
-                                      Colors.red, // Set the text color to green
-                                ),
-                              ),
-                              Text(' )'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    onTap: () async {
-                      /// If the page must return a CLub, return the clicked club
-                      if (isReturningBotClub) {
-                        if (club.userName != null)
-                          context.showSnackBarError(
-                              'The club already belongs to a user: ${club.userName}');
-                        else if (await context.showConfirmationDialog(
-                                'Are you sure you want to select ${club.name} ?') ==
-                            true) {
-                          Navigator.pop(context, club);
-                          return;
-                        }
+                              : 'Plays First Barrage Games';
+                        case 1:
+                          return level == 1
+                              ? 'Plays Second International League'
+                              : 'Plays Second Barrage Game against 3rd of the opposite league';
+                        case 2:
+                          return level == 1
+                              ? 'Plays Third International League'
+                              : 'Plays Second Barrage Game against 2nd of the opposite league';
+                        case 3:
+                          return idLowerLeague == null
+                              ? 'Plays Friendly Games Against Symetric League'
+                              : 'Plays Against Winner of Second Barrage Games of lower leagues';
+                        case 4:
+                          return idLowerLeague == null
+                              ? 'Plays Friendly Games Against Symetric League'
+                              : 'Plays Against Loser of First Barrage Games of lower leagues';
+                        case 5:
+                          return idLowerLeague == null
+                              ? 'Plays Friendly Games Against Symetric League'
+                              : 'Plays Against Winner of First Barrage Games of lower leagues';
+                        default:
+                          return 'Error';
                       }
-                      // else
-                      //   Navigator.push(
-                      //     context,
-                      //     ClubPage.route(club.id),
-                      //   );
-                    },
-                    trailing: CircleAvatar(
-                      backgroundColor: Colors.grey,
+                    })(),
+                    child: CircleAvatar(
+                      backgroundColor: index == 0
+                          ? Colors.yellow
+                          : index == 1
+                              ? Colors.grey
+                              : index == 2
+                                  ? Colors.amber
+                                  : Colors
+                                      .blue, // Set the background color of the circleAvatar
                       child: Text(
-                        '${club.points.toString()}',
+                        '${index + 1}',
                         style: TextStyle(color: Colors.black),
                       ),
-                    ), // Display the index starting from 1
-                  );
-                return null;
+                    ),
+                  ),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      club.getClubNameClickable(context),
+                      club.getLastResultsWidget(context),
+                    ],
+                  ),
+                  subtitle: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Tooltip(
+                        message: 'Number of Victories / Draws / Loss',
+                        child: Row(
+                          children: [
+                            Icon(Icons.emoji_events),
+                            formSpacer3,
+                            Text(
+                              club.victories.toString(),
+                              style: TextStyle(
+                                color:
+                                    Colors.green, // Set the text color to green
+                                fontWeight:
+                                    FontWeight.bold, // Make the text bold
+                              ),
+                            ),
+                            Text(' / '),
+                            Text(
+                              club.draws.toString(),
+                              style: TextStyle(
+                                color:
+                                    Colors.grey, // Set the text color to green
+                                fontWeight:
+                                    FontWeight.bold, // Make the text bold
+                              ),
+                            ),
+                            Text(' / '),
+                            Text(
+                              club.defeats.toString(),
+                              style: TextStyle(
+                                color:
+                                    Colors.red, // Set the text color to green
+                                fontWeight:
+                                    FontWeight.bold, // Make the text bold
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Tooltip(
+                        message: 'Goal Difference (Goals For / Against)',
+                        child: Row(
+                          children: [
+                            Text(
+                              club.goalsScored - club.goalsTaken > 0 ? '+' : '',
+                              style: TextStyle(
+                                color:
+                                    Colors.grey, // Set the text color to green
+                                fontWeight:
+                                    FontWeight.bold, // Make the text bold
+                              ),
+                            ),
+                            Text(
+                              (club.goalsScored - club.goalsTaken).toString(),
+                              style: TextStyle(
+                                color:
+                                    Colors.grey, // Set the text color to green
+                                fontWeight:
+                                    FontWeight.bold, // Make the text bold
+                              ),
+                            ),
+                            Text(' ( '),
+                            Text(
+                              club.goalsScored.toString(),
+                              style: TextStyle(
+                                color:
+                                    Colors.green, // Set the text color to green
+                              ),
+                            ),
+                            Text(' / '),
+                            Text(
+                              club.goalsTaken.toString(),
+                              style: TextStyle(
+                                color:
+                                    Colors.red, // Set the text color to green
+                              ),
+                            ),
+                            Text(' )'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () async {
+                    /// If the page must return a CLub, return the clicked club
+                    if (isReturningBotClub) {
+                      if (club.userName != null)
+                        context.showSnackBarError(
+                            'The club already belongs to a user: ${club.userName}');
+                      else if (await context.showConfirmationDialog(
+                              'Are you sure you want to select ${club.name} ?') ==
+                          true) {
+                        Navigator.pop(context, club);
+                        return;
+                      }
+                    }
+                    // else
+                    //   Navigator.push(
+                    //     context,
+                    //     ClubPage.route(club.id),
+                    //   );
+                  },
+                  trailing: CircleAvatar(
+                    backgroundColor: Colors.grey,
+                    child: Text(
+                      '${club.points.toString()}',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ), // Display the index starting from 1
+                );
               },
             ),
           ),
