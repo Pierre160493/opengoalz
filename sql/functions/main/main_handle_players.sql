@@ -99,33 +99,108 @@ BEGIN
     FROM players
     WHERE id_multiverse = inp_multiverse.id;
 
-    ------ Update players stats based on the training points
+    -- ------ Update players stats based on the training points
+    -- WITH player_data AS (
+    -- SELECT 
+    --         players.id, -- Player's id
+    --         players_calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
+    --         training_points_available, -- Initial training points
+    --         training_coef, -- Array of coef for each stat
+    --         (COALESCE(clubs.staff_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
+    --         --SUM(coef) AS sum_training_coef -- Sum of the training_coef array
+    --         training_coef[1]+training_coef[2]+training_coef[3]+training_coef[4]+training_coef[5]+training_coef[6]+training_coef[7] AS sum_training_coef
+    --     FROM players
+    --     LEFT JOIN clubs ON clubs.id = players.id_club
+    --     LEFT JOIN multiverses ON multiverses.id = inp_multiverse.id
+    --     --LATERAL UNNEST(training_coef) AS coef
+    --     --GROUP BY players.id, training_points_available, training_coef, multiverses.speed
+    -- ), player_data2 AS (
+    --     SELECT 
+    --         id, -- Player's id
+    --         training_points_available + 3.0
+    --             * (0.25 + 0.75 * staff_coef) -- The more staff_coeff, the closer to 1
+    --             * ((25.0 - player_data.age) / 10.0) -- The younger the player, the more training points
+    --             AS updated_training_points_available, -- Updated training points based on age and staff weight
+    --         training_coef, -- Array of coef for each stat
+    --         sum_training_coef, -- Sum of the training_coef array
+    --         ARRAY(
+    --             SELECT (1 - staff_coef) + CASE WHEN sum_training_coef = 0 THEN 1.0 ELSE coef / sum_training_coef::float END
+    --             FROM UNNEST(training_coef) AS coef
+    --         ) AS updated_training_coef -- Updated training_coef ARRAY
+    --     FROM player_data
+    -- ), player_data3 AS (
+    --     SELECT 
+    --         id,
+    --         updated_training_points_available,
+    --         training_coef,
+    --         sum_training_coef,
+    --         updated_training_coef,
+    --         (SELECT SUM(value) FROM UNNEST(updated_training_coef) AS value) AS total_sum
+    --     FROM player_data2
+    -- ), final_data AS (
+    --     SELECT 
+    --         id,
+    --         updated_training_points_available,
+    --         training_coef,
+    --         sum_training_coef,
+    --         updated_training_coef,
+    --         total_sum,
+    --         -- Normalize the array so its elements sum to 1
+    --         ARRAY(
+    --             SELECT value / total_sum
+    --             FROM UNNEST(updated_training_coef) AS value
+    --         ) AS normalized_training_coef
+    --     FROM player_data3
+    -- )
+    -- UPDATE players SET
+    --     keeper = GREATEST(0,
+    --         keeper + updated_training_points_available * normalized_training_coef[1]),
+    --     defense = GREATEST(0,
+    --         defense + updated_training_points_available * normalized_training_coef[2]),
+    --     passes = GREATEST(0,
+    --         passes + updated_training_points_available * normalized_training_coef[3]),
+    --     playmaking = GREATEST(0,
+    --         playmaking + updated_training_points_available * normalized_training_coef[4]),
+    --     winger = GREATEST(0,
+    --         winger + updated_training_points_available * normalized_training_coef[5]),
+    --     scoring = GREATEST(0,
+    --         scoring + updated_training_points_available * normalized_training_coef[6]),
+    --     freekick = GREATEST(0,
+    --         freekick + updated_training_points_available * normalized_training_coef[7]),
+    --     training_points_available = 0,
+    --     training_points_used = training_points_used + updated_training_points_available
+    -- FROM final_data
+    -- WHERE players.id = final_data.id;
+
     WITH player_data AS (
-    SELECT 
+        SELECT 
             players.id, -- Player's id
-            players_calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
+            --players_calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
+            (25 - players_calculate_age(multiverses.speed, players.date_birth))/10 AS coef_age, -- Player's age
             training_points_available, -- Initial training points
             training_coef, -- Array of coef for each stat
-            COALESCE(clubs.staff_weight, 1000) AS staff_weight, -- Staff weight of the club
             (COALESCE(clubs.staff_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
-            SUM(coef) AS sum_training_coef -- Sum of the training_coef array
+            training_coef[1]+training_coef[2]+training_coef[3]+training_coef[4]+training_coef[5]+training_coef[6]+training_coef[7] AS sum_training_coef
         FROM players
         LEFT JOIN clubs ON clubs.id = players.id_club
-        -- LEFT JOIN multiverses ON multiverses.id = 1,
-        LEFT JOIN multiverses ON multiverses.id = inp_multiverse.id,
-        LATERAL UNNEST(training_coef) AS coef
-        GROUP BY players.id, training_points_available, training_coef, clubs.staff_weight, multiverses.speed
+        LEFT JOIN multiverses ON multiverses.id = 1
+        WHERE players.id_club = 44
     ), player_data2 AS (
         SELECT 
-            id, -- Player's id
-            training_points_available + 3
-                * (0.5 + 0.5 * staff_coef) 
-                * (25 - player_data.age) / 10.0
-                AS updated_training_points_available, -- Updated training points based on age and staff weight
-            training_coef, -- Array of coef for each stat
-            staff_weight, -- Staff weight of the club
-            staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
-            sum_training_coef, -- Sum of the training_coef array
+            player_data.*,
+            -- training_points_available + 3 * CASE
+            --     WHEN player_data.age < 999 THEN
+            --         (0.25 + 0.75 * staff_coef) * player_data.coef_age
+            --     ELSE -1.0
+            -- END AS updated_training_points_available2, -- Updated training points based on age
+            -- training_points_available + 3.0
+            --     * (0.25 + 0.75 * staff_coef) -- The more staff_coeff, the closer to 1
+            --     * player_data.coef_age -- The younger the player, the more training points
+            --     AS updated_training_points_available, -- Updated training points based on age and staff weight
+            training_points_available +
+                (0.25 + 0.75 * staff_coef) + -- The more staff_coeff, the closer to 1
+                3 * coef_age
+            AS updated_training_points_available, -- Updated training points based on age and staff weight
             ARRAY(
                 SELECT (1 - staff_coef) + CASE WHEN sum_training_coef = 0 THEN 1.0 ELSE coef / sum_training_coef::float END
                 FROM UNNEST(training_coef) AS coef
@@ -133,26 +208,12 @@ BEGIN
         FROM player_data
     ), player_data3 AS (
         SELECT 
-            id,
-            updated_training_points_available,
-            training_coef,
-            staff_weight,
-            staff_coef,
-            sum_training_coef,
-            updated_training_coef,
+            player_data2.*,
             (SELECT SUM(value) FROM UNNEST(updated_training_coef) AS value) AS total_sum
         FROM player_data2
     ), final_data AS (
         SELECT 
-            id,
-            updated_training_points_available,
-            training_coef,
-            staff_weight,
-            staff_coef,
-            sum_training_coef,
-            updated_training_coef,
-            total_sum,
-            -- Normalize the array so its elements sum to 1
+            player_data3.*,
             ARRAY(
                 SELECT value / total_sum
                 FROM UNNEST(updated_training_coef) AS value

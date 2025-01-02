@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/mail.dart';
 import 'package:opengoalz/constants.dart';
@@ -12,7 +11,6 @@ import 'package:opengoalz/widgets/descriptionParser.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
 
 class MailsPage extends StatefulWidget {
   final int idClub;

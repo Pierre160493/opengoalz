@@ -17,13 +17,16 @@ TextSpan parseDescriptionTextSpan(BuildContext context, String description) {
 
   for (final match in regex.allMatches(description)) {
     if (match.start > start) {
-      spans.add(TextSpan(text: description.substring(start, match.start)));
+      spans.add(TextSpan(
+        text: description.substring(start, match.start),
+        style: TextStyle(color: Colors.white), // Change text color to white
+      ));
     }
     final String type = match.group(1)!.toLowerCase();
     final String id = match.group(2)!;
     final String text = match.group(3)!;
 
-    print('type: $type, id: $id, text: $text');
+    // print('type: $type, id: $id, text: $text');
 
     spans.add(TextSpan(
       text: text,
@@ -75,7 +78,10 @@ TextSpan parseDescriptionTextSpan(BuildContext context, String description) {
   }
 
   if (start < description.length) {
-    spans.add(TextSpan(text: description.substring(start)));
+    spans.add(TextSpan(
+      text: description.substring(start),
+      style: TextStyle(color: Colors.white), // Change text color to white
+    ));
   }
 
   return TextSpan(children: spans);

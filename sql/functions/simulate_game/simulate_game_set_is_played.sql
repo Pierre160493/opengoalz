@@ -9,19 +9,24 @@ DECLARE
     text_title_right TEXT; -- Title of the message for the right club
     text_message_left TEXT; -- Message of the message for the left club
     text_message_right TEXT; -- Message of the message for the right club
+    tmp_text TEXT; -- Tmp text
 BEGIN
 
     ------ Store the game record
     SELECT games.*,
         (CASE WHEN score_left = -1 THEN 0 ELSE score_left END) - (CASE WHEN score_right = -1 THEN 0 ELSE score_right END) AS score_diff,
-        CASE WHEN score_left = -1 OR score_right = -1 THEN TRUE ELSE FALSE END AS is_forfeit,
+        CASE WHEN score_left = - 1 OR score_right = - 1 THEN TRUE ELSE FALSE END AS is_forfeit,
         score_cumul_left - score_cumul_right AS score_diff_total,
         club_left.id_league AS club_left_league, club_right.id_league AS club_right_league,
-        club_left.name AS club_left_name, club_right.name AS club_right_name
+        club_left.name AS club_left_name, club_right.name AS club_right_name,
+        league.level AS league_level,
+        league.number AS league_number,
+        league.id_lower_league AS id_lower_league
     INTO rec_game
     FROM games
     JOIN clubs AS club_left ON club_left.id = games.id_club_left
     JOIN clubs AS club_right ON club_right.id = games.id_club_right
+    JOIN leagues AS league ON league.id = games.id_league
     WHERE games.id = inp_id_game;
 
     ------ Start writing the messages to be sent to the clubs
@@ -215,7 +220,7 @@ BEGIN
             text_title_left := text_title_left || ': BARRAGE2 Victory => We avoided relegation';
             text_title_right := text_title_right || ': BARRAGE2 Defeat => We failed to get promoted';
             text_message_left := text_message_left || '. This overall victory in the 2nd barrage means that we avoided relegation in a lower league. Congratulations to you and all the players, what a relief !';
-            text_message_right := text_message_right || '. This overall defeat in the 2nd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_right := text_message_right || '. This overall defeat in the 2nd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
 
         -- Right club (loser of barrage 1) won so he is promoted to the league of the 5th of the upper league
         ELSE
@@ -238,7 +243,7 @@ BEGIN
             -- Send messages
             text_title_left := text_title_left || ': BARRAGE2 Defeat => We are demoted...';
             text_title_right := text_title_right || ': BARRAGE2 Victory => We are promoted !';
-            text_message_left := text_message_left || '. This overall defeat in the 2nd barrage means that we are relegated to a lower league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_left := text_message_left || '. This overall defeat in the 2nd barrage means that we are relegated to a lower league. It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
             text_message_right := text_message_right || '. This overall victory in the 2nd barrage means that we are promoted to the upper league next season. Congratulations to you and all the players, we made it !';
 
         END IF;
@@ -255,7 +260,7 @@ BEGIN
             text_title_left := text_title_left || ': BARRAGE3 Victory => We avoided relegation';
             text_title_right := text_title_right || ': BARRAGE3 Defeat => We failed to get promoted';
             text_message_left := text_message_left || '. This overall victory in the 3rd barrage means that we avoided relegation in a lower league. Congratulations to you and all the players, what a relief !';
-            text_message_right := text_message_right || '. This overall defeat in the 3rd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_right := text_message_right || '. This overall defeat in the 3rd barrage means that we failed to get promoted to the upper league. It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
 
         -- Right club (winner of the 2nd round of the barrage 2) won
         ELSE
@@ -280,11 +285,179 @@ BEGIN
             -- Send messages
             text_title_left := text_title_left || ': BARRAGE3 Defeat => We are demoted...';
             text_title_right := text_title_right || ': BARRAGE3 Victory => We are promoted !';
-            text_message_left := text_message_left || '. This overall defeat in the 3rd barrage means that we are relegated to a lower league. It''s a disappointment but we''l come back stronger next season, I''m sure we can make it !';
+            text_message_left := text_message_left || '. This overall defeat in the 3rd barrage means that we are relegated to a lower league. It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
             text_message_right := text_message_right || '. This overall victory in the 3rd barrage means that we are promoted to the upper league next season. Congratulations to you and all the players, we made it !';
 
         END IF; -- End right club won
-    END IF; -- End of the barrage games
+    ------ Handling of the international cup games (1st place game)
+    ELSEIF rec_game.id_games_description = 131 THEN
+        -- Left club won
+        IF rec_game.score_diff > 0 THEN
+
+            -- Send messages
+            text_title_left := text_title_left || ': International Cup Victory';
+            text_title_right := text_title_right || ': 2nd Place in International Cup';
+            text_message_left := text_message_left || '. This great victory in the International Cup means that we are the champions of the competition. Congratulations to you and all the players, we made it !';
+            text_message_right := text_message_right || '. This defeat in the International Cup means that we are the 2nd of the competition. It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
+
+        ELSE
+
+            ---- Message construction
+            text_title_left := text_title_left || ': 2nd Place in International Cup';
+            text_title_right := text_title_right || ': International Cup Victory';
+            text_message_left := text_message_left || '. This defeat in the International Cup means that we are the 2nd of the competition. It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
+            text_message_right := text_message_right || '. This great victory in the International Cup means that we are the champions of the competition. Congratulations to you and all the players, we made it !';
+
+        END IF; -- End of the handling of the different games
+
+        ---- Insert into clubs_history table
+        INSERT INTO clubs_history (id_club, description, is_ranking_description)
+        VALUES (
+            CASE
+                WHEN rec_game.score_diff > 0 THEN rec_game.id_club_left
+                ELSE rec_game.id_club_right
+            END,
+            'Season ' || rec_game.season_number || ': Finished 1st of ' || string_parser(rec_game.id_league, 'league'),
+            TRUE
+        ),
+        (
+            CASE
+                WHEN rec_game.score_diff > 0 THEN rec_game.id_club_right
+                ELSE rec_game.id_club_left
+            END,
+            'Season ' || rec_game.season_number || 'Finished 2nd of ' || string_parser(rec_game.id_league, 'league'),
+            TRUE
+        );
+
+        ---- Insert into the players_history table for winning club
+        INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
+            SELECT
+                players.id AS id_player, players.id_club AS id_club,
+                'Season ' || rec_game.season_number || ': Victory in International League'
+                || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(clubs.id, 'club'),
+                TRUE AS is_ranking_description
+            FROM players
+            JOIN clubs ON players.id_club = 
+                CASE
+                    WHEN rec_game.score_diff > 0 THEN rec_game.id_club_left
+                    ELSE rec_game.id_club_right
+                END
+            WHERE players.id_club = 
+                CASE
+                    WHEN rec_game.score_diff > 0 THEN rec_game.id_club_left
+                    ELSE rec_game.id_club_right
+                END;
+
+        ---- Insert into the players_history table for losing club
+        INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
+            SELECT
+                players.id AS id_player, players.id_club AS id_club,
+                'Season ' || rec_game.season_number || ': 2nd Place in International League'
+                || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(clubs.id, 'club'),
+                TRUE AS is_ranking_description
+            FROM players
+            JOIN clubs ON players.id_club = 
+                CASE
+                    WHEN rec_game.score_diff > 0 THEN rec_game.id_club_right
+                    ELSE rec_game.id_club_left
+                END
+            WHERE players.id_club = 
+                CASE
+                    WHEN rec_game.score_diff > 0 THEN rec_game.id_club_right
+                    ELSE rec_game.id_club_left
+                END;
+
+    ------ Handling of the 3rd place game of the international cups
+    ELSEIF rec_game.id_games_description IN (132, 133) THEN
+        tmp_text :=
+        CASE
+            WHEN rec_game.id_games_description = 132 THEN '3rd Place game of the '
+            ELSE '5th Place game of the '
+        END ||
+        CASE
+            WHEN rec_game.league_number = 1 THEN ' Champions International Cup'
+            WHEN rec_game.league_number = 2 THEN ' Seconds International Cup'
+            ELSE ' Thirds International Cup'
+        END;
+        
+        -- Left club won
+        IF rec_game.score_diff > 0 THEN
+
+            -- Send messages
+            text_title_left := text_title_left || ': Victory in ' || tmp_text;
+            text_title_right := text_title_right || ': Defeat in ' || tmp_text;
+            text_message_left := text_message_left || '. This is a great victory in the ' || tmp_text || ' ! Next season let''s try to make it to the very top !';
+            text_message_right := text_message_right || '. Sad defeat in the ' || tmp_text || ' ... It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
+
+        ELSE
+
+            ---- Message construction
+            text_title_left := text_title_left || ': Defeat in ' || tmp_text;
+            text_title_right := text_title_right || ': Victory in ' || tmp_text;
+            text_message_left := text_message_left || '. Sad defeat in the ' || tmp_text || ' ... It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
+            text_message_right := text_message_right || '. This is a great victory in the ' || tmp_text || ' ! Next season let''s try to make it to the very top !';
+
+        END IF; -- End of the handling of the different games
+
+        ---- Insert into clubs_history table
+        INSERT INTO clubs_history (id_club, description, is_ranking_description)
+        VALUES (
+            CASE
+                WHEN rec_game.score_diff > 0 THEN rec_game.id_club_left
+                ELSE rec_game.id_club_right
+            END,
+            'Season ' || rec_game.season_number || ': Finished 3rd of ' || string_parser(rec_game.id_league, 'league'),
+            TRUE
+        ),
+        (
+            CASE
+                WHEN rec_game.score_diff > 0 THEN rec_game.id_club_right
+                ELSE rec_game.id_club_left
+            END,
+            'Season ' || rec_game.season_number || 'Finished 4th of ' || string_parser(rec_game.id_league, 'league'),
+            TRUE
+        );
+
+        ---- Insert into the players_history table for winning club
+        INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
+            SELECT
+                players.id AS id_player, players.id_club AS id_club,
+                'Season ' || rec_game.season_number || ': Victory in ' || tmp_text
+                || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(clubs.id, 'club'),
+                TRUE AS is_ranking_description
+            FROM players
+            JOIN clubs ON players.id_club = 
+                CASE
+                    WHEN rec_game.score_diff > 0 THEN rec_game.id_club_left
+                    ELSE rec_game.id_club_right
+                END
+            WHERE players.id_club = 
+                CASE
+                    WHEN rec_game.score_diff > 0 THEN rec_game.id_club_left
+                    ELSE rec_game.id_club_right
+                END;
+
+        ---- Insert into the players_history table for losing club
+        INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
+            SELECT
+                players.id AS id_player, players.id_club AS id_club,
+                'Season ' || rec_game.season_number || ': Defeat in ' || tmp_text
+                || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(clubs.id, 'club'),
+                TRUE AS is_ranking_description
+            FROM players
+            JOIN clubs ON players.id_club = 
+                CASE
+                    WHEN rec_game.score_diff > 0 THEN rec_game.id_club_right
+                    ELSE rec_game.id_club_left
+                END
+            WHERE players.id_club = 
+                CASE
+                    WHEN rec_game.score_diff > 0 THEN rec_game.id_club_right
+                    ELSE rec_game.id_club_left
+                END;
+
+
+    END IF; -- End of the handling of the different games
 
     ------ Send messages
     INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)

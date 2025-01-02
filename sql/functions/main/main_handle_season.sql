@@ -132,7 +132,7 @@ BEGIN
             WHERE clubs.id_multiverse = inp_multiverse.id;
 
             -- Insert into players_history table
-            INSERT INTO players_history (id_player, id_club, description)
+            INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
             SELECT
                 players.id AS id_player, players.id_club AS id_club,
                 'Season ' || inp_multiverse.season_number || ': ' || 
@@ -145,7 +145,8 @@ BEGIN
                     WHEN clubs.pos_league = 6 THEN '6th'
                 END
                 || ' of ' || string_parser(clubs.id_league, 'league') || '
-                with ' || string_parser(clubs.id, 'club') || ' in ' || clubs.continent AS description
+                with ' || string_parser(clubs.id, 'club') || ' in ' || clubs.continent AS description,
+                TRUE AS is_ranking_description
             FROM players
             JOIN clubs ON players.id_club = clubs.id
             JOIN leagues ON leagues.id = clubs.id_league

@@ -42,31 +42,12 @@ class LeaguePage extends StatefulWidget {
 class _RankingPageState extends State<LeaguePage> {
   late Stream<League> _leagueStream;
   int? _selectedSeason;
-  List<int> _gamesId = [];
 
   @override
   void initState() {
     super.initState();
     _selectedSeason = widget.seasonNumber;
-    _fetchSeasonNumberAndGamesIds();
-  }
-
-  Future<void> _fetchSeasonNumberAndGamesIds() async {
-    if (_selectedSeason == null) {
-      _selectedSeason = await supabase
-          .from('leagues')
-          .select('season_number')
-          .eq('id', widget.idLeague)
-          .then((value) => value.first['season_number'] as int);
-    }
-
-    _gamesId = await supabase
-        .from('games')
-        .select('id')
-        .eq('id_league', widget.idLeague)
-        .eq('season_number', _selectedSeason!)
-        .then((value) => value.map((e) => e['id'] as int).toList());
-
+    _leagueStream = Stream.empty(); // Initialize with an empty stream
     _fetchLeagueData();
   }
 
@@ -84,13 +65,24 @@ class _RankingPageState extends State<LeaguePage> {
                   League.fromMap(map, idSelectedClub: widget.idSelectedClub))
               .first;
         })
-        .switchMap((League league) {
+        .asyncExpand((League league) async* {
+          if (_selectedSeason == null) {
+            _selectedSeason = league
+                .seasonNumber; // Initialize with the season number from the stream
+          }
           print('Selected season: $_selectedSeason');
-
-          return supabase
+          List<int> gamesIds = await supabase
+              .from('games')
+              .select('id')
+              .eq('id_league', widget.idLeague)
+              .eq('season_number', _selectedSeason!)
+              .then((value) => value.map((e) => e['id'] as int).toList());
+          print('Games ids: ${gamesIds.length}');
+          yield league;
+          yield* supabase
               .from('games')
               .stream(primaryKey: ['id'])
-              .inFilter('id', _gamesId)
+              .inFilter('id', gamesIds)
               .order('date_start', ascending: true)
               .map((maps) => maps
                   .map((map) => Game.fromMap(map, widget.idSelectedClub))
@@ -245,8 +237,8 @@ class _RankingPageState extends State<LeaguePage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<void>(
-      future: _fetchSeasonNumberAndGamesIds(),
+    return StreamBuilder<League>(
+      stream: _leagueStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -256,87 +248,71 @@ class _RankingPageState extends State<LeaguePage> {
           return Center(
             child: Text('ERROR: ${snapshot.error}'),
           );
+        } else if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         } else {
-          return StreamBuilder<League>(
-            stream: _leagueStream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Text('ERROR: ${snapshot.error}'),
-                );
-              } else if (!snapshot.hasData) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              } else {
-                League league = snapshot.data!;
-                return Scaffold(
-                  appBar: AppBar(
-                    title: Text(
-                        'League${league.level.toString()}.${league.number.toString()} of ${league.continent}'),
-                  ),
-                  drawer: const AppDrawer(),
-                  body: MaxWidthContainer(
-                    child: DefaultTabController(
-                      length: 3,
-                      child: Column(
+          League league = snapshot.data!;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                  'League${league.level.toString()}.${league.number.toString()} of ${league.continent}'),
+            ),
+            drawer: const AppDrawer(),
+            body: MaxWidthContainer(
+              child: DefaultTabController(
+                length: 3,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: IconButton(
+                        icon: Icon(Icons.arrow_back),
+                        onPressed: () {
+                          setState(() {
+                            if (_selectedSeason != null) {
+                              _selectedSeason = (_selectedSeason! - 1)
+                                  .clamp(1, _selectedSeason!);
+                              _fetchLeagueData();
+                            }
+                          });
+                        },
+                      ),
+                      title: Text('Season ${_selectedSeason ?? 'N/A'}'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.arrow_forward),
+                        onPressed: () {
+                          setState(() {
+                            if (_selectedSeason != null) {
+                              _selectedSeason = _selectedSeason! + 1;
+                              _fetchLeagueData();
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                    TabBar(
+                      tabs: [
+                        buildTabWithIcon(
+                            Icons.format_list_numbered, 'Rankings'),
+                        buildTabWithIcon(Icons.event, 'Games'),
+                        buildTabWithIcon(iconStats, 'Stats'),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
                         children: [
-                          ListTile(
-                            leading: IconButton(
-                              icon: Icon(Icons.arrow_back),
-                              onPressed: () {
-                                setState(() {
-                                  if (_selectedSeason != null) {
-                                    _selectedSeason = (_selectedSeason! - 1)
-                                        .clamp(1, _selectedSeason!);
-                                    _fetchLeagueData();
-                                  }
-                                });
-                              },
-                            ),
-                            title: Text('Season ${_selectedSeason ?? 'N/A'}'),
-                            trailing: IconButton(
-                              icon: Icon(Icons.arrow_forward),
-                              onPressed: () {
-                                setState(() {
-                                  if (_selectedSeason != null) {
-                                    _selectedSeason = _selectedSeason! + 1;
-                                    _fetchLeagueData();
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                          TabBar(
-                            tabs: [
-                              buildTabWithIcon(
-                                  Icons.format_list_numbered, 'Rankings'),
-                              buildTabWithIcon(Icons.event, 'Games'),
-                              buildTabWithIcon(iconStats, 'Stats'),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              children: [
-                                league.leagueMainTab(context,
-                                    isReturningBotClub:
-                                        widget.isReturningBotClub),
-                                league.leagueGamesTab(context),
-                                league.leagueStatsTab(context),
-                              ],
-                            ),
-                          ),
+                          league.leagueMainTab(context,
+                              isReturningBotClub: widget.isReturningBotClub),
+                          league.leagueGamesTab(context),
+                          league.leagueStatsTab(context),
                         ],
                       ),
                     ),
-                  ),
-                );
-              }
-            },
+                  ],
+                ),
+              ),
+            ),
           );
         }
       },

@@ -53,13 +53,40 @@ class _ScoutsPageState extends State<ScoutsPage> {
           return Scaffold(
             appBar: AppBar(
               title: Text('Scouting Network'),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.help_outline),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Scouting System Help'),
+                          content: Text(
+                            'The scouting system allows you to manage and track the expenses and skills of your scouting network. '
+                            'You can update the expenses dedicated to scouting and view the historical data of scouting expenses and skills.',
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('Close'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
             drawer: const AppDrawer(),
             body: MaxWidthContainer(
               child: Column(
                 children: [
                   /// Club cash
-                  getClubCashListTile(context, club),
+                  // getClubCashListTile(context, club),
 
                   /// Scouting Network expenses
                   ListTile(

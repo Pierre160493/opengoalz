@@ -154,7 +154,7 @@ BEGIN
             clubs.continent,
             COUNT(players.id) AS player_count,
             11 - COUNT(players.id) AS missing_players,
-            16 + 10 * RANDOM() AS age
+            16 + 10 * RANDOM() AS player_age
         FROM clubs
         LEFT JOIN players ON players.id_club = clubs.id
         WHERE clubs.id_multiverse = inp_multiverse.id
@@ -167,15 +167,15 @@ BEGIN
             inp_id_multiverse := club.id_multiverse,
             inp_id_club := club.id,
             inp_id_country := club.id_country,
-            inp_age := club.age,
+            inp_age := club.player_age,
             inp_stats := ARRAY[
-                0 + POWER(RANDOM(), 3) * club.age, -- keeper
-                0 + RANDOM() * club.age, -- defense
-                0 + RANDOM() * club.age, -- passes
-                0 + RANDOM() * club.age, -- playmaking
-                0 + RANDOM() * club.age, -- winger
-                0 + RANDOM() * club.age, -- scoring
-                0 + POWER(RANDOM(), 3) * club.age], -- freekick
+                0 + POWER(RANDOM(), 3) * club.player_age, -- keeper
+                0 + RANDOM() * club.player_age, -- defense
+                0 + RANDOM() * club.player_age, -- passes
+                0 + RANDOM() * club.player_age, -- playmaking
+                0 + RANDOM() * club.player_age, -- winger
+                0 + RANDOM() * club.player_age, -- scoring
+                0 + POWER(RANDOM(), 3) * club.player_age], -- freekick
             inp_notes := 'New Player'
         );
 
