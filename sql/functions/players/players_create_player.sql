@@ -10,12 +10,22 @@ CREATE OR REPLACE FUNCTION public.players_create_player(
     inp_notes text DEFAULT NULL::text)
  RETURNS bigint
  LANGUAGE plpgsql
+ SECURITY DEFINER
 AS $function$
 DECLARE
     loc_new_player_id bigint; -- Variable to store the inserted player's ID
     loc_top_two_stats double precision[];
     loc_training_coef double precision[];
 BEGIN
+
+    ------ Check if the player creation is from scouts
+    IF inp_notes = 'Young Scouted' THEN
+        IF (SELECT scouts_weight FROM clubs WHERE id = inp_id_club) < 7000 THEN
+            RAISE EXCEPTION 'The club does not have enough scout network strength to scout a new player';
+        ELSE
+            UPDATE clubs SET scouts_weight = scouts_weight - 7000 WHERE id = inp_id_club;
+        END IF;
+    END IF;
 
     -- Find the two highest values in inp_stats
     loc_top_two_stats := (
@@ -75,7 +85,7 @@ BEGIN
             WHEN inp_notes = 'Old Experienced player' THEN 'OLDXP'
             WHEN inp_notes = 'Youngster 1' THEN 'YOUNG1'
             WHEN inp_notes = 'Youngster 2' THEN 'YOUNG2'
-            WHEN inp_notes = 'Young Scouted' THEN 'YOUNG'
+            WHEN inp_notes = 'Young Scouted' THEN 'SCOUT'
             ELSE 'None'
         END)
     RETURNING id INTO loc_new_player_id;
@@ -90,6 +100,15 @@ BEGIN
         ELSE ' as a free player'
     END);
 
+    ------ Send a message to the club for scouted players
+    IF inp_notes = 'Young Scouted' THEN
+        INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+            VALUES
+                (inp_id_club, 'Scout',
+                'New Scouted Player: ' || string_parser(loc_new_player_id, 'player'),
+                string_parser(loc_new_player_id, 'player') || ' joined the squad, check him out, i''ve been keeping an eye on him for a while and given some good training he might be a future star !');
+    END IF;
+    
     ------ Return the new player's ID
     RETURN loc_new_player_id;
 END;

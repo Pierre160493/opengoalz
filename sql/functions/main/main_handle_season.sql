@@ -257,43 +257,6 @@ BEGIN
                 training_points_used = 0
             WHERE id_multiverse = inp_multiverse.id;
 
-            ------ Add a young player for each club
-            FOR loc_record IN (
-                SELECT
-                    clubs.id,
-                    clubs.id_multiverse,
-                    clubs.name,
-                    clubs.id_country,
-                    clubs.continent,
-                    100 AS scouting_strength
-                FROM clubs
-                WHERE id_multiverse = inp_multiverse.id
-                GROUP BY clubs.id, clubs.name, clubs.id_country, clubs.continent
-                )
-            LOOP
-                loc_id_player := players_create_player(
-                    inp_id_multiverse := loc_record.id_multiverse,
-                    inp_id_club := loc_record.id,
-                    inp_id_country := loc_record.id_country,
-                    inp_stats := ARRAY[
-                        0 + RANDOM() * 5, -- keeper
-                        0 + RANDOM() * 5, -- defense
-                        0 + RANDOM() * 5, -- passes
-                        0 + RANDOM() * 5, -- playmaking
-                        0 + RANDOM() * 5, -- winger
-                        0 + RANDOM() * 5, -- scoring
-                        0 + RANDOM() * 5], -- freekick
-                    inp_age := 16 + 4 * RANDOM(),
-                    inp_notes := 'Young Scouted');
-
-                INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message)
-                VALUES
-                    (loc_record.id, 'Coach', inp_multiverse.date_now,
-                    string_parser(loc_id_player, 'player') || ' from scouting network',
-                    string_parser(loc_id_player, 'player') || ' joined the squad from our scouting network, they say it''s a future star !');
-
-            END LOOP;
-
         ELSE
     END CASE;
 

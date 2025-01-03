@@ -121,7 +121,7 @@ BEGIN
                     string_parser(rec_game.id, 'game') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
                     'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'game') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' but they didnt either, we will see what the league decides but it might end with a draw'),
                 (rec_game.id_club_right, rec_game.date_start, 'Referee',
-                    string_parser(rec_game.id, 'game') ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
+                    string_parser(rec_game.id, 'game') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
                     'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'game') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' but they didnt either, we will see what the league decides but it might end with a draw');
 
         ---- If the left club is forfeit

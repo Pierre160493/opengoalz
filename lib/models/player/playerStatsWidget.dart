@@ -42,7 +42,8 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
       setState(() {
         listPlayerHistoricStats = data;
         _playerHistoricStatsLength = listPlayerHistoricStats.length;
-        _playerHistoricStatsToDisplay = min(15, _playerHistoricStatsLength) - 1;
+        _playerHistoricStatsToDisplay =
+            max(0, min(15, _playerHistoricStatsLength) - 1);
         print('Player historic stats: $_playerHistoricStatsLength');
       });
     });

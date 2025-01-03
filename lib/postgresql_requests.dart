@@ -10,7 +10,7 @@ Future<bool> operationInDB(
   String tableName, {
   Map<String, Object?>? data,
   Map<String, Object>? matchCriteria,
-  Map<String, List<dynamic>>? inFiltermatchCriteria,
+  Map<String, List<dynamic>>? inFilterMatchCriteria,
 }) async {
   /// Check if data is present for the INSERT and UPDATE operation
   if (['INSERT', 'UPDATE', 'FUNCTION'].contains(operationType.toUpperCase())) {
@@ -20,7 +20,7 @@ Future<bool> operationInDB(
     }
   }
   if (['UPDATE', 'DELETE'].contains(operationType.toUpperCase())) {
-    if (inFiltermatchCriteria == null && matchCriteria == null) {
+    if (inFilterMatchCriteria == null && matchCriteria == null) {
       throw Exception(
           'matchCriteria is required for the ${operationType} operation in the operationInDB function');
     }
@@ -31,21 +31,21 @@ Future<bool> operationInDB(
         await supabase.from(tableName).insert(data!);
         break;
       case 'UPDATE':
-        if (inFiltermatchCriteria == null) {
+        if (inFilterMatchCriteria == null) {
           await supabase.from(tableName).update(data!).match(matchCriteria!);
         } else {
           await supabase.from(tableName).update(data!).inFilter(
-              inFiltermatchCriteria.entries.first.key,
-              inFiltermatchCriteria.entries.first.value);
+              inFilterMatchCriteria.entries.first.key,
+              inFilterMatchCriteria.entries.first.value);
         }
         break;
       case 'DELETE':
-        if (inFiltermatchCriteria == null) {
+        if (inFilterMatchCriteria == null) {
           await supabase.from(tableName).delete().match(matchCriteria!);
         } else {
           await supabase.from(tableName).delete().inFilter(
-              inFiltermatchCriteria.entries.first.key,
-              inFiltermatchCriteria.entries.first.value);
+              inFilterMatchCriteria.entries.first.key,
+              inFilterMatchCriteria.entries.first.value);
         }
         break;
       case 'FUNCTION':
@@ -57,10 +57,8 @@ Future<bool> operationInDB(
     }
     return true;
   } on PostgrestException catch (error) {
-    print('PostgreSQL ERROR: ${error.message}');
     context.showSnackBarPostgreSQLError('PostgreSQL ERROR: ${error.message}');
   } catch (error) {
-    print('Unknown ERROR: $error');
     context.showSnackBarError('Unknown ERROR: $error');
   }
   return false;

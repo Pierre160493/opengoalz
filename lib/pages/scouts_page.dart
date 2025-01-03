@@ -5,9 +5,12 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/scoutsDialogBox.dart';
+import 'package:provider/provider.dart';
 
 class ScoutsPage extends StatefulWidget {
   final int idClub;
@@ -206,7 +209,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         size: iconSizeMedium, color: Colors.green),
                     title: Row(
                       children: [
-                        Text('Scouting Network Skill: '),
+                        Text('Scouting Network Strength: '),
                         Text(
                           stringValueSeparated(club.scoutsWeight.round()),
                           style: TextStyle(fontWeight: FontWeight.bold),
@@ -214,7 +217,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                       ],
                     ),
                     subtitle: const Text(
-                      'Scouts skill for searching players',
+                      'Strength of the scouting network for searching young players',
                       style: styleItalicBlueGrey,
                     ),
                     shape: shapePersoRoundedBorder(),
@@ -234,6 +237,31 @@ class _ScoutsPageState extends State<ScoutsPage> {
                       );
                     },
                   ),
+
+                  /// Fetch a new player
+                  if (club.id ==
+                      Provider.of<SessionProvider>(context, listen: false)
+                          .user!
+                          .selectedClub!
+                          .id)
+                    ListTile(
+                      leading: Icon(Icons.phone,
+                          size: iconSizeMedium, color: Colors.green),
+                      title: Text('Call the scouts !'),
+                      subtitle: const Text(
+                        'Spend scouting strength to find a new player',
+                        style: styleItalicBlueGrey,
+                      ),
+                      shape: shapePersoRoundedBorder(),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return ScoutsDialog(club: club);
+                          },
+                        );
+                      },
+                    ),
                 ],
               ),
             ),

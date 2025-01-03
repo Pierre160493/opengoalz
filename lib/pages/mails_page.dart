@@ -581,7 +581,7 @@ class _MailsPageState extends State<MailsPage> {
             'UPDATE',
             'messages_mail',
             data: data,
-            inFiltermatchCriteria: {
+            inFilterMatchCriteria: {
               'id': mails.map((mail) => mail.id).toList()
             },
           );
