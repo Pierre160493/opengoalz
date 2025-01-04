@@ -51,9 +51,10 @@ BEGIN
                 ORDER BY overall_points DESC
             )
             -- Send mail to each club indicating their position in the league
-            INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message)
+            INSERT INTO messages_mail (id_club_to, sender_role, title, message)
             SELECT 
-                id AS id_club_to, 'Coach' AS sender_role, inp_multiverse.date_now,
+                id AS id_club_to, 'Coach' AS sender_role,
+                -- inp_multiverse.date_handling + INTERVAL '1 second' * EXTRACT(SECOND FROM CURRENT_TIMESTAMP) + INTERVAL '1 millisecond' * EXTRACT(MILLISECOND FROM CURRENT_TIMESTAMP),
                 'Finished ' || 
                 CASE 
                     WHEN pos_league = 1 THEN '1st'
@@ -230,15 +231,15 @@ BEGIN
                 GROUP BY id_club
             )
             -- Send mail to each club indicating their position in the league
-            INSERT INTO messages_mail (id_club_to, sender_role, created_at, title, message)
+            INSERT INTO messages_mail (id_club_to, sender_role, title, message)
                 SELECT 
                     id AS id_club_to, 'Treasurer' AS sender_role,
-                    inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
-                    'New Season ' || inp_multiverse.season_number + 1 || ' is launched ' AS title,
-                    string_parser(c.id_league, 'league') || ' season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(ce.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_staff_target AS message
-                FROM clubs c
-                LEFT JOIN club_expenses ce ON c.id = ce.id_club
-            WHERE c.id_multiverse = inp_multiverse.id;
+                    -- inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
+                    'New Season ' || inp_multiverse.season_number + 1 || ' starts in ' || string_parser(clubs.id_league, 'league') AS title,
+                    string_parser(clubs.id_league, 'league') || ' season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(ce.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_staff_target AS message
+                FROM clubs
+                LEFT JOIN club_expenses ON club_expenses.id_club = clubs.id
+            WHERE clubs.id_multiverse = inp_multiverse.id;
 
             -- Update players
             UPDATE players SET

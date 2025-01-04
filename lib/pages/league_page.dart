@@ -277,7 +277,7 @@ class _RankingPageState extends State<LeaguePage> {
                 return Scaffold(
                   appBar: AppBar(
                     title: Text(
-                        'League${league.level.toString()}.${league.number.toString()} of ${league.continent}'),
+                        'League ${league.name.toString()} of ${league.continent}'),
                   ),
                   drawer: const AppDrawer(),
                   body: MaxWidthContainer(

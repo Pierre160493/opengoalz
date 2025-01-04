@@ -83,7 +83,6 @@ class Club {
     required this.expensesScoutsTarget,
     required this.lisScoutsWeight,
     required this.lisExpensesScouts,
-    required this.scoutingSearch,
     required this.expensesScoutsApplied,
     required this.expensesTransfersDone,
     required this.expensesTransfersExpected,
@@ -138,7 +137,6 @@ class Club {
   final int expensesScoutsTarget;
   final List<int> lisScoutsWeight;
   final List<int> lisExpensesScouts;
-  final List<int> scoutingSearch;
   final int expensesScoutsApplied;
   final int expensesTransfersDone;
   final int expensesTransfersExpected;
@@ -200,14 +198,16 @@ class Club {
         expensesScoutsTarget = map['expenses_scouts_target'],
         lisScoutsWeight = List<int>.from(map['lis_scouts_weight']),
         lisExpensesScouts = List<int>.from(map['lis_expenses_scouts']),
-        scoutingSearch = List<int>.from(map['scouting_search']),
         expensesScoutsApplied = map['expenses_scouts_applied'],
         expensesTransfersDone = map['expenses_transfers_done'],
         expensesTransfersExpected = map['expenses_transfers_expected'],
         lisExpensesTransfers = List<int>.from(map['lis_expenses_transfers']),
         revenuesTransfersDone = map['revenues_transfers_done'],
         revenuesTransfersExpected = map['revenues_transfers_expected'],
-        lisRevenuesTransfers = List<int>.from(map['lis_revenues_transfers']);
+        lisRevenuesTransfers = List<int>.from(map['lis_revenues_transfers']) {
+    // print(
+    //     'Club.fromMap: id=$id, createdAt=$createdAt, userSince=$userSince, idMultiverse=$idMultiverse, idLeague=$idLeague, userName=$userName, name=$name, cash=$cash, lisCash=$lisCash, lisRevenues=$lisRevenues, lisExpenses=$lisExpenses, lisExpensesStaff=$lisExpensesStaff, lisExpensesPlayers=$lisExpensesPlayers, lisExpensesTax=$lisExpensesTax, lisStaffWeight=$lisStaffWeight, lisRevenuesSponsors=$lisRevenuesSponsors, revenuesSponsors=$revenuesSponsors, revenuesSponsorsLastSeason=$revenuesSponsorsLastSeason, revenuesTotal=$revenuesTotal, expensesPlayers=$expensesPlayers, expensesPlayersRatio=$expensesPlayersRatio, expensesStaffTarget=$expensesStaffTarget, expensesStaffApplied=$expensesStaffApplied, expensesTax=$expensesTax, expensesTotal=$expensesTotal, staffWeight=$staffWeight, numberFans=$numberFans, idCountry=$idCountry, leaguePoints=$leaguePoints, lisLastResults=$lisLastResults, posLeague=$posLeague, seasonNumber=$seasonNumber, idLeagueNextSeason=$idLeagueNextSeason, posLeagueNextSeason=$posLeagueNextSeason, posLastSeason=$posLastSeason, canUpdateName=$canUpdateName, continent=$continent, playersExpanses=$playersExpanses, expensesPlayersRatioTarget=$expensesPlayersRatioTarget, leagueGoalsFor=$leagueGoalsFor, leagueGoalsAgainst=$leagueGoalsAgainst, scoutsWeight=$scoutsWeight, expensesScoutsTarget=$expensesScoutsTarget, lisScoutsWeight=$lisScoutsWeight, lisExpensesScouts=$lisExpensesScouts, expensesScoutsApplied=$expensesScoutsApplied, expensesTransfersDone=$expensesTransfersDone, expensesTransfersExpected=$expensesTransfersExpected, lisExpensesTransfers=$lisExpensesTransfers, revenuesTransfersDone=$revenuesTransfersDone, revenuesTransfersExpected=$revenuesTransfersExpected, lisRevenuesTransfers=$lisRevenuesTransfers');
+  }
 
   /// Fetch the club from its id
   static Future<Club?> fromId(int id) async {

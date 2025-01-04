@@ -1,6 +1,7 @@
 CREATE OR REPLACE FUNCTION string_parser(
     inp_id BIGINT,
-    entity_type TEXT)
+    entity_type TEXT,
+    string TEXT DEFAULT NULL)
 RETURNS TEXT AS $$
 DECLARE
     loc_record RECORD;
@@ -13,7 +14,7 @@ BEGIN
             SELECT id, name INTO loc_record FROM clubs WHERE id = inp_id;
             RETURN '{idClub:' || loc_record.id || ',' || loc_record.name || '}';
         WHEN 'league' THEN
-            SELECT id, 'league' || level || '.' || number AS name INTO loc_record FROM leagues WHERE id = inp_id;
+            SELECT id, name INTO loc_record FROM leagues WHERE id = inp_id;
             RETURN '{idLeague:' || loc_record.id || ',' || loc_record.name || '}';
         WHEN 'game' THEN
             SELECT id, 'S' || season_number || 'W' || week_number || ' game' AS name INTO loc_record FROM games WHERE id = inp_id;

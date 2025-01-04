@@ -1,9 +1,7 @@
 -- DROP FUNCTION public.simulate_week_games(record, int8, int8);
 
-CREATE OR REPLACE FUNCTION public.simulate_week_games(
-    multiverse record,
-    inp_season_number bigint,
-    inp_week_number bigint)
+CREATE OR REPLACE FUNCTION public.simulate_day(
+    inp_multiverse RECORD)
  RETURNS boolean
  LANGUAGE plpgsql
 AS $function$
@@ -15,9 +13,22 @@ DECLARE
     pos integer; -- Position in the league
 BEGIN
 
+    ------ Check if the week is not too early to simulate
+    IF inp_multiverse.day_number < 7 THEN
+
+        ---- Increase players energy
+        UPDATE players
+            SET energy = LEAST(100,
+                energy + 10)
+        WHERE id_multiverse = inp_multiverse.id;
+
+        RETURN TRUE; -- Return TRUE to say that the day was correctly simulated
+
+    END IF;
+
     ------------ Loop through all leagues of the multiverse
     FOR league IN (
-        SELECT * FROM leagues WHERE id_multiverse = multiverse.id)
+        SELECT * FROM leagues WHERE id_multiverse = inp_multiverse.id)
     LOOP
 
         ------ Loop through the games that need to be played for the current week of the current league
@@ -25,8 +36,8 @@ BEGIN
             (SELECT id FROM games
                 WHERE id_league = league.id
                 AND date_end IS NULL
-                AND season_number <= inp_season_number
-                AND week_number <= inp_week_number
+                AND season_number <= inp_multiverse.season_number
+                AND week_number <= inp_multiverse.week_number
                 AND now() > date_start
                 ORDER BY season_number, week_number, id)
         LOOP
@@ -45,8 +56,8 @@ BEGIN
                 WHERE id_league = league.id
                 AND now() >= date_end
                 AND is_playing = TRUE
-                AND season_number <= inp_season_number
-                AND week_number <= inp_week_number
+                AND season_number <= inp_multiverse.season_number
+                AND week_number <= inp_multiverse.week_number
                 ORDER BY id)
         LOOP
             PERFORM simulate_game_set_is_played(inp_id_game := game.id);
@@ -59,7 +70,7 @@ BEGIN
         -- If a game from the league was played, recalculate the rankings
         IF is_league_game_finished = TRUE THEN
             -- Calculate rankings for normal leagues
-            IF league.LEVEL > 0 AND multiverse.week_number <= 10 THEN
+            IF league.LEVEL > 0 AND inp_multiverse.week_number <= 10 THEN
                 -- Calculate rankings for each clubs in the league
                 pos := 1;
                 FOR club IN
@@ -95,8 +106,8 @@ BEGIN
         SELECT COUNT(id)
         FROM games
         WHERE is_playing <> FALSE
-        AND season_number = inp_season_number
-        AND week_number = inp_week_number) > 0
+        AND season_number = inp_multiverse.season_number
+        AND week_number = inp_multiverse.week_number) > 0
     THEN
         RETURN FALSE;
     ELSE

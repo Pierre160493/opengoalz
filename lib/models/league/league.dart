@@ -36,12 +36,14 @@ class League {
     required this.idUpperLeague,
     required this.idLowerLeague,
     required this.isFinished,
+    required this.name,
   });
 
   final int id;
   final int idMultiverse;
+  final String name;
+  final String? continent;
   final int seasonNumber;
-  final String continent;
   final int level;
   final int number;
   final int? idUpperLeague;
@@ -58,5 +60,6 @@ class League {
         number = map['number'],
         idUpperLeague = map['id_upper_league'],
         idLowerLeague = map['id_lower_league'],
-        isFinished = map['is_finished'];
+        isFinished = map['is_finished'],
+        name = map['name'];
 }

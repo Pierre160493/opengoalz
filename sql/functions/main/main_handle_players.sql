@@ -188,18 +188,10 @@ BEGIN
     ), player_data2 AS (
         SELECT 
             player_data.*,
-            -- training_points_available + 3 * CASE
-            --     WHEN player_data.age < 999 THEN
-            --         (0.25 + 0.75 * staff_coef) * player_data.coef_age
-            --     ELSE -1.0
-            -- END AS updated_training_points_available2, -- Updated training points based on age
-            -- training_points_available + 3.0
-            --     * (0.25 + 0.75 * staff_coef) -- The more staff_coeff, the closer to 1
-            --     * player_data.coef_age -- The younger the player, the more training points
-            --     AS updated_training_points_available, -- Updated training points based on age and staff weight
-            training_points_available +
-                (0.25 + 0.75 * staff_coef) + -- The more staff_coeff, the closer to 1
-                3 * coef_age
+            -- training_points_available +
+            --     (0.25 + 0.75 * staff_coef) + -- The more staff_coeff, the closer to 1
+            --     2 * coef_age
+            0
             AS updated_training_points_available, -- Updated training points based on age and staff weight
             ARRAY(
                 SELECT (1 - staff_coef) + CASE WHEN sum_training_coef = 0 THEN 1.0 ELSE coef / sum_training_coef::float END

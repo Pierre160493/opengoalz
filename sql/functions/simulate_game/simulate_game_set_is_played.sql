@@ -9,11 +9,13 @@ DECLARE
     text_title_right TEXT; -- Title of the message for the right club
     text_message_left TEXT; -- Message of the message for the left club
     text_message_right TEXT; -- Message of the message for the right club
-    tmp_text TEXT; -- Tmp text
+    tmp_text1 TEXT; -- Tmp text 1
+    tmp_text2 TEXT; -- Tmp text 2
 BEGIN
 
     ------ Store the game record
     SELECT games.*,
+        ---- Handle forfeited games (WHEN score = -1)
         (CASE WHEN score_left = -1 THEN 0 ELSE score_left END) - (CASE WHEN score_right = -1 THEN 0 ELSE score_right END) AS score_diff,
         CASE WHEN score_left = - 1 OR score_right = - 1 THEN TRUE ELSE FALSE END AS is_forfeit,
         score_cumul_left - score_cumul_right AS score_diff_total,
@@ -30,111 +32,131 @@ BEGIN
     WHERE games.id = inp_id_game;
 
     ------ Start writing the messages to be sent to the clubs
-    -- Left club won
-    IF rec_game.score_diff > 0 THEN
-        text_title_left := string_parser(rec_game.id, 'game') || ' won ' || 
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
-                ELSE rec_game.score_left || '-' || rec_game.score_right
-            END || 
-            ' against ' || string_parser(rec_game.id_club_right, 'club');
-        text_title_right := string_parser(rec_game.id, 'game') || ' lost ' ||
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
-                ELSE rec_game.score_right || '-' || rec_game.score_left
-            END || 
-            ' against ' || string_parser(rec_game.id_club_left, 'club');
-        text_message_left := 'We have won ' || 
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
-                ELSE rec_game.score_left || '-' || rec_game.score_right
-            END ||
-            ' the ' || string_parser(rec_game.id, 'game') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || string_parser(rec_game.id_club_right, 'club');
-        text_message_right := 'We have lost ' ||
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
-                ELSE rec_game.score_right || '-' || rec_game.score_left
-            END ||
-            ' the ' || string_parser(rec_game.id, 'game') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || string_parser(rec_game.id_club_left, 'club');
+    tmp_text1 := string_parser(rec_game.id, 'game') || ' of ' || string_parser(rec_game.id_league, 'league') || ' ';
+    tmp_text2 := CASE
+        WHEN rec_game.is_forfeit THEN ' by forfeit 3-0'
+        ELSE rec_game.score_left || '-' || rec_game.score_right
+            -- CASE
+            --     WHEN rec_game.is_cup THEN ' [' || rec_game. || '-' ||  ||']'
+            --     ELSE ''
+            -- END;
+        END;
+    text_title_left := tmp_text1 ||
+        CASE
+            WHEN rec_game.score_diff > 0 THEN 'won'
+            WHEN rec_game.score_diff < 0 THEN 'lost'
+            ELSE 'draw'
+        END || tmp_text2 ||
+        ' against ' || string_parser(rec_game.id_club_right, 'club');
+    text_title_right := tmp_text1 ||
+        CASE
+            WHEN rec_game.score_diff > 0 THEN 'lost'
+            WHEN rec_game.score_diff < 0 THEN 'won'
+            ELSE 'draw'
+        END || tmp_text2 ||
+        ' against ' || string_parser(rec_game.id_club_left, 'club');
+    text_message_left := text_title_left;
+    text_message_right := text_title_right;
 
-    -- Right club won
-    ELSEIF rec_game.score_diff < 0 THEN
-        text_title_left := string_parser(rec_game.id, 'game') || ' lost ' || 
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
-                ELSE rec_game.score_left || '-' || rec_game.score_right
-            END || 
-            ' against ' || string_parser(rec_game.id_club_right, 'club');
-        text_title_right := string_parser(rec_game.id, 'game') || ' won ' ||
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
-                ELSE rec_game.score_right || '-' || rec_game.score_left
-            END || 
-            ' against ' || string_parser(rec_game.id_club_left, 'club');
-        text_message_left := 'We have lost ' ||
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
-                ELSE rec_game.score_left || '-' || rec_game.score_right
-            END ||
-            ' the ' || string_parser(rec_game.id, 'game') || ' against ' || string_parser(rec_game.id_club_right, 'club');
-        text_message_right := 'We have won ' ||
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
-                ELSE rec_game.score_right || '-' || rec_game.score_left
-            END ||
-            ' the ' || string_parser(rec_game.id, 'game') || ' against ' || string_parser(rec_game.id_club_left, 'club');
+    -- -- Left club won
+    -- IF rec_game.score_diff > 0 THEN
+    --     text_title_left := tmp_text1 || ' won ' || 
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
+    --             ELSE rec_game.score_left || '-' || rec_game.score_right
+    --         END;
+    --     text_title_right := tmp_text1 || ' lost ' ||
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
+    --             ELSE rec_game.score_right || '-' || rec_game.score_left
+    --         END;
+    --     text_message_left := 'Good job, we have won the ' || tmp_text1 || ' ' ||
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
+    --             ELSE rec_game.score_left || '-' || rec_game.score_right
+    --         END;
+    --     text_message_right := 'Unfortunately we have lost the ' || tmp_text1 || ' ' ||
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
+    --             ELSE rec_game.score_right || '-' || rec_game.score_left
+    --         END;
+    -- -- Right club won
+    -- ELSEIF rec_game.score_diff < 0 THEN
+    --     text_title_left := tmp_text1 || ' lost ' || 
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
+    --             ELSE rec_game.score_left || '-' || rec_game.score_right
+    --         END || 
+    --         ' against ' || string_parser(rec_game.id_club_right, 'club');
+    --     text_title_right := string_parser(rec_game.id, 'game') || ' won ' ||
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
+    --             ELSE rec_game.score_right || '-' || rec_game.score_left
+    --         END || 
+    --         ' against ' || string_parser(rec_game.id_club_left, 'club');
+    --     text_message_left := 'We have lost ' ||
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 0-3'
+    --             ELSE rec_game.score_left || '-' || rec_game.score_right
+    --         END ||
+    --         ' the ' || string_parser(rec_game.id, 'game') || ' against ' || string_parser(rec_game.id_club_right, 'club');
+    --     text_message_right := 'We have won ' ||
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 3-0'
+    --             ELSE rec_game.score_right || '-' || rec_game.score_left
+    --         END ||
+    --         ' the ' || string_parser(rec_game.id, 'game') || ' against ' || string_parser(rec_game.id_club_left, 'club');
 
-    -- Draw
-    ELSE
+    -- -- Draw
+    -- ELSE
 
-        text_title_left := string_parser(rec_game.id, 'game') || ' draw ' || 
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
-                ELSE rec_game.score_left || '-' || rec_game.score_right
-            END || 
-            ' against ' || string_parser(rec_game.id_club_right, 'club');
-        text_title_right := string_parser(rec_game.id, 'game') || ' draw ' ||
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
-                ELSE rec_game.score_right || '-' || rec_game.score_left
-            END || 
-            ' against ' || string_parser(rec_game.id_club_left, 'club');
-        text_message_left := 'We have drawn ' ||
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
-                ELSE rec_game.score_left || '-' || rec_game.score_right
-            END ||
-            ' the ' || string_parser(rec_game.id, 'game') || ' against ' || string_parser(rec_game.id_club_right, 'club');
-        text_message_right := 'We have drawn ' ||
-            CASE 
-                WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
-                ELSE rec_game.score_right || '-' || rec_game.score_left
-            END ||
-            ' the ' || string_parser(rec_game.id, 'game') || ' against ' || string_parser(rec_game.id_club_left, 'club');
-
-    END IF;
+    --     text_title_left := string_parser(rec_game.id, 'game') || ' draw ' || 
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
+    --             ELSE rec_game.score_left || '-' || rec_game.score_right
+    --         END || 
+    --         ' against ' || string_parser(rec_game.id_club_right, 'club');
+    --     text_title_right := string_parser(rec_game.id, 'game') || ' draw ' ||
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
+    --             ELSE rec_game.score_right || '-' || rec_game.score_left
+    --         END || 
+    --         ' against ' || string_parser(rec_game.id_club_left, 'club');
+    --     text_message_left := 'We have drawn ' ||
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
+    --             ELSE rec_game.score_left || '-' || rec_game.score_right
+    --         END ||
+    --         ' the ' || string_parser(rec_game.id, 'game') || ' against ' || string_parser(rec_game.id_club_right, 'club');
+    --     text_message_right := 'We have drawn ' ||
+    --         CASE 
+    --             WHEN rec_game.is_forfeit THEN 'by forfeit 0-0'
+    --             ELSE rec_game.score_right || '-' || rec_game.score_left
+    --         END ||
+    --         ' the ' || string_parser(rec_game.id, 'game') || ' against ' || string_parser(rec_game.id_club_left, 'club');
+    -- END IF;
 
     ------ Update message and league position for specific games
-    -- First leg games of barrage games
-    IF rec_game.id_games_description IN (211, 213, 311, 331) THEN
+    -- First leg games of barrage 1 games
+    IF rec_game.id_games_description IN (211, 213) THEN
         -- Draw
-        IF rec_game.score_diff_total = 0 THEN
-            text_title_left := text_title_left || ': Leg 1 Draw';
-            text_title_right := text_title_right || ': Leg 1 Draw';
-            text_message_left := text_message_left || '. The first leg of the barrage ended in a draw, nothing is lost, we can still make it in the second leg, let''s go !';
-            text_message_right := text_message_right || '. The first leg of the barrage ended in a draw, nothing is lost, we can still make it in the second leg, let''s go !';
+        IF rec_game.score_diff_total > 0 THEN
         -- Left club won
-        ELSIF rec_game.score_diff_total > 0 THEN
             text_title_left := text_title_left || ': Leg 1 Victory';
             text_title_right := text_title_right || ': Leg 1 Defeat';
             text_message_left := text_message_left || '. Great victory in the first leg of the barrage, we are so close to promotion, keep the team focused !';
             text_message_right := text_message_right || '. Unfortunately we have lost the first leg of the barrage. Nothing is lost, we can still make it in the second leg, let''s go !';
         -- Right club won
-        ELSE
-            text_title_right := text_title_right || ': Leg 1 Victory';
+        ELSIF rec_game.score_diff_total < 0 THEN
             text_title_left := text_title_left || ': Leg 1 Defeat';
-            text_message_right := text_message_right || '. Great victory in the first leg of the barrage, we are so close to promotion, keep the team focused !';
+            text_title_right := text_title_right || ': Leg 1 Victory';
             text_message_left := text_message_left || '. Unfortunately we have lost the first leg of the barrage. Nothing is lost, we can still make it in the second leg, let''s go !';
+            text_message_right := text_message_right || '. Great victory in the first leg of the barrage, we are so close to promotion, keep the team focused !';
+        ELSE
+            text_title_left := text_title_left || ': Leg 1 Draw';
+            text_title_right := text_title_right || ': Leg 1 Draw';
+            text_message_left := text_message_left || '. The first leg of the barrage ended in a draw, nothing is lost, we can still make it in the second leg, let''s go !';
+            text_message_right := text_message_right || '. The first leg of the barrage ended in a draw, nothing is lost, we can still make it in the second leg, let''s go !';
         END IF; --End right club won
 
     -- Return game of the first barrage (between firsts of opposite leagues)
@@ -246,6 +268,22 @@ BEGIN
             text_message_left := text_message_left || '. This overall defeat in the 2nd barrage means that we are relegated to a lower league. It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
             text_message_right := text_message_right || '. This overall victory in the 2nd barrage means that we are promoted to the upper league next season. Congratulations to you and all the players, we made it !';
 
+        END IF;
+
+    ELSEIF rec_game.id_games_description IN (311, 312) THEN
+    -- IF rec_game.id_games_description IN (311, 312, 331) THEN
+        -- Left club won
+        IF rec_game.score_diff_total > 0 THEN
+            text_title_left := text_title_left || ': BARRAGE2 Game1 Victory';
+            text_title_right := text_title_right || ': BARRAGE2 Defeat';
+            text_message_left := text_message_left || '. Great victory in the first game of the barrage2, we are so close to promotion, keep the team focused !';
+            text_message_right := text_message_right || '. Unfortunately we have lost the first game of the barrage. We won''t go up this season but we can make it next season ! Next week we''ll play a friendly game against the loser of the other BARRAGE2 game.';
+        -- Right club won
+        ELSE
+            text_title_left := text_title_left || ': BARRAGE2 Defeat';
+            text_title_right := text_title_right || ': BARRAGE2 Game1 Victory';
+            text_message_left := text_message_left || '. Unfortunately we have lost the first game of the barrage. We won''t go up this season but we can make it next season ! Next week we''ll play a friendly game against the loser of the other BARRAGE2 game.';
+            text_message_right := text_message_right || '. Great victory in the first game of the barrage2, we are so close to promotion, keep the team focused !';
         END IF;
 
     -- Return game of the barrage 3 (week 14) between the 4th of the upper league and the winner of the 2nd round of the barrage 3
@@ -369,7 +407,7 @@ BEGIN
 
     ------ Handling of the 3rd place game of the international cups
     ELSEIF rec_game.id_games_description IN (132, 133) THEN
-        tmp_text :=
+        tmp_text1 :=
         CASE
             WHEN rec_game.id_games_description = 132 THEN '3rd Place game of the '
             ELSE '5th Place game of the '
@@ -384,18 +422,18 @@ BEGIN
         IF rec_game.score_diff > 0 THEN
 
             -- Send messages
-            text_title_left := text_title_left || ': Victory in ' || tmp_text;
-            text_title_right := text_title_right || ': Defeat in ' || tmp_text;
-            text_message_left := text_message_left || '. This is a great victory in the ' || tmp_text || ' ! Next season let''s try to make it to the very top !';
-            text_message_right := text_message_right || '. Sad defeat in the ' || tmp_text || ' ... It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
+            text_title_left := text_title_left || ': Victory in ' || tmp_text1;
+            text_title_right := text_title_right || ': Defeat in ' || tmp_text1;
+            text_message_left := text_message_left || '. This is a great victory in the ' || tmp_text1 || ' ! Next season let''s try to make it to the very top !';
+            text_message_right := text_message_right || '. Sad defeat in the ' || tmp_text1 || ' ... It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
 
         ELSE
 
             ---- Message construction
-            text_title_left := text_title_left || ': Defeat in ' || tmp_text;
-            text_title_right := text_title_right || ': Victory in ' || tmp_text;
-            text_message_left := text_message_left || '. Sad defeat in the ' || tmp_text || ' ... It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
-            text_message_right := text_message_right || '. This is a great victory in the ' || tmp_text || ' ! Next season let''s try to make it to the very top !';
+            text_title_left := text_title_left || ': Defeat in ' || tmp_text1;
+            text_title_right := text_title_right || ': Victory in ' || tmp_text1;
+            text_message_left := text_message_left || '. Sad defeat in the ' || tmp_text1 || ' ... It''s a disappointment but we''ll come back stronger next season, I''m sure we can make it !';
+            text_message_right := text_message_right || '. This is a great victory in the ' || tmp_text1 || ' ! Next season let''s try to make it to the very top !';
 
         END IF; -- End of the handling of the different games
 
@@ -422,7 +460,7 @@ BEGIN
         INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
             SELECT
                 players.id AS id_player, players.id_club AS id_club,
-                'Season ' || rec_game.season_number || ': Victory in ' || tmp_text
+                'Season ' || rec_game.season_number || ': Victory in ' || tmp_text1
                 || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(clubs.id, 'club'),
                 TRUE AS is_ranking_description
             FROM players
@@ -441,7 +479,7 @@ BEGIN
         INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
             SELECT
                 players.id AS id_player, players.id_club AS id_club,
-                'Season ' || rec_game.season_number || ': Defeat in ' || tmp_text
+                'Season ' || rec_game.season_number || ': Defeat in ' || tmp_text1
                 || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(clubs.id, 'club'),
                 TRUE AS is_ranking_description
             FROM players
