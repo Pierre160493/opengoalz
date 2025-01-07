@@ -18,8 +18,8 @@ BEGIN
     LIMIT 1;
 
     ------ INSERT new club
-    INSERT INTO clubs (id_multiverse, id_league, id_country, continent, pos_league)
-        VALUES (inp_id_multiverse, inp_id_league, loc_id_country, inp_continent, inp_number)
+    INSERT INTO clubs (id_multiverse, id_league, id_league_next_season, id_country, continent, pos_league)
+        VALUES (inp_id_multiverse, inp_id_league, inp_id_league, loc_id_country, inp_continent, inp_number)
         RETURNING id INTO loc_id_club; -- Get the newly created id for the club
 
     ------ Generate name of the club

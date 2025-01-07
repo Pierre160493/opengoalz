@@ -24,8 +24,8 @@ DECLARE
     loc_date_start_period timestamp; -- The date and time of the period
     loc_score_left int := 0; -- The score of the left team
     loc_score_right int := 0; -- The score of the right team
-    loc_score_penalty_left int := 0; -- The score of the left team for the penalty shootout
-    loc_score_penalty_right int := 0; -- The score of the right team for the penalty shootout
+    loc_score_penalty_left int; -- The score of the left team for the penalty shootout
+    loc_score_penalty_right int; -- The score of the right team for the penalty shootout
     loc_score_left_previous int := 0; -- The score of the left team previous game
     loc_score_right_previous int := 0; -- The score of the right team with previous game
     minutes_half_time int8 := 45; -- 45
@@ -191,46 +191,17 @@ BEGIN
                 loc_minute_period_end := loc_minute_period_start + minutes_half_time; -- Start minute of the first period
                 loc_minute_period_extra_time := 3 + ROUND(random() * 5); -- Extra time for the period
             ELSEIF loc_period_game = 3 THEN
-                -- If the game is_cup we fetch the previous score if a previous game exists
-                IF rec_game.is_cup IS TRUE THEN
-                    loc_score_left_previous = 0;
-                    loc_score_right_previous = 0;
-                    -- If the game has a previous first round game
-                    IF rec_game.is_return_game_id_game_first_round IS NOT NULL THEN
-
-                        -- Fetch score from previous game
-                        SELECT 
-                            CASE 
-                                WHEN id_club_left = rec_game.id_club_left THEN FLOOR(score_left)
-                                WHEN id_club_right = rec_game.id_club_left THEN FLOOR(score_right)
-                                ELSE NULL
-                            END,
-                            CASE 
-                                WHEN id_club_left = rec_game.id_club_right THEN FLOOR(score_left)
-                                WHEN id_club_right = rec_game.id_club_right THEN FLOOR(score_right)
-                                ELSE NULL
-                            END
-                        INTO loc_score_left_previous, loc_score_right_previous
-                        FROM games WHERE id = rec_game.is_return_game_id_game_first_round;
-
-                        IF loc_score_left_previous IS NULL THEN
-                            RAISE EXCEPTION 'Cannot find the score of the first game of the left club % in the game %', rec_game.id_club_left, rec_game.is_return_game_id_game_first_round;
-                        END IF;
-
-                        IF loc_score_right_previous IS NULL THEN
-                            RAISE EXCEPTION 'Cannot find the score of the first game of the right club % in the game %', rec_game.id_club_right, rec_game.is_return_game_id_game_first_round;
-                        END IF;
-
-                    END IF;
-                END IF;
+                loc_score_left_previous := COALESCE(rec_game.score_previous_left, 0);
+                loc_score_right_previous := COALESCE(rec_game.score_previous_right, 0);
                 -- Check if the game is over already (e.g., if the game is not a cup game or if the scores are different)
-                IF rec_game.is_cup = FALSE AND (loc_score_left + loc_score_left_previous) <> (loc_score_right + loc_score_right_previous) THEN
+                IF rec_game.is_cup = FALSE
+                    AND (loc_score_left + loc_score_left_previous) <> (loc_score_right + loc_score_right_previous) THEN
                     EXIT; -- If the game is over, then exit the loop
                 END IF;
                 loc_date_start_period := loc_date_start_period + (45 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the first prolongation is the start date of the second half plus 45 minutes + extra time
                 loc_minute_period_start := 90; -- Start minute of the first period
                 loc_minute_period_end := loc_minute_period_start + minutes_extra_time; -- Start minute of the first period
-                loc_minute_period_extra_time := ROUND(random() * 3); -- Extra time for the period
+                loc_minute_period_extra_time := ROUND(random() * 2); -- Extra time for the period
             ELSE
                 loc_date_start_period := loc_date_start_period + (15 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the second prolongation is the start date of the first prolongation plus 15 minutes + extra time
                 loc_minute_period_start := 105; -- Start minute of the first period
@@ -334,6 +305,8 @@ BEGIN
             AND (loc_score_left + loc_score_left_previous) = (loc_score_right + loc_score_right_previous) THEN
                 -- Simulate a penalty shootout
                 penalty_number := 1; -- Initialize the loop counter
+                loc_score_penalty_left := 0; -- Initialize the score of the left team for the penalty shootout
+                loc_score_penalty_right := 0; -- Initialize the score of the right team for the penalty shootout
                 WHILE penalty_number <= 5 OR loc_score_penalty_left = loc_score_penalty_right LOOP
                     IF random() < 0.5 THEN
                         loc_score_penalty_left := loc_score_penalty_left + 1;
@@ -382,18 +355,30 @@ BEGIN
     UPDATE games SET
         -- date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
         date_end = NOW(),
+        ---- Score of the game
         score_left = loc_score_left,
         score_right = loc_score_right,
-        score_cumul_left = score_cumul_left + loc_score_left_previous + (loc_score_penalty_left / 1000.0)
-            + CASE WHEN loc_score_left = - 1 THEN 0 ELSE loc_score_left END,
-        score_cumul_right = score_cumul_right + loc_score_right_previous + (loc_score_penalty_right / 1000.0)
-            + CASE WHEN loc_score_right = - 1 THEN 0 ELSE loc_score_right END
+        ---- Score of the penalty shootout
+        score_penalty_left = loc_score_penalty_left,
+        score_penalty_right = loc_score_penalty_right,
+        ---- Score (cumulative) of the game
+        -- score_cumul_left = loc_score_left_previous +
+        --     + CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END,
+        -- score_cumul_right = loc_score_right_previous +
+        --     + CASE WHEN loc_score_right = -1 THEN 0 ELSE loc_score_right END,
+        ---- Score (cumulative) of the game with penalty shootout / 1000
+        score_cumul_with_penalty_left = loc_score_left_previous +
+            + CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END
+            + COALESCE(loc_score_penalty_left, 0) / 1000.0,
+        score_cumul_with_penalty_right = loc_score_right_previous +
+            + CASE WHEN loc_score_right = -1 THEN 0 ELSE loc_score_right END
+            + COALESCE(loc_score_penalty_right, 0) / 1000.0
     WHERE id = rec_game.id;
 
     ------ Store the score if ever a game is a return game of this one
     UPDATE games SET
-        score_cumul_left = CASE WHEN loc_score_right = - 1 THEN 0 ELSE loc_score_right END,
-        score_cumul_right = CASE WHEN loc_score_left = - 1 THEN 0 ELSE loc_score_left END
+        score_previous_left = CASE WHEN loc_score_right = - 1 THEN 0 ELSE loc_score_right END,
+        score_previous_right = CASE WHEN loc_score_left = - 1 THEN 0 ELSE loc_score_left END
     WHERE is_return_game_id_game_first_round = rec_game.id;
 
 END;

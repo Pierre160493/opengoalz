@@ -75,7 +75,7 @@ BEGIN
 
     ------ Calculate experience
     IF NEW.experience IS NULL THEN
-        NEW.experience = 2 * (players_calculate_age(inp_multiverse_speed := NEW.multiverse_speed, inp_date_birth := NEW.date_birth) - 10);
+        NEW.experience = 2 * (calculate_age(inp_multiverse_speed := NEW.multiverse_speed, inp_date_birth := NEW.date_birth) - 10);
     END IF;
 
     ------ Calculate the performance score

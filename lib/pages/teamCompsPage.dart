@@ -196,39 +196,10 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                     children: [
                       TabBar(
                         tabs: [
-                          buildTabWithIcon(Icons.save, 'Defaults'),
-                          buildTabWithIcon2(
-                              context,
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.update,
-                                  ),
-                                  SizedBox(width: 3),
-                                  Text('Season ${_seasonNumber}'),
-                                  // if (_seasonNumber > 1)
-                                  //   IconButton(
-                                  //     onPressed: () {
-                                  //       setState(() {
-                                  //         _seasonNumber -=
-                                  //             1; // Modify the state variable instead of the widget property
-                                  //       });
-                                  //     },
-                                  //     icon: Icon(Icons.arrow_circle_left,
-                                  //         size: iconSizeSmall),
-                                  //   ),
-                                  // IconButton(
-                                  //   onPressed: () {
-                                  //     setState(() {
-                                  //       _seasonNumber +=
-                                  //           1; // Modify the state variable instead of the widget property
-                                  //     });
-                                  //   },
-                                  //   icon: Icon(Icons.arrow_circle_right,
-                                  //       size: iconSizeSmall),
-                                  // ),
-                                ],
-                              )),
+                          buildTabWithIcon(icon: Icons.save, text: 'Defaults'),
+                          buildTabWithIcon(
+                              icon: Icons.save,
+                              text: 'Season ${_seasonNumber}'),
                         ],
                       ),
                       Expanded(
@@ -245,27 +216,16 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                     tabs: [
                                       ...List<Widget>.generate(
                                         club.defaultTeamComps.length,
-                                        (index) => buildTabWithIcon2(
-                                            context,
-                                            Row(
-                                              children: [
-                                                // Green OK, Red Not OK
-                                                Icon(
-                                                  Icons.save,
-                                                  color: club
-                                                              .defaultTeamComps[
-                                                                  index]
-                                                              .errors ==
-                                                          null
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                ),
-                                                SizedBox(width: 3),
-                                                Text(club
-                                                    .defaultTeamComps[index]
-                                                    .name),
-                                              ],
-                                            )),
+                                        (index) => buildTabWithIcon(
+                                          icon: Icons.save,
+                                          color: club.defaultTeamComps[index]
+                                                      .errors ==
+                                                  null
+                                              ? Colors.green
+                                              : Colors.red,
+                                          text:
+                                              club.defaultTeamComps[index].name,
+                                        ),
                                       ),
                                     ],
                                   ),

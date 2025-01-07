@@ -22,10 +22,16 @@ extension LeagueGamesTab on League {
         children: [
           TabBar(
             tabs: [
-              Tab(text: 'Played (${gamesPlayed.length})'),
+              buildTabWithIcon(
+                  icon: Icons.play_circle,
+                  text: 'Played (${gamesPlayed.length})'),
               if (gamesCurrent.length > 0)
-                Tab(text: 'Current (${gamesCurrent.length})'),
-              Tab(text: 'Incoming (${gamesIncoming.length})'),
+                buildTabWithIcon(
+                    icon: Icons.notifications_active,
+                    text: 'Current (${gamesCurrent.length})'),
+              buildTabWithIcon(
+                  icon: Icons.arrow_circle_right_outlined,
+                  text: 'Incoming (${gamesIncoming.length})'),
             ],
           ),
           Expanded(

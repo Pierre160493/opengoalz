@@ -1,6 +1,7 @@
 -- DROP FUNCTION public.main_handle_season(record);
 
-CREATE OR REPLACE FUNCTION public.main_handle_season(inp_multiverse record)
+CREATE OR REPLACE FUNCTION public.main_handle_season(
+    inp_multiverse record)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
@@ -15,6 +16,7 @@ BEGIN
     CASE
         ---- Handle the 10th week of the season
         WHEN inp_multiverse.week_number = 10 THEN
+RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multiverse.name, inp_multiverse.season_number, inp_multiverse.week_number, inp_multiverse.day_number;
             -- Update the normal leagues to say that they are finished
             UPDATE leagues SET is_finished = TRUE
             WHERE id_multiverse = inp_multiverse.id AND level > 0;
@@ -156,12 +158,14 @@ BEGIN
 
         ---- Handle the 13th week of the season ==> Intercontinental Cup Leagues are finished
         WHEN inp_multiverse.week_number = 13 THEN
+RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK13', inp_multiverse.name, inp_multiverse.season_number, inp_multiverse.week_number, inp_multiverse.day_number;
             -- Update the special leagues to say that they are finished
             UPDATE leagues SET is_finished = TRUE
             WHERE id_multiverse = inp_multiverse.id AND level = 0;
 
         ---- Handle the 14th week of the season ==> Season is over, start a new one
         WHEN inp_multiverse.week_number = 14 THEN
+RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multiverse.name, inp_multiverse.season_number, inp_multiverse.week_number, inp_multiverse.day_number;
 
             -- Generate the games_teamcomp and the games of the next season
             PERFORM main_generate_games_and_teamcomps(
@@ -190,7 +194,7 @@ BEGIN
             UPDATE clubs SET
                 season_number = season_number + 1,
                 id_league = id_league_next_season,
-                id_league_next_season = NULL,
+                -- id_league_next_season = NULL,
                 revenues_sponsors_last_season = revenues_sponsors,
                 revenues_sponsors = (SELECT cash_last_season FROM leagues WHERE id = id_league) * 
                     CASE 
@@ -235,8 +239,8 @@ BEGIN
                 SELECT 
                     id AS id_club_to, 'Treasurer' AS sender_role,
                     -- inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
-                    'New Season ' || inp_multiverse.season_number + 1 || ' starts in ' || string_parser(clubs.id_league, 'league') AS title,
-                    string_parser(clubs.id_league, 'league') || ' season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(ce.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_staff_target AS message
+                    'New season ' || inp_multiverse.season_number + 1 || ' starts for league ' || string_parser(clubs.id_league, 'league') AS title,
+                    string_parser(clubs.id_league, 'league') || ' season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(club_expenses.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_staff_target AS message
                 FROM clubs
                 LEFT JOIN club_expenses ON club_expenses.id_club = clubs.id
             WHERE clubs.id_multiverse = inp_multiverse.id;

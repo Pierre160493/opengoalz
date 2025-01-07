@@ -1,4 +1,3 @@
--- DROP FUNCTION public.players_calculate_age(int8, timestamptz);
 
 CREATE OR REPLACE FUNCTION public.calculate_age(
     inp_multiverse_speed bigint,

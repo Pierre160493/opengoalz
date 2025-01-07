@@ -57,8 +57,8 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
         children: [
           TabBar(
             tabs: [
-              buildTabWithIcon(iconHistory, 'Main Stats'),
-              buildTabWithIcon(Icons.query_stats, 'Other Stats'),
+              buildTabWithIcon(icon: iconHistory, text: 'Main Stats'),
+              buildTabWithIcon(icon: Icons.query_stats, text: 'Other Stats'),
             ],
           ),
           Expanded(

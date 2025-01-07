@@ -103,7 +103,7 @@ BEGIN
     -- WITH player_data AS (
     -- SELECT 
     --         players.id, -- Player's id
-    --         players_calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
+    --         calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
     --         training_points_available, -- Initial training points
     --         training_coef, -- Array of coef for each stat
     --         (COALESCE(clubs.staff_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
@@ -175,8 +175,8 @@ BEGIN
     WITH player_data AS (
         SELECT 
             players.id, -- Player's id
-            --players_calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
-            (25 - players_calculate_age(multiverses.speed, players.date_birth))/10 AS coef_age, -- Player's age
+            --calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
+            (25 - calculate_age(multiverses.speed, players.date_birth, inp_multiverse.date_handling))/10 AS coef_age, -- Player's age
             training_points_available, -- Initial training points
             training_coef, -- Array of coef for each stat
             (COALESCE(clubs.staff_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
@@ -188,10 +188,10 @@ BEGIN
     ), player_data2 AS (
         SELECT 
             player_data.*,
-            -- training_points_available +
-            --     (0.25 + 0.75 * staff_coef) + -- The more staff_coeff, the closer to 1
-            --     2 * coef_age
-            0
+            training_points_available +
+                (0.25 + 0.75 * staff_coef) + -- The more staff_coeff, the closer to 1
+                2 * coef_age
+            --0
             AS updated_training_points_available, -- Updated training points based on age and staff weight
             ARRAY(
                 SELECT (1 - staff_coef) + CASE WHEN sum_training_coef = 0 THEN 1.0 ELSE coef / sum_training_coef::float END
@@ -207,26 +207,47 @@ BEGIN
         SELECT 
             player_data3.*,
             ARRAY(
-                SELECT value / total_sum
+                SELECT updated_training_points_available * value / total_sum
                 FROM UNNEST(updated_training_coef) AS value
             ) AS normalized_training_coef
         FROM player_data3
     )
     UPDATE players SET
         keeper = GREATEST(0,
-            keeper + updated_training_points_available * normalized_training_coef[1]),
+            keeper + 
+            CASE WHEN normalized_training_coef[1] > 0 THEN
+                normalized_training_coef[1] * (1 - (keeper / 100))
+            ELSE normalized_training_coef[1] END),
         defense = GREATEST(0,
-            defense + updated_training_points_available * normalized_training_coef[2]),
+            defense + 
+            CASE WHEN normalized_training_coef[2] > 0 THEN
+                normalized_training_coef[2] * (1 - (defense / 100))
+            ELSE normalized_training_coef[2] END),
         passes = GREATEST(0,
-            passes + updated_training_points_available * normalized_training_coef[3]),
+            passes + 
+            CASE WHEN normalized_training_coef[3] > 0 THEN
+                normalized_training_coef[3] * (1 - (passes / 100))
+            ELSE normalized_training_coef[3] END),
         playmaking = GREATEST(0,
-            playmaking + updated_training_points_available * normalized_training_coef[4]),
+            playmaking + 
+            CASE WHEN normalized_training_coef[4] > 0 THEN
+                normalized_training_coef[4] * (1 - (playmaking / 100))
+            ELSE normalized_training_coef[4] END),
         winger = GREATEST(0,
-            winger + updated_training_points_available * normalized_training_coef[5]),
+            winger + 
+            CASE WHEN normalized_training_coef[5] > 0 THEN
+                normalized_training_coef[5] * (1 - (winger / 100))
+            ELSE normalized_training_coef[5] END),
         scoring = GREATEST(0,
-            scoring + updated_training_points_available * normalized_training_coef[6]),
+            scoring + 
+            CASE WHEN normalized_training_coef[6] > 0 THEN
+                normalized_training_coef[6] * (1 - (scoring / 100))
+            ELSE normalized_training_coef[6] END),
         freekick = GREATEST(0,
-            freekick + updated_training_points_available * normalized_training_coef[7]),
+            freekick + 
+            CASE WHEN normalized_training_coef[7] > 0 THEN
+                normalized_training_coef[7] * (1 - (freekick / 100))
+            ELSE normalized_training_coef[7] END),
         training_points_available = 0,
         training_points_used = training_points_used + updated_training_points_available
     FROM final_data

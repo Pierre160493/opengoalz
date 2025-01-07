@@ -1,6 +1,6 @@
 -- DROP FUNCTION public.simulate_week_games(record, int8, int8);
 
-CREATE OR REPLACE FUNCTION public.simulate_day(
+CREATE OR REPLACE FUNCTION public.main_simulate_day(
     inp_multiverse RECORD)
  RETURNS boolean
  LANGUAGE plpgsql

@@ -132,29 +132,18 @@ class _MultiversePageState extends State<MultiversePage> {
                 children: [
                   TabBar(
                     tabs: [
-                      buildTabWithIcon(Icons.ballot,
-                          'All Multiverses (${multiverses.length})'),
+                      buildTabWithIcon(
+                          icon: Icons.ballot,
+                          text: 'All Multiverses (${multiverses.length})'),
                       _selectedMultiverse == null
-                          ? buildTabWithIcon2(
-                              context,
-                              Row(children: [
-                                Icon(
-                                  Icons.cancel,
-                                  color: Colors.red,
-                                ),
-                                formSpacer3,
-                                Text('No Multiverse Selected')
-                              ]),
-                            )
-                          : buildTabWithIcon2(
-                              context,
-                              Row(children: [
-                                Icon(iconSuccessfulOperation,
-                                    color: Colors.green),
-                                formSpacer3,
-                                Text(_selectedMultiverse!.name)
-                              ]),
-                            )
+                          ? buildTabWithIcon(
+                              icon: Icons.cancel,
+                              color: Colors.red,
+                              text: 'No Multiverse Selected')
+                          : buildTabWithIcon(
+                              icon: Icons.check_circle,
+                              color: Colors.green,
+                              text: 'Selected Multiverse'),
                     ],
                   ),
                   Expanded(
@@ -262,10 +251,12 @@ class _MultiversePageState extends State<MultiversePage> {
                                   children: [
                                     TabBar(
                                       tabs: [
-                                        buildTabWithIcon(iconAnnouncement,
-                                            _selectedMultiverse!.name),
                                         buildTabWithIcon(
-                                            iconCalendar, 'Calendar'),
+                                            icon: iconAnnouncement,
+                                            text: _selectedMultiverse!.name),
+                                        buildTabWithIcon(
+                                            icon: iconCalendar,
+                                            text: 'Calendar'),
                                       ],
                                     ),
                                     Expanded(

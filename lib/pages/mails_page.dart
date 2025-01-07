@@ -125,9 +125,11 @@ class _MailsPageState extends State<MailsPage> {
                   TabBar(
                     tabs: [
                       buildTabWithIcon(
-                          icon_club, 'Club Mails (${clubMails.length})'),
+                          icon: icon_club,
+                          text: 'Club Mails (${clubMails.length})'),
                       buildTabWithIcon(
-                          iconUser, 'User Mails (${userMails.length})'),
+                          icon: iconUser,
+                          text: 'User Mails (${userMails.length})'),
                     ],
                   ),
                   Expanded(
@@ -140,10 +142,13 @@ class _MailsPageState extends State<MailsPage> {
                             children: [
                               TabBar(
                                 tabs: [
-                                  buildTabWithIcon(Icons.inbox,
-                                      'Inbox (${clubMails.length})'),
-                                  buildTabWithIcon(Icons.auto_delete,
-                                      'Thrash (${clubMailsThrash.length})'),
+                                  buildTabWithIcon(
+                                      icon: Icons.inbox,
+                                      text: 'Inbox (${clubMails.length})'),
+                                  buildTabWithIcon(
+                                      icon: Icons.auto_delete,
+                                      text:
+                                          'Thrash (${clubMailsThrash.length})'),
                                 ],
                               ),
                               Expanded(
@@ -165,10 +170,13 @@ class _MailsPageState extends State<MailsPage> {
                             children: [
                               TabBar(
                                 tabs: [
-                                  buildTabWithIcon(Icons.inbox,
-                                      'Inbox (${userMails.length})'),
-                                  buildTabWithIcon(Icons.auto_delete,
-                                      'Thrash (${userMailsThrash.length})'),
+                                  buildTabWithIcon(
+                                      icon: Icons.inbox,
+                                      text: 'Inbox (${userMails.length})'),
+                                  buildTabWithIcon(
+                                      icon: Icons.auto_delete,
+                                      text:
+                                          'Thrash (${userMailsThrash.length})'),
                                 ],
                               ),
                               Expanded(
@@ -281,40 +289,40 @@ class _MailsPageState extends State<MailsPage> {
                     : null, // Background color based on read status
               ),
               child: ExpansionTile(
-                leading: isNarrow
-                    ? null
-                    : IconButton(
-                        icon: mail.isRead
-                            ? Icon(Icons.mark_email_read)
-                            : Icon(Icons.mail),
-                        onPressed: () async {
-                          if (mail.isRead) {
-                            bool isOk = await operationInDB(
-                                context, 'UPDATE', 'messages_mail',
-                                data: {
-                                  'is_read': false
-                                },
-                                matchCriteria: {
-                                  'id': mail.id,
-                                });
-                            // if (isOk) {
-                            //   context.showSnackBar(
-                            //       'The mail has been set to unread',
-                            //       icon: Icon(Icons.mark_email_read,
-                            //           color: Colors.green));
-                            // }
-                          } else {
-                            await operationInDB(
-                                context, 'UPDATE', 'messages_mail',
-                                data: {
-                                  'is_read': true
-                                },
-                                matchCriteria: {
-                                  'id': mail.id,
-                                });
-                          }
-                        },
-                      ),
+                // leading: isNarrow
+                //     ? null
+                //     : IconButton(
+                //         icon: mail.isRead
+                //             ? Icon(Icons.mark_email_read)
+                //             : Icon(Icons.mail),
+                //         onPressed: () async {
+                //           if (mail.isRead) {
+                //             bool isOk = await operationInDB(
+                //                 context, 'UPDATE', 'messages_mail',
+                //                 data: {
+                //                   'is_read': false
+                //                 },
+                //                 matchCriteria: {
+                //                   'id': mail.id,
+                //                 });
+                //             // if (isOk) {
+                //             //   context.showSnackBar(
+                //             //       'The mail has been set to unread',
+                //             //       icon: Icon(Icons.mark_email_read,
+                //             //           color: Colors.green));
+                //             // }
+                //           } else {
+                //             await operationInDB(
+                //                 context, 'UPDATE', 'messages_mail',
+                //                 data: {
+                //                   'is_read': true
+                //                 },
+                //                 matchCriteria: {
+                //                   'id': mail.id,
+                //                 });
+                //           }
+                //         },
+                //       ),
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

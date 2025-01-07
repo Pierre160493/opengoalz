@@ -313,10 +313,10 @@ class _RankingPageState extends State<LeaguePage> {
                           ),
                           TabBar(
                             tabs: [
-                              buildTabWithIcon(
-                                  Icons.format_list_numbered, 'Rankings'),
-                              buildTabWithIcon(Icons.event, 'Games'),
-                              buildTabWithIcon(iconStats, 'Stats'),
+                              buildTabWithIcon(icon:
+                                  Icons.format_list_numbered, text:'Rankings'),
+                              buildTabWithIcon(icon:Icons.event, text:'Games'),
+                              buildTabWithIcon(icon:iconStats, text:'Stats'),
                             ],
                           ),
                           Expanded(

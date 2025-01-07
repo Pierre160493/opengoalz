@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 
-Widget buildTabWithIcon(IconData icon, String text) {
+Widget buildTabWithIcon({
+  required String text,
+  Color color = Colors.green,
+  IconData? icon,
+}) {
   return Tab(
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: iconSizeSmall, color: Colors.green),
-        formSpacer3,
+        if (icon != null) ...[
+          Icon(icon, color: color),
+          formSpacer3,
+        ],
         Text(text),
-      ],
-    ),
-  );
-}
-
-Widget buildTabWithIcon2(BuildContext context, Row row) {
-  return Tab(
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        row,
       ],
     ),
   );

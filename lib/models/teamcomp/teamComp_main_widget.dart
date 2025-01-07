@@ -22,21 +22,15 @@ class _TeamCompWidgetState extends State<TeamCompWidget> {
         children: [
           TabBar(
             tabs: [
-              buildTabWithIcon2(
-                context,
-                Row(
-                  children: [
-                    Icon(
-                      iconTeamComp,
-                      color: widget.teamComp.errors == null ? null : Colors.red,
-                    ),
-                    SizedBox(width: 3),
-                    Text('TeamComp'),
-                  ],
-                ),
+              buildTabWithIcon(
+                icon: iconTeamComp,
+                color:
+                    widget.teamComp.errors == null ? Colors.green : Colors.red,
+                text: 'TeamComp',
               ),
-              buildTabWithIcon(Icons.multiple_stop,
-                  'Orders (${widget.teamComp.subs.length})'),
+              buildTabWithIcon(
+                  icon: Icons.multiple_stop,
+                  text: 'Orders (${widget.teamComp.subs.length})'),
             ],
           ),
           Expanded(

@@ -198,32 +198,12 @@ class _TransferPageState extends State<TransferPage>
                       TabBar(
                         controller: _tabController,
                         tabs: [
-                          buildTabWithIcon2(
-                            context,
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.local_offer,
-                                  color: Colors.green,
-                                ),
-                                SizedBox(width: 6),
-                                Text('Sell (${playersSell.length})'),
-                              ],
-                            ),
-                          ),
-                          buildTabWithIcon2(
-                            context,
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.shopping_cart,
-                                  color: Colors.green,
-                                ),
-                                SizedBox(width: 6),
-                                Text('Buy (${playersBuy.length})'),
-                              ],
-                            ),
-                          ),
+                          buildTabWithIcon(
+                              icon: Icons.local_offer,
+                              text: 'Sell (${playersSell.length})'),
+                          buildTabWithIcon(
+                              icon: Icons.shopping_cart,
+                              text: 'Buy (${playersBuy.length})'),
                         ],
                       ),
                       Expanded(

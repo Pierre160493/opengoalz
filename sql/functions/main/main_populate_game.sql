@@ -162,29 +162,29 @@ END IF;
 ------------------------------------------------------------------------------------------------------------------------------------------------
             ------ Try to set it with the game id
             ELSEIF loc_array_id_games[I] IS NOT NULL THEN
-                
+
                 -- Check if the depending game is_played or not
                 IF (SELECT date_end FROM games WHERE id = loc_array_id_games[I]) IS NOT NULL THEN
 --RAISE NOTICE 'Depending game loc_array_id_games[I]= %', loc_array_id_games[I];
---RAISE NOTICE 'Game: % | club_left = % VS club_right %', (SELECT id FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_right FROM games WHERE id = loc_array_id_games[I]);
+--RAISE NOTICE 'Game: % | club_left = % VS club_right %', (SELECT id FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_with_penalty_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_with_penalty_right FROM games WHERE id = loc_array_id_games[I]);
                     loc_array_selected_id_clubs := NULL;
                     -- Select the 2 club ids that played the game and order them by the score 1: Winner 2: Loser
                     SELECT ARRAY[
                         CASE
-                            WHEN score_cumul_left > score_cumul_right THEN id_club_left
-                            WHEN score_cumul_right >= score_cumul_left THEN id_club_right
+                            WHEN score_cumul_with_penalty_left > score_cumul_with_penalty_right THEN id_club_left
+                            WHEN score_cumul_with_penalty_right >= score_cumul_with_penalty_left THEN id_club_right
                             ELSE NULL
                         END,
                         CASE
-                            WHEN score_cumul_left > score_cumul_right THEN id_club_right
-                            WHEN score_cumul_right >= score_cumul_left THEN id_club_left
+                            WHEN score_cumul_with_penalty_left > score_cumul_with_penalty_right THEN id_club_right
+                            WHEN score_cumul_with_penalty_right >= score_cumul_with_penalty_left THEN id_club_left
                             ELSE NULL
                         END
                     ] INTO loc_array_selected_id_clubs
                     FROM games
                     WHERE id = loc_array_id_games[I];
 --RAISE NOTICE '###### Game %: loc_array_selected_id_clubs = Winner: % Loser: % [Score: (%-%) Cumul (%-%)]', loc_array_id_games[I], loc_array_selected_id_clubs[1], loc_array_selected_id_clubs[2],
---(SELECT score_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_right FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_right FROM games WHERE id = loc_array_id_games[I]);
+--(SELECT score_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_right FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_with_penalty_left FROM games WHERE id = loc_array_id_games[I]), (SELECT score_cumul_with_penalty_right FROM games WHERE id = loc_array_id_games[I]);
 
 --IF rec_game.id = ANY(id_game_debug) THEN
 --RAISE NOTICE 'loc_array_selected_id_clubs = %', loc_array_selected_id_clubs;

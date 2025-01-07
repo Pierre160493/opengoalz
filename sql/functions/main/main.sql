@@ -12,8 +12,7 @@ BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------ Loop through all multiverses
     FOR multiverse IN (
-        SELECT * FROM multiverses
-    )
+        SELECT * FROM multiverses)
     LOOP
         
         ------ Loop while the current date is before the next handling date
@@ -26,19 +25,22 @@ BEGIN
              INTO multiverse
              FROM multiverses
              WHERE id = multiverse.id;
-            EXIT WHEN multiverse.date_handling >= NOW();
 RAISE NOTICE '****** MAIN: Multiverse [%] S%W%D%: date_handling= % (NOW()=%)', multiverse.name, multiverse.season_number, multiverse.week_number, multiverse.day_number, multiverse.date_handling, now();
+
+            ------ Exit the loop if the current date is after the next handling date
+            EXIT WHEN multiverse.date_handling >= NOW();
 
             ------ Handle the transfers
             PERFORM transfers_handle_transfers(
                 rec_multiverse := multiverse
             );
-RAISE NOTICE '*** Passage ici: Day %', multiverse.day_number;
+
+RAISE NOTICE '**** Debut Simulate Day %', multiverse.day_number;
             ------ Check if we can pass to the next day
-            IF simulate_day(inp_multiverse := multiverse) = FALSE THEN
+            IF main_simulate_day(inp_multiverse := multiverse) = FALSE THEN
                 EXIT;
             END IF;
-RAISE NOTICE '*** Passage la';
+RAISE NOTICE '**** Fin Simulate Day %', multiverse.day_number;
         
             IF multiverse.day_number = 7 THEN
 
@@ -68,8 +70,10 @@ RAISE NOTICE '*** Passage la';
 
             ------ Check if the multiverse is at a new season
             -- IF multiverse.week_number = 1 THEN
-                EXIT;
-            -- END IF;
+        --    IF multiverse.day_number = 1 THEN
+        --    IF multiverse.week_number IN (10,2) AND multiverse.day_number = 1 THEN
+        --        EXIT;
+        --    END IF;
 
         END LOOP; -- End of the LOOP
 
@@ -80,6 +84,8 @@ RAISE NOTICE '*** Passage la';
 
     END LOOP; -- End of the loop through the multiverses
 
+RAISE NOTICE '************ END MAIN !!!';
+-- RAISE EXCEPTION '************ END MAIN !!!';
 END;
 $function$
 ;

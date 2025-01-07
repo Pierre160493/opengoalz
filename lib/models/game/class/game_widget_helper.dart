@@ -52,143 +52,137 @@ extension GameClassWidgetHelper on Game {
         dateEnd == null
             // ? Text('VS')
             ? Icon(Icons.sync, size: iconSizeSmall)
-            : getScoreRow(),
+            : getScoreRowFromGame(this),
         SizedBox(width: 3),
         rightClub.getClubNameClickable(context, isRightClub: true),
       ],
     );
   }
 
-  Widget getScoreRow() {
-    /// If the game is not played yet
-    if (isPlaying == null)
-      return Icon(Icons.sync, size: iconSizeSmall);
-    // Row(
-    //   children: [
-    //     Text(
-    //       ' : ',
-    //       style:
-    //           TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
-    //     ),
-    //   ],
-    // );
-    else if (scoreLeft == null && scoreRight == null)
-      return Text('ERROR: Unknown left and right score of the game $id');
-    else if (scoreRight == null)
-      return Text('ERROR: Unknown left score of the game $id');
-    else if (scoreRight == null)
-      return Text('ERROR: Unknown right score of the game $id');
+  // Widget getScoreRow() {
+  //   /// If the game is not played yet
+  //   if (isPlaying == null)
+  //     return Icon(Icons.sync, size: iconSizeSmall);
+  //   // Row(
+  //   //   children: [
+  //   //     Text(
+  //   //       ' : ',
+  //   //       style:
+  //   //           TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+  //   //     ),
+  //   //   ],
+  //   // );
+  //   else if (scoreLeft == null && scoreRight == null)
+  //     return Text('ERROR: Unknown left and right score of the game $id');
+  //   else if (scoreRight == null)
+  //     return Text('ERROR: Unknown left score of the game $id');
+  //   else if (scoreRight == null)
+  //     return Text('ERROR: Unknown right score of the game $id');
 
-    // If the game is a cup, display the score of the penalty shootout
-    int? leftPenaltyScore = null;
-    int? rightPenaltyScore = null;
-    if (isCup) {
-      leftPenaltyScore = (scoreCumulLeft % 1 * 1000).toInt();
-      rightPenaltyScore = (scoreCumulRight % 1 * 1000).toInt();
-    }
+  //   /// Default white colors
+  //   Color leftColor = Colors.white;
+  //   Color rightColor = Colors.white;
+  //   Color colorLeftPenalty = Colors.white;
+  //   Color colorRightPenalty = Colors.white;
 
-    /// Default white colors
-    Color leftColor = Colors.white;
-    Color rightColor = Colors.white;
-    Color colorLeftPenalty = Colors.white;
-    Color colorRightPenalty = Colors.white;
+  //   /// If the left club is selected
+  //   if (isLeftClubSelected == true) {
+  //     if (scoreLeft! > scoreRight!) {
+  //       leftColor = Colors.green;
+  //       rightColor = Colors.green;
+  //     } else if (scoreLeft! < scoreRight!) {
+  //       leftColor = Colors.red;
+  //       rightColor = Colors.red;
+  //     } else if (scoreLeft! == scoreRight!) {
+  //       leftColor = Colors.blueGrey;
+  //       rightColor = Colors.blueGrey;
+  //     }
+  //     // if (isCup && scorePenaltyLeft != null && scorePenaltyRight != null) {
+  //     if (scorePenaltyLeft != null && scorePenaltyRight != null) {
+  //       if (scorePenaltyLeft! > scorePenaltyRight!) {
+  //         colorLeftPenalty = Colors.green;
+  //         colorRightPenalty = Colors.green;
+  //       } else {
+  //         colorLeftPenalty = Colors.red;
+  //         colorRightPenalty = Colors.red;
+  //       }
+  //     }
+  //   }
 
-    /// If the left club is selected
-    if (isLeftClubSelected == true) {
-      if (scoreLeft! > scoreRight!) {
-        leftColor = Colors.green;
-        rightColor = Colors.green;
-      } else if (scoreLeft! < scoreRight!) {
-        leftColor = Colors.red;
-        rightColor = Colors.red;
-      } else if (scoreLeft! == scoreRight!) {
-        leftColor = Colors.blueGrey;
-        rightColor = Colors.blueGrey;
-      }
-      if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
-        if (leftPenaltyScore > rightPenaltyScore) {
-          colorLeftPenalty = Colors.green;
-          colorRightPenalty = Colors.green;
-        } else {
-          colorLeftPenalty = Colors.red;
-          colorRightPenalty = Colors.red;
-        }
-      }
-    }
+  //   /// If the left club is selected
+  //   else if (isLeftClubSelected == false) {
+  //     if (scoreLeft! > scoreRight!) {
+  //       leftColor = Colors.red;
+  //       rightColor = Colors.red;
+  //     } else if (scoreLeft! < scoreRight!) {
+  //       leftColor = Colors.green;
+  //       rightColor = Colors.green;
+  //     } else if (scoreLeft! == scoreRight!) {
+  //       leftColor = Colors.blueGrey;
+  //       rightColor = Colors.blueGrey;
+  //     }
+  //     // if (isCup && scorePenaltyLeft != null && scorePenaltyRight != null) {
+  //     if (scorePenaltyLeft != null && scorePenaltyRight != null) {
+  //       if (scorePenaltyLeft! > scorePenaltyRight!) {
+  //         colorLeftPenalty = Colors.red;
+  //         colorRightPenalty = Colors.red;
+  //       } else {
+  //         colorLeftPenalty = Colors.green;
+  //         colorRightPenalty = Colors.green;
+  //       }
+  //     }
+  //   }
 
-    /// If the left club is selected
-    else if (isLeftClubSelected == false) {
-      if (scoreLeft! > scoreRight!) {
-        leftColor = Colors.red;
-        rightColor = Colors.red;
-      } else if (scoreLeft! < scoreRight!) {
-        leftColor = Colors.green;
-        rightColor = Colors.green;
-      } else if (scoreLeft! == scoreRight!) {
-        leftColor = Colors.blueGrey;
-        rightColor = Colors.blueGrey;
-      }
-      if (isCup && leftPenaltyScore != null && rightPenaltyScore != null) {
-        if (leftPenaltyScore > rightPenaltyScore) {
-          colorLeftPenalty = Colors.red;
-          colorRightPenalty = Colors.red;
-        } else {
-          colorLeftPenalty = Colors.green;
-          colorRightPenalty = Colors.green;
-        }
-      }
-    }
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        children: [
-          Text(
-            // If the score is -1, display 0F for forfeit
-            scoreLeft == -1 ? '0(F)' : scoreLeft.toString(),
-            style: TextStyle(
-              // color: leftPenaltyScore == null ? colorLeftPenalty : null,
-              color: leftColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          if (leftPenaltyScore != null)
-            Text(
-              ' [${leftPenaltyScore.toString()}]',
-              style: TextStyle(
-                color: colorLeftPenalty,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          Text(
-            ' : ',
-            style:
-                TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
-          ),
-          if (rightPenaltyScore != null)
-            Text(
-              '[${rightPenaltyScore.toString()}] ',
-              style: TextStyle(
-                color: colorRightPenalty,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          Text(
-            scoreRight == -1 ? '0(F)' : scoreRight.toString(),
-            style: TextStyle(
-              // color: rightPenaltyScore == null ? colorRightPenalty : null,
-              color: rightColor,
-              fontWeight: FontWeight.bold,
-            ),
-          )
-        ],
-      ),
-    );
-  }
+  //   return Container(
+  //     padding: EdgeInsets.symmetric(horizontal: 6),
+  //     decoration: BoxDecoration(
+  //       color: Colors.black,
+  //       borderRadius: BorderRadius.circular(6),
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         Text(
+  //           // If the score is -1, display 0F for forfeit
+  //           scoreLeft == -1 ? '0(F)' : scoreLeft.toString(),
+  //           style: TextStyle(
+  //             // color: scorePenaltyLeft == null ? colorLeftPenalty : null,
+  //             color: leftColor,
+  //             fontWeight: FontWeight.bold,
+  //           ),
+  //         ),
+  //         if (scorePenaltyLeft != null)
+  //           Text(
+  //             ' [${scorePenaltyLeft.toString()}]',
+  //             style: TextStyle(
+  //               color: colorLeftPenalty,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //         Text(
+  //           ' : ',
+  //           style:
+  //               TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+  //         ),
+  //         if (scorePenaltyRight != null)
+  //           Text(
+  //             '[${scorePenaltyRight.toString()}] ',
+  //             style: TextStyle(
+  //               color: colorRightPenalty,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //         Text(
+  //           scoreRight == -1 ? '0(F)' : scoreRight.toString(),
+  //           style: TextStyle(
+  //             // color: scorePenaltyRight == null ? colorRightPenalty : null,
+  //             color: rightColor,
+  //             fontWeight: FontWeight.bold,
+  //           ),
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget getGamePresentation(BuildContext context) {
     return Card(
@@ -233,22 +227,9 @@ extension GameClassWidgetHelper on Game {
                             children: [
                               Icon(Icons.queue_play_next),
                               SizedBox(width: 3),
-                              Text('First Leg Game '),
-                              // If the game is played, display the score
-                              if (dateEnd != null)
-                                // If the score is available, display it
-                                if (scoreLeft != null && scoreRight != null)
-                                  Text(
-                                      'Score: ${scoreCumulLeft.toInt() - scoreLeft!.toInt()} - ${scoreCumulRight.toInt() - scoreLeft!.toInt()}')
-                                else
-                                  Text(
-                                      'ERROR: Cannot fetch the first leg score')
-                              // Then the game is not played so scoreCumul stores the first leg score
-                              else
-                                Text(
-                                    'Score: ${scoreCumulLeft.toInt()} - ${scoreCumulRight.toInt()}')
-                              // else
-                              //   Text('ERROR: Cannot fetch the final score')
+                              Text('First Leg Game: '),
+                              Text(
+                                  '${scorePreviousLeft == null ? '?' : scorePreviousLeft} - ${scorePreviousRight == null ? '?' : scorePreviousRight}'),
                             ],
                           )),
                     ],
@@ -301,148 +282,6 @@ extension GameClassWidgetHelper on Game {
           ],
         ),
       ),
-    );
-  }
-
-  Widget getGameDetails(BuildContext context) {
-    final goalEvents = events
-        .where((GameEvent event) => event.eventType.toUpperCase() == 'GOAL')
-        .toList();
-
-    return Column(
-      children: [
-        getGamePresentation(context),
-        SizedBox(
-          height: 12,
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: goalEvents.length,
-            itemBuilder: (context, index) {
-              final goalEvent = goalEvents[index];
-              return ListTile(
-                leading:
-                    Text(goalEvent.getMinute(), style: TextStyle(fontSize: 16)),
-                title: Row(
-                  mainAxisAlignment: goalEvent.idClub == idClubLeft
-                      ? MainAxisAlignment.start
-                      : MainAxisAlignment.end,
-                  children: [
-                    if (goalEvent.idClub == idClubRight)
-                      Icon(Icons.sports_soccer_rounded),
-                    goalEvent.player!.getPlayerNameClickable(context),
-                    if (goalEvent.idClub == idClubLeft)
-                      Icon(Icons.sports_soccer_rounded),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget getGameReport(BuildContext context) {
-    int leftClubScore = 0;
-    int rightClubScore = 0;
-
-    if (events.length == 0) return Center(child: Text('No events found'));
-
-    return Column(
-      children: [
-        SizedBox(
-          height: 12,
-        ),
-        getGameRow(context, isSpaceEvenly: true),
-        SizedBox(
-          height: 12,
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: events.length,
-            itemBuilder: (context, index) {
-              final event = events[index];
-
-              if (index == 0) {
-                leftClubScore = 0;
-                rightClubScore = 0;
-              }
-
-              // Update scores based on event type (assuming event type 1 is a goal)
-              if (event.eventType.toUpperCase() == 'GOAL') {
-                if (event.idClub == idClubLeft) {
-                  leftClubScore++;
-                } else if (event.idClub == idClubRight) {
-                  rightClubScore++;
-                }
-              }
-
-              return ListTile(
-                leading: Container(
-                  width: 80, // Fixed width to ensure alignment
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        event.getMinute(),
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12),
-                      ),
-                      // SizedBox(width: 10),
-                      if (event.eventType.toUpperCase() ==
-                          'GOAL') // Conditionally display score
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '$leftClubScore - $rightClubScore',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                title: Row(
-                  mainAxisAlignment: event.idClub == idClubLeft
-                      ? MainAxisAlignment.start
-                      : MainAxisAlignment.end,
-                  children: [
-                    event.getEventPresentation(context),
-                  ],
-                ),
-                subtitle: Row(
-                  children: [
-                    if (event.idClub == idClubRight) SizedBox(width: 36),
-                    Expanded(
-                      child: Text(
-                        event.getEventDescription2(context),
-                        style: TextStyle(
-                            color: Colors.blueGrey,
-                            fontStyle: FontStyle.italic),
-                        textAlign: event.idClub == idClubLeft
-                            ? TextAlign.left
-                            : TextAlign.right, // Align text to the right
-                        maxLines: null, // Allow text to take up multiple lines
-                        overflow: TextOverflow.visible, // Make overflow visible
-                      ),
-                    ),
-                    if (event.idClub == idClubLeft) SizedBox(width: 36),
-                  ],
-                ),
-                // event.getEventDescription(context),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 }

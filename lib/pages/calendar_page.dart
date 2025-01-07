@@ -126,7 +126,8 @@ class _CalendarPageState extends State<CalendarPage> {
                   children: [
                     TabBar(
                       tabs: [
-                        buildTabWithIcon(iconCalendar, 'Real Calendar'),
+                        buildTabWithIcon(
+                            icon: iconCalendar, text: 'Real Calendar'),
                         // buildTabWithIcon(iconHistory, 'History'),
                       ],
                     ),

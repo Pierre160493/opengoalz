@@ -175,10 +175,10 @@ class _PlayerCardState extends State<PlayerCard>
                 child: Scaffold(
                   appBar: TabBar(
                     tabs: [
-                      buildTabWithIcon(iconDetails, 'Details'),
-                      buildTabWithIcon(iconTraining, 'Stats'),
+                      buildTabWithIcon(icon: iconDetails, text: 'Details'),
+                      buildTabWithIcon(icon: iconTraining, text: 'Stats'),
                       // buildTabWithIcon(iconGames, 'Games'),
-                      buildTabWithIcon(Icons.more_horiz, 'Others')
+                      buildTabWithIcon(icon: Icons.more_horiz, text: 'Others')
                     ],
                   ),
                   body: TabBarView(
@@ -301,9 +301,9 @@ class _PlayerCardState extends State<PlayerCard>
                 child: Scaffold(
                   appBar: TabBar(
                     tabs: [
-                      buildTabWithIcon(iconDetails, 'Details'),
-                      buildTabWithIcon(iconTraining, 'Stats'),
-                      buildTabWithIcon(Icons.more_horiz, 'Others')
+                      buildTabWithIcon(icon: iconDetails, text: 'Details'),
+                      buildTabWithIcon(icon: iconTraining, text: 'Stats'),
+                      buildTabWithIcon(icon: Icons.more_horiz, text: 'Others')
                     ],
                   ),
                   body: TabBarView(
@@ -355,9 +355,9 @@ class _PlayerCardState extends State<PlayerCard>
       child: Scaffold(
         appBar: TabBar(
           tabs: [
-            // buildTabWithIcon(iconGames, 'Games'),
-            buildTabWithIcon(iconHistory, 'History'),
-            buildTabWithIcon(iconNotesBig, 'Notes'),
+            // buildTabWithIcon(icon:iconGames, 'Games'),
+            buildTabWithIcon(icon: iconHistory, text: 'History'),
+            buildTabWithIcon(icon: iconNotesBig, text: 'Notes'),
           ],
         ),
         body: TabBarView(

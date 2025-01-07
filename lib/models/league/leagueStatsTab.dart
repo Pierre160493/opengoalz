@@ -80,22 +80,10 @@ extension LeagueStatsTab on League {
                     height: 42, // Set the height as per your requirement
                     child: TabBar(
                       tabs: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.sports_soccer), // Add the icon here
-                            SizedBox(width: 6),
-                            Text('Scorers'),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.sports_kabaddi), // Add the icon here
-                            SizedBox(width: 6),
-                            Text('Assists'),
-                          ],
-                        ),
+                        buildTabWithIcon(
+                            icon: Icons.sports_soccer, text: 'Top Scorers'),
+                        buildTabWithIcon(
+                            icon: Icons.sports_kabaddi, text: 'Assists'),
                       ],
                     ),
                   ),

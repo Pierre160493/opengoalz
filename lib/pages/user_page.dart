@@ -220,20 +220,20 @@ class _UserPageState extends State<UserPage> {
             TabBar(
               tabs: [
                 buildTabWithIcon(
-                    icon_club,
-                    user.clubs.length == 0
+                    icon: icon_club,
+                    text: user.clubs.length == 0
                         ? 'No club yet'
                         : user.clubs.length == 1
                             ? '1 Club'
                             : '${user.clubs.length} clubs'),
                 buildTabWithIcon(
-                    icon_players,
-                    user.players.length == 0
+                    icon: icon_players,
+                    text: user.players.length == 0
                         ? 'No player yet'
                         : user.players.length == 1
                             ? '1 player'
                             : '${user.players.length} players'),
-                buildTabWithIcon(Icons.description, 'User'),
+                buildTabWithIcon(icon: Icons.description, text: 'User'),
               ],
             ),
             Expanded(

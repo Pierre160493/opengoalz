@@ -75,8 +75,6 @@ class _HomePageState extends State<GamesPage> {
                     .forEach((game) {
                   club.games.add(game);
                 });
-                // Order club.games by dateStart
-                club.games.sort((a, b) => a.dateStart.compareTo(b.dateStart));
                 return club;
               });
         })
@@ -283,6 +281,11 @@ class _HomePageState extends State<GamesPage> {
                 } else {
                   throw Exception('Game ${game.id} has no isPlaying value');
                 }
+
+                gamesIncoming
+                    .sort((a, b) => a.dateStart.compareTo(b.dateStart));
+                gamesCurrent.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+                gamesPlayed.sort((a, b) => b.dateStart.compareTo(a.dateStart));
               }
               return Scaffold(
                 appBar: AppBar(
@@ -313,17 +316,20 @@ class _HomePageState extends State<GamesPage> {
                         TabBar(
                           tabs: [
                             /// Played games title
-                            buildTabWithIcon(Icons.play_circle,
-                                'Played (${gamesPlayed.length})'),
+                            buildTabWithIcon(
+                                icon: Icons.play_circle,
+                                text: 'Played (${gamesPlayed.length})'),
 
                             /// Current games title
                             if (gamesCurrent.length > 0)
-                              buildTabWithIcon(Icons.notifications_active,
-                                  'Current (${gamesCurrent.length})'),
+                              buildTabWithIcon(
+                                  icon: Icons.notifications_active,
+                                  text: 'Current (${gamesCurrent.length})'),
 
                             /// Incoming games title
-                            buildTabWithIcon(Icons.arrow_circle_right_outlined,
-                                'Incoming (${gamesIncoming.length})'),
+                            buildTabWithIcon(
+                                icon: Icons.arrow_circle_right_outlined,
+                                text: 'Incoming (${gamesIncoming.length})'),
                           ],
                         ),
                         Expanded(
@@ -338,11 +344,14 @@ class _HomePageState extends State<GamesPage> {
                                     TabBar(
                                       tabs: [
                                         // Current season played games
-                                        buildTabWithIcon(Icons.play_circle,
-                                            'Current season (${gamesPlayed.length})'),
                                         buildTabWithIcon(
-                                            Icons.keyboard_double_arrow_left,
-                                            'Previous seasons'),
+                                            icon: Icons.play_circle,
+                                            text:
+                                                'Current season (${gamesPlayed.length})'),
+                                        buildTabWithIcon(
+                                            icon: Icons
+                                                .keyboard_double_arrow_left,
+                                            text: 'Previous seasons'),
                                       ],
                                     ),
                                     Expanded(
@@ -370,12 +379,15 @@ class _HomePageState extends State<GamesPage> {
                                     TabBar(
                                       tabs: [
                                         // Current season played games
-                                        buildTabWithIcon(Icons.play_circle,
-                                            'Current season (${gamesIncoming.length + club.teamComps.length})'),
+                                        buildTabWithIcon(
+                                            icon: Icons.play_circle,
+                                            text:
+                                                'Current season (${gamesIncoming.length + club.teamComps.length})'),
                                         // Next season games
                                         buildTabWithIcon(
-                                            Icons.keyboard_double_arrow_right,
-                                            'Next season (14)'),
+                                            icon: Icons
+                                                .keyboard_double_arrow_right,
+                                            text: 'Next season (14)'),
                                       ],
                                     ),
                                     Expanded(
@@ -391,13 +403,17 @@ class _HomePageState extends State<GamesPage> {
                                                   tabs: [
                                                     // Current season organized games
                                                     buildTabWithIcon(
-                                                        Icons.calendar_month,
-                                                        'Planned (${gamesIncoming.length})'),
+                                                        icon: Icons
+                                                            .calendar_month,
+                                                        text:
+                                                            'Planned (${gamesIncoming.length})'),
 
                                                     // Current season unorganized games yet
                                                     buildTabWithIcon(
-                                                        Icons.edit_calendar,
-                                                        'Unplanned (${club.teamComps.length})'),
+                                                        icon:
+                                                            Icons.edit_calendar,
+                                                        text:
+                                                            'Unplanned (${club.teamComps.length})'),
                                                   ],
                                                 ),
                                                 Expanded(

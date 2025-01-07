@@ -9,7 +9,8 @@ import 'package:opengoalz/pages/teamCompPage.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 
-TextSpan parseDescriptionTextSpan(BuildContext context, String description) {
+TextSpan parseDescriptionTextSpan(BuildContext context, String description,
+    {Color colorDefaultText = Colors.white}) {
   final RegExp regex =
       RegExp(r'\{id(Player|Club|League|Game|Teamcomp):(\d+),([^}]+)\}');
   final List<TextSpan> spans = [];
@@ -19,7 +20,7 @@ TextSpan parseDescriptionTextSpan(BuildContext context, String description) {
     if (match.start > start) {
       spans.add(TextSpan(
         text: description.substring(start, match.start),
-        style: TextStyle(color: Colors.white), // Change text color to white
+        style: TextStyle(color: colorDefaultText),
       ));
     }
     final String type = match.group(1)!.toLowerCase();
@@ -80,7 +81,7 @@ TextSpan parseDescriptionTextSpan(BuildContext context, String description) {
   if (start < description.length) {
     spans.add(TextSpan(
       text: description.substring(start),
-      style: TextStyle(color: Colors.white), // Change text color to white
+      style: TextStyle(color: colorDefaultText),
     ));
   }
 

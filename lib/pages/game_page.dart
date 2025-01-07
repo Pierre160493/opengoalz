@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/game/gameDetailsTab.dart';
+import 'package:opengoalz/models/game/gameStatsTab.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/models/teamcomp/teamComp_main_widget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -221,17 +224,19 @@ class _HomePageState extends State<GamePage> {
                         children: [
                           TabBar(
                             tabs: [
-                              buildTab(Icons.preview, 'Details'),
-                              buildTab(Icons.reviews, 'Report'),
-                              buildTab(Icons.group, 'Teams'),
+                              buildTabWithIcon(
+                                  icon: Icons.preview, text: 'Details'),
+                              buildTabWithIcon(
+                                  icon: Icons.group, text: 'Teams'),
+                              buildTabWithIcon(icon: iconStats, text: 'Stats'),
                             ],
                           ),
                           Expanded(
                             child: TabBarView(
                               children: [
-                                game.getGameDetails(context),
-                                game.getGameReport(context),
+                                getGameDetails(context, game),
                                 getTeamCompsTab(context, game),
+                                getGameStats(context, game),
                               ],
                             ),
                           ),
@@ -244,19 +249,6 @@ class _HomePageState extends State<GamePage> {
         });
   }
 
-  Widget buildTab(IconData icon, String text) {
-    return Tab(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon),
-          SizedBox(width: 6), // Add some spacing between the icon and text
-          Text(text),
-        ],
-      ),
-    );
-  }
-
   Widget getTeamCompsTab(BuildContext context, Game game) {
     return DefaultTabController(
       length: 2,
@@ -264,8 +256,9 @@ class _HomePageState extends State<GamePage> {
         children: [
           TabBar(
             tabs: [
-              buildTab(Icons.join_left, game.leftClub.name),
-              buildTab(Icons.join_right, game.rightClub.name),
+              buildTabWithIcon(icon: Icons.join_left, text: game.leftClub.name),
+              buildTabWithIcon(
+                  icon: Icons.join_right, text: game.rightClub.name),
             ],
           ),
           Expanded(

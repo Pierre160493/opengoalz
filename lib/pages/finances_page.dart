@@ -165,8 +165,8 @@ class _FinancesPageState extends State<FinancesPage> {
             children: [
               TabBar(
                 tabs: [
-                  buildTabWithIcon(iconMoney, 'Finances'),
-                  buildTabWithIcon(iconHistory, 'History'),
+                  buildTabWithIcon(icon: iconMoney, text: 'Finances'),
+                  buildTabWithIcon(icon: iconHistory, text: 'History'),
                 ],
               ),
               Expanded(
@@ -276,7 +276,8 @@ class _FinancesPageState extends State<FinancesPage> {
                     onTap: () {
                       _showChartDialog(context, 'Revenues', club.lisRevenues);
                     },
-                    child: buildTabWithIcon(Icons.trending_up, 'Revenues'),
+                    child: buildTabWithIcon(
+                        icon: Icons.trending_up, text: 'Revenues'),
                   ),
                 ),
 
@@ -287,7 +288,8 @@ class _FinancesPageState extends State<FinancesPage> {
                       _showChartDialog(
                           context, 'Expenses', club.lisExpensesPlayers);
                     },
-                    child: buildTabWithIcon(Icons.trending_down, 'Expenses'),
+                    child: buildTabWithIcon(
+                        icon: Icons.trending_down, text: 'Expenses'),
                   ),
                 ),
               ],

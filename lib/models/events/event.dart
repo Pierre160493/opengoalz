@@ -47,8 +47,9 @@ class GameEvent {
       idPlayer: map['id_player'],
       idClub: map['id_club'],
       gameMinute: map['game_minute'],
-      dateEvent:
-          map['date_event'] != null ? DateTime.parse(map['date_event']).toLocal() : null,
+      dateEvent: map['date_event'] != null
+          ? DateTime.parse(map['date_event']).toLocal()
+          : null,
       gamePeriod: map['game_period'],
       idPlayer2: map['id_player2'],
       idPlayer3: map['id_player3'],
@@ -216,28 +217,22 @@ class GameEvent {
     }
   }
 
-  Widget getEventDescription(BuildContext context) {
-    return Row(
-      children: [Text(description)],
-    );
-  }
-
-  String getEventDescription2(BuildContext context) {
+  String getEventDescription(BuildContext context) {
     return description
         .replaceAll(
             '{player1}',
             player == null
                 ? '[Unknown player]'
-                : '${player!.firstName} ${player!.lastName.toUpperCase()}')
+                : '{idPlayer:${player!.id},${player!.firstName} ${player!.lastName.toUpperCase()}}')
         .replaceAll(
             '{player2}',
             player2 == null
                 ? '[Unknown player]'
-                : '${player2!.firstName} ${player2!.lastName.toUpperCase()}')
+                : '{idPlayer:${player2!.id},${player2!.firstName} ${player2!.lastName.toUpperCase()}}')
         .replaceAll(
-            '{opponent}',
+            '{player3}',
             player3 == null
                 ? '[Unknown player]'
-                : '${player3!.firstName} ${player3!.lastName.toUpperCase()}');
+                : '{idPlayer:${player3!.id},${player3!.firstName} ${player3!.lastName.toUpperCase()}}');
   }
 }
