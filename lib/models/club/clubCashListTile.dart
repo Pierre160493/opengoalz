@@ -34,7 +34,7 @@ Widget getClubCashListTile(BuildContext context, Club club) {
         builder: (BuildContext context) {
           final chartData = ChartData(
             title: 'Available Cash History (per weeks)',
-            yValues: club.lisCash.map((e) => e.toDouble()).toList(),
+            yValues: [club.lisCash.map((e) => e.toDouble()).toList()],
           );
 
           return PlayerLineChartDialogBox(chartData: chartData);

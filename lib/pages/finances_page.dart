@@ -84,7 +84,7 @@ class _FinancesPageState extends State<FinancesPage> {
       builder: (BuildContext context) {
         final chartData = ChartData(
           title: title,
-          yValues: data,
+          yValues: [data],
         );
 
         return PlayerLineChartDialogBox(chartData: chartData);

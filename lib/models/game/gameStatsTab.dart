@@ -62,141 +62,48 @@ Widget gameStatsWidget(Game game) {
                 DataColumn(label: Text(game.rightClub.name)),
               ],
               rows: [
-                DataRow(cells: [
-                  DataCell(Text('Left Defense')),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Left Defense',
-                      'Left Defense',
-                      gameStats
-                          .map((stat) => stat.weightsLeft.leftDefense)
-                          .toList(),
-                      Colors.blue)),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Left Defense',
-                      'Left Defense',
-                      gameStats
-                          .map((stat) => stat.weightsRight.leftDefense)
-                          .toList(),
-                      Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(
-                    Text('Central Defense'),
-                  ),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Central Defense',
-                      'Central Defense',
-                      gameStats
-                          .map((stat) => stat.weightsLeft.centralDefense)
-                          .toList(),
-                      Colors.blue)),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Central Defense',
-                      'Central Defense',
-                      gameStats
-                          .map((stat) => stat.weightsRight.centralDefense)
-                          .toList(),
-                      Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Right Defense')),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Right Defense',
-                      'Right Defense',
-                      gameStats
-                          .map((stat) => stat.weightsLeft.rightDefense)
-                          .toList(),
-                      Colors.blue)),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Right Defense',
-                      'Right Defense',
-                      gameStats
-                          .map((stat) => stat.weightsRight.rightDefense)
-                          .toList(),
-                      Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Midfield')),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Midfield',
-                      'Midfield',
-                      gameStats
-                          .map((stat) => stat.weightsLeft.midfield)
-                          .toList(),
-                      Colors.blue)),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Midfield',
-                      'Midfield',
-                      gameStats
-                          .map((stat) => stat.weightsRight.midfield)
-                          .toList(),
-                      Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Left Attack')),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Left Attack',
-                      'Left Attack',
-                      gameStats
-                          .map((stat) => stat.weightsLeft.leftAttack)
-                          .toList(),
-                      Colors.blue)),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Left Attack',
-                      'Left Attack',
-                      gameStats
-                          .map((stat) => stat.weightsRight.leftAttack)
-                          .toList(),
-                      Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Central Attack')),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Central Attack',
-                      'Central Attack',
-                      gameStats
-                          .map((stat) => stat.weightsLeft.centralAttack)
-                          .toList(),
-                      Colors.blue)),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Central Attack',
-                      'Central Attack',
-                      gameStats
-                          .map((stat) => stat.weightsRight.centralAttack)
-                          .toList(),
-                      Colors.red)),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Right Attack')),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Right Attack',
-                      'Right Attack',
-                      gameStats
-                          .map((stat) => stat.weightsLeft.rightAttack)
-                          .toList(),
-                      Colors.blue)),
-                  DataCell(_getDataCellRow(
-                      context,
-                      'Right Attack',
-                      'Right Attack',
-                      gameStats
-                          .map((stat) => stat.weightsRight.rightAttack)
-                          .toList(),
-                      Colors.red)),
-                ]),
+                _buildDataRow(
+                    context,
+                    'Left Defense',
+                    gameStats,
+                    (stat) => stat.weightsLeft.leftDefense,
+                    (stat) => stat.weightsRight.leftDefense),
+                _buildDataRow(
+                    context,
+                    'Central Defense',
+                    gameStats,
+                    (stat) => stat.weightsLeft.centralDefense,
+                    (stat) => stat.weightsRight.centralDefense),
+                _buildDataRow(
+                    context,
+                    'Right Defense',
+                    gameStats,
+                    (stat) => stat.weightsLeft.rightDefense,
+                    (stat) => stat.weightsRight.rightDefense),
+                _buildDataRow(
+                    context,
+                    'Midfield',
+                    gameStats,
+                    (stat) => stat.weightsLeft.midfield,
+                    (stat) => stat.weightsRight.midfield),
+                _buildDataRow(
+                    context,
+                    'Left Attack',
+                    gameStats,
+                    (stat) => stat.weightsLeft.leftAttack,
+                    (stat) => stat.weightsRight.leftAttack),
+                _buildDataRow(
+                    context,
+                    'Central Attack',
+                    gameStats,
+                    (stat) => stat.weightsLeft.centralAttack,
+                    (stat) => stat.weightsRight.centralAttack),
+                _buildDataRow(
+                    context,
+                    'Right Attack',
+                    gameStats,
+                    (stat) => stat.weightsLeft.rightAttack,
+                    (stat) => stat.weightsRight.rightAttack),
               ],
             ),
           ],
@@ -206,29 +113,56 @@ Widget gameStatsWidget(Game game) {
   );
 }
 
-Widget _getDataCellRow(BuildContext context, String title,
-    String tooltipMessage, List<double> data, Color color) {
-  double value = data.reduce((a, b) => a + b) / data.length;
-  return Tooltip(
-    message: tooltipMessage,
-    child: ListTile(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            value.toStringAsFixed(1),
-            style: TextStyle(fontWeight: FontWeight.bold, color: color),
-          ),
-        ],
+DataRow _buildDataRow(
+    BuildContext context,
+    String title,
+    List<GameStat> gameStats,
+    double Function(GameStat) leftValue,
+    double Function(GameStat) rightValue) {
+  return DataRow(cells: [
+    DataCell(
+      InkWell(
+        onTap: () {
+          _showChartDialog(
+            context,
+            title,
+            [
+              gameStats.map(leftValue).toList(),
+              gameStats.map(rightValue).toList(),
+            ],
+          );
+        },
+        child: Text(title),
       ),
-      onTap: () {
-        _showChartDialog(context, title, data);
-      },
     ),
+    DataCell(_getDataCellRow(
+        context, title, gameStats.map(leftValue).toList(), Colors.blue)),
+    DataCell(_getDataCellRow(
+        context, title, gameStats.map(rightValue).toList(), Colors.red)),
+  ]);
+}
+
+Widget _getDataCellRow(
+    BuildContext context, String title, List<double> data, Color color) {
+  double value = data.reduce((a, b) => a + b) / data.length;
+  return ListTile(
+    title: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          value.toStringAsFixed(1),
+          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+        ),
+      ],
+    ),
+    onTap: () {
+      _showChartDialog(context, title, [data]);
+    },
   );
 }
 
-void _showChartDialog(BuildContext context, String title, List<num> data) {
+void _showChartDialog(
+    BuildContext context, String title, List<List<num>> data) {
   showDialog(
     context: context,
     builder: (BuildContext context) {

@@ -168,7 +168,7 @@ class _StaffPageState extends State<StaffPage> {
                           final chartData = ChartData(
                             title: 'Staff Expenses History (per weeks)',
                             yValues: club.lisExpensesStaff
-                                .map((e) => e.toDouble())
+                                .map((e) => [e.toDouble()])
                                 .toList(),
                           );
 
@@ -203,7 +203,7 @@ class _StaffPageState extends State<StaffPage> {
                           final chartData = ChartData(
                             title: 'Staff Skill History (per weeks)',
                             yValues: club.lisStaffWeight
-                                .map((e) => e.toDouble())
+                                .map((e) => [e.toDouble()])
                                 .toList(),
                           );
 

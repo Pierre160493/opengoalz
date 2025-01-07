@@ -193,7 +193,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                             title:
                                 'Scouting Network Expenses History (per weeks)',
                             yValues: club.lisExpensesScouts
-                                .map((e) => e.toDouble())
+                                .map((e) => [e.toDouble()])
                                 .toList(),
                           );
 
@@ -228,7 +228,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                           final chartData = ChartData(
                             title: 'Scouting Network Skill History (per weeks)',
                             yValues: club.lisScoutsWeight
-                                .map((e) => e.toDouble())
+                                .map((e) => [e.toDouble()])
                                 .toList(),
                           );
 
