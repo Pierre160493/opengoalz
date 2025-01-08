@@ -182,7 +182,7 @@ BEGIN
             (id_club, description)
         VALUES (
             club.id,
-            string_parser(club.id, 'club') || ' joined the squad because of a lack of players'
+            string_parser(club.id, 'idClub') || ' joined the squad because of a lack of players'
         );
 
     END LOOP;

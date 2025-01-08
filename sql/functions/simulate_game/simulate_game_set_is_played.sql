@@ -25,7 +25,7 @@ BEGIN
             WHEN is_cup THEN 'cup '
             WHEN is_league THEN ''
             ELSE 'ERROR '
-        END || string_parser(games.id, 'game') || ' of ' || string_parser(games.id_league, 'league') AS game_presentation,
+        END || string_parser(games.id, 'idGame') || ' of ' || string_parser(games.id_league, 'idLeague') AS game_presentation,
         ---- Score of the game
         CASE WHEN score_left = -1 THEN '0F' ELSE score_left::TEXT END ||
         CASE WHEN score_penalty_left IS NOT NULL THEN '[' || score_penalty_left || ']' ELSE '' END ||
@@ -83,8 +83,8 @@ BEGIN
 
     ------ Start writing the messages to be sent to the clubs
     tmp_text1 := rec_game.text_score_game || ' in ' ||  rec_game.game_presentation || ' against ';
-    text_title_winner := rec_game.overall_text || ' Victory ' || tmp_text1 || string_parser(rec_game.id_club_overall_loser, 'club');
-    text_title_loser := rec_game.overall_text || ' Defeat ' || tmp_text1 || string_parser(rec_game.id_club_overall_winner, 'club');
+    text_title_winner := rec_game.overall_text || ' Victory ' || tmp_text1 || string_parser(rec_game.id_club_overall_loser, 'idClub');
+    text_title_loser := rec_game.overall_text || ' Defeat ' || tmp_text1 || string_parser(rec_game.id_club_overall_winner, 'idClub');
     text_message_winner := text_title_winner || ' for the game: ' || rec_game.game_description;
     text_message_loser := text_title_loser || ' for the game: ' || rec_game.game_description;
 
@@ -102,17 +102,17 @@ BEGIN
         INSERT INTO clubs_history (id_club, is_ranking_description, description)
         VALUES (
             rec_game.id_club_overall_winner, TRUE,
-            'Season ' || rec_game.season_number || ': Finished 1st of ' || string_parser(rec_game.id_league, 'league')),
+            'Season ' || rec_game.season_number || ': Finished 1st of ' || string_parser(rec_game.id_league, 'idLeague')),
         (
             rec_game.id_club_overall_loser, TRUE,
-            'Season ' || rec_game.season_number || 'Finished 2nd of ' || string_parser(rec_game.id_league, 'league'));
+            'Season ' || rec_game.season_number || 'Finished 2nd of ' || string_parser(rec_game.id_league, 'idLeague'));
 
         ---- Insert into the players_history table for winning club
         INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
             SELECT
                 id AS id_player, id_club AS id_club,
                 'Season ' || rec_game.season_number || ': Victory in International League'
-                || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(id_club, 'club'),
+                || ' of ' || string_parser(rec_game.id_league, 'idLeague') || ' with ' || string_parser(id_club, 'idClub'),
                 TRUE AS is_ranking_description
             FROM players
             WHERE id_club = rec_game.id_club_overall_winner;
@@ -122,7 +122,7 @@ BEGIN
             SELECT
                 id AS id_player, id_club AS id_club,
                 'Season ' || rec_game.season_number || ': 2nd Place in International League'
-                || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(id_club, 'club'),
+                || ' of ' || string_parser(rec_game.id_league, 'idLeague') || ' with ' || string_parser(id_club, 'idClub'),
                 TRUE AS is_ranking_description
             FROM players
             WHERE players.id_club = rec_game.id_club_overall_loser;
@@ -149,17 +149,17 @@ BEGIN
         ---- Insert into clubs_history table
         INSERT INTO clubs_history (id_club, is_ranking_description, description)
         VALUES (rec_game.id_club_overall_winner, TRUE,
-            'Season ' || rec_game.season_number || ': Finished 3rd of ' || string_parser(rec_game.id_league, 'league')),
+            'Season ' || rec_game.season_number || ': Finished 3rd of ' || string_parser(rec_game.id_league, 'idLeague')),
         (
             rec_game.id_club_overall_loser, TRUE,
-            'Season ' || rec_game.season_number || 'Finished 4th of ' || string_parser(rec_game.id_league, 'league'));
+            'Season ' || rec_game.season_number || 'Finished 4th of ' || string_parser(rec_game.id_league, 'idLeague'));
 
         ---- Insert into the players_history table for winning club
         INSERT INTO players_history (id_player, id_club, is_ranking_description, description)
             SELECT
                 id AS id_player, id_club AS id_club, TRUE AS is_ranking_description,
                 'Season ' || rec_game.season_number || ': Victory in ' || tmp_text1
-                || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(id_club, 'club')
+                || ' of ' || string_parser(rec_game.id_league, 'idLeague') || ' with ' || string_parser(id_club, 'idClub')
             FROM players
             WHERE id_club = rec_game.id_club_overall_winner;
 
@@ -168,7 +168,7 @@ BEGIN
             SELECT
                 id AS id_player, id_club AS id_club, TRUE AS is_ranking_description,
                 'Season ' || rec_game.season_number || ': Defeat in ' || tmp_text1
-                || ' of ' || string_parser(rec_game.id_league, 'league') || ' with ' || string_parser(id_club, 'club')
+                || ' of ' || string_parser(rec_game.id_league, 'idLeague') || ' with ' || string_parser(id_club, 'idClub')
             FROM players
             WHERE id_club = rec_game.id_club_overall_loser;
 
@@ -191,10 +191,10 @@ BEGIN
     ELSIF rec_game.id_games_description = 212 THEN
 
         -- Send messages
-        text_title_winner := text_title_winner || ': promotion to ' || string_parser(rec_game.id_league, 'league');
-        text_title_loser := text_title_loser || ': no direct promotion to ' || string_parser(rec_game.id_league, 'league');
-        text_message_winner := text_message_winner || '. This overall victory means that we will be playing in the upper league ' || string_parser(rec_game.id_league, 'league') || ' next season. Congratulations to you and all the players, it''s time to party !';
-        text_message_loser := text_message_loser || '. This overall defeat means that we will have to play another barrage against the 5th of the upper league ' || string_parser(rec_game.id_league, 'league') || ' in order to take his place. We can do it, let''s go !';
+        text_title_winner := text_title_winner || ': promotion to ' || string_parser(rec_game.id_league, 'idLeague');
+        text_title_loser := text_title_loser || ': no direct promotion to ' || string_parser(rec_game.id_league, 'idLeague');
+        text_message_winner := text_message_winner || '. This overall victory means that we will be playing in the upper league ' || string_parser(rec_game.id_league, 'idLeague') || ' next season. Congratulations to you and all the players, it''s time to party !';
+        text_message_loser := text_message_loser || '. This overall defeat means that we will have to play another barrage against the 5th of the upper league ' || string_parser(rec_game.id_league, 'idLeague') || ' in order to take his place. We can do it, let''s go !';
 
         -- Winner of the barrage 1 is promoted to the upper league
         UPDATE clubs SET
@@ -213,9 +213,9 @@ BEGIN
         VALUES
             ((SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), 'Coach',
             rec_game.game_presentation || ' of barrage 1 played ==> DEMOTED to ' ||
-                string_parser((SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner),'league'),
-            string_parser(rec_game.id_club_overall_winner,'club') || ' won the barrage 1 ' || rec_game.game_presentation || ' against ' || string_parser(rec_game.id_club_overall_loser, 'club') ||
-            '. Next season we will play in ' || string_parser((SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner),'league'));
+                string_parser((SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner),'idLeague'),
+            string_parser(rec_game.id_club_overall_winner, 'idClub') || ' won the barrage 1 ' || rec_game.game_presentation || ' against ' || string_parser(rec_game.id_club_overall_loser, 'idClub') ||
+            '. Next season we will play in ' || string_parser((SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner),'idLeague'));
 
 
     -- First leg games of barrage 1 games

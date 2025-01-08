@@ -87,7 +87,7 @@ class _FinancesPageState extends State<FinancesPage> {
           yValues: [data],
         );
 
-        return PlayerLineChartDialogBox(chartData: chartData);
+        return ChartDialogBox(chartData: chartData);
       },
     );
   }

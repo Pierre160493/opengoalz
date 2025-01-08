@@ -171,7 +171,7 @@ void _showChartDialog(
         yValues: data,
       );
 
-      return PlayerLineChartDialogBox(chartData: chartData);
+      return ChartDialogBox(chartData: chartData);
     },
   );
 }

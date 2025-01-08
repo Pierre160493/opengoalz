@@ -93,7 +93,7 @@ BEGIN
     ------ Log player history
     INSERT INTO players_history (id_player, id_club, description)
     VALUES (loc_new_player_id, inp_id_club,
-    'Joined ' || string_parser(inp_id_club, 'club') ||
+    'Joined ' || string_parser(inp_id_club, 'idClub') ||
     CASE
         WHEN inp_notes = 'Young Scouted' THEN ' as a young scouted player'
         WHEN inp_notes = 'Old Experienced player' THEN ' as an old experienced player'
@@ -105,8 +105,8 @@ BEGIN
         INSERT INTO messages_mail (id_club_to, sender_role, title, message)
             VALUES
                 (inp_id_club, 'Scout',
-                'New Scouted Player: ' || string_parser(loc_new_player_id, 'player'),
-                string_parser(loc_new_player_id, 'player') || ' joined the squad, check him out, i''ve been keeping an eye on him for a while and given some good training he might be a future star !');
+                'New Scouted Player: ' || string_parser(loc_new_player_id, 'idPlayer'),
+                string_parser(loc_new_player_id, 'idPlayer') || ' joined the squad, check him out, i''ve been keeping an eye on him for a while and given some good training he might be a future star !');
     END IF;
     
     ------ Return the new player's ID

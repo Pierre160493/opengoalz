@@ -269,7 +269,7 @@ BEGIN
                         (rec_teamcomp.id_club, 'Coach',
                         -- (SELECT date_now FROM multiverses WHERE id = (SELECT id_multiverse FROM clubs WHERE id = rec_teamcomp.id_club)),
                         array_length(text_return, 1) || ' Errors in teamcomp of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number,
-                        'I tried correcting the ' || string_parser(rec_teamcomp.id, 'teamcomp') || ' for the game of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number || '. It contained ' || array_length(text_return, 1) || ' errors !');
+                        'I tried correcting the ' || string_parser(rec_teamcomp.id, 'idTeamcomp') || ' for the game of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number || '. It contained ' || array_length(text_return, 1) || ' errors !');
 
             END IF;
 

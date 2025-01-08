@@ -14,10 +14,10 @@ class ChartData {
   });
 }
 
-class PlayerLineChartDialogBox extends StatelessWidget {
+class ChartDialogBox extends StatelessWidget {
   final ChartData chartData;
 
-  PlayerLineChartDialogBox({required this.chartData});
+  ChartDialogBox({required this.chartData});
 
   @override
   Widget build(BuildContext context) {

@@ -114,12 +114,12 @@ Widget getPlayerHistoryStreamGraph(
         //         .millisecondsSinceEpoch
         //         .toDouble())
         //     .toList(),
-        yValues: historyData
-            .map((item) => [(item[field] as num).toDouble()])
-            .toList(),
+        yValues: [historyData
+            .map((item) => (item[field] as num).toDouble())
+            .toList()],
       );
 
-      return PlayerLineChartDialogBox(chartData: chartData);
+      return ChartDialogBox(chartData: chartData);
     },
   );
 }

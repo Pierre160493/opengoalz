@@ -167,12 +167,14 @@ class _StaffPageState extends State<StaffPage> {
 
                           final chartData = ChartData(
                             title: 'Staff Expenses History (per weeks)',
-                            yValues: club.lisExpensesStaff
-                                .map((e) => [e.toDouble()])
-                                .toList(),
+                            yValues: [
+                              club.lisExpensesStaff
+                                  .map((e) => e.toDouble())
+                                  .toList()
+                            ],
                           );
 
-                          return PlayerLineChartDialogBox(chartData: chartData);
+                          return ChartDialogBox(chartData: chartData);
                         },
                       );
                     },
@@ -202,12 +204,14 @@ class _StaffPageState extends State<StaffPage> {
                         builder: (BuildContext context) {
                           final chartData = ChartData(
                             title: 'Staff Skill History (per weeks)',
-                            yValues: club.lisStaffWeight
-                                .map((e) => [e.toDouble()])
-                                .toList(),
+                            yValues: [
+                              club.lisStaffWeight
+                                  .map((e) => e.toDouble())
+                                  .toList()
+                            ],
                           );
 
-                          return PlayerLineChartDialogBox(chartData: chartData);
+                          return ChartDialogBox(chartData: chartData);
                         },
                       );
                     },

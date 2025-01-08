@@ -514,7 +514,7 @@ extension PlayerWidgetsHelper on Player {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return PlayerLineChartDialogBox(chartData: chartData);
+            return ChartDialogBox(chartData: chartData);
           },
         );
       },

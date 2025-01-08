@@ -45,7 +45,7 @@ BEGIN
     ------ The players of the old club become free players
     -- Log the history of the players
     INSERT INTO players_history (id_player, id_club, description)
-        SELECT id, id_club, 'Left ' || string_parser(id_club, 'club') || ' because a new owner took control'
+        SELECT id, id_club, 'Left ' || string_parser(id_club, 'idClub') || ' because a new owner took control'
         FROM players WHERE id_club = NEW.id;
   
     -- Release the players

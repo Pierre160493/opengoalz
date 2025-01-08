@@ -1,9 +1,7 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/widgets/financesGraphDialogBox.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 
 Widget getClubCashListTile(BuildContext context, Club club) {
@@ -37,7 +35,7 @@ Widget getClubCashListTile(BuildContext context, Club club) {
             yValues: [club.lisCash.map((e) => e.toDouble()).toList()],
           );
 
-          return PlayerLineChartDialogBox(chartData: chartData);
+          return ChartDialogBox(chartData: chartData);
         },
       );
     },
