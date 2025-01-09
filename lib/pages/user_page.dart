@@ -41,34 +41,43 @@ class _UserPageState extends State<UserPage> {
   void initState() {
     super.initState();
     if (widget.userName != null) {
-      _userStream = supabase
-          .from('profiles')
-          .stream(primaryKey: ['id'])
-          .eq('username', widget.userName as Object)
-          .map((maps) => maps.map((map) => Profile.fromMap(map)).first)
-          .switchMap((Profile user) {
-            return supabase
-                .from('clubs')
-                .stream(primaryKey: ['id'])
-                .eq('username', user.username)
-                .order('user_since')
-                .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
-                .map((List<Club> clubs) {
-                  user.clubs = clubs;
-                  return user;
-                });
-          })
-          .switchMap((Profile user) {
-            return supabase
-                .from('players')
-                .stream(primaryKey: ['id'])
-                .eq('username', user.username)
-                .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
-                .map((List<Player> players) {
-                  user.players = players;
-                  return user;
-                });
-          });
+      final connectedUser =
+          Provider.of<SessionProvider>(context, listen: false).user;
+      if (connectedUser != null && widget.userName == connectedUser.username) {
+        // Use the data from the provider if the username matches the connected user
+        _userStream = Stream.value(connectedUser);
+      } else {
+        // Fetch the data from the database if the username does not match the connected user
+        _userStream = supabase
+            .from('profiles')
+            .stream(primaryKey: ['id'])
+            .eq('username', widget.userName as Object)
+            .map((maps) => maps.map((map) => Profile.fromMap(map)).first)
+            .switchMap((Profile user) {
+              return supabase
+                  .from('clubs')
+                  .stream(primaryKey: ['id'])
+                  .eq('username', user.username)
+                  .order('user_since')
+                  .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+                  .map((List<Club> clubs) {
+                    user.clubs = clubs;
+                    return user;
+                  });
+            })
+            .switchMap((Profile user) {
+              return supabase
+                  .from('players')
+                  .stream(primaryKey: ['id'])
+                  .eq('username', user.username)
+                  .map(
+                      (maps) => maps.map((map) => Player.fromMap(map)).toList())
+                  .map((List<Player> players) {
+                    user.players = players;
+                    return user;
+                  });
+            });
+      }
     }
   }
 
@@ -222,17 +231,21 @@ class _UserPageState extends State<UserPage> {
                 buildTabWithIcon(
                     icon: icon_club,
                     text: user.clubs.length == 0
-                        ? 'No club yet'
+                        ? 'No club'
                         : user.clubs.length == 1
                             ? '1 Club'
-                            : '${user.clubs.length} clubs'),
+                            : '${user.clubs.length} clubs',
+                    iconColor:
+                        user.clubs.length == 0 ? Colors.red : Colors.green),
                 buildTabWithIcon(
                     icon: icon_players,
                     text: user.players.length == 0
-                        ? 'No player yet'
+                        ? 'No player'
                         : user.players.length == 1
                             ? '1 player'
-                            : '${user.players.length} players'),
+                            : '${user.players.length} players',
+                    iconColor:
+                        user.players.length == 0 ? Colors.red : Colors.green),
                 buildTabWithIcon(icon: Icons.description, text: 'User'),
               ],
             ),

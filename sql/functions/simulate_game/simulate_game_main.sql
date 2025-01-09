@@ -239,7 +239,7 @@ BEGIN
 
             ------ Iterate through the minutes of the game to generate the events of the game
             FOR loc_minute_game IN loc_minute_period_start..loc_minute_period_end + loc_minute_period_extra_time LOOP
-
+     
                 ------------------------------------------------------------------------
                 ------------------------------------------------------------------------
                 ------ Handle orders
@@ -295,9 +295,9 @@ BEGIN
                 );
 
                 ------ Insert a new row in the game_stats table
-                INSERT INTO games_stats (id_game, period, minute, extra_time, weights_left, weights_right)
-                VALUES (rec_game.id, loc_period_game, loc_minute_game, loc_minute_period_extra_time, loc_array_team_weights_left, loc_array_team_weights_right);
-
+                INSERT INTO games_stats (id_game, period, minute, weights_left, weights_right)
+                VALUES (rec_game.id, loc_period_game, loc_minute_game, loc_array_team_weights_left, loc_array_team_weights_right);
+                
                 ------ Update players stats (energy, experience)
                 FOR I IN 1..14 LOOP
                     index_player := loc_array_substitutes_left[I];
@@ -348,25 +348,18 @@ BEGIN
 
     END IF; -- End if the game needs to be simulated
 
-    -- Update players experience and stats
-    -- PERFORM simulate_game_process_experience_gain(
-    --     inp_id_game :=  rec_game.id,
-    --     inp_list_players_id_left := loc_array_players_id_left,
-    --     inp_list_players_id_right := loc_array_players_id_right
-    -- );
-
     ------ Store the players stats
     FOR I IN 1..21 LOOP
         IF loc_array_players_id_left[I] IS NOT NULL THEN
             UPDATE players SET
-                training_points_available = training_points_available + 5,
+                -- training_points_available = training_points_available + 5,
                 energy = loc_matrix_player_stats_left[I][12],
                 experience = loc_matrix_player_stats_left[I][10]
             WHERE id = loc_array_players_id_left[I];
         END IF;
         IF loc_array_players_id_right[I] IS NOT NULL THEN
             UPDATE players SET
-                training_points_available = training_points_available + 5,
+                -- training_points_available = training_points_available + 5,
                 energy = loc_matrix_player_stats_right[I][12],
                 experience = loc_matrix_player_stats_right[I][10]
             WHERE id = loc_array_players_id_right[I];
@@ -384,11 +377,6 @@ BEGIN
         ---- Score of the penalty shootout
         score_penalty_left = loc_score_penalty_left,
         score_penalty_right = loc_score_penalty_right,
-        ---- Score (cumulative) of the game
-        -- score_cumul_left = loc_score_left_previous +
-        --     + CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END,
-        -- score_cumul_right = loc_score_right_previous +
-        --     + CASE WHEN loc_score_right = -1 THEN 0 ELSE loc_score_right END,
         ---- Score (cumulative) of the game with penalty shootout / 1000
         score_cumul_with_penalty_left = loc_score_left_previous +
             + CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END

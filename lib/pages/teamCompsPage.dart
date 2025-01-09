@@ -218,7 +218,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                         club.defaultTeamComps.length,
                                         (index) => buildTabWithIcon(
                                           icon: Icons.save,
-                                          color: club.defaultTeamComps[index]
+                                          iconColor: club.defaultTeamComps[index]
                                                       .errors ==
                                                   null
                                               ? Colors.green

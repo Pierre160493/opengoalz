@@ -15,7 +15,10 @@ Widget gameStatsWidget(Game game) {
       } else if (!snapshot.hasData) {
         return Center(child: Text('No game stats available'));
       } else {
-        final gameStats = snapshot.data as List<GameStat>;
+        final List<GameStat> gameStats = snapshot.data as List<GameStat>;
+        for (var gameStat in gameStats) {
+          print(gameStat.period.toString() + ' ' + gameStat.minute.toString());
+        }
         return Column(
           children: [
             DataTable(
@@ -224,7 +227,8 @@ Future<List<GameStat>> fetchGameStats(int idGame) async {
       .from('games_stats')
       .select()
       .eq('id_game', idGame)
-      .order('created_at', ascending: false);
+      .order('period', ascending: true)
+      .order('minute', ascending: true);
 
   return List<GameStat>.from(response.map((json) => GameStat.fromJson(json)));
 }

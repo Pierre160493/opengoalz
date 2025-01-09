@@ -3,7 +3,7 @@ import 'package:opengoalz/constants.dart';
 
 Widget buildTabWithIcon({
   required String text,
-  Color color = Colors.green,
+  Color iconColor = Colors.green,
   IconData? icon,
 }) {
   return Tab(
@@ -11,7 +11,7 @@ Widget buildTabWithIcon({
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (icon != null) ...[
-          Icon(icon, color: color),
+          Icon(icon, color: iconColor),
           formSpacer3,
         ],
         Text(text),

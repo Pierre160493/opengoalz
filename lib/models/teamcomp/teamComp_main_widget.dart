@@ -24,7 +24,7 @@ class _TeamCompWidgetState extends State<TeamCompWidget> {
             tabs: [
               buildTabWithIcon(
                 icon: iconTeamComp,
-                color:
+                iconColor:
                     widget.teamComp.errors == null ? Colors.green : Colors.red,
                 text: 'TeamComp',
               ),

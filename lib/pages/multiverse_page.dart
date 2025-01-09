@@ -138,11 +138,11 @@ class _MultiversePageState extends State<MultiversePage> {
                       _selectedMultiverse == null
                           ? buildTabWithIcon(
                               icon: Icons.cancel,
-                              color: Colors.red,
+                              iconColor: Colors.red,
                               text: 'No Multiverse Selected')
                           : buildTabWithIcon(
                               icon: Icons.check_circle,
-                              color: Colors.green,
+                              iconColor: Colors.green,
                               text: 'Selected Multiverse'),
                     ],
                   ),
