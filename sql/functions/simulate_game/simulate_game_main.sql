@@ -190,6 +190,14 @@ BEGIN
                 loc_minute_period_start := 45; -- Start minute of the second period
                 loc_minute_period_end := loc_minute_period_start + minutes_half_time; -- Start minute of the first period
                 loc_minute_period_extra_time := 3 + ROUND(random() * 5); -- Extra time for the period
+
+                ------ Update players energy
+                FOR I IN 1..21 LOOP
+                    ---- Increase energy
+                    loc_matrix_player_stats_left[I][12] := loc_matrix_player_stats_left[I][12] + 10.0 * (1.0 + loc_matrix_player_stats_left[I][11]/100.0);
+                    loc_matrix_player_stats_right[I][12] := loc_matrix_player_stats_right[I][12] + 10.0 * (1.0 + loc_matrix_player_stats_right[I][11]/100.0);
+                END LOOP;
+
             ELSEIF loc_period_game = 3 THEN
                 loc_score_left_previous := COALESCE(rec_game.score_previous_left, 0);
                 loc_score_right_previous := COALESCE(rec_game.score_previous_right, 0);
@@ -202,11 +210,26 @@ BEGIN
                 loc_minute_period_start := 90; -- Start minute of the first period
                 loc_minute_period_end := loc_minute_period_start + minutes_extra_time; -- Start minute of the first period
                 loc_minute_period_extra_time := ROUND(random() * 2); -- Extra time for the period
+
+                ------ Update players energy
+                FOR I IN 1..21 LOOP
+                    ---- Increase energy
+                    loc_matrix_player_stats_left[I][12] := loc_matrix_player_stats_left[I][12] + 5.0 * (1.0 + loc_matrix_player_stats_left[I][11]/100.0);
+                    loc_matrix_player_stats_right[I][12] := loc_matrix_player_stats_right[I][12] + 5.0 * (1.0 + loc_matrix_player_stats_right[I][11]/100.0);
+                END LOOP;
+
             ELSE
                 loc_date_start_period := loc_date_start_period + (15 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the second prolongation is the start date of the first prolongation plus 15 minutes + extra time
                 loc_minute_period_start := 105; -- Start minute of the first period
                 loc_minute_period_end := loc_minute_period_start + minutes_extra_time; -- Start minute of the first period
                 loc_minute_period_extra_time := 2 + ROUND(random() * 4); -- Extra time for the period
+
+                ------ Update players energy
+                FOR I IN 1..21 LOOP
+                    ---- Increase energy
+                    loc_matrix_player_stats_left[I][12] := loc_matrix_player_stats_left[I][12] + 5.0 * (1.0 + loc_matrix_player_stats_left[I][11]/100.0);
+                    loc_matrix_player_stats_right[I][12] := loc_matrix_player_stats_right[I][12] + 5.0 * (1.0 + loc_matrix_player_stats_right[I][11]/100.0);
+                END LOOP;
             END IF;
 
             ------ Cheat CODE to calculate only once
@@ -214,33 +237,33 @@ BEGIN
             --loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
             --loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
 
-            ------ Calculate the events of the game with one event every minute
+            ------ Iterate through the minutes of the game to generate the events of the game
             FOR loc_minute_game IN loc_minute_period_start..loc_minute_period_end + loc_minute_period_extra_time LOOP
 
                 ------------------------------------------------------------------------
                 ------------------------------------------------------------------------
                 ------ Handle orders
                 -- Handle orders for left club
-                loc_array_substitutes_left := simulate_game_handle_orders(
-                    inp_teamcomp_id := rec_game.id_teamcomp_club_left,
-                    array_players_id := loc_array_players_id_left,
-                    array_substitutes := loc_array_substitutes_left,
-                    game_minute := loc_minute_game,
-                    game_period := loc_period_game,
-                    period_start := loc_date_start_period,
-                    score := loc_score_left - loc_score_right,
-                    game := rec_game);
+                -- loc_array_substitutes_left := simulate_game_handle_orders(
+                --     inp_teamcomp_id := rec_game.id_teamcomp_club_left,
+                --     array_players_id := loc_array_players_id_left,
+                --     array_substitutes := loc_array_substitutes_left,
+                --     game_minute := loc_minute_game,
+                --     game_period := loc_period_game,
+                --     period_start := loc_date_start_period,
+                --     score := loc_score_left - loc_score_right,
+                --     game := rec_game);
 
-                -- Handle orders for right club
-                loc_array_substitutes_right := simulate_game_handle_orders(
-                    inp_teamcomp_id := rec_game.id_teamcomp_club_right,
-                    array_players_id := loc_array_players_id_right,
-                    array_substitutes := loc_array_substitutes_right,
-                    game_minute := loc_minute_game,
-                    game_period := loc_period_game,
-                    period_start := loc_date_start_period,
-                    score := loc_score_right - loc_score_left,
-                    game := rec_game);
+                -- -- Handle orders for right club
+                -- loc_array_substitutes_right := simulate_game_handle_orders(
+                --     inp_teamcomp_id := rec_game.id_teamcomp_club_right,
+                --     array_players_id := loc_array_players_id_right,
+                --     array_substitutes := loc_array_substitutes_right,
+                --     game_minute := loc_minute_game,
+                --     game_period := loc_period_game,
+                --     period_start := loc_date_start_period,
+                --     score := loc_score_right - loc_score_left,
+                --     game := rec_game);
 
                 ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
                 loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
@@ -275,24 +298,24 @@ BEGIN
                 INSERT INTO games_stats (id_game, period, minute, extra_time, weights_left, weights_right)
                 VALUES (rec_game.id, loc_period_game, loc_minute_game, loc_minute_period_extra_time, loc_array_team_weights_left, loc_array_team_weights_right);
 
-                ------ Update players stats
+                ------ Update players stats (energy, experience)
                 FOR I IN 1..14 LOOP
                     index_player := loc_array_substitutes_left[I];
                     IF loc_array_players_id_left[index_player] IS NOT NULL THEN
                         ---- Reduce energy
-                        loc_matrix_player_stats_left[I][12] := GREATEST(0,
+                        loc_matrix_player_stats_left[index_player][12] := GREATEST(0,
                             loc_matrix_player_stats_left[index_player][12] - 1 + loc_matrix_player_stats_left[index_player][11] / 200.0);
                         ---- Increase experience
-                        loc_matrix_player_stats_left[I][10] := LEAST(100,
+                        loc_matrix_player_stats_left[index_player][10] := LEAST(100,
                             loc_matrix_player_stats_left[index_player][10] + 0.015);
                     END IF;
                     index_player := loc_array_substitutes_right[I];
                     IF loc_array_players_id_right[index_player] IS NOT NULL THEN
                         ---- Reduce energy
-                        loc_matrix_player_stats_right[I][12] := GREATEST(0,
+                        loc_matrix_player_stats_right[index_player][12] := GREATEST(0,
                             loc_matrix_player_stats_right[index_player][12] - 1 + loc_matrix_player_stats_right[index_player][11] / 200.0);
                         ---- Increase experience
-                        loc_matrix_player_stats_right[I][10] := LEAST(100,
+                        loc_matrix_player_stats_right[index_player][10] := LEAST(100,
                             loc_matrix_player_stats_right[index_player][10] + 0.015);
                     END IF;
                 END LOOP;

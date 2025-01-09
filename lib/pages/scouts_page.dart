@@ -197,6 +197,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                                   .map((e) => e.toDouble())
                                   .toList()
                             ],
+                            typeXAxis: XAxisType.weekHistory,
                           );
 
                           return ChartDialogBox(chartData: chartData);
@@ -228,13 +229,14 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         context: context,
                         builder: (BuildContext context) {
                           final chartData = ChartData(
-                              title:
-                                  'Scouting Network Skill History (per weeks)',
-                              yValues: [
-                                club.lisScoutsWeight
-                                    .map((e) => e.toDouble())
-                                    .toList()
-                              ]);
+                            title: 'Scouting Network Skill History (per weeks)',
+                            yValues: [
+                              club.lisScoutsWeight
+                                  .map((e) => e.toDouble())
+                                  .toList()
+                            ],
+                            typeXAxis: XAxisType.weekHistory,
+                          );
 
                           return ChartDialogBox(chartData: chartData);
                         },

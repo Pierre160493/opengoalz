@@ -8,6 +8,9 @@ DECLARE
     multiverse RECORD; -- Record for the multiverses loop
 BEGIN
 
+    -- Acquire a SHARE lock on the multiverses table to allow reads but prevent writes
+    LOCK TABLE multiverses IN SHARE MODE;
+
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------ Loop through all multiverses
@@ -70,10 +73,10 @@ RAISE NOTICE '**** Fin Simulate Day %', multiverse.day_number;
 
             ------ Check if the multiverse is at a new season
             -- IF multiverse.week_number = 1 THEN
-        --    IF multiverse.day_number = 1 THEN
+           IF multiverse.day_number = 1 THEN
         --    IF multiverse.week_number IN (10,2) AND multiverse.day_number = 1 THEN
-        --        EXIT;
-        --    END IF;
+                EXIT;
+           END IF;
 
         END LOOP; -- End of the LOOP
 
@@ -81,6 +84,11 @@ RAISE NOTICE '**** Fin Simulate Day %', multiverse.day_number;
         PERFORM transfers_handle_transfers(
             rec_multiverse := multiverse
         );
+
+        ------ Store the last run date of the multiverse
+        UPDATE multiverses SET
+            last_run = now()
+        WHERE id = multiverse.id;
 
     END LOOP; -- End of the loop through the multiverses
 

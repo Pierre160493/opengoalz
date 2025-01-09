@@ -4,54 +4,6 @@ import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/scoreWidget.dart';
 import 'package:opengoalz/widgets/descriptionParser.dart';
-import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
-
-Widget getGameDetails(BuildContext context, Game game) {
-  return DefaultTabController(
-    length: 2,
-    child: Column(
-      children: [
-        TabBar(
-          tabs: [
-            buildTabWithIcon(icon: Icons.preview, text: 'Details'),
-            buildTabWithIcon(icon: Icons.description, text: 'Full Report'),
-          ],
-        ),
-        Expanded(
-          child: TabBarView(
-            children: [
-              /// Details of the game
-              Column(
-                children: [
-                  game.getGamePresentation(context),
-                  formSpacer12,
-                  buildListOfEvents(
-                      context,
-                      game.events
-                          .where((GameEvent event) =>
-                              event.eventType.toUpperCase() == 'GOAL')
-                          .toList(),
-                      game,
-                      false),
-                ],
-              ),
-
-              /// Full report of the game
-              Column(
-                children: [
-                  formSpacer12,
-                  game.getGameRow(context, isSpaceEvenly: true),
-                  formSpacer12,
-                  buildListOfEvents(context, game.events, game, true),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
 
 Widget buildListOfEvents(BuildContext context, List<GameEvent> events,
     Game game, bool initialExpanded) {

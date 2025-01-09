@@ -114,9 +114,10 @@ Widget getPlayerHistoryStreamGraph(
         //         .millisecondsSinceEpoch
         //         .toDouble())
         //     .toList(),
-        yValues: [historyData
-            .map((item) => (item[field] as num).toDouble())
-            .toList()],
+        yValues: [
+          historyData.map((item) => (item[field] as num).toDouble()).toList()
+        ],
+        typeXAxis: XAxisType.weekHistory,
       );
 
       return ChartDialogBox(chartData: chartData);

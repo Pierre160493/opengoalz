@@ -3,7 +3,7 @@
 CREATE OR REPLACE FUNCTION public.players_calculate_player_weight(
     inp_player_stats float4[],
     inp_position integer)
- RETURNS double precision[]
+ RETURNS float4[]
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -32,7 +32,8 @@ BEGIN
     END IF;
 
     -- Calculate the coefficient of the player stats (motiation, form, experiennce, energy)
-    player_coef := 1 + ((inp_player_stats[8] + inp_player_stats[9] + inp_player_stats[10] + inp_player_stats[12]) / 400.0);
+    -- player_coef := 1 + ((inp_player_stats[8] + inp_player_stats[9] + inp_player_stats[10] + inp_player_stats[12]) / 400.0);
+    player_coef := 1 + ((inp_player_stats[8] + inp_player_stats[9] + inp_player_stats[10]) / 300.0);
 
     -- Loop through the 7 team stats (LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
     FOR i IN 1..7 LOOP

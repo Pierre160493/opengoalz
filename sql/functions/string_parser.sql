@@ -17,7 +17,7 @@ BEGIN
         WHEN 'idLeague' THEN
             SELECT id, name INTO loc_record FROM leagues WHERE id = inp_id;
             loc_name := COALESCE(inp_text, loc_record.name);
-        WHEN 'idGgame' THEN
+        WHEN 'idGame' THEN
             SELECT id, 'S' || season_number || 'W' || week_number || ' game' AS name INTO loc_record FROM games WHERE id = inp_id;
             loc_name := COALESCE(inp_text, loc_record.name);
         WHEN 'idTeamcomp' THEN

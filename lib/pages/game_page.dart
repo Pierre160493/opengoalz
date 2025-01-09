@@ -234,9 +234,9 @@ class _HomePageState extends State<GamePage> {
                           Expanded(
                             child: TabBarView(
                               children: [
-                                getGameDetails(context, game),
-                                getTeamCompsTab(context, game),
-                                getGameStats(context, game),
+                                _getGameDetails(context, game),
+                                _getTeamCompsTab(context, game),
+                                _getGameStats(context, game),
                               ],
                             ),
                           ),
@@ -249,7 +249,54 @@ class _HomePageState extends State<GamePage> {
         });
   }
 
-  Widget getTeamCompsTab(BuildContext context, Game game) {
+  Widget _getGameDetails(BuildContext context, Game game) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          TabBar(
+            tabs: [
+              buildTabWithIcon(icon: Icons.preview, text: 'Details'),
+              buildTabWithIcon(icon: Icons.description, text: 'Full Report'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                /// Details of the game
+                Column(
+                  children: [
+                    game.getGamePresentation(context),
+                    formSpacer12,
+                    buildListOfEvents(
+                        context,
+                        game.events
+                            .where((GameEvent event) =>
+                                event.eventType.toUpperCase() == 'GOAL')
+                            .toList(),
+                        game,
+                        false),
+                  ],
+                ),
+
+                /// Full report of the game
+                Column(
+                  children: [
+                    formSpacer12,
+                    game.getGameRow(context, isSpaceEvenly: true),
+                    formSpacer12,
+                    buildListOfEvents(context, game.events, game, true),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _getTeamCompsTab(BuildContext context, Game game) {
     return DefaultTabController(
       length: 2,
       child: Column(
@@ -293,6 +340,43 @@ class _HomePageState extends State<GamePage> {
                 else
                   // game.rightClub.teamComps.first.getTeamCompWidget(context),
                   TeamCompWidget(teamComp: game.rightClub.teamComps.first),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _getGameStats(BuildContext context, Game game) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          TabBar(
+            tabs: [
+              buildTabWithIcon(icon: Icons.preview, text: 'Game Stats'),
+              buildTabWithIcon(icon: Icons.description, text: 'Player Stats'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                /// Game stats
+                gameStatsWidget(game),
+
+                /// Players stats
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.construction, size: 50, color: Colors.grey),
+                      SizedBox(height: 10),
+                      Text('Work in progress',
+                          style: TextStyle(fontSize: 18, color: Colors.grey)),
+                    ],
+                  ),
+                )
               ],
             ),
           ),

@@ -3,14 +3,18 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+enum XAxisType { weekHistory, gameMinute }
+
 class ChartData {
   final String title;
   final List<List<num>>
       yValues; // Change to a list of lists to support multiple curves
+  final XAxisType? typeXAxis; // Add xValues to support multiple curves
 
   ChartData({
     required this.title,
     required this.yValues,
+    this.typeXAxis,
   });
 }
 
@@ -68,24 +72,35 @@ class ChartDialogBox extends StatelessWidget {
                   showTitles: true,
                   reservedSize: 40,
                   getTitlesWidget: (value, meta) {
-                    if (value == data[0].length - 1) {
-                      return Text(
-                        'now',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      );
-                    } else if ((data[0].length - 1 - value.toInt()) % 7 == 0) {
-                      return Text(
-                        '-${data[0].length - 1 - value.toInt()}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      );
+                    if (chartData.typeXAxis == XAxisType.weekHistory) {
+                      if (value == data[0].length - 1) {
+                        return Text(
+                          'now',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      } else if ((data[0].length - 1 - value.toInt()) % 7 ==
+                          0) {
+                        return Text(
+                          '-${data[0].length - 1 - value.toInt()}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      } else {
+                        return Container();
+                      }
                     } else {
-                      return Container();
+                      return Text(
+                        value.toInt().toString(),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
                     }
                   },
                 ),

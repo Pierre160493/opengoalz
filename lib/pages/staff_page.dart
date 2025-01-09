@@ -172,6 +172,7 @@ class _StaffPageState extends State<StaffPage> {
                                   .map((e) => e.toDouble())
                                   .toList()
                             ],
+                            typeXAxis: XAxisType.weekHistory,
                           );
 
                           return ChartDialogBox(chartData: chartData);
@@ -209,6 +210,7 @@ class _StaffPageState extends State<StaffPage> {
                                   .map((e) => e.toDouble())
                                   .toList()
                             ],
+                            typeXAxis: XAxisType.weekHistory,
                           );
 
                           return ChartDialogBox(chartData: chartData);

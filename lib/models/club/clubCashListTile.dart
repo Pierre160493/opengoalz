@@ -33,6 +33,7 @@ Widget getClubCashListTile(BuildContext context, Club club) {
           final chartData = ChartData(
             title: 'Available Cash History (per weeks)',
             yValues: [club.lisCash.map((e) => e.toDouble()).toList()],
+            typeXAxis: XAxisType.weekHistory,
           );
 
           return ChartDialogBox(chartData: chartData);

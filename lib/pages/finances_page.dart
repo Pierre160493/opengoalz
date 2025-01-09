@@ -85,6 +85,7 @@ class _FinancesPageState extends State<FinancesPage> {
         final chartData = ChartData(
           title: title,
           yValues: [data],
+          typeXAxis: XAxisType.weekHistory,
         );
 
         return ChartDialogBox(chartData: chartData);
