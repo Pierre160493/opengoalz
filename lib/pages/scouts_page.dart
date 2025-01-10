@@ -3,7 +3,6 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/stringValueSeparated.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -28,6 +27,7 @@ class ScoutsPage extends StatefulWidget {
 
 class _ScoutsPageState extends State<ScoutsPage> {
   late final Stream<Club> _clubStream;
+  int _costForNewPlayer = 7000;
 
   @override
   void initState() {
@@ -57,30 +57,37 @@ class _ScoutsPageState extends State<ScoutsPage> {
             appBar: AppBar(
               title: Text('Scouting Network'),
               actions: [
-                IconButton(
-                  icon: Icon(Icons.help_outline),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text('Scouting System Help'),
-                          content: Text(
-                            'The scouting system allows you to manage and track the expenses and skills of your scouting network. '
-                            'You can update the expenses dedicated to scouting and view the historical data of scouting expenses and skills.',
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              child: Text('Close'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
+                Tooltip(
+                  message: 'Help',
+                  child: IconButton(
+                    icon: Icon(Icons.help_outline, color: Colors.green),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Scouting System Help'),
+                            content: Text(
+                              'The scouting system allows you to manage and track the expenses and skills of your scouting network.\n\n'
+                              'Every week, you can invest a sum of money into the scouting network to build up its strength.\n\n'
+                              'The expenses dedicated to scouting are theoretical and represent the amount you plan to spend each week, if your finances permit it !\n\n'
+                              'As you continue to invest, the scouting network strength will increase.\n\n'
+                              'Once the scouting strength reaches ${_costForNewPlayer}, you can call the scouts to find a new player.\n\n'
+                              'You can also view the historical data of scouting expenses and the strength of your scouting network over time.',
                             ),
-                          ],
-                        );
-                      },
-                    );
-                  },
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text('Close'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -252,21 +259,29 @@ class _ScoutsPageState extends State<ScoutsPage> {
                           .id)
                     ListTile(
                       leading: Icon(Icons.phone,
-                          size: iconSizeMedium, color: Colors.green),
+                          size: iconSizeMedium,
+                          color: club.scoutsWeight < _costForNewPlayer
+                              ? Colors.orange
+                              : Colors.green),
                       title: Text('Call the scouts !'),
-                      subtitle: const Text(
-                        'Spend scouting strength to find a new player',
+                      subtitle: Text(
+                        'Spend ${_costForNewPlayer.toString()} scouting strength to find a new player',
                         style: styleItalicBlueGrey,
                       ),
-                      shape: shapePersoRoundedBorder(),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return ScoutsDialog(club: club);
-                          },
-                        );
-                      },
+                      shape: shapePersoRoundedBorder(
+                          club.scoutsWeight < _costForNewPlayer
+                              ? Colors.red
+                              : Colors.green),
+                      onTap: club.scoutsWeight < _costForNewPlayer
+                          ? null
+                          : () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return ScoutsDialog(club: club);
+                                },
+                              );
+                            },
                     ),
                 ],
               ),

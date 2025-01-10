@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 
 class PlayerSearchCriterias {
   List<int>? idPlayer;
+  List<int> idPlayerRemove = [];
   List<int>? idClub;
   Multiverse? multiverse;
   List<Country> countries = [];
@@ -25,6 +26,7 @@ class PlayerSearchCriterias {
 
   PlayerSearchCriterias({
     this.idPlayer,
+    this.idPlayerRemove = const [],
     this.idClub,
     this.multiverse,
     // this.selectedStatus,

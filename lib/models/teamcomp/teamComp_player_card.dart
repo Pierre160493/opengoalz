@@ -290,13 +290,18 @@ extension TeamCompPlayerCard on TeamComp {
         message: 'Add a player',
         child: InkWell(
           onTap: () async {
+            print(players);
             Player? returnedPlayer = await Navigator.push(
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) {
                   return PlayersPage(
-                    playerSearchCriterias:
-                        PlayerSearchCriterias(idClub: [idClub]),
+                    playerSearchCriterias: PlayerSearchCriterias(
+                        idClub: [idClub],
+                        idPlayerRemove: players
+                            .where((e) => e['id'] != null)
+                            .map<int>((e) => e['id'] as int)
+                            .toList()),
                     isReturningPlayer: true,
                   );
                 },

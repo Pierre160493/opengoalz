@@ -1,25 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/clubCardWidget.dart';
-import 'package:opengoalz/models/country.dart';
-import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/player_card.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
-import 'package:opengoalz/pages/countries_page.dart';
-import 'package:opengoalz/pages/league_page.dart';
-import 'package:opengoalz/pages/multiverse_page.dart';
-import 'package:opengoalz/postgresql_requests.dart';
-import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/clubAndPlayerCreationDialogBox.dart';
-import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 Widget clubListWidget(BuildContext context, Profile user) {
   return Column(
@@ -28,8 +16,14 @@ Widget clubListWidget(BuildContext context, Profile user) {
       Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          Icon(Icons.list, color: Colors.green),
+          SizedBox(width: 8),
           Text(
             'Here is the list of your clubs:',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),

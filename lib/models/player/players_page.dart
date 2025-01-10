@@ -42,6 +42,7 @@ class _PlayersPageState extends State<PlayersPage> {
   List<int> _previousPlayerIds = [];
   Timer? _timer;
   bool _showReloadButton = false;
+  bool _hideRemovedPlayers = true;
 
   @override
   void initState() {
@@ -177,6 +178,13 @@ class _PlayersPageState extends State<PlayersPage> {
                 return Center(child: Text('Error: ${streamSnapshot.error}'));
               } else {
                 final List<Player> players = streamSnapshot.data ?? [];
+                if (widget.playerSearchCriterias.idPlayerRemove.isNotEmpty) {
+                  if (_hideRemovedPlayers) {
+                    players.removeWhere((player) => widget
+                        .playerSearchCriterias.idPlayerRemove
+                        .contains(player.id));
+                  }
+                }
                 return _buildPlayersList(players);
               }
             },
@@ -197,7 +205,10 @@ class _PlayersPageState extends State<PlayersPage> {
                       '${players.length} Players',
                     ),
           actions: [
+            /// Go back button
             goBackIconButton(context),
+
+            /// Reload button when the stream should be updated
             if (_showReloadButton)
               IconButton(
                 tooltip: 'Reload the list of players to see the latest changes',
@@ -209,6 +220,24 @@ class _PlayersPageState extends State<PlayersPage> {
                 },
                 icon: Icon(Icons.refresh, color: Colors.orange),
               ),
+
+            /// Show/Hide removed players
+            if (widget.playerSearchCriterias.idPlayerRemove.isNotEmpty)
+              IconButton(
+                tooltip: 'Show/Hide removed players',
+                onPressed: () {
+                  setState(() {
+                    _hideRemovedPlayers = !_hideRemovedPlayers;
+                  });
+                },
+                icon: Icon(
+                    _hideRemovedPlayers
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color: Colors.green),
+              ),
+
+            /// Modify search criterias
             IconButton(
               tooltip: 'Modify Search Criterias',
               onPressed: () {
@@ -230,6 +259,8 @@ class _PlayersPageState extends State<PlayersPage> {
               },
               icon: Icon(Icons.person_search, color: Colors.green),
             ),
+
+            /// Sort players
             IconButton(
                 tooltip: 'Sort players by...',
                 onPressed: () {

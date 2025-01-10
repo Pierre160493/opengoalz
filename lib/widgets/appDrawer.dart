@@ -67,14 +67,14 @@ class AppDrawer extends StatelessWidget {
                 : null,
           ),
           buildDrawerTitle('Club: ${selectedClub.name}'),
-          buildDrawerOption(context, iconCalendar, 'Calendar',
+          buildDrawerListTile(context, iconCalendar, 'Calendar',
               CalendarPage(idClub: selectedClub.id)), // Add the finances page
-          buildDrawerOption(
+          buildDrawerListTile(
               context,
               iconMails,
               'Mails (${Provider.of<SessionProvider>(context, listen: false).user!.mails.where((mail) => mail.dateDelete == null && mail.isRead == false).length}) (${(Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.where((mail) => mail.dateDelete == null && mail.isRead == false).length : 0)})',
               MailsPage(idClub: selectedClub.id)), // Add the finances page
-          // buildDrawerOption(
+          // buildDrawerListTile(
           //     context,
           //     icon_finance,
           //     'Finances:     ${NumberFormat.decimalPattern().format(selectedClub.cash)} €',
@@ -105,37 +105,37 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
           ),
-          // buildDrawerOption(
+          // buildDrawerListTile(
           //     context,
           //     icon_fans,
           //     'Fans (${selectedClub.numberFans})',
           //     FansPage(idClub: selectedClub.id)), // Add the fans page
-          buildDrawerOption(
-            context,
-            icon_stadium,
-            'Stadium',
-          ), // Add the Stadium page
-          buildDrawerOption(
+          // buildDrawerListTile(
+          //   context,
+          //   icon_stadium,
+          //   'Stadium',
+          // ), // Add the Stadium page
+          buildDrawerListTile(
             context,
             iconStaff,
             'Staff',
             StaffPage(idClub: selectedClub.id),
           ), // Add the Staff page
-          buildDrawerOption(
+          buildDrawerListTile(
             context,
             iconScouts,
             'Scouts',
             ScoutsPage(idClub: selectedClub.id),
           ), // Add the Staff page
-          // buildDrawerOption(
+          // buildDrawerListTile(
           //   context,
           //   icon_scouts,
           //   'Scouts',
           // ), // Add the Scouts page
-          // buildDrawerOption(
+          // buildDrawerListTile(
           //     context, icon_medics, 'Medics'), // Add the Medics page
           buildDrawerTitle('Main Team'), // Add the Main Team page
-          buildDrawerOption(
+          buildDrawerListTile(
             context,
             icon_players,
             // 'Players (${selectedClub.player_count})',
@@ -145,11 +145,11 @@ class AppDrawer extends StatelessWidget {
                   PlayerSearchCriterias(idClub: [selectedClub.id]),
             ),
           ), // Add the Players page
-          buildDrawerOption(context, iconTransfers, 'Transfers',
+          buildDrawerListTile(context, iconTransfers, 'Transfers',
               TransferPage(idClub: selectedClub.id)), // Add the Transfers page
-          buildDrawerOption(context, iconGames, 'Games',
+          buildDrawerListTile(context, iconGames, 'Games',
               GamesPage(idClub: selectedClub.id)), // Add the Games page
-          buildDrawerOption(
+          buildDrawerListTile(
               context,
               iconTeamComp,
               'TeamComps',
@@ -157,7 +157,7 @@ class AppDrawer extends StatelessWidget {
                   idClub: selectedClub.id,
                   seasonNumber:
                       selectedClub.seasonNumber)), // Add the Rankings page
-          buildDrawerOption(
+          buildDrawerListTile(
               context,
               icon_league,
               'League',
@@ -165,26 +165,14 @@ class AppDrawer extends StatelessWidget {
                 idLeague: selectedClub.idLeague,
                 idSelectedClub: selectedClub.id,
               )), // Add the Rankings page
-          buildDrawerOption(
-            context,
-            iconTraining,
-            'Training',
-          ), // Add the Training page
-          buildDrawerTitle('Young Team'),
+          // buildDrawerListTile(
+          //   context,
+          //   iconTraining,
+          //   'Training',
+          // ), // Add the Training page
+          buildDrawerTitle('Other'),
 
-          const SizedBox(
-            height: 15,
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'This is some information about the app or the navigation.',
-              style: TextStyle(
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-          buildDrawerOption(context, icon_chat, 'Chat',
+          buildDrawerListTile(context, icon_chat, 'Chat',
               const ChatPage()), // Add the Rankings page
         ],
       ),
@@ -194,24 +182,29 @@ class AppDrawer extends StatelessWidget {
 
 Widget buildDrawerTitle(String title) {
   return Container(
-    color: Colors.blueGrey,
-    child: ListTile(
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+    margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+    padding: const EdgeInsets.all(8.0),
+    decoration: BoxDecoration(
+      color: Colors.blueGrey,
+      borderRadius: BorderRadius.circular(8.0),
+    ),
+    child: Text(
+      title,
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 16.0,
+        color: Colors.white,
       ),
-      onTap: () {
-        // Handle navigation
-      },
     ),
   );
 }
 
-Widget buildDrawerOption(BuildContext context, IconData icon, String title,
-    [Widget? page]) {
+Widget buildDrawerListTile(BuildContext context, IconData icon, String title,
+    [Widget? page, String? subtitle]) {
   return ListTile(
     leading: Icon(icon, size: iconSizeMedium, color: Colors.green),
     title: Text(title),
+    subtitle: subtitle != null ? Text(subtitle) : null,
     onTap: page != null
         ? () {
             Navigator.push(

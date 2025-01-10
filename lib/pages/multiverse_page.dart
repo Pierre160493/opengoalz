@@ -103,12 +103,12 @@ class _MultiversePageState extends State<MultiversePage>
           .map((maps) => maps.map((map) => Multiverse.fromMap(map)).toList())
           .map((List<Multiverse> multiverses) {
             if (widget.idMultiverse != null) {
-              for (Multiverse multiverse in multiverses) {
-                if (multiverse.id == widget.idMultiverse) {
-                  _selectedMultiverse = multiverse;
-                  break;
-                }
-              }
+              // for (Multiverse multiverse in multiverses) {
+              //   if (multiverse.id == widget.idMultiverse) {
+              //     _selectedMultiverse = multiverse;
+              //     break;
+              //   }
+              // }
             }
 
             if (_selectedMultiverse != null) {
@@ -227,7 +227,7 @@ class _MultiversePageState extends State<MultiversePage>
                                         style: styleItalicBlueGrey),
 
                                     shape: shapePersoRoundedBorder(
-                                        _selectedMultiverse == multiverse
+                                        _selectedMultiverse?.id == multiverse.id
                                             ? Colors.green
                                             : Colors.blueGrey),
                                     trailing: widget.isReturningMultiverse ==
@@ -257,9 +257,10 @@ class _MultiversePageState extends State<MultiversePage>
                                             icon: Icon(Icons.reply),
                                           )
                                         : null,
-                                    // hoverColor: Colors.blueAccent,
                                     onTap: () {
                                       setState(() {
+                                        print(
+                                            'Selected multiverse: ${multiverse.name}');
                                         _selectedMultiverse = multiverse;
                                         _calculateEventGames(
                                             _selectedMultiverse!);

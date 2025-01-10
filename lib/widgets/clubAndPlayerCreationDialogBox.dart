@@ -26,8 +26,8 @@ class AssignPlayerOrClubDialog extends StatefulWidget {
 
 class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
   Multiverse? _selectedMultiverse;
-  Country? selectedCountry;
-  Club? selectedClub;
+  Country? _selectedCountry;
+  Club? _selectedClub;
   final TextEditingController clubNameController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
@@ -110,29 +110,29 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                     leading: Icon(
                       iconCountries,
                       color:
-                          selectedCountry == null ? Colors.red : Colors.green,
+                          _selectedCountry == null ? Colors.red : Colors.green,
                     ),
                     shape: shapePersoRoundedBorder(
-                        selectedCountry == null ? Colors.red : Colors.green),
-                    title: selectedCountry == null
+                        _selectedCountry == null ? Colors.red : Colors.green),
+                    title: _selectedCountry == null
                         ? Text('Select Country',
                             style: TextStyle(fontWeight: FontWeight.bold))
-                        : getCountryFlagAndNameWidget(selectedCountry!),
-                    subtitle: selectedCountry == null
+                        : getCountryFlagAndNameWidget(_selectedCountry!),
+                    subtitle: _selectedCountry == null
                         ? null
                         : Text('Selected country', style: styleItalicBlueGrey),
-                    trailing: selectedCountry == null
+                    trailing: _selectedCountry == null
                         ? null
                         : IconButton(
                             tooltip: 'Reset the selected country',
                             onPressed: () {
-                              selectedCountry = null;
+                              _selectedCountry = null;
                               setState(() {});
                             },
                             icon: Icon(Icons.delete_forever, color: Colors.red),
                           ),
                     onTap: () async {
-                      selectedCountry = await Navigator.push<Country>(
+                      _selectedCountry = await Navigator.push<Country>(
                         context,
                         CountriesPage.route(),
                       );
@@ -147,24 +147,25 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                     ListTile(
                       leading: Icon(
                         icon_home,
-                        color: selectedClub == null ? Colors.red : Colors.green,
+                        color:
+                            _selectedClub == null ? Colors.red : Colors.green,
                       ),
                       shape: shapePersoRoundedBorder(
-                          selectedClub == null ? Colors.red : Colors.green),
+                          _selectedClub == null ? Colors.red : Colors.green),
                       title: Text(
-                          selectedClub == null
+                          _selectedClub == null
                               ? 'Select Club'
-                              : selectedClub!.name,
+                              : _selectedClub!.name,
                           style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: selectedClub == null
+                      subtitle: _selectedClub == null
                           ? null
                           : Text('Selected club', style: styleItalicBlueGrey),
-                      trailing: selectedClub == null
+                      trailing: _selectedClub == null
                           ? null
                           : IconButton(
                               tooltip: 'Reset the selected club',
                               onPressed: () {
-                                selectedClub = null;
+                                _selectedClub = null;
                                 setState(() {});
                               },
                               icon:
@@ -172,7 +173,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                             ),
                       onTap: () async {
                         if (_selectedMultiverse == null ||
-                            selectedCountry == null) {
+                            _selectedCountry == null) {
                           context.showSnackBarError(
                               'Please select a multiverse and a country before choosing your future club');
                           return;
@@ -185,7 +186,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                               .select('id')
                               .eq('id_multiverse', _selectedMultiverse!.id)
                               .eq('continent',
-                                  selectedCountry!.selectedContinent!)
+                                  _selectedCountry!.selectedContinent!)
                               .order('level', ascending: false)
                               // .order('random()')
                               .limit(1)
@@ -200,11 +201,20 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                           context.showSnackBarError('ERROR: $error');
                           return;
                         }
-                        selectedClub = await Navigator.push<Club?>(
+                        _selectedClub = await Navigator.push<Club?>(
                           context,
                           LeaguePage.route(idRandomLeague,
                               isReturningBotClub: true),
                         );
+
+                        /// Reset the selected multiverse if the club is not from the currently selected multiverse
+                        if (_selectedClub != null &&
+                            _selectedMultiverse != null) {
+                          if (_selectedClub!.idMultiverse !=
+                              _selectedMultiverse!.id) {
+                            _selectedMultiverse = null;
+                          }
+                        }
                         setState(() {});
                       },
                     ),
@@ -297,7 +307,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                             });
                             return;
                           }
-                          if (selectedCountry == null) {
+                          if (_selectedCountry == null) {
                             context.showSnackBarError(
                                 'No country selected, ${widget.isClub ? 'club assignement' : 'player creation'} aborted');
                             setState(() {
@@ -306,7 +316,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                             return;
                           }
                           if (widget.isClub) {
-                            if (selectedClub == null) {
+                            if (_selectedClub == null) {
                               context.showSnackBarError(
                                   'No club selected, club assignement aborted');
                               setState(() {
@@ -323,20 +333,20 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                                           listen: false)
                                       .user!
                                       .username,
-                                  'id_country': selectedCountry!.id,
+                                  'id_country': _selectedCountry!.id,
                                 },
                                 matchCriteria: {
-                                  'id': selectedClub!.id,
+                                  'id': _selectedClub!.id,
                                 });
                             print('isOK: $isOK');
 
                             if (isOK) {
                               context.showSnackBarSuccess(
-                                  'You are now the happy owner of a new club in ${selectedCountry!.name} in the continent: ${selectedCountry!.selectedContinent} !');
+                                  'You are now the happy owner of a new club in ${_selectedCountry!.name} in the continent: ${_selectedCountry!.selectedContinent} !');
                               Navigator.of(context).pop();
                             }
                           } else {
-                            if (selectedCountry!.selectedContinent == null) {
+                            if (_selectedCountry!.selectedContinent == null) {
                               context.showSnackBarError(
                                   'ERROR: No continent selected, player creation aborted');
                               setState(() {
@@ -344,7 +354,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                               });
                               return;
                             }
-                            if (selectedCountry!.selectedContinent ==
+                            if (_selectedCountry!.selectedContinent ==
                                 'Others') {
                               context.showSnackBarError(
                                   'Cannot select country from continent "Others", player creation aborted');
@@ -362,7 +372,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                               return;
                             }
                             if (await context.showConfirmationDialog(
-                                    'Are you sure you want to create a new player (${firstNameController.text} ${lastNameController.text}) from ${selectedCountry!.name} ?') !=
+                                    'Are you sure you want to create a new player (${firstNameController.text} ${lastNameController.text}) from ${_selectedCountry!.name} ?') !=
                                 true) {
                               context
                                   .showSnackBarError('Player creation aborted');
@@ -381,7 +391,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                                           listen: false)
                                       .user!
                                       .username,
-                                  'id_country': selectedCountry!.id,
+                                  'id_country': _selectedCountry!.id,
                                   'id_multiverse': _selectedMultiverse!.id,
                                   'first_name': firstNameController.text,
                                   'last_name': lastNameController.text,
@@ -390,7 +400,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                                 });
                             if (isOK) {
                               context.showSnackBarSuccess(
-                                  'You now incarne ${firstNameController.text} ${lastNameController.text} in the continent: ${selectedCountry!.selectedContinent} !');
+                                  'You now incarne ${firstNameController.text} ${lastNameController.text} in the continent: ${_selectedCountry!.selectedContinent} !');
                               Navigator.of(context).pop();
                             }
                           }
