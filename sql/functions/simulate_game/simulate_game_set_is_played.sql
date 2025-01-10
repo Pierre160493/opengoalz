@@ -15,9 +15,7 @@ BEGIN
 
     ------ Store the game record
     SELECT games.*,
-        ---- Handle forfeited games (WHEN score = -1)
-        (CASE WHEN score_left = -1 THEN 0 ELSE score_left END) - (CASE WHEN score_right = -1 THEN 0 ELSE score_right END) AS score_diff,
-        score_cumul_with_penalty_left - score_cumul_with_penalty_right AS score_diff_total,
+        score_cumul_with_penalty_left - score_cumul_with_penalty_right AS score_diff,
         ---- Game presentation
         CASE
             WHEN is_friendly THEN 'friendly '
@@ -33,25 +31,6 @@ BEGIN
         CASE WHEN score_penalty_right IS NOT NULL THEN '[' || score_penalty_right || ']' ELSE '' END ||
         CASE WHEN score_right = -1 THEN '0F' ELSE score_right::TEXT END
         AS text_score_game,
-        ----Issue of the game for left club
-        CASE
-            WHEN score_left > score_right THEN 'Victory'
-            WHEN score_left < score_right THEN 'Defeat'
-            ELSE 'Draw' END AS result_game_left,
-        ----Issue of the game for right club
-        CASE
-            WHEN score_left > score_right THEN 'Defeat'
-            WHEN score_left < score_right THEN 'Victory'
-            ELSE 'Draw' END AS result_game_right,
-        ---- Overall result of the game
-        CASE
-            WHEN score_cumul_with_penalty_left > score_cumul_with_penalty_right THEN 'Victory'
-            WHEN score_cumul_with_penalty_left < score_cumul_with_penalty_right THEN 'Defeat'
-            ELSE 'Draw' END AS result_overall_left,
-        CASE
-            WHEN score_cumul_with_penalty_left > score_cumul_with_penalty_right THEN 'Defeat'
-            WHEN score_cumul_with_penalty_left < score_cumul_with_penalty_right THEN 'Victory'
-            ELSE 'Draw' END AS result_overall_right,
         ---- Overall text (if the game is a return game, display the overall winner etc...)
         CASE
             WHEN is_return_game_id_game_first_round IS NULL THEN
@@ -83,8 +62,12 @@ BEGIN
 
     ------ Start writing the messages to be sent to the clubs
     tmp_text1 := rec_game.text_score_game || ' in ' ||  rec_game.game_presentation || ' against ';
-    text_title_winner := rec_game.overall_text || ' Victory ' || tmp_text1 || string_parser(rec_game.id_club_overall_loser, 'idClub');
-    text_title_loser := rec_game.overall_text || ' Defeat ' || tmp_text1 || string_parser(rec_game.id_club_overall_winner, 'idClub');
+    text_title_winner := rec_game.overall_text || CASE
+            WHEN rec_game.score_cumul_with_penalty_left = rec_game.score_cumul_with_penalty_right THEN ' Draw '
+            ELSE ' Victory ' END || tmp_text1 || string_parser(rec_game.id_club_overall_loser, 'idClub');
+    text_title_loser := rec_game.overall_text || CASE
+            WHEN rec_game.score_cumul_with_penalty_left = rec_game.score_cumul_with_penalty_right THEN ' Draw '
+            ELSE ' Defeat ' END || tmp_text1 || string_parser(rec_game.id_club_overall_winner, 'idClub');
     text_message_winner := text_title_winner || ' for the game: ' || rec_game.game_description;
     text_message_loser := text_title_loser || ' for the game: ' || rec_game.game_description;
 
@@ -175,7 +158,7 @@ BEGIN
     -- First leg games of barrage 1 games
     ELSEIF rec_game.id_games_description = 211 THEN
         -- Draw
-        IF rec_game.score_diff_total = 0 THEN
+        IF rec_game.score_diff = 0 THEN
             text_title_winner := text_title_winner || ': Leg 1 Draw';
             text_title_loser := text_title_loser || ': Leg 1 Draw';
             text_message_winner := text_message_winner || '. The first leg of the barrage ended in a draw, nothing is lost, we can still make it in the second leg, let''s go !';
@@ -221,7 +204,7 @@ BEGIN
     -- First leg games of barrage 1 games
     ELSIF rec_game.id_games_description = 213 THEN
         -- Draw
-        IF rec_game.score_diff_total = 0 THEN
+        IF rec_game.score_diff = 0 THEN
             text_title_winner := text_title_winner || ': Leg 1 Draw';
             text_title_loser := text_title_loser || ': Leg 1 Draw';
             text_message_winner := text_message_winner || '. The first leg of the barrage ended in a draw, nothing is lost, we can still make it in the second leg, let''s go !';

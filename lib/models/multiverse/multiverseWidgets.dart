@@ -3,23 +3,48 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 
+Color getMultiverseSyncColor(DateTime lastRun) {
+  int minutesSinceLastRun = DateTime.now().difference(lastRun).inMinutes;
+
+  if (minutesSinceLastRun >= 2) {
+    return Colors.red;
+  } else if (minutesSinceLastRun >= 1) {
+    return Colors.orange;
+  } else {
+    return Colors.green;
+  }
+}
+
 Widget getMultiverseIconFromMultiverse(Multiverse multiverse) {
-  return Tooltip(
-    message:
-        'Multiverse Speed: ' + getMultiverseSpeedDescription(multiverse.speed),
-    child: Row(
-      children: [
-        Icon(iconMultiverseSpeed),
-        formSpacer3,
-        Text('X '),
-        Text(
-          multiverse.speed.toString(),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+  Color syncColor = getMultiverseSyncColor(multiverse.lastRun);
+  return Row(
+    children: [
+      if (syncColor != Colors.green)
+        Tooltip(
+          message: 'Last run: ' + formatDate(multiverse.lastRun),
+          child: Icon(
+            Icons.sync_problem,
+            color: syncColor,
           ),
         ),
-      ],
-    ),
+      Tooltip(
+        message: 'Multiverse Speed: ' +
+            getMultiverseSpeedDescription(multiverse.speed),
+        child: Row(
+          children: [
+            Icon(iconMultiverseSpeed, color: Colors.green),
+            formSpacer3,
+            Text('X '),
+            Text(
+              multiverse.speed.toString(),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
   );
 }
 
@@ -58,7 +83,7 @@ Widget getMultiverseIconFromMultiverse_Clickable(
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => MultiversePage(id: multiverse.id),
+          builder: (context) => MultiversePage(idMultiverse: multiverse.id),
         ),
       );
     },
@@ -95,7 +120,7 @@ Widget getMultiverseListTileFromMultiverse(
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => MultiversePage(id: multiverse.id),
+          builder: (context) => MultiversePage(idMultiverse: multiverse.id),
         ),
       );
     },

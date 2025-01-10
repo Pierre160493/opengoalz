@@ -71,7 +71,9 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                           ? Colors.red
                           : Colors.green,
                     ),
-                    shape: shapePersoRoundedBorder(_selectedMultiverse != null),
+                    shape: shapePersoRoundedBorder(_selectedMultiverse == null
+                        ? Colors.red
+                        : Colors.green),
                     title: Text(
                         _selectedMultiverse == null
                             ? 'Select Multiverse'
@@ -110,7 +112,8 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                       color:
                           selectedCountry == null ? Colors.red : Colors.green,
                     ),
-                    shape: shapePersoRoundedBorder(selectedCountry != null),
+                    shape: shapePersoRoundedBorder(
+                        selectedCountry == null ? Colors.red : Colors.green),
                     title: selectedCountry == null
                         ? Text('Select Country',
                             style: TextStyle(fontWeight: FontWeight.bold))
@@ -146,7 +149,8 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                         icon_home,
                         color: selectedClub == null ? Colors.red : Colors.green,
                       ),
-                      shape: shapePersoRoundedBorder(selectedClub != null),
+                      shape: shapePersoRoundedBorder(
+                          selectedClub == null ? Colors.red : Colors.green),
                       title: Text(
                           selectedClub == null
                               ? 'Select Club'

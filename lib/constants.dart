@@ -96,15 +96,12 @@ const Row persoCancelRow = Row(
   ],
 );
 
-RoundedRectangleBorder shapePersoRoundedBorder([bool? isOK = null]) {
+RoundedRectangleBorder shapePersoRoundedBorder(
+    [Color borderColor = Colors.blueGrey]) {
   return RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(12), // Adjust border radius as needed
     side: BorderSide(
-      color: isOK == null
-          ? Colors.blueGrey
-          : isOK
-              ? Colors.green
-              : Colors.red, // Border color
+      color: borderColor, // Border color
       width: 2.0, // Border width
     ),
   );

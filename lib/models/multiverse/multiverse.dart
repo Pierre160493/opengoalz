@@ -8,7 +8,9 @@ class Multiverse {
   final DateTime dateSeasonStart;
   final DateTime dateSeasonEnd;
   final int weekNumber;
+  final int dayNumber;
   final int cashPrinted;
+  final DateTime lastRun;
 
   Multiverse({
     required this.id,
@@ -18,7 +20,9 @@ class Multiverse {
     required this.dateSeasonStart,
     required this.dateSeasonEnd,
     required this.weekNumber,
+    required this.dayNumber,
     required this.cashPrinted,
+    required this.lastRun,
   });
 
   factory Multiverse.fromMap(Map<String, dynamic> map) {
@@ -30,7 +34,9 @@ class Multiverse {
       dateSeasonStart: DateTime.parse(map['date_season_start']).toLocal(),
       dateSeasonEnd: DateTime.parse(map['date_season_end']).toLocal(),
       weekNumber: map['week_number'],
+      dayNumber: map['day_number'],
       cashPrinted: map['cash_printed'],
+      lastRun: DateTime.parse(map['last_run']).toLocal(),
     );
   }
 

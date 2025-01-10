@@ -140,7 +140,7 @@ class SettingsPage extends StatelessWidget {
                   }
                 }
               },
-              shape: shapePersoRoundedBorder(false),
+              shape: shapePersoRoundedBorder(Colors.red),
             ),
           ],
         ),

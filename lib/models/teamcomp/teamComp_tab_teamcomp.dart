@@ -20,7 +20,7 @@ extension TeamCompTab on TeamComp {
             /// Display errors if any
             if (errors != null && errors!.isNotEmpty)
               ListTile(
-                shape: shapePersoRoundedBorder(false),
+                shape: shapePersoRoundedBorder(Colors.red),
                 // leading: Icon(iconBug, color: Colors.red, size: iconSizeMedium),
                 title: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -61,7 +61,7 @@ extension TeamCompTab on TeamComp {
                                       Icons.delete,
                                       color: Colors.red,
                                     ),
-                                    shape: shapePersoRoundedBorder(false),
+                                    shape: shapePersoRoundedBorder(Colors.red),
                                     title: Text('Remove all'),
                                     subtitle: Text(
                                         'Remove all players from the teamcomp',

@@ -189,8 +189,8 @@ BEGIN
         SELECT 
             player_data.*,
             training_points_available +
-                (0.25 + 0.75 * staff_coef) + -- The more staff_coeff, the closer to 1
-                2 * coef_age
+                3 * (0.25 + 0.75 * staff_coef) + -- The more staff_coeff, the closer to 1
+                5 * coef_age
             --0
             AS updated_training_points_available, -- Updated training points based on age and staff weight
             ARRAY(

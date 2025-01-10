@@ -105,11 +105,11 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
           ),
-          buildDrawerOption(
-              context,
-              icon_fans,
-              'Fans (${selectedClub.numberFans})',
-              FansPage(idClub: selectedClub.id)), // Add the fans page
+          // buildDrawerOption(
+          //     context,
+          //     icon_fans,
+          //     'Fans (${selectedClub.numberFans})',
+          //     FansPage(idClub: selectedClub.id)), // Add the fans page
           buildDrawerOption(
             context,
             icon_stadium,

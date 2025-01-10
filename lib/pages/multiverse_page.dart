@@ -1,5 +1,4 @@
 import 'package:intl/intl.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -7,18 +6,22 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:rxdart/rxdart.dart'; // Add this import
+import 'dart:async';
 
 class MultiversePage extends StatefulWidget {
-  final int id;
+  final int? idMultiverse;
   final bool isReturningMultiverse;
   const MultiversePage(
-      {Key? key, required this.id, this.isReturningMultiverse = false})
+      {Key? key, this.idMultiverse, this.isReturningMultiverse = false})
       : super(key: key);
 
-  static Route<Multiverse> route(int id, {bool isReturningMultiverse = false}) {
+  static Route<Multiverse> route(int? idMultiverse,
+      {bool isReturningMultiverse = false}) {
     return MaterialPageRoute(
-      builder: (context) =>
-          MultiversePage(id: id, isReturningMultiverse: isReturningMultiverse),
+      builder: (context) => MultiversePage(
+          idMultiverse: idMultiverse,
+          isReturningMultiverse: isReturningMultiverse),
     );
   }
 
@@ -26,58 +29,63 @@ class MultiversePage extends StatefulWidget {
   State<MultiversePage> createState() => _MultiversePageState();
 }
 
-class _MultiversePageState extends State<MultiversePage> {
-  late final Stream<List<Multiverse>> _multiverseStream;
+class _MultiversePageState extends State<MultiversePage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
   List<Map<DateTime, String>> _eventGames = [];
   List<Map<DateTime, String>> _selectedEvents = [];
   Multiverse? _selectedMultiverse;
+  late BehaviorSubject<int> _timerSubject;
 
   @override
   void initState() {
-    _multiverseStream = supabase
-        .from('multiverses')
-        .stream(primaryKey: ['id'])
-        .map((maps) => maps.map((map) => Multiverse.fromMap(map)).toList())
-        .map((List<Multiverse> multiverses) {
-          for (Multiverse multiverse in multiverses) {
-            // Reset the event games
-            _eventGames = [];
-
-            // Try to calculate the hours between games depening on the speed of the multiverse
-            int hoursBetweenGames;
-            try {
-              hoursBetweenGames = 24 * 7 ~/ multiverse.speed;
-            } catch (e) {
-              throw Exception('Error converting division result to int: $e');
-            }
-
-            /// Generate the events for the calendar
-            // Loop through the seasons
-            for (int i = multiverse.seasonNumber + 1; i >= 1; i--) {
-              _eventGames.add({
-                multiverse.dateSeasonStart.add(
-                        Duration(hours: (hoursBetweenGames * 14) * (i - 1))):
-                    'Launch of the season ${i}'
-              });
-              // Loop through the games of the season
-              for (int j = 0; j < 14; j++) {
-                _eventGames.add({
-                  multiverse.dateSeasonStart.add(Duration(
-                          hours: hoursBetweenGames * (((i - 1) * 14) + j))):
-                      'Season ${i} Game ${j + 1}'
-                });
-              } // End loop through the games of the season
-            } // End loop through the seasons
-            _selectedEvents = _getEventsOfSelectedDay(_selectedDay);
-          }
-
-          return multiverses;
-        });
-
+    _tabController = TabController(length: 2, vsync: this);
+    _timerSubject = BehaviorSubject<int>();
+    _startTimer();
     super.initState();
+  }
+
+  void _startTimer() {
+    Stream.periodic(Duration(seconds: 1), (i) => i).listen((i) {
+      if (!_timerSubject.isClosed) {
+        _timerSubject.add(i);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _timerSubject.close();
+    super.dispose();
+  }
+
+  void _calculateEventGames(Multiverse multiverse) {
+    _eventGames = [];
+    int hoursBetweenGames;
+    try {
+      hoursBetweenGames = 24 * 7 ~/ multiverse.speed;
+    } catch (e) {
+      throw Exception('Error converting division result to int: $e');
+    }
+
+    for (int i = multiverse.seasonNumber + 1; i >= 1; i--) {
+      _eventGames.add({
+        multiverse.dateSeasonStart
+                .add(Duration(hours: (hoursBetweenGames * 14) * (i - 1))):
+            'Launch of the season ${i}'
+      });
+      for (int j = 0; j < 14; j++) {
+        _eventGames.add({
+          multiverse.dateSeasonStart.add(
+                  Duration(hours: hoursBetweenGames * (((i - 1) * 14) + j))):
+              'Season ${i} Game ${j + 1}'
+        });
+      }
+    }
   }
 
   List<Map<DateTime, String>> _getEventsOfSelectedDay(DateTime selectedDay) {
@@ -89,14 +97,34 @@ class _MultiversePageState extends State<MultiversePage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: _multiverseStream,
+      stream: supabase
+          .from('multiverses')
+          .stream(primaryKey: ['id'])
+          .map((maps) => maps.map((map) => Multiverse.fromMap(map)).toList())
+          .map((List<Multiverse> multiverses) {
+            if (widget.idMultiverse != null) {
+              for (Multiverse multiverse in multiverses) {
+                if (multiverse.id == widget.idMultiverse) {
+                  _selectedMultiverse = multiverse;
+                  break;
+                }
+              }
+            }
+
+            if (_selectedMultiverse != null) {
+              _calculateEventGames(_selectedMultiverse!);
+              _selectedEvents = _getEventsOfSelectedDay(_selectedDay);
+              _tabController.animateTo(1); // Open the second tab
+            }
+
+            return multiverses;
+          }),
       builder: (context, AsyncSnapshot<List<Multiverse>> snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         } else {
-          // Club club = snapshot.data!;
           List<Multiverse> multiverses = snapshot.data!;
 
           // Sort multiverses by speed
@@ -113,11 +141,6 @@ class _MultiversePageState extends State<MultiversePage> {
                     ? FloatingActionButton(
                         tooltip: 'Select this multiverse',
                         onPressed: () async {
-                          // if (await context.showConfirmationDialog(
-                          //         'Are you sure you want to select the multiverse with speed ${_selectedMultiverse!.speed} ?') ==
-                          //     true) {
-                          //   /// CLose the page and return the selected multiverse
-                          // }
                           Navigator.pop(context, _selectedMultiverse);
                         },
                         child: Icon(Icons.check),
@@ -131,6 +154,7 @@ class _MultiversePageState extends State<MultiversePage> {
               child: Column(
                 children: [
                   TabBar(
+                    controller: _tabController,
                     tabs: [
                       buildTabWithIcon(
                           icon: Icons.ballot,
@@ -143,13 +167,14 @@ class _MultiversePageState extends State<MultiversePage> {
                           : buildTabWithIcon(
                               icon: Icons.check_circle,
                               iconColor: Colors.green,
-                              text: 'Selected Multiverse'),
+                              text: _selectedMultiverse!.name),
                     ],
                   ),
                   Expanded(
                     child: TabBarView(
+                      controller: _tabController,
                       children: [
-                        // First tab content
+                        //List of the multiverses
                         Column(
                           children: [
                             Expanded(
@@ -158,10 +183,11 @@ class _MultiversePageState extends State<MultiversePage> {
                                 itemBuilder: (context, index) {
                                   Multiverse multiverse = multiverses[index];
                                   return ListTile(
-                                    leading: Icon(iconMultiverseSpeed,
-                                        color: _selectedMultiverse == multiverse
-                                            ? Colors.green
-                                            : null),
+                                    leading: Icon(
+                                      iconMultiverseSpeed,
+                                      color: getMultiverseSyncColor(
+                                          multiverse.lastRun),
+                                    ),
                                     // CircleAvatar(
                                     //   child: Text(multiverse.speed.toString()),
                                     //   backgroundColor:
@@ -197,16 +223,13 @@ class _MultiversePageState extends State<MultiversePage> {
                                       ],
                                     ),
                                     subtitle: Text(
-                                        'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber}',
+                                        'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber} day ${multiverse.dayNumber}',
                                         style: styleItalicBlueGrey),
 
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          24), // Adjust border radius as needed
-                                      side: const BorderSide(
-                                        color: Colors.blueGrey, // Border color
-                                      ),
-                                    ),
+                                    shape: shapePersoRoundedBorder(
+                                        _selectedMultiverse == multiverse
+                                            ? Colors.green
+                                            : Colors.blueGrey),
                                     trailing: widget.isReturningMultiverse ==
                                             true
                                         ? IconButton(
@@ -214,6 +237,11 @@ class _MultiversePageState extends State<MultiversePage> {
                                               setState(() {
                                                 _selectedMultiverse =
                                                     multiverse;
+                                                _calculateEventGames(
+                                                    _selectedMultiverse!);
+                                                _selectedEvents =
+                                                    _getEventsOfSelectedDay(
+                                                        _selectedDay);
                                               });
                                               // if (await context
                                               //         .showConfirmationDialog(
@@ -233,6 +261,12 @@ class _MultiversePageState extends State<MultiversePage> {
                                     onTap: () {
                                       setState(() {
                                         _selectedMultiverse = multiverse;
+                                        _calculateEventGames(
+                                            _selectedMultiverse!);
+                                        _selectedEvents =
+                                            _getEventsOfSelectedDay(
+                                                _selectedDay);
+                                        _tabController.animateTo(1);
                                       });
                                     },
                                   );
@@ -241,7 +275,7 @@ class _MultiversePageState extends State<MultiversePage> {
                             ),
                           ],
                         ),
-                        // Second tab content
+                        // Selected multiverse
                         _selectedMultiverse == null
                             ? const Center(
                                 child: Text('No multiverse selected'))
@@ -293,7 +327,8 @@ class _MultiversePageState extends State<MultiversePage> {
     return ListView(
       children: [
         ListTile(
-          leading: Icon(iconMultiverseSpeed),
+          leading: Icon(iconMultiverseSpeed,
+              color: Colors.green, size: iconSizeMedium),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -312,28 +347,62 @@ class _MultiversePageState extends State<MultiversePage> {
           ),
           subtitle: Text(getMultiverseSpeedDescription(multiverse.speed),
               style: styleItalicBlueGrey),
+          shape: shapePersoRoundedBorder(),
         ),
         ListTile(
-            leading: Icon(Icons.calendar_today),
-            title: Text('Currently playing season ${multiverse.seasonNumber}'),
-            subtitle: Text('Week ${multiverse.weekNumber}',
-                style: styleItalicBlueGrey)),
+          leading: Icon(Icons.calendar_today,
+              color: Colors.green, size: iconSizeMedium),
+          title: Text('Currently playing season ${multiverse.seasonNumber}'),
+          subtitle: Text(
+              'Week ${multiverse.weekNumber} Day ${multiverse.dayNumber}',
+              style: styleItalicBlueGrey),
+          shape: shapePersoRoundedBorder(),
+        ),
         ListTile(
-          leading: Icon(Icons.date_range),
+          leading:
+              Icon(Icons.date_range, color: Colors.green, size: iconSizeMedium),
           title: Text(
               'From ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonStart)} to ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonEnd)}'),
           subtitle: Text(
-              // 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} days with ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays * multiverse.speed / 7} games left',
               multiverse.dateSeasonEnd.difference(DateTime.now()).inDays > 0
                   ? 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} day(s)'
                   : 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inHours} hour(s)',
               style: styleItalicBlueGrey),
+          shape: shapePersoRoundedBorder(),
         ),
         ListTile(
-          leading: Icon(iconMoney),
+          leading: Icon(iconMoney, color: Colors.green, size: iconSizeMedium),
           title: Text(NumberFormat('#,##0').format(multiverse.cashPrinted)),
           subtitle: Text('Amount of money printed in the multiverse',
               style: styleItalicBlueGrey),
+          shape: shapePersoRoundedBorder(),
+        ),
+        StreamBuilder<int>(
+          stream: _timerSubject.stream,
+          builder: (context, snapshot) {
+            Duration timeSinceLastRun =
+                DateTime.now().difference(multiverse.lastRun);
+            int minutesSinceLastRun = timeSinceLastRun.inMinutes;
+            int secondsSinceLastRun = timeSinceLastRun.inSeconds % 60;
+
+            Color iconColor = getMultiverseSyncColor(multiverse.lastRun);
+
+            return ListTile(
+              leading: Icon(
+                minutesSinceLastRun > 1 ? Icons.sync_problem : Icons.sync,
+                size: iconSizeMedium,
+                color: iconColor,
+              ),
+              title: Text(
+                'Last run: ${DateFormat('E d MMM \'at\' HH\':\'mm').format(multiverse.lastRun)}',
+              ),
+              subtitle: Text(
+                'Time since last run: $minutesSinceLastRun minutes and $secondsSinceLastRun seconds',
+                style: styleItalicBlueGrey,
+              ),
+              shape: shapePersoRoundedBorder(iconColor),
+            );
+          },
         ),
       ],
     );
