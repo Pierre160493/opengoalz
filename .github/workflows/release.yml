@@ -28,7 +28,7 @@ jobs:
         run: dir build/windows/x64/runner/Release
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-executable
           path: build/windows/x64/runner/Release/
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: windows-executable
           path: build/windows/x64/runner/Release/
@@ -53,8 +53,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          tag_name: v${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
+          tag_name: 0.0.${{ github.run_number }}
+          release_name: Release 0.0.${{ github.run_number }}
           draft: false
           prerelease: false
 
