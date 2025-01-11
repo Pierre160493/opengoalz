@@ -56,8 +56,6 @@ jobs:
   build-linux:
     needs: verify-version
     runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ env.VERSION }}
 
     steps:
       - name: Checkout repository
