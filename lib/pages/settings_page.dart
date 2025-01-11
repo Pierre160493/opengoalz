@@ -5,10 +5,22 @@ import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 
 class SettingsPage extends StatelessWidget {
+  SettingsPage();
+
   static Route route() {
     return MaterialPageRoute<void>(builder: (_) => SettingsPage());
+  }
+
+  Future<String> _readVersion() async {
+    try {
+      final file = File('version.txt');
+      return await file.readAsString();
+    } catch (e) {
+      return 'Unknown';
+    }
   }
 
   @override
@@ -35,14 +47,35 @@ class SettingsPage extends StatelessWidget {
               ),
               shape: shapePersoRoundedBorder(),
             ),
-            ListTile(
-              // leading: Icon(Icons.brightness_6),
-              title: Tooltip(
-                message: 'Release version',
-                child: Text('Version 1.1.5'),
-              ),
-
-              shape: shapePersoRoundedBorder(),
+            FutureBuilder<String>(
+              future: _readVersion(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return ListTile(
+                    title: Tooltip(
+                      message: 'Release version',
+                      child: Text('Loading version...'),
+                    ),
+                    shape: shapePersoRoundedBorder(),
+                  );
+                } else if (snapshot.hasError) {
+                  return ListTile(
+                    title: Tooltip(
+                      message: 'Release version',
+                      child: Text('Error loading version'),
+                    ),
+                    shape: shapePersoRoundedBorder(),
+                  );
+                } else {
+                  return ListTile(
+                    title: Tooltip(
+                      message: 'Release version',
+                      child: Text('Version ${snapshot.data}'),
+                    ),
+                    shape: shapePersoRoundedBorder(),
+                  );
+                }
+              },
             ),
             ListTile(
               leading: Icon(Icons.local_activity),
@@ -93,25 +126,30 @@ class SettingsPage extends StatelessWidget {
               },
               shape: shapePersoRoundedBorder(),
             ),
-            ListTile(
-              title: AboutListTile(
-                icon: Icon(Icons.info),
-                applicationIcon: Container(
-                  width: 120, // Set width
-                  height: 120, // Set height
-                  child: Image.asset('assets/icon/opengoalz.png'),
-                ),
-                applicationName: 'OpenGoalZ',
-                applicationVersion: '0.0.0',
-                applicationLegalese: '© OpenGoalZ 2024',
-                aboutBoxChildren: <Widget>[
-                  Text('Thank you for using our app !'),
-                  Text('Hope you\'re enjoying it.'),
-                  Text(
-                      'Feel free to contact us on our discord server if you have questions.'),
-                ],
-              ),
-              shape: shapePersoRoundedBorder(),
+            FutureBuilder<String>(
+              future: _readVersion(),
+              builder: (context, snapshot) {
+                return ListTile(
+                  title: AboutListTile(
+                    icon: Icon(Icons.info),
+                    applicationIcon: Container(
+                      width: 120, // Set width
+                      height: 120, // Set height
+                      child: Image.asset('assets/icon/opengoalz.png'),
+                    ),
+                    applicationName: 'OpenGoalZ',
+                    applicationVersion: snapshot.data ?? 'Unknown',
+                    applicationLegalese: '© OpenGoalZ 2024',
+                    aboutBoxChildren: <Widget>[
+                      Text('Thank you for using our app !'),
+                      Text('Hope you\'re enjoying it.'),
+                      Text(
+                          'Feel free to contact us on our discord server if you have questions.'),
+                    ],
+                  ),
+                  shape: shapePersoRoundedBorder(),
+                );
+              },
             ),
             ListTile(
               leading: Icon(
