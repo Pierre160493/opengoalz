@@ -51,6 +51,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Install build tools
+        run: sudo apt-get install -y ninja-build cmake
+
       - name: Build Linux executable
         run: flutter build linux
 
