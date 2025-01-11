@@ -289,40 +289,6 @@ class _MailsPageState extends State<MailsPage> {
                     : null, // Background color based on read status
               ),
               child: ExpansionTile(
-                // leading: isNarrow
-                //     ? null
-                //     : IconButton(
-                //         icon: mail.isRead
-                //             ? Icon(Icons.mark_email_read)
-                //             : Icon(Icons.mail),
-                //         onPressed: () async {
-                //           if (mail.isRead) {
-                //             bool isOk = await operationInDB(
-                //                 context, 'UPDATE', 'messages_mail',
-                //                 data: {
-                //                   'is_read': false
-                //                 },
-                //                 matchCriteria: {
-                //                   'id': mail.id,
-                //                 });
-                //             // if (isOk) {
-                //             //   context.showSnackBar(
-                //             //       'The mail has been set to unread',
-                //             //       icon: Icon(Icons.mark_email_read,
-                //             //           color: Colors.green));
-                //             // }
-                //           } else {
-                //             await operationInDB(
-                //                 context, 'UPDATE', 'messages_mail',
-                //                 data: {
-                //                   'is_read': true
-                //                 },
-                //                 matchCriteria: {
-                //                   'id': mail.id,
-                //                 });
-                //           }
-                //         },
-                //       ),
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -508,6 +474,7 @@ class _MailsPageState extends State<MailsPage> {
                   ),
                 ],
                 onExpansionChanged: (isExpanded) async {
+                  print('Click on MAIL: isExpanded: $isExpanded');
                   if (isExpanded && !mail.isRead) {
                     await operationInDB(context, 'UPDATE', 'messages_mail',
                         data: {
@@ -516,6 +483,7 @@ class _MailsPageState extends State<MailsPage> {
                         matchCriteria: {
                           'id': mail.id,
                         });
+                    print('FIN: Click on MAIL: isExpanded: $isExpanded');
                   }
                 },
               ),

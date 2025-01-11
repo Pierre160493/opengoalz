@@ -19,7 +19,8 @@ BEGIN
 RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multiverse.name, inp_multiverse.season_number, inp_multiverse.week_number, inp_multiverse.day_number;
             -- Update the normal leagues to say that they are finished
             UPDATE leagues SET is_finished = TRUE
-            WHERE id_multiverse = inp_multiverse.id AND level > 0;
+            WHERE id_multiverse = inp_multiverse.id
+            AND level > 0;
 
             -- Update each club by default staying at their position
             UPDATE clubs SET

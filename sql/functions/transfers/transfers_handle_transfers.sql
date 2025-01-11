@@ -1,6 +1,6 @@
 -- DROP FUNCTION public.transfers_handle_transfers(record);
 
-CREATE OR REPLACE FUNCTION public.transfers_handle_transfers(rec_multiverse record)
+CREATE OR REPLACE FUNCTION public.transfers_handle_transfers(inp_multiverse record)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
@@ -17,7 +17,7 @@ BEGIN
             FROM players
             WHERE date_bid_end < NOW()
             AND is_playing = FALSE
-            AND id_multiverse = rec_multiverse.id
+            AND id_multiverse = inp_multiverse.id
     ) LOOP
 
         -- Get the last bid on the player
@@ -35,7 +35,7 @@ BEGIN
 
                 -- Update player to make bidding next week
                 UPDATE players SET
-                    date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / rec_multiverse.speed),
+                    date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / inp_multiverse.speed),
                     expenses_expected = CEIL(0.9 * expenses_expected),
                     transfer_price = 100
                 WHERE id = player.id;
@@ -76,7 +76,7 @@ BEGIN
                         expenses_missed = 0,
                         motivation = 60 + random() * 30,
                         transfer_price = 100,
-                        date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / rec_multiverse.speed)
+                        date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / inp_multiverse.speed)
                     WHERE id = player.id;
 
                     -- Remove the player from the club's teamcomps where he appears

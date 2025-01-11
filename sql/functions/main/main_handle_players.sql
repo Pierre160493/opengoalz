@@ -6,12 +6,7 @@ CREATE OR REPLACE FUNCTION public.main_handle_players(inp_multiverse record)
 AS $function$
 DECLARE
     rec_player RECORD; -- Record for the player selection
-    multiverse_now TIMESTAMP; -- Current time of the multiverse
 BEGIN
-
-    ------ Calculate the current time of the multiverse
-    multiverse_now := inp_multiverse.date_season_start +
-        (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed);
 
     ------ Update the players expenses_missed
     UPDATE players SET
@@ -50,23 +45,17 @@ BEGIN
         -- If motivation = 0 ==> 100% chance of leaving, if motivation = 20 ==> 0% chance of leaving
         IF random() < (20 - rec_player.motivation) / 20 THEN
         
-            -- Update the date_firing for the selected player
-            -- PERFORM transfers_handle_new_bid(inp_id_player := rec_player.id,
-            --     inp_id_club_bidder := rec_player.id_club,
-            --     inp_amount := 0,
-            --     inp_date_bid_end := multiverse_now + (INTERVAL '6 days' / inp_multiverse.speed));
-
             -- Set date_bid_end for the demotivated players
             UPDATE players SET
-                date_bid_end = multiverse_now + (INTERVAL '6 days' / inp_multiverse.speed),
+                date_bid_end = inp_multiverse.date_handling + (INTERVAL '6 days' / inp_multiverse.speed),
                 transfer_price = - 100
             WHERE id = rec_player.id;
 
             -- Create a new mail warning saying that the player is leaving club
             INSERT INTO messages_mail (
-                id_club_to, sender_role, created_at, title, message)
+                id_club_to, sender_role, title, message)
             VALUES
-                (rec_player.id_club, 'Treasurer', multiverse_now,
+                (rec_player.id_club, 'Treasurer',
                 string_parser(rec_player.id, 'idPlayer') || ' asked to leave the club !',
                 string_parser(rec_player.id, 'idPlayer') || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
 
@@ -76,9 +65,9 @@ BEGIN
 
             -- Create a new mail warning saying that the player is at risk leaving club
             INSERT INTO messages_mail (
-                id_club_to, sender_role, created_at, title, message)
+                id_club_to, sender_role, title, message)
             VALUES
-                (rec_player.id_club, 'Coach', multiverse_now,
+                (rec_player.id_club, 'Coach',
                 string_parser(rec_player.id, 'idPlayer') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
                 string_parser(rec_player.id, 'idPlayer') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club');
 
@@ -92,85 +81,12 @@ BEGIN
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience, training_points_used)
     SELECT
-        multiverse_now, id, performance_score,
+        inp_multiverse.date_handling, id, performance_score,
         expenses_payed, expenses_expected, expenses_missed,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience, training_points_used
     FROM players
     WHERE id_multiverse = inp_multiverse.id;
-
-    -- ------ Update players stats based on the training points
-    -- WITH player_data AS (
-    -- SELECT 
-    --         players.id, -- Player's id
-    --         calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
-    --         training_points_available, -- Initial training points
-    --         training_coef, -- Array of coef for each stat
-    --         (COALESCE(clubs.staff_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
-    --         --SUM(coef) AS sum_training_coef -- Sum of the training_coef array
-    --         training_coef[1]+training_coef[2]+training_coef[3]+training_coef[4]+training_coef[5]+training_coef[6]+training_coef[7] AS sum_training_coef
-    --     FROM players
-    --     LEFT JOIN clubs ON clubs.id = players.id_club
-    --     LEFT JOIN multiverses ON multiverses.id = inp_multiverse.id
-    --     --LATERAL UNNEST(training_coef) AS coef
-    --     --GROUP BY players.id, training_points_available, training_coef, multiverses.speed
-    -- ), player_data2 AS (
-    --     SELECT 
-    --         id, -- Player's id
-    --         training_points_available + 3.0
-    --             * (0.25 + 0.75 * staff_coef) -- The more staff_coeff, the closer to 1
-    --             * ((25.0 - player_data.age) / 10.0) -- The younger the player, the more training points
-    --             AS updated_training_points_available, -- Updated training points based on age and staff weight
-    --         training_coef, -- Array of coef for each stat
-    --         sum_training_coef, -- Sum of the training_coef array
-    --         ARRAY(
-    --             SELECT (1 - staff_coef) + CASE WHEN sum_training_coef = 0 THEN 1.0 ELSE coef / sum_training_coef::float END
-    --             FROM UNNEST(training_coef) AS coef
-    --         ) AS updated_training_coef -- Updated training_coef ARRAY
-    --     FROM player_data
-    -- ), player_data3 AS (
-    --     SELECT 
-    --         id,
-    --         updated_training_points_available,
-    --         training_coef,
-    --         sum_training_coef,
-    --         updated_training_coef,
-    --         (SELECT SUM(value) FROM UNNEST(updated_training_coef) AS value) AS total_sum
-    --     FROM player_data2
-    -- ), final_data AS (
-    --     SELECT 
-    --         id,
-    --         updated_training_points_available,
-    --         training_coef,
-    --         sum_training_coef,
-    --         updated_training_coef,
-    --         total_sum,
-    --         -- Normalize the array so its elements sum to 1
-    --         ARRAY(
-    --             SELECT value / total_sum
-    --             FROM UNNEST(updated_training_coef) AS value
-    --         ) AS normalized_training_coef
-    --     FROM player_data3
-    -- )
-    -- UPDATE players SET
-    --     keeper = GREATEST(0,
-    --         keeper + updated_training_points_available * normalized_training_coef[1]),
-    --     defense = GREATEST(0,
-    --         defense + updated_training_points_available * normalized_training_coef[2]),
-    --     passes = GREATEST(0,
-    --         passes + updated_training_points_available * normalized_training_coef[3]),
-    --     playmaking = GREATEST(0,
-    --         playmaking + updated_training_points_available * normalized_training_coef[4]),
-    --     winger = GREATEST(0,
-    --         winger + updated_training_points_available * normalized_training_coef[5]),
-    --     scoring = GREATEST(0,
-    --         scoring + updated_training_points_available * normalized_training_coef[6]),
-    --     freekick = GREATEST(0,
-    --         freekick + updated_training_points_available * normalized_training_coef[7]),
-    --     training_points_available = 0,
-    --     training_points_used = training_points_used + updated_training_points_available
-    -- FROM final_data
-    -- WHERE players.id = final_data.id;
 
     WITH player_data AS (
         SELECT 
@@ -253,7 +169,7 @@ BEGIN
     FROM final_data
     WHERE players.id = final_data.id;
 
-    ------ Calculate player performance score and update the player record
+    ------ Calculate player performance score
     UPDATE players
     SET performance_score = players_calculate_player_best_weight(
         ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,

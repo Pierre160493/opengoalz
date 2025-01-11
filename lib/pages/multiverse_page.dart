@@ -39,12 +39,40 @@ class _MultiversePageState extends State<MultiversePage>
   List<Map<DateTime, String>> _selectedEvents = [];
   Multiverse? _selectedMultiverse;
   late BehaviorSubject<int> _timerSubject;
+  late Stream<List<Multiverse>> _multiverseStream;
+  bool _isFirstLoad = true;
 
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
     _timerSubject = BehaviorSubject<int>();
     _startTimer();
+    _multiverseStream = supabase
+        .from('multiverses')
+        .stream(primaryKey: ['id'])
+        .map((maps) => maps.map((map) => Multiverse.fromMap(map)).toList())
+        .map((List<Multiverse> multiverses) {
+          if (_isFirstLoad && widget.idMultiverse != null) {
+            for (Multiverse multiverse in multiverses) {
+              if (multiverse.id == widget.idMultiverse) {
+                _selectedMultiverse = multiverse;
+                _tabController.animateTo(1); // Open the second tab
+                break;
+              }
+            }
+          }
+          _isFirstLoad = false;
+
+          if (_selectedMultiverse != null) {
+            _calculateEventGames(_selectedMultiverse!);
+            _selectedEvents = _getEventsOfSelectedDay(_selectedDay);
+          }
+
+          print(
+              'Multiverse Stream: NEW DATA EMITED (${DateTime.now().hour}:${DateTime.now().minute})');
+
+          return multiverses;
+        });
     super.initState();
   }
 
@@ -97,28 +125,7 @@ class _MultiversePageState extends State<MultiversePage>
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: supabase
-          .from('multiverses')
-          .stream(primaryKey: ['id'])
-          .map((maps) => maps.map((map) => Multiverse.fromMap(map)).toList())
-          .map((List<Multiverse> multiverses) {
-            if (widget.idMultiverse != null) {
-              // for (Multiverse multiverse in multiverses) {
-              //   if (multiverse.id == widget.idMultiverse) {
-              //     _selectedMultiverse = multiverse;
-              //     break;
-              //   }
-              // }
-            }
-
-            if (_selectedMultiverse != null) {
-              _calculateEventGames(_selectedMultiverse!);
-              _selectedEvents = _getEventsOfSelectedDay(_selectedDay);
-              _tabController.animateTo(1); // Open the second tab
-            }
-
-            return multiverses;
-          }),
+      stream: _multiverseStream,
       builder: (context, AsyncSnapshot<List<Multiverse>> snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
@@ -129,6 +136,17 @@ class _MultiversePageState extends State<MultiversePage>
 
           // Sort multiverses by speed
           multiverses.sort((a, b) => a.speed.compareTo(b.speed));
+
+          if (_selectedMultiverse != null) {
+            for (Multiverse multiverse in multiverses) {
+              if (multiverse.id == _selectedMultiverse!.id) {
+                _selectedMultiverse = multiverse;
+                break;
+              }
+            }
+            _calculateEventGames(_selectedMultiverse!);
+            _selectedEvents = _getEventsOfSelectedDay(_selectedDay);
+          }
 
           return Scaffold(
             appBar: AppBar(
@@ -188,19 +206,6 @@ class _MultiversePageState extends State<MultiversePage>
                                       color: getMultiverseSyncColor(
                                           multiverse.lastRun),
                                     ),
-                                    // CircleAvatar(
-                                    //   child: Text(multiverse.speed.toString()),
-                                    //   backgroundColor:
-                                    //       _selectedMultiverse == multiverse
-                                    //           ? Colors.green
-                                    //           : Colors.blueGrey,
-                                    // ),
-                                    // title: Text(
-                                    //     'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber}'),
-                                    // subtitle: Text(
-                                    //   'Number of active clubs: ${NumberFormat('#,##0').format(multiverse.cashPrinted)}',
-                                    //   style: styleItalicBlueGrey,
-                                    // ),
                                     title: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -213,19 +218,12 @@ class _MultiversePageState extends State<MultiversePage>
                                                 fontWeight: FontWeight.bold),
                                           ),
                                         ),
-                                        Tooltip(
-                                          message:
-                                              getMultiverseSpeedDescription(
-                                                  multiverse.speed),
-                                          child: Text(
-                                              'Speed: ${multiverse.speed}'),
-                                        )
+                                        getMultiverseSpeedRow(multiverse),
                                       ],
                                     ),
                                     subtitle: Text(
                                         'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber} day ${multiverse.dayNumber}',
                                         style: styleItalicBlueGrey),
-
                                     shape: shapePersoRoundedBorder(
                                         _selectedMultiverse?.id == multiverse.id
                                             ? Colors.green
@@ -340,10 +338,7 @@ class _MultiversePageState extends State<MultiversePage>
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              Tooltip(
-                message: getMultiverseSpeedDescription(multiverse.speed),
-                child: Text('Speed: ${multiverse.speed}'),
-              )
+              getMultiverseSpeedRow(multiverse),
             ],
           ),
           subtitle: Text(getMultiverseSpeedDescription(multiverse.speed),
@@ -373,8 +368,8 @@ class _MultiversePageState extends State<MultiversePage>
         ),
         ListTile(
           leading: Icon(iconMoney, color: Colors.green, size: iconSizeMedium),
-          title: Text(NumberFormat('#,##0').format(multiverse.cashPrinted)),
-          subtitle: Text('Amount of money printed in the multiverse',
+          title: Text(persoFormatCurrency(multiverse.cashPrinted)),
+          subtitle: Text('Amount of fixed money circulating in the multiverse',
               style: styleItalicBlueGrey),
           shape: shapePersoRoundedBorder(),
         ),
@@ -388,20 +383,26 @@ class _MultiversePageState extends State<MultiversePage>
 
             Color iconColor = getMultiverseSyncColor(multiverse.lastRun);
 
-            return ListTile(
-              leading: Icon(
-                minutesSinceLastRun > 1 ? Icons.sync_problem : Icons.sync,
-                size: iconSizeMedium,
-                color: iconColor,
+            return Tooltip(
+              message:
+                  'Last run: ${DateFormat('E d MMM \'at\' HH\':\'mm').format(multiverse.lastRun)}',
+              child: ListTile(
+                leading: Icon(
+                  minutesSinceLastRun > 1 ? Icons.sync_problem : Icons.sync,
+                  size: iconSizeMedium,
+                  color: iconColor,
+                ),
+                title: Text(
+                  'Time since last run: $minutesSinceLastRun minutes and $secondsSinceLastRun seconds',
+                ),
+                subtitle: Text(
+                  multiverse.error == null
+                      ? 'No error detected'
+                      : 'Error: ${multiverse.error}',
+                  style: styleItalicBlueGrey,
+                ),
+                shape: shapePersoRoundedBorder(iconColor),
               ),
-              title: Text(
-                'Last run: ${DateFormat('E d MMM \'at\' HH\':\'mm').format(multiverse.lastRun)}',
-              ),
-              subtitle: Text(
-                'Time since last run: $minutesSinceLastRun minutes and $secondsSinceLastRun seconds',
-                style: styleItalicBlueGrey,
-              ),
-              shape: shapePersoRoundedBorder(iconColor),
             );
           },
         ),

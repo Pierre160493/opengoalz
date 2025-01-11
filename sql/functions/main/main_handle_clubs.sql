@@ -20,7 +20,7 @@ BEGIN
             END AS expenses_staff_applied,
             -- Scouting network expenses applied this week
             CASE
-                WHEN clubs.cash > 0 THEN clubs.expenses_scouts_target
+                WHEN clubs.cash >= 3 * clubs.expenses_scouts_target THEN clubs.expenses_scouts_target
                 ELSE 0
             END AS expenses_scouts_applied,
             -- Players expenses ratio applied this week
@@ -32,7 +32,7 @@ BEGIN
             SUM(LEAST(players.expenses_missed, players.expenses_expected)) AS total_expenses_missed_to_pay
         FROM clubs
         LEFT JOIN players ON players.id_club = clubs.id
-        WHERE clubs.id_multiverse = 1
+        WHERE clubs.id_multiverse = inp_multiverse.id
         GROUP BY clubs.id
     ),
     -- Update players' expenses

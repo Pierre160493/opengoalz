@@ -27,24 +27,28 @@ Widget getMultiverseIconFromMultiverse(Multiverse multiverse) {
             color: syncColor,
           ),
         ),
-      Tooltip(
-        message: 'Multiverse Speed: ' +
-            getMultiverseSpeedDescription(multiverse.speed),
-        child: Row(
-          children: [
-            Icon(iconMultiverseSpeed, color: Colors.green),
-            formSpacer3,
-            Text('X '),
-            Text(
-              multiverse.speed.toString(),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
+      getMultiverseSpeedRow(multiverse),
     ],
+  );
+}
+
+Widget getMultiverseSpeedRow(Multiverse multiverse) {
+  return Tooltip(
+    message:
+        'Multiverse Speed: ' + getMultiverseSpeedDescription(multiverse.speed),
+    child: Row(
+      children: [
+        Icon(iconMultiverseSpeed, color: Colors.green),
+        formSpacer3,
+        Text('X '),
+        Text(
+          multiverse.speed.toString(),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    ),
   );
 }
 
