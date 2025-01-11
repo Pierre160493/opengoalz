@@ -14,18 +14,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Read version number
-        id: get_version
-        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
-
-      - name: Print GITHUB_REF for debugging
-        run: echo "GITHUB_REF is $GITHUB_REF"
-
       - name: Verify tag version
         run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/v}
-          if [ "$TAG_VERSION" != "$VERSION" ]; then
-            echo "Tag version ($TAG_VERSION) does not match version in version.txt ($VERSION)"
+          VERSION=$(cat version.txt)
+          if [ "v$VERSION" != "${{ github.ref_name }}" ]; then
+            echo "Tag version (${{ github.ref_name }}) does not match version in version.txt (v$VERSION)"
             exit 1
           fi
 
@@ -52,13 +45,13 @@ jobs:
         run: dir build/windows/x64/runner/Release
 
       - name: Zip build directory
-        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/x64/runner/Release/opengoalz-windows-${{ env.VERSION }}.zip
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/x64/runner/Release/opengoalz-windows-${{ github.ref_name }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
-          path: build/windows/x64/runner/Release/opengoalz-windows-${{ env.VERSION }}.zip
+          path: build/windows/x64/runner/Release/opengoalz-windows-${{ github.ref_name }}.zip
 
   build-linux:
     needs: verify-version
@@ -88,13 +81,13 @@ jobs:
         run: ls build/linux/x64/release/bundle
 
       - name: Zip build directory
-        run: zip -r build/linux/x64/release/bundle/opengoalz-linux-${VERSION}.zip build/linux/x64/release/bundle/*
+        run: zip -r build/linux/x64/release/bundle/opengoalz-linux-${{ github.ref_name }}.zip build/linux/x64/release/bundle/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-executable
-          path: build/linux/x64/release/bundle/opengoalz-linux-${VERSION}.zip
+          path: build/linux/x64/release/bundle/opengoalz-linux-${{ github.ref_name }}.zip
 
   release:
     needs: [build-windows, build-linux]
@@ -125,8 +118,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: Release v${{ env.VERSION }}
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
 
@@ -139,8 +132,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ env.RELEASE_UPLOAD_URL }}
-          asset_path: build/windows/x64/runner/Release/opengoalz-windows-${{ env.VERSION }}.zip
-          asset_name: opengoalz-windows-${{ env.VERSION }}.zip
+          asset_path: build/windows/x64/runner/Release/opengoalz-windows-${{ github.ref_name }}.zip
+          asset_name: opengoalz-windows-${{ github.ref_name }}.zip
           asset_content_type: application/zip
 
       - name: Upload Linux Release Assets
@@ -149,6 +142,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ env.RELEASE_UPLOAD_URL }}
-          asset_path: build/linux/x64/release/bundle/opengoalz-linux-${{ env.VERSION }}.zip
-          asset_name: opengoalz-linux-${{ env.VERSION }}.zip
+          asset_path: build/linux/x64/release/bundle/opengoalz-linux-${{ github.ref_name }}.zip
+          asset_name: opengoalz-linux-${{ github.ref_name }}.zip
           asset_content_type: application/zip
