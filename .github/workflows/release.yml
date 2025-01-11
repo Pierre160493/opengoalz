@@ -25,7 +25,7 @@ jobs:
         run: flutter build windows
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: windows-executable
           path: build/windows/runner/Release/
@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: windows-executable
           path: build/windows/runner/Release/
