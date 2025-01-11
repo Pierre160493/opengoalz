@@ -1,4 +1,4 @@
-name: Build and Release Windows Executable
+name: Build and Release Windows and Linux Executables
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
 
     steps:
@@ -28,27 +28,63 @@ jobs:
         run: dir build/windows/x64/runner/Release
 
       - name: Zip build directory
-        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/x64/runner/Release/opengoalz-windows.zip
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/x64/runner/Release/opengoalz-windows-${{ github.run_number }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
-          path: build/windows/x64/runner/Release/opengoalz-windows.zip
+          path: build/windows/x64/runner/Release/opengoalz-windows-${{ github.run_number }}.zip
 
-  release:
-    needs: build
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download artifact
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Flutter
+        uses: flutter-actions/setup-flutter@v2
+        with:
+          flutter-version: 'stable' # Use the latest stable Flutter version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Linux executable
+        run: flutter build linux
+
+      - name: List build directory contents
+        run: ls build/linux/x64/release/bundle
+
+      - name: Zip build directory
+        run: zip -r build/linux/x64/release/bundle/opengoalz-linux-${{ github.run_number }}.zip build/linux/x64/release/bundle/*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-executable
+          path: build/linux/x64/release/bundle/opengoalz-linux-${{ github.run_number }}.zip
+
+  release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
           name: windows-executable
           path: build/windows/x64/runner/Release/
 
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-executable
+          path: build/linux/x64/release/bundle/
+
       - name: List build directory contents
-        run: ls build/windows/x64/runner/Release
+        run: ls build/windows/x64/runner/Release && ls build/linux/x64/release/bundle
 
       - name: Create Release
         id: create_release
@@ -64,12 +100,22 @@ jobs:
       - name: Set release upload URL
         run: echo "RELEASE_UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_ENV
 
-      - name: Upload Release Assets
+      - name: Upload Windows Release Assets
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ env.RELEASE_UPLOAD_URL }}
-          asset_path: build/windows/x64/runner/Release/opengoalz-windows.zip
-          asset_name: opengoalz-windows.zip
+          asset_path: build/windows/x64/runner/Release/opengoalz-windows-${{ github.run_number }}.zip
+          asset_name: opengoalz-windows-${{ github.run_number }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload Linux Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ env.RELEASE_UPLOAD_URL }}
+          asset_path: build/linux/x64/release/bundle/opengoalz-linux-${{ github.run_number }}.zip
+          asset_name: opengoalz-linux-${{ github.run_number }}.zip
           asset_content_type: application/zip
