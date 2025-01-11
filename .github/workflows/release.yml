@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'  # Trigger on tags starting with 'v'
+  workflow_dispatch:  # Allow manual triggers
 
 jobs:
   verify-version:
