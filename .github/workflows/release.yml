@@ -24,6 +24,9 @@ jobs:
       - name: Build Windows executable
         run: flutter build windows
 
+      - name: List build directory contents
+        run: dir build/windows/runner/Release
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -40,6 +43,9 @@ jobs:
         with:
           name: windows-executable
           path: build/windows/runner/Release/
+
+      - name: List build directory contents
+        run: ls build/windows/runner/Release
 
       - name: Create Release
         id: create_release
