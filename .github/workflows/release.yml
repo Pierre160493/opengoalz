@@ -52,7 +52,7 @@ jobs:
         run: flutter pub get
 
       - name: Install build tools
-        run: sudo apt-get install -y ninja-build cmake
+        run: sudo apt-get install -y ninja-build cmake libgtk-3-dev
 
       - name: Build Linux executable
         run: flutter build linux
