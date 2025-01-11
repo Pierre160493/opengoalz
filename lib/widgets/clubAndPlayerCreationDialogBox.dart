@@ -146,7 +146,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                     // /// Select the club to be reassigned
                     ListTile(
                       leading: Icon(
-                        icon_home,
+                        iconHome,
                         color:
                             _selectedClub == null ? Colors.red : Colors.green,
                       ),

@@ -11,7 +11,7 @@ Widget getClubNameClickable(BuildContext context, Club? club, int? idCLub) {
     if (idCLub == 0) {
       return Row(
         children: [
-          Icon(icon_club),
+          Icon(iconClub),
           Text(' No Club'),
         ],
       );
@@ -40,7 +40,7 @@ Widget getClubNameClickable(BuildContext context, Club? club, int? idCLub) {
   }
   return Row(
     children: [
-      Icon(icon_club),
+      Icon(iconClub),
       Text(' No Club'),
     ],
   );

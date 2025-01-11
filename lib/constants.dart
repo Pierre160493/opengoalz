@@ -29,14 +29,14 @@ const maxWidth = 600.0;
 
 /// Icons
 
-const icon_home = Icons.home;
+const iconHome = Icons.home;
 const iconCash = Icons.savings_outlined;
-const icon_fans = Icons.campaign_outlined;
-const icon_stadium = Icons.stadium_outlined;
+const iconFans = Icons.campaign_outlined;
+const iconStadium = Icons.stadium_outlined;
 const iconStaff = Icons.engineering_outlined;
 const iconScouts = Icons.manage_search;
 const iconInjury = Icons.healing;
-const icon_players = Icons.group;
+const iconPlayers = Icons.group;
 const iconTransfers = Icons.currency_exchange;
 const iconFreePlayer = Icons.work_off;
 const iconGames = Icons.event;
@@ -45,13 +45,13 @@ const iconCalendar = Icons.calendar_month;
 const iconNotesBig = Icons.note_alt;
 const iconNotesSmall = Icons.sticky_note_2;
 const iconLeaveClub = Icons.door_sliding;
-// const icon_league = Icons.emoji_events_outlined;
-const icon_league = Icons.format_list_numbered;
+// const iconLeague = Icons.emoji_events_outlined;
+const iconLeague = Icons.format_list_numbered;
 const iconTraining = Icons.query_stats;
 const iconStats = Icons.query_stats;
-const icon_chat = Icons.wechat_outlined;
-// const icon_club = Icons.real_estate_agent_outlined;
-const icon_club = Icons.home_work_rounded;
+const iconChat = Icons.wechat_outlined;
+// const iconClub = Icons.real_estate_agent_outlined;
+const iconClub = Icons.home_work_rounded;
 const iconDetails = Icons.description;
 const iconHistory = Icons.history_edu;
 const iconMoney = Icons.monetization_on_outlined;

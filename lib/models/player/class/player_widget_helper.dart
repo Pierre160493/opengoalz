@@ -177,7 +177,9 @@ extension PlayerWidgetsHelper on Player {
               Row(
                 children: [
                   Expanded(child: getAgeListTile(this)),
-                  Expanded(child: getCountryListTile(context, idCountry)),
+                  Expanded(
+                      child: getCountryListTileFromIdCountry(
+                          context, idCountry, idMultiverse)),
                 ],
               ),
               Row(
@@ -195,7 +197,7 @@ extension PlayerWidgetsHelper on Player {
           return Column(
             children: [
               getAgeListTile(this),
-              getCountryListTile(context, idCountry),
+              getCountryListTileFromIdCountry(context, idCountry, idMultiverse),
               getPerformanceScoreListTile(context),
               getExpensesWidget(context),
               if (dateBidEnd != null) PlayerCardTransferWidget(player: this),

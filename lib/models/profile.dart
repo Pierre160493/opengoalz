@@ -195,8 +195,7 @@ Widget getUserName(BuildContext context, {String? userName, int? idClub}) {
   );
 }
 
-Widget getUserNameClickable(BuildContext context,
-    {String? userName, int? idClub}) {
+Widget getUserNameClickable(BuildContext context, {String? userName}) {
   if (userName == null) {
     return getUserName(context, userName: userName);
   }

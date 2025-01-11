@@ -125,7 +125,7 @@ class _MailsPageState extends State<MailsPage> {
                   TabBar(
                     tabs: [
                       buildTabWithIcon(
-                          icon: icon_club,
+                          icon: iconClub,
                           text: 'Club Mails (${clubMails.length})'),
                       buildTabWithIcon(
                           icon: iconUser,

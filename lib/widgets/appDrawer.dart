@@ -40,7 +40,7 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         children: [
           ListTile(
-            // leading: const Icon(icon_home), // Add the home icon
+            // leading: const Icon(iconHome), // Add the home icon
             // title: const Text('Home'),
             title: Provider.of<SessionProvider>(context, listen: false)
                 .user!
@@ -107,12 +107,12 @@ class AppDrawer extends StatelessWidget {
           ),
           // buildDrawerListTile(
           //     context,
-          //     icon_fans,
+          //     iconFans,
           //     'Fans (${selectedClub.numberFans})',
           //     FansPage(idClub: selectedClub.id)), // Add the fans page
           // buildDrawerListTile(
           //   context,
-          //   icon_stadium,
+          //   iconStadium,
           //   'Stadium',
           // ), // Add the Stadium page
           buildDrawerListTile(
@@ -137,7 +137,7 @@ class AppDrawer extends StatelessWidget {
           buildDrawerTitle('Main Team'), // Add the Main Team page
           buildDrawerListTile(
             context,
-            icon_players,
+            iconPlayers,
             // 'Players (${selectedClub.player_count})',
             'Players',
             PlayersPage(
@@ -159,7 +159,7 @@ class AppDrawer extends StatelessWidget {
                       selectedClub.seasonNumber)), // Add the Rankings page
           buildDrawerListTile(
               context,
-              icon_league,
+              iconLeague,
               'League',
               LeaguePage(
                 idLeague: selectedClub.idLeague,
@@ -172,7 +172,7 @@ class AppDrawer extends StatelessWidget {
           // ), // Add the Training page
           buildDrawerTitle('Other'),
 
-          buildDrawerListTile(context, icon_chat, 'Chat',
+          buildDrawerListTile(context, iconChat, 'Chat',
               const ChatPage()), // Add the Rankings page
         ],
       ),

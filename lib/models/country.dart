@@ -1,4 +1,9 @@
+import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/player/class/player.dart';
+
 class Country {
+  List<Club> clubs = [];
+  List<Player> players = [];
   String? selectedContinent = null;
 
   final int id;
@@ -45,13 +50,4 @@ class Country {
           : null,
     );
   }
-
-  // void selectContinent(String continent) {
-  //   if (continents.contains(continent)) {
-  //     selectedContinent = continent;
-  //   } else {
-  //     throw ArgumentError(
-  //         'Continent not found in the list of continents for this country.');
-  //   }
-  // }
 }

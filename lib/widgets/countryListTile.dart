@@ -2,6 +2,7 @@ import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/country.dart';
+import 'package:opengoalz/pages/country_page.dart';
 
 // Widget getCountryListTile(BuildContext context, int? idCountry) {
 //   return ListTile(
@@ -27,7 +28,8 @@ import 'package:opengoalz/models/country.dart';
 //   );
 // }
 
-Widget getCountryListTile(BuildContext context, int? idCountry) {
+Widget getCountryListTileFromIdCountry(
+    BuildContext context, int? idCountry, int? idMultiverse) {
   if (idCountry == null) {
     return Text('ERROR: No country !');
   }
@@ -48,63 +50,44 @@ Widget getCountryListTile(BuildContext context, int? idCountry) {
             ),
           ],
         );
-
-        // Row(
-        //   children: [
-        //     SizedBox(
-        //       width: 16.0, // Same width as the icon
-        //       height: 16.0, // Same height as the icon
-        //       child: CircularProgressIndicator(
-        //         strokeWidth: 2.0,
-        //       ),
-        //     ),
-        //     SizedBox(width: 4.0), // Spacing between icon and text
-        //     SizedBox(
-        //       width: 100.0, // Adjust the width as needed
-        //       child: Text(
-        //         'Loading...', // Placeholder text
-        //         style: TextStyle(
-        //           fontWeight: FontWeight.bold,
-        //           color: Colors.grey, // Placeholder text color
-        //         ),
-        //         overflow: TextOverflow.ellipsis,
-        //       ),
-        //     ),
-        //   ],
-        // );
       } else if (snapshot.hasError) {
         return Text('ERROR: ${snapshot.error}');
       } else {
         Country country = snapshot.data!;
         // Actual row with data
-        return ListTile(
-          title: Text(
-            country.name,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Row(
-            children: [
-              Icon(Icons.public, size: iconSizeSmall),
-              formSpacer3,
-              Text(country.continents.first ?? 'Unknown',
-                  style: TextStyle(
-                      fontStyle: FontStyle.italic, color: Colors.blueGrey)),
-            ],
-          ),
-          onTap: () {
-            // Navigator.push(
-            //   context,
-            //   CountryPage.route(country['id']),
-            // );
-          },
-          shape: shapePersoRoundedBorder(),
-          leading: getCountryFlag(country.iso2),
-        );
+        return getCountryListTileFromCountry(context, country, idMultiverse);
       }
     },
+  );
+}
+
+Widget getCountryListTileFromCountry(
+    BuildContext context, Country country, int? idMultiverse) {
+  return ListTile(
+    title: Text(
+      country.name,
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+      ),
+      overflow: TextOverflow.ellipsis,
+    ),
+    subtitle: Row(
+      children: [
+        Icon(Icons.public, size: iconSizeSmall),
+        formSpacer3,
+        Text(country.continents.first ?? 'Unknown',
+            style:
+                TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey)),
+      ],
+    ),
+    onTap: () {
+      Navigator.push(
+        context,
+        CountryPage.route(country.id, idMultiverse: idMultiverse),
+      );
+    },
+    shape: shapePersoRoundedBorder(),
+    leading: getCountryFlag(country.iso2),
   );
 }
 

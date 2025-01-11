@@ -6,7 +6,7 @@ import 'package:opengoalz/pages/club_page.dart';
 Widget getClubNameListTile(BuildContext context, Club club) {
   return ListTile(
       shape: shapePersoRoundedBorder(),
-      leading: Icon(icon_club, color: Colors.green, size: iconSizeMedium),
+      leading: Icon(iconClub, color: Colors.green, size: iconSizeMedium),
       title: club.getClubName(context, isRightClub: false),
       onTap: () async {
         Navigator.push(
@@ -25,7 +25,7 @@ Widget getClubNameFromId(BuildContext context, int idClub) {
           width: 60,
           child: Row(
             children: [
-              Icon(icon_club),
+              Icon(iconClub),
               formSpacer6,
               Expanded(child: LinearProgressIndicator()),
             ],

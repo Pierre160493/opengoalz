@@ -229,7 +229,7 @@ class _UserPageState extends State<UserPage> {
             TabBar(
               tabs: [
                 buildTabWithIcon(
-                    icon: icon_club,
+                    icon: iconClub,
                     text: user.clubs.length == 0
                         ? 'No club'
                         : user.clubs.length == 1
@@ -238,7 +238,7 @@ class _UserPageState extends State<UserPage> {
                     iconColor:
                         user.clubs.length == 0 ? Colors.red : Colors.green),
                 buildTabWithIcon(
-                    icon: icon_players,
+                    icon: iconPlayers,
                     text: user.players.length == 0
                         ? 'No player'
                         : user.players.length == 1
@@ -299,7 +299,7 @@ class _UserPageState extends State<UserPage> {
                           ),
                         ),
                         leading: Icon(
-                          icon_club,
+                          iconClub,
                         ),
                         title: Text(
                             'Number of Club${user.clubs.length > 1 ? 's' : ''}: ${user.clubs.length}/${user.numberClubsAvailable}'),
@@ -339,7 +339,7 @@ class _UserPageState extends State<UserPage> {
                           ),
                         ),
                         leading: Icon(
-                          icon_players,
+                          iconPlayers,
                         ),
                         title: Text(
                             'Number of Player${user.players.length > 1 ? 's' : ''}: ${user.players.length}/${user.numberPlayersAvailable}'),

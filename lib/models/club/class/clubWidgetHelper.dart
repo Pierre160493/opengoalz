@@ -31,9 +31,9 @@ extension ClubWidgetHelper on Club {
       maxLines: 1,
       softWrap: false,
     );
-    // Icon icon = Icon(isSelected ? icon_home : Icons.sports_soccer_outlined);
+    // Icon icon = Icon(isSelected ? iconHome : Icons.sports_soccer_outlined);
     Icon icon = Icon(isSelected
-        ? icon_home
+        ? iconHome
         : userName == null
             ? iconBot
             : Icons.sports_soccer_outlined);
@@ -92,7 +92,7 @@ extension ClubWidgetHelper on Club {
         );
       },
       child: Row(children: [
-        Icon(icon_league),
+        Icon(iconLeague),
         SizedBox(width: 3),
         Text(
             '${posLeague == 1 ? "1st" : posLeague == 2 ? "2nd" : posLeague == 3 ? "3rd" : posLeague <= 6 ? "${posLeague}th" : posLeague} with ${leaguePoints.round()} points'),
@@ -177,7 +177,7 @@ extension ClubWidgetHelper on Club {
                 CircleAvatar(
                   radius: containerImgRadius,
                   child: Icon(
-                    icon_players,
+                    iconPlayers,
                     size: containerImgRadius,
                   ),
                 ),
@@ -302,7 +302,7 @@ extension ClubWidgetHelper on Club {
                 CircleAvatar(
                   radius: containerImgRadius,
                   child: Icon(
-                    icon_league,
+                    iconLeague,
                     size: containerImgRadius,
                   ),
                 ),

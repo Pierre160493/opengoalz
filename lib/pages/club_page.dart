@@ -108,7 +108,7 @@ class _ClubPageState extends State<ClubPage> {
                 children: [
                   ListTile(
                     leading: Icon(
-                      icon_club,
+                      iconClub,
                       size: 48,
                       color: isSelectedClub ? colorIsSelected : Colors.green,
                     ), // Icon to indicate club
@@ -305,7 +305,7 @@ class _ClubPageState extends State<ClubPage> {
                     },
                     shape: shapePersoRoundedBorder(),
                     leading: const Icon(
-                      icon_league,
+                      iconLeague,
                       size: 30,
                       color: Colors.green,
                     ), // Icon to indicate players
@@ -316,7 +316,8 @@ class _ClubPageState extends State<ClubPage> {
                   formSpacer6,
 
                   /// Country
-                  getCountryListTile(context, club.idCountry),
+                  getCountryListTileFromIdCountry(
+                      context, club.idCountry, club.idMultiverse),
                   formSpacer6,
 
                   /// Finances
