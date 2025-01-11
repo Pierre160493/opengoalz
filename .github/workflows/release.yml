@@ -2,8 +2,8 @@ name: Build and Release Windows and Linux Executables
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'  # Trigger on tags starting with 'v'
 
 jobs:
   build-windows:
@@ -61,13 +61,13 @@ jobs:
         run: ls build/linux/x64/release/bundle
 
       - name: Zip build directory
-        run: zip -r build/linux/x64/release/bundle/opengoalz-linux-${{ github.run_number }}.zip build/linux/x64/release/bundle/*
+        run: zip -r build/linux/x64/release/bundle/opengoalz-linux-${{ github.ref_name }}.zip build/linux/x64/release/bundle/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-executable
-          path: build/linux/x64/release/bundle/opengoalz-linux-${{ github.run_number }}.zip
+          path: build/linux/x64/release/bundle/opengoalz-linux-${{ github.ref_name }}.zip
 
   release:
     needs: [build-windows, build-linux]
@@ -95,8 +95,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          tag_name: 0.0.${{ github.run_number }}
-          release_name: Release 0.0.${{ github.run_number }}
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
 

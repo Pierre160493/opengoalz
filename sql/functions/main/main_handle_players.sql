@@ -99,8 +99,8 @@ BEGIN
             training_coef[1]+training_coef[2]+training_coef[3]+training_coef[4]+training_coef[5]+training_coef[6]+training_coef[7] AS sum_training_coef
         FROM players
         LEFT JOIN clubs ON clubs.id = players.id_club
-        LEFT JOIN multiverses ON multiverses.id = 1
-        WHERE players.id_club = 44
+        LEFT JOIN multiverses ON multiverses.id = players.id_multiverse
+        WHERE players.id_multiverse = inp_multiverse.id
     ), player_data2 AS (
         SELECT 
             player_data.*,
