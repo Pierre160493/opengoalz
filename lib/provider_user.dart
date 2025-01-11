@@ -10,6 +10,7 @@ import 'package:rxdart/rxdart.dart';
 
 class SessionProvider extends ChangeNotifier {
   Profile? user;
+  bool _isFirstRun = true; // Flag to track the first run
 
   /// Initialize the user
   void providerInitUser(Profile userInput) {
@@ -68,7 +69,6 @@ class SessionProvider extends ChangeNotifier {
                 .first;
           })
           .switchMap((Profile user) {
-            print('Before Clubs');
             return supabase
                 .from('clubs')
                 .stream(primaryKey: ['id'])
@@ -82,7 +82,6 @@ class SessionProvider extends ChangeNotifier {
                 });
           })
           .switchMap((Profile user) {
-            print('Before User2');
             return supabase
                 .from('players')
                 .stream(primaryKey: ['id'])
@@ -132,7 +131,12 @@ class SessionProvider extends ChangeNotifier {
                 });
           })
           .listen((Profile user) {
-            providerInitUser(user);
+            print('### Received new data from session provider stream');
+            if (_isFirstRun) {
+              providerInitUser(user);
+              _isFirstRun = false; // Set the flag to false after the first run
+            }
+            notifyListeners(); // Ensure listeners are notified
             if (!completer.isCompleted) {
               completer.complete();
             }
