@@ -58,12 +58,15 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Set release upload URL
+        run: echo "RELEASE_UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_ENV
+
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ env.RELEASE_UPLOAD_URL }}
           asset_path: build/windows/x64/runner/Release/opengoalz.exe
           asset_name: opengoalz.exe
           asset_content_type: application/octet-stream
