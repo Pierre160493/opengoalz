@@ -51,7 +51,8 @@ BEGIN
         leagues.level AS league_level,
         leagues.number AS league_number,
         leagues.id_lower_league AS id_lower_league,
-        games_description.description AS game_description
+        games_description.description AS game_description,
+        5 AS exchanged_ranking_points
     INTO rec_game
     FROM games
     JOIN clubs AS club_left ON club_left.id = games.id_club_left
@@ -323,15 +324,37 @@ BEGIN
         is_playing = FALSE
     WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
 
-    ------ Update clubs results
+    ------ Update left club
     UPDATE clubs SET
         lis_last_results = lis_last_results || 
             CASE 
-                WHEN rec_game.score_diff > 0 THEN CASE WHEN id = rec_game.id_club_left THEN 3 ELSE 0 END
-                WHEN rec_game.score_diff < 0 THEN CASE WHEN id = rec_game.id_club_right THEN 3 ELSE 0 END
+                WHEN rec_game.score_diff > 0 THEN 3
+                WHEN rec_game.score_diff < 0 THEN 0
                 ELSE 1
+            END,
+        ranking_points = ranking_points + 
+            CASE 
+                WHEN rec_game.score_diff > 0 THEN rec_game.exchanged_ranking_points
+                WHEN rec_game.score_diff < 0 THEN - rec_game.exchanged_ranking_points
+                ELSE 0
             END
-    WHERE id IN (rec_game.id_club_left, rec_game.id_club_right);
+    WHERE id = rec_game.id_club_left;
+
+    ------ Update right club
+    UPDATE clubs SET
+        lis_last_results = lis_last_results || 
+            CASE 
+                WHEN rec_game.score_diff > 0 THEN 0
+                WHEN rec_game.score_diff < 0 THEN 3
+                ELSE 1
+            END,
+        ranking_points = ranking_points + 
+            CASE 
+                WHEN rec_game.score_diff > 0 THEN - rec_game.exchanged_ranking_points
+                WHEN rec_game.score_diff < 0 THEN rec_game.exchanged_ranking_points
+                ELSE 0
+            END
+    WHERE id = rec_game.id_club_right;
 
     ------ Update the league points for games before week 10
     IF rec_game.week_number <= 10 THEN

@@ -82,7 +82,9 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading: Icon(iconCash,
                 size: iconSizeMedium,
-                color: selectedClub.cash >= 0 ? Colors.green : Colors.red),
+                color: selectedClub.clubData.cash >= 0
+                    ? Colors.green
+                    : Colors.red),
             title: Text(
               'Finances',
             ),
@@ -91,9 +93,12 @@ class AppDrawer extends StatelessWidget {
                 Icon(iconMoney),
                 formSpacer6,
                 Text(
-                  NumberFormat.decimalPattern().format(selectedClub.cash),
+                  NumberFormat.decimalPattern()
+                      .format(selectedClub.clubData.cash),
                   style: TextStyle(
-                    color: selectedClub.cash >= 0 ? Colors.green : Colors.red,
+                    color: selectedClub.clubData.cash >= 0
+                        ? Colors.green
+                        : Colors.red,
                   ),
                 ),
               ],

@@ -9,6 +9,27 @@ DECLARE
     loc_id_player bigint; -- Variable to store the player's id
 BEGIN
 
+    ------ Store the clubs' revenues and expenses in the history_weekly table
+    INSERT INTO public.clubs_history_weekly (
+        id_club, season_number, week_number,
+        number_fans, staff_weight, scouts_weight,
+        cash, revenues_sponsors, revenues_transfers_done, revenues_total,
+        expenses_staff_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+        league_points, pos_league, league_goals_for, league_goals_against,
+        ranking_points, expenses_players_ratio_target, expenses_players_ratio,
+        expenses_staff_target, expenses_scouts_target
+    )
+    SELECT
+        id, inp_multiverse.season_number, inp_multiverse.week_number,
+        number_fans, staff_weight, scouts_weight,
+        cash, revenues_sponsors, revenues_transfers_done, revenues_total,
+        expenses_staff_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+        league_points, pos_league, league_goals_for, league_goals_against,
+        ranking_points, expenses_players_ratio_target, expenses_players_ratio,
+        expenses_staff_target, expenses_scouts_target
+    FROM clubs
+    WHERE id_multiverse = inp_multiverse.id;
+
     WITH clubs_finances AS (
         SELECT
             clubs.id AS id_club, -- Club's id
@@ -109,25 +130,8 @@ BEGIN
     UPDATE clubs SET
         cash = cash + revenues_total - expenses_total
         -- We need to handle the revenues and expenses that were already paid in the cash
-            - revenues_transfers_done + expenses_transfers_done
-    WHERE id_multiverse = inp_multiverse.id;
-
-    ------ Store the history
-    UPDATE clubs SET
-        lis_revenues_sponsors = lis_revenues_sponsors || revenues_sponsors,
-        lis_expenses_staff = lis_expenses_staff || expenses_staff_applied,
-        lis_staff_weight = lis_staff_weight || staff_weight,
-        lis_expenses_scouts = lis_expenses_scouts || expenses_scouts_applied,
-        lis_scouts_weight = lis_scouts_weight || scouts_weight,
-        lis_expenses_players = lis_expenses_players || expenses_players,
-        lis_expenses_tax = lis_expenses_tax || expenses_tax,
-        lis_cash = lis_cash || cash,
-        lis_revenues = lis_revenues || revenues_total,
-        lis_expenses = lis_expenses || expenses_total,
-        ---- Handle history of transfers
-        lis_revenues_transfers = lis_revenues_transfers || revenues_transfers_done,
+            - revenues_transfers_done + expenses_transfers_done,
         revenues_transfers_done = 0,
-        lis_expenses_transfers = lis_expenses_transfers || expenses_transfers_done,
         expenses_transfers_done = 0
     WHERE id_multiverse = inp_multiverse.id;
 

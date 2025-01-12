@@ -318,7 +318,7 @@ extension PlayerWidgetsHelper on Player {
                                   children: [
                                     Icon(iconMoney, color: Colors.green),
                                     Text(
-                                      ' ${Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.cash.toString()}',
+                                      ' ${Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.clubData.cash.toString()}',
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),

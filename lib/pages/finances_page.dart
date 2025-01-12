@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -28,12 +29,13 @@ class FinancesPage extends StatefulWidget {
 }
 
 class _FinancesPageState extends State<FinancesPage> {
-  // late final Stream<List<Map<String, dynamic>>> _financeStream;
+  late Stream<List<ClubData>> _clubHistoryStream;
   late Club _club;
   bool _showCashCurve = true;
   bool _showRevenuesCurve = true;
   bool _showExpensesCurve = true;
   late int _selectedWeek;
+  late int _selectedWeekMax;
   int? _revenuesSponsors;
   int? _revenuesTransfersDone;
   int? _expensesSalaries;
@@ -44,36 +46,16 @@ class _FinancesPageState extends State<FinancesPage> {
   int? _revenuesTotal;
   int? _expensesTotal;
   int? _weeklyTotal;
-  List<int> _lisWeeklyTotal = [];
 
   @override
   void initState() {
-    // _financeStream = supabase
-    //     .from('finances')
-    //     .stream(primaryKey: ['id'])
-    //     .eq('id_club', widget.idClub)
-    //     .order('created_at')
-    //     .map((maps) => maps
-    //         .map((map) => {
-    //               'id': map['id'],
-    //               'created_at': map['created_at'],
-    //               'amount': map['amount'],
-    //               'description': map['description'],
-    //             })
-    //         .toList());
+    _clubHistoryStream = ClubData.streamClubDataHistory(widget.idClub);
 
     _club = Provider.of<SessionProvider>(context, listen: false)
         .user!
         .selectedClub!;
 
     _selectedWeek = 0;
-
-    _calculateValues();
-
-    _lisWeeklyTotal = quiver
-        .zip([_club.lisRevenues, _club.lisExpenses])
-        .map((pair) => pair[0] - pair[1])
-        .toList();
 
     super.initState();
   }
@@ -93,105 +75,89 @@ class _FinancesPageState extends State<FinancesPage> {
     );
   }
 
-  void _calculateValues() {
-    if (_selectedWeek == 0) {
-      _revenuesSponsors = _club.revenuesSponsors;
-      _expensesSalaries = _club.expensesPlayers;
-      _expensesStaff = _club.expensesStaffTarget;
-      _expensesScouts = _club.expensesScoutsTarget;
-      _expensesTaxes = (_club.cash * 0.05).floor();
-      _revenuesTransfersDone = _club.revenuesTransfersDone;
-      _expensesTransfersDone = _club.expensesTransfersDone;
-      _revenuesTotal = _revenuesSponsors! + _revenuesTransfersDone!;
-      _expensesTotal = _expensesSalaries! +
-          _expensesStaff! +
-          _expensesScouts! +
-          _expensesTaxes! +
-          _expensesTransfersDone!;
-    } else {
-      /// Sponsors
-      _revenuesSponsors =
-          _getValueFromList(_club.lisRevenuesSponsors, _selectedWeek);
-
-      /// Salaries
-      _expensesSalaries =
-          _getValueFromList(_club.lisExpensesPlayers, _selectedWeek);
-
-      /// Staff
-      _expensesStaff = _getValueFromList(_club.lisExpensesStaff, _selectedWeek);
-
-      /// Scouts
-      _expensesScouts =
-          _getValueFromList(_club.lisExpensesScouts, _selectedWeek);
-
-      /// Taxes
-      _expensesTaxes = _getValueFromList(_club.lisExpensesTax, _selectedWeek);
-
-      /// Transfers
-      _revenuesTransfersDone =
-          _getValueFromList(_club.lisRevenuesTransfers, _selectedWeek);
-
-      _expensesTransfersDone =
-          _getValueFromList(_club.lisExpensesTransfers, _selectedWeek);
-
-      /// Total
-      _revenuesTotal = _getValueFromList(_club.lisRevenues, _selectedWeek);
-
-      _expensesTotal = _getValueFromList(_club.lisExpenses, _selectedWeek);
-    }
-
-    try {
-      _weeklyTotal = _revenuesTotal! - _expensesTotal!;
-    } catch (e) {
-      _weeklyTotal = null;
-    }
-  }
-
-  int? _getValueFromList(List<int> list, int selectedWeek) {
-    int length = list.length;
-    return length >= selectedWeek ? list[length - selectedWeek] : null;
+  void _calculateValues(ClubData clubData) {
+    // if (clubData == null) {
+    //   _revenuesSponsors = null;
+    //   _expensesSalaries = null;
+    //   _expensesStaff = null;
+    //   _expensesScouts = null;
+    //   _expensesTaxes = null;
+    //   _revenuesTransfersDone = null;
+    //   _expensesTransfersDone = null;
+    //   _revenuesTotal = null;
+    //   _expensesTotal = null;
+    //   _weeklyTotal = null;
+    // }
+    _revenuesSponsors = clubData.revenuesSponsors;
+    _expensesSalaries = clubData.expensesPlayers;
+    _expensesStaff = clubData.expensesStaffTarget;
+    _expensesScouts = clubData.expensesScoutsTarget;
+    _expensesTaxes = (clubData.cash * 0.05).floor();
+    _revenuesTransfersDone = clubData.revenuesTransfersDone;
+    _expensesTransfersDone = clubData.expensesTransfersDone;
+    _revenuesTotal = _revenuesSponsors! + _revenuesTransfersDone!;
+    _expensesTotal = _expensesSalaries! +
+        _expensesStaff! +
+        _expensesScouts! +
+        _expensesTaxes! +
+        _expensesTransfersDone!;
+    _weeklyTotal = _revenuesTotal! - _expensesTotal!;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Finances'),
-      ),
-      drawer: const AppDrawer(),
-      body: MaxWidthContainer(
-        child: DefaultTabController(
-          length: 2, // The number of tabs
-          child: Column(
-            children: [
-              TabBar(
-                tabs: [
-                  buildTabWithIcon(icon: iconMoney, text: 'Finances'),
-                  buildTabWithIcon(icon: iconHistory, text: 'History'),
-                ],
-              ),
-              Expanded(
-                child: TabBarView(
+    return StreamBuilder<List<ClubData>>(
+      stream: _clubHistoryStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('No data available'));
+        } else {
+          List<ClubData> clubDataHistory = snapshot.data!;
+          clubDataHistory.add(_club.clubData); // Append current club data
+          _selectedWeekMax = -clubDataHistory.length + 1;
+
+          /// Calculate the values to be displayed
+          _calculateValues(clubDataHistory[-_selectedWeekMax + _selectedWeek]);
+          // Process and display the club data history as needed
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Finances'),
+            ),
+            drawer: const AppDrawer(),
+            body: MaxWidthContainer(
+              child: DefaultTabController(
+                length: 2, // The number of tabs
+                child: Column(
                   children: [
-                    _getFinances(
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub!),
-                    _getFinancesHistory(
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub!),
+                    TabBar(
+                      tabs: [
+                        buildTabWithIcon(icon: iconMoney, text: 'Finances'),
+                        buildTabWithIcon(icon: iconHistory, text: 'History'),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          _getFinances(_club, clubDataHistory),
+                          _getFinancesHistory(_club, clubDataHistory),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          );
+        }
+      },
     );
   }
 
-  Widget _getFinances(Club club) {
+  Widget _getFinances(Club club, List<ClubData> clubDataHistory) {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: Column(
@@ -206,31 +172,39 @@ class _FinancesPageState extends State<FinancesPage> {
                 Text(
                   _selectedWeek == 0
                       ? 'Current Week'
-                      : _selectedWeek == 1
+                      : _selectedWeek == -1
                           ? 'Last week'
-                          : '${_selectedWeek} weeks ago',
+                          : '${-_selectedWeek} weeks ago',
                 ),
                 Row(
                   children: [
                     IconButton(
                       tooltip: 'Previous 7 weeks',
                       icon: Icon(Icons.keyboard_double_arrow_left),
-                      onPressed: () {
-                        setState(() {
-                          _selectedWeek = _selectedWeek + 7;
-                          _calculateValues();
-                        });
-                      },
+                      onPressed: _selectedWeek == _selectedWeekMax
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedWeek =
+                                    max(_selectedWeekMax, _selectedWeek - 7);
+                                _calculateValues(clubDataHistory[
+                                    -_selectedWeekMax + _selectedWeek]);
+                              });
+                            },
                     ),
                     IconButton(
                       tooltip: 'Previous week',
                       icon: Icon(Icons.keyboard_arrow_left),
-                      onPressed: () {
-                        setState(() {
-                          _selectedWeek = _selectedWeek + 1;
-                          _calculateValues();
-                        });
-                      },
+                      onPressed: _selectedWeek == _selectedWeekMax
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedWeek =
+                                    max(_selectedWeekMax, _selectedWeek - 1);
+                                _calculateValues(clubDataHistory[
+                                    -_selectedWeekMax + _selectedWeek]);
+                              });
+                            },
                     ),
                     IconButton(
                       tooltip: 'Next week',
@@ -239,8 +213,9 @@ class _FinancesPageState extends State<FinancesPage> {
                           ? null
                           : () {
                               setState(() {
-                                _selectedWeek = max(0, _selectedWeek - 1);
-                                _calculateValues();
+                                _selectedWeek = min(0, _selectedWeek + 1);
+                                _calculateValues(clubDataHistory[
+                                    -_selectedWeekMax + _selectedWeek]);
                               });
                             },
                     ),
@@ -251,8 +226,9 @@ class _FinancesPageState extends State<FinancesPage> {
                           ? null
                           : () {
                               setState(() {
-                                _selectedWeek = max(0, _selectedWeek - 7);
-                                _calculateValues();
+                                _selectedWeek = min(0, _selectedWeek + 7);
+                                _calculateValues(clubDataHistory[
+                                    -_selectedWeekMax + _selectedWeek]);
                               });
                             },
                     ),
@@ -266,7 +242,6 @@ class _FinancesPageState extends State<FinancesPage> {
           ),
 
           /// Table
-
           Center(
             child: DataTable(
               /// Table header
@@ -274,9 +249,9 @@ class _FinancesPageState extends State<FinancesPage> {
                 /// Revenues
                 DataColumn(
                   label: InkWell(
-                    onTap: () {
-                      _showChartDialog(context, 'Revenues', club.lisRevenues);
-                    },
+                    // onTap: () {
+                    //   _showChartDialog(context, 'Revenues', club.lisRevenues);
+                    // },
                     child: buildTabWithIcon(
                         icon: Icons.trending_up, text: 'Revenues'),
                   ),
@@ -285,10 +260,10 @@ class _FinancesPageState extends State<FinancesPage> {
                 /// Expenses
                 DataColumn(
                   label: InkWell(
-                    onTap: () {
-                      _showChartDialog(
-                          context, 'Expenses', club.lisExpensesPlayers);
-                    },
+                    // onTap: () {
+                    //   _showChartDialog(
+                    //       context, 'Expenses', club.lisExpensesPlayers);
+                    // },
                     child: buildTabWithIcon(
                         icon: Icons.trending_down, text: 'Expenses'),
                   ),
@@ -300,48 +275,72 @@ class _FinancesPageState extends State<FinancesPage> {
                   /// Revenues Sponsors
                   DataCell(_getDataCellRow(
                       'Sponsors',
-                      'Last Season: ${club.revenuesSponsorsLastSeason == null ? 'None' : club.revenuesSponsorsLastSeason}',
+                      'Last Season: ${club.revenuesSponsorsLastSeason}',
                       _revenuesSponsors,
-                      club.lisRevenuesSponsors,
+                      clubDataHistory.map((e) => e.revenuesSponsors).toList(),
                       Colors.green)),
 
                   /// Expenses Players
-                  DataCell(_getDataCellRow('Salaries', 'Last week paied salary',
-                      _expensesSalaries, club.lisExpensesPlayers, Colors.red)),
+                  DataCell(_getDataCellRow(
+                      'Salaries',
+                      'Last week paied salary',
+                      _expensesSalaries,
+                      clubDataHistory.map((e) => e.expensesPlayers).toList(),
+                      Colors.red)),
                 ]),
 
                 /// 2nd row
                 DataRow(cells: [
                   DataCell(Text('')),
-                  DataCell(_getDataCellRow('Staff', 'Staff per week',
-                      _expensesStaff, club.lisExpensesStaff, Colors.red)),
+                  DataCell(_getDataCellRow(
+                      'Staff',
+                      'Staff per week',
+                      _expensesStaff,
+                      clubDataHistory
+                          .map((e) => e.expensesStaffApplied)
+                          .toList(),
+                      Colors.red)),
                 ]),
 
                 /// 3rd row
                 DataRow(cells: [
                   DataCell(Text('')),
-                  DataCell(_getDataCellRow('Scouts', 'Scouts per week',
-                      _expensesScouts, club.lisExpensesStaff, Colors.red)),
+                  DataCell(_getDataCellRow(
+                      'Scouts',
+                      'Scouts per week',
+                      _expensesScouts,
+                      clubDataHistory
+                          .map((e) => e.expensesScoutsApplied)
+                          .toList(),
+                      Colors.red)),
                 ]),
 
                 /// 4th row
                 DataRow(cells: [
                   DataCell(Text('')),
-                  DataCell(_getDataCellRow('Taxes', '5% of the club' 's cash',
-                      _expensesTaxes, club.lisExpensesTax, Colors.red)),
+                  DataCell(_getDataCellRow(
+                      'Taxes',
+                      '5% of the club' 's cash',
+                      _expensesTaxes,
+                      clubDataHistory.map((e) => e.expensesTax).toList(),
+                      Colors.red)),
                 ]),
                 DataRow(cells: [
                   DataCell(_getDataCellRow(
                       'Transfers',
                       'Revenues from sold players',
                       _revenuesTransfersDone,
-                      club.lisRevenuesTransfers,
+                      clubDataHistory
+                          .map((e) => e.revenuesTransfersDone)
+                          .toList(),
                       Colors.green)),
                   DataCell(_getDataCellRow(
                       'Transfers',
                       'Expenses from bought players',
                       _expensesTransfersDone,
-                      club.lisExpensesTransfers,
+                      clubDataHistory
+                          .map((e) => e.expensesTransfersDone)
+                          .toList(),
                       Colors.red)),
                 ]),
                 if (_selectedWeek == 0)
@@ -350,22 +349,34 @@ class _FinancesPageState extends State<FinancesPage> {
                         '    (expected)',
                         'Expected revenues from selling players',
                         club.revenuesTransfersExpected,
-                        club.lisRevenuesTransfers,
+                        clubDataHistory
+                            .map((e) => e.revenuesTransfersDone)
+                            .toList(),
                         Colors.green)),
                     DataCell(_getDataCellRow(
                         '    (expected)',
                         'Expected revenues from buying players',
                         club.expensesTransfersExpected,
-                        club.lisExpensesTransfers,
+                        clubDataHistory
+                            .map((e) => e.expensesTransfersDone)
+                            .toList(),
                         Colors.red)),
                   ]),
 
                 /// Total
                 DataRow(cells: [
-                  DataCell(_getDataCellRow('Total', 'Weekly Revenues',
-                      _revenuesTotal, club.lisRevenues, Colors.green)),
-                  DataCell(_getDataCellRow('Total', 'Weekly expenses',
-                      _expensesTotal, club.lisExpenses, Colors.red)),
+                  DataCell(_getDataCellRow(
+                      'Total',
+                      'Weekly Revenues',
+                      _revenuesTotal,
+                      clubDataHistory.map((e) => e.revenuesTotal).toList(),
+                      Colors.green)),
+                  DataCell(_getDataCellRow(
+                      'Total',
+                      'Weekly expenses',
+                      _expensesTotal,
+                      clubDataHistory.map((e) => e.expensesTotal).toList(),
+                      Colors.red)),
                 ]),
                 DataRow(cells: [
                   DataCell(Text('')),
@@ -373,7 +384,13 @@ class _FinancesPageState extends State<FinancesPage> {
                     'Total',
                     'Difference between revenues and expenses',
                     _weeklyTotal,
-                    _lisWeeklyTotal,
+                    quiver
+                        .zip([
+                          clubDataHistory.map((e) => e.revenuesTotal),
+                          clubDataHistory.map((e) => e.expensesTotal)
+                        ])
+                        .map((pair) => pair[0] - pair[1])
+                        .toList(),
                     (_weeklyTotal ?? 0) < 0 ? Colors.red : Colors.green,
                   )),
                 ]),
@@ -408,34 +425,33 @@ class _FinancesPageState extends State<FinancesPage> {
     );
   }
 
-  Widget _getFinancesHistory(Club club) {
-    List<FlSpot> cashData = club.lisCash
-        .asMap()
-        .entries
-        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
-        .toList();
-
-    List<FlSpot> revenuesData = club.lisRevenues
-        .asMap()
-        .entries
-        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
-        .toList();
-
-    List<FlSpot> expensesData = club.lisExpenses
-        .asMap()
-        .entries
-        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
-        .toList();
-
+  Widget _getFinancesHistory(Club club, List<ClubData> clubDataHistory) {
+    List<FlSpot> cashData = [];
+    List<FlSpot> revenuesData = [];
+    List<FlSpot> expensesData = [];
     List<double> allValues = [];
-    if (_showCashCurve) {
-      allValues.addAll(club.lisCash.map((e) => e.toDouble()));
-    }
-    if (_showRevenuesCurve) {
-      allValues.addAll(club.lisRevenues.map((e) => e.toDouble()));
-    }
-    if (_showExpensesCurve) {
-      allValues.addAll(club.lisExpenses.map((e) => e.toDouble()));
+
+    for (var i = 0; i < clubDataHistory.length; i++) {
+      final clubData = clubDataHistory[i];
+      final xValue = i.toDouble();
+
+      if (_showCashCurve) {
+        final yValue = clubData.cash.toDouble();
+        cashData.add(FlSpot(xValue, yValue));
+        allValues.add(yValue);
+      }
+
+      if (_showRevenuesCurve) {
+        final yValue = clubData.revenuesTotal.toDouble();
+        revenuesData.add(FlSpot(xValue, yValue));
+        allValues.add(yValue);
+      }
+
+      if (_showExpensesCurve) {
+        final yValue = clubData.expensesTotal.toDouble();
+        expensesData.add(FlSpot(xValue, yValue));
+        allValues.add(yValue);
+      }
     }
 
     double minY = allValues.isNotEmpty ? allValues.reduce(min) : 0;

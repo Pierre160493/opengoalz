@@ -95,7 +95,7 @@ extension ClubWidgetHelper on Club {
         Icon(iconLeague),
         SizedBox(width: 3),
         Text(
-            '${posLeague == 1 ? "1st" : posLeague == 2 ? "2nd" : posLeague == 3 ? "3rd" : posLeague <= 6 ? "${posLeague}th" : posLeague} with ${leaguePoints.round()} points'),
+            '${clubData.posLeague == 1 ? "1st" : clubData.posLeague == 2 ? "2nd" : clubData.posLeague == 3 ? "3rd" : clubData.posLeague <= 6 ? "${clubData.posLeague}th" : clubData.posLeague} with ${clubData.leaguePoints.round()} points'),
       ]),
     );
   }

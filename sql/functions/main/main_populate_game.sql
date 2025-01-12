@@ -19,13 +19,13 @@ BEGIN
     loc_array_pos_clubs = ARRAY[rec_game.pos_club_left, rec_game.pos_club_right];
 
 --RAISE NOTICE 'rec_game.id = % # rec_game.id_league = %', rec_game.id, rec_game.id_league;
-IF rec_game.id = ANY(id_game_debug) THEN
-RAISE NOTICE 'rec_game.id= %', rec_game.id;
-RAISE NOTICE 'loc_array_id_clubs = %', loc_array_id_clubs;
-RAISE NOTICE 'loc_array_id_leagues = %', loc_array_id_leagues;
-RAISE NOTICE 'loc_array_id_games = %', loc_array_id_games;
-RAISE NOTICE 'loc_array_pos_clubs = %', loc_array_pos_clubs;
-END IF;
+-- IF rec_game.id = ANY(id_game_debug) THEN
+-- RAISE NOTICE 'rec_game.id= %', rec_game.id;
+-- RAISE NOTICE 'loc_array_id_clubs = %', loc_array_id_clubs;
+-- RAISE NOTICE 'loc_array_id_leagues = %', loc_array_id_leagues;
+-- RAISE NOTICE 'loc_array_id_games = %', loc_array_id_games;
+-- RAISE NOTICE 'loc_array_pos_clubs = %', loc_array_pos_clubs;
+-- END IF;
     -- Loop through the two clubs: left then right
     FOR I IN 1..2 LOOP
 

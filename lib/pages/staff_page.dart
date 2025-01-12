@@ -4,6 +4,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/stringValueSeparated.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -76,7 +77,8 @@ class _StaffPageState extends State<StaffPage> {
                         ),
                         SizedBox(width: 3.0),
                         Text(
-                          stringValueSeparated(club.expensesStaffTarget),
+                          stringValueSeparated(
+                              club.clubData.expensesStaffTarget),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -90,7 +92,8 @@ class _StaffPageState extends State<StaffPage> {
                         onPressed: () async {
                           final TextEditingController controller =
                               TextEditingController(
-                                  text: club.expensesStaffTarget.toString());
+                                  text: club.clubData.expensesStaffTarget
+                                      .toString());
 
                           await showDialog(
                             context: context,
@@ -124,12 +127,12 @@ class _StaffPageState extends State<StaffPage> {
                                           ),
                                         );
                                       } else if (newExpenses ==
-                                          club.expensesStaffTarget) {
+                                          club.clubData.expensesStaffTarget) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                                'Staff expenses is already set at ${club.expensesStaffTarget} per week'),
+                                                'Staff expenses is already set at ${club.clubData.expensesStaffTarget} per week'),
                                           ),
                                         );
                                       } else {
@@ -156,28 +159,30 @@ class _StaffPageState extends State<StaffPage> {
                         },
                         icon: Icon(Icons.currency_exchange,
                             color: Colors.orange)),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          // return FinancesGraphDialog(
-                          //   nameCurves: 'Staff Expenses',
-                          //   dataPoints: club.lisExpensesStaff,
-                          // );
+                    onTap: () async {
+                      final List<num>? expensesStaffHistory =
+                          await ClubData.fetchClubDataHistory(
+                              context, club.id, 'expenses_staff_applied');
 
-                          final chartData = ChartData(
-                            title: 'Staff Expenses History (per weeks)',
-                            yValues: [
-                              club.lisExpensesStaff
-                                  .map((e) => e.toDouble())
-                                  .toList()
-                            ],
-                            typeXAxis: XAxisType.weekHistory,
-                          );
+                      if (expensesStaffHistory != null) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            final chartData = ChartData(
+                              title: 'Staff Expenses History (per weeks)',
+                              yValues: [
+                                [
+                                  ...expensesStaffHistory,
+                                  club.clubData.expensesStaffApplied
+                                ]
+                              ],
+                              typeXAxis: XAxisType.weekHistory,
+                            );
 
-                          return ChartDialogBox(chartData: chartData);
-                        },
-                      );
+                            return ChartDialogBox(chartData: chartData);
+                          },
+                        );
+                      }
                     },
                   ),
 
@@ -189,7 +194,8 @@ class _StaffPageState extends State<StaffPage> {
                       children: [
                         Text('Staff skill: '),
                         Text(
-                          stringValueSeparated(club.staffWeight.round()),
+                          stringValueSeparated(
+                              club.clubData.staffWeight.round()),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -199,23 +205,33 @@ class _StaffPageState extends State<StaffPage> {
                       style: styleItalicBlueGrey,
                     ),
                     shape: shapePersoRoundedBorder(),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          final chartData = ChartData(
-                            title: 'Staff Skill History (per weeks)',
-                            yValues: [
-                              club.lisStaffWeight
-                                  .map((e) => e.toDouble())
-                                  .toList()
-                            ],
-                            typeXAxis: XAxisType.weekHistory,
-                          );
+                    onTap: () async {
+                      final List<num>? staffWeightHistory =
+                          await ClubData.fetchClubDataHistory(
+                              context, club.id, 'staff_weight');
 
-                          return ChartDialogBox(chartData: chartData);
-                        },
-                      );
+                      if (staffWeightHistory != null) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            final chartData = ChartData(
+                              title: 'Staff Skill History (per weeks)',
+                              yValues: [
+                                [
+                                  ...staffWeightHistory,
+                                  club.clubData.staffWeight
+                                ]
+                              ],
+                              typeXAxis: XAxisType.weekHistory,
+                            );
+
+                            return ChartDialogBox(chartData: chartData);
+                          },
+                        );
+                      } else {
+                        context.showSnackBarError(
+                            'Error while fetching the staff skill history');
+                      }
                     },
                   ),
                   // SizedBox(height: 12),

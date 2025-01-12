@@ -3,6 +3,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/stringValueSeparated.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -111,7 +112,8 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         ),
                         SizedBox(width: 3.0),
                         Text(
-                          stringValueSeparated(club.expensesScoutsTarget),
+                          stringValueSeparated(
+                              club.clubData.expensesScoutsTarget),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -125,7 +127,8 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         onPressed: () async {
                           final TextEditingController controller =
                               TextEditingController(
-                                  text: club.expensesScoutsTarget.toString());
+                                  text: club.clubData.expensesScoutsTarget
+                                      .toString());
 
                           await showDialog(
                             context: context,
@@ -160,12 +163,12 @@ class _ScoutsPageState extends State<ScoutsPage> {
                                           ),
                                         );
                                       } else if (newExpenses ==
-                                          club.expensesScoutsTarget) {
+                                          club.clubData.expensesScoutsTarget) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                                'Scouting Network expenses is already set at ${club.expensesScoutsTarget} per week'),
+                                                'Scouting Network expenses is already set at ${club.clubData.expensesScoutsTarget} per week'),
                                           ),
                                         );
                                       } else {
@@ -192,24 +195,31 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         },
                         icon: Icon(Icons.currency_exchange,
                             color: Colors.orange)),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          final chartData = ChartData(
-                            title:
-                                'Scouting Network Expenses History (per weeks)',
-                            yValues: [
-                              club.lisExpensesScouts
-                                  .map((e) => e.toDouble())
-                                  .toList()
-                            ],
-                            typeXAxis: XAxisType.weekHistory,
-                          );
+                    onTap: () async {
+                      List<num>? expensesScoutsHistory =
+                          await ClubData.fetchClubDataHistory(
+                              context, club.id, 'expenses_scouts_applied');
 
-                          return ChartDialogBox(chartData: chartData);
-                        },
-                      );
+                      if (expensesScoutsHistory != null) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            final chartData = ChartData(
+                              title:
+                                  'Scouting Network Expenses History (per weeks)',
+                              yValues: [
+                                [
+                                  ...expensesScoutsHistory,
+                                  club.clubData.expensesScoutsTarget
+                                ]
+                              ],
+                              typeXAxis: XAxisType.weekHistory,
+                            );
+
+                            return ChartDialogBox(chartData: chartData);
+                          },
+                        );
+                      }
                     },
                   ),
 
@@ -221,7 +231,8 @@ class _ScoutsPageState extends State<ScoutsPage> {
                       children: [
                         Text('Scouting Network Strength: '),
                         Text(
-                          stringValueSeparated(club.scoutsWeight.round()),
+                          stringValueSeparated(
+                              club.clubData.scoutsWeight.round()),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -231,23 +242,31 @@ class _ScoutsPageState extends State<ScoutsPage> {
                       style: styleItalicBlueGrey,
                     ),
                     shape: shapePersoRoundedBorder(),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          final chartData = ChartData(
-                            title: 'Scouting Network Skill History (per weeks)',
-                            yValues: [
-                              club.lisScoutsWeight
-                                  .map((e) => e.toDouble())
-                                  .toList()
-                            ],
-                            typeXAxis: XAxisType.weekHistory,
-                          );
+                    onTap: () async {
+                      final List<num>? scoutsWeightHistory =
+                          await ClubData.fetchClubDataHistory(
+                              context, club.id, 'scouts_weight');
 
-                          return ChartDialogBox(chartData: chartData);
-                        },
-                      );
+                      if (scoutsWeightHistory != null) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            final chartData = ChartData(
+                              title:
+                                  'Scouting Network Skill History (per weeks)',
+                              yValues: [
+                                [
+                                  ...scoutsWeightHistory,
+                                  club.clubData.scoutsWeight
+                                ]
+                              ],
+                              typeXAxis: XAxisType.weekHistory,
+                            );
+
+                            return ChartDialogBox(chartData: chartData);
+                          },
+                        );
+                      }
                     },
                   ),
 
@@ -260,7 +279,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                     ListTile(
                       leading: Icon(Icons.phone,
                           size: iconSizeMedium,
-                          color: club.scoutsWeight < _costForNewPlayer
+                          color: club.clubData.scoutsWeight < _costForNewPlayer
                               ? Colors.orange
                               : Colors.green),
                       title: Text('Call the scouts !'),
@@ -269,10 +288,10 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         style: styleItalicBlueGrey,
                       ),
                       shape: shapePersoRoundedBorder(
-                          club.scoutsWeight < _costForNewPlayer
+                          club.clubData.scoutsWeight < _costForNewPlayer
                               ? Colors.red
                               : Colors.green),
-                      onTap: club.scoutsWeight < _costForNewPlayer
+                      onTap: club.clubData.scoutsWeight < _costForNewPlayer
                           ? null
                           : () {
                               showDialog(

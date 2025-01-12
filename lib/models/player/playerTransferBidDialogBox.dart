@@ -129,7 +129,7 @@ class _PlayerTransferBidDialogBoxState
         Provider.of<SessionProvider>(context, listen: false)
             .user!
             .selectedClub!
-            .cash) {
+            .clubData.cash) {
       _bidAmount = null;
       return 'Insufficient funds to place a bid of $_bidAmount';
     }
