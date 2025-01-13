@@ -8,8 +8,8 @@ Color getMultiverseSyncColor(DateTime lastRun) {
 
   if (minutesSinceLastRun >= 2) {
     return Colors.red;
-  } else if (minutesSinceLastRun >= 1) {
-    return Colors.orange;
+    // } else if (minutesSinceLastRun >= 1) {
+    //   return Colors.orange;
   } else {
     return Colors.green;
   }

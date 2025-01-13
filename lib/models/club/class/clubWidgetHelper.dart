@@ -2,41 +2,45 @@ part of 'club.dart';
 
 extension ClubWidgetHelper on Club {
   Widget getClubName(BuildContext context, {bool isRightClub = false}) {
+    Profile connectedUser =
+        Provider.of<SessionProvider>(context, listen: false).user!;
+
     /// If the club belongs to the current user
-    bool isMine = Provider.of<SessionProvider>(context, listen: false)
-        .user!
-        .clubs
-        .map((Club club) => club.id)
-        .toList()
-        .contains(id);
+    bool isMine =
+        connectedUser.clubs.map((Club club) => club.id).toList().contains(id);
 
     /// If the club is currently selected
-    bool isSelected = Provider.of<SessionProvider>(context, listen: false)
-            .user!
-            .selectedClub
-            ?.id ==
-        id;
+    bool isSelected = connectedUser.selectedClub?.id == id;
+
+    /// If the club is the default club
+    bool isDefault = connectedUser.idDefaultClub == id;
+
+    Color color = isSelected
+        ? colorIsSelected
+        : isMine
+            ? colorIsMine
+            : colorDefault;
+
     Text text = Text(
       name,
       style: TextStyle(
         fontWeight: FontWeight.bold,
-        fontStyle: isSelected ? FontStyle.italic : FontStyle.normal,
-        color: isSelected
-            ? colorIsSelected
-            : isMine
-                ? colorIsMine
-                : colorDefault,
+        color: color,
       ),
       overflow: TextOverflow.fade, // or TextOverflow.ellipsis
       maxLines: 1,
       softWrap: false,
     );
     // Icon icon = Icon(isSelected ? iconHome : Icons.sports_soccer_outlined);
-    Icon icon = Icon(isSelected
-        ? iconHome
-        : userName == null
-            ? iconBot
-            : Icons.sports_soccer_outlined);
+    Icon icon = Icon(
+        isDefault
+            ? iconDefaultClub
+            : isMine
+                ? iconHome
+                : userName == null
+                    ? iconBot
+                    : Icons.sports_soccer_outlined,
+        color: color);
 
     return Row(
       children: [
@@ -49,23 +53,20 @@ extension ClubWidgetHelper on Club {
   /// Clickable widget of the club name
   Widget getClubNameClickable(BuildContext context,
       {bool isRightClub = false}) {
-    return Tooltip(
-      message: 'Open ${name} page',
-      child: Row(
-        mainAxisAlignment:
-            isRightClub ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                ClubPage.route(id),
-              );
-            },
-            child: getClubName(context, isRightClub: isRightClub),
-          ),
-        ],
-      ),
+    return Row(
+      mainAxisAlignment:
+          isRightClub ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              ClubPage.route(id),
+            );
+          },
+          child: getClubName(context, isRightClub: isRightClub),
+        ),
+      ],
     );
   }
 

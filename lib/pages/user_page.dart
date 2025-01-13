@@ -16,7 +16,8 @@ import 'package:opengoalz/widgets/clubAndPlayerCreationDialogBox.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
-import 'package:opengoalz/widgets/userPageListOfClubsAndPlayers.dart';
+import 'package:opengoalz/widgets/userPageListOfClubs.dart';
+import 'package:opengoalz/widgets/userPageListOfPlayers.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -252,122 +253,9 @@ class _UserPageState extends State<UserPage> {
             Expanded(
               child: TabBarView(
                 children: [
-                  clubListWidget(context, user),
-                  playerListWidget(context, user),
-                  Column(
-                    children: [
-                      formSpacer6,
-                      ListTile(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              24), // Adjust border radius as needed
-                          side: const BorderSide(
-                            color: Colors.blueGrey, // Border color
-                          ),
-                        ),
-                        leading: Icon(
-                          iconUser,
-                        ),
-                        title: Text('Username: ${user.username}'),
-                        subtitle: Row(
-                          children: [
-                            Icon(
-                              Icons.timer,
-                              size: iconSizeSmall,
-                              color: Colors.green,
-                            ),
-                            Text(
-                              'Since: ${DateFormat.yMMMMd('en_US').format(user.createdAt)}',
-                              style: TextStyle(
-                                color: Colors.blueGrey,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      /// Club tile
-                      ListTile(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              24), // Adjust border radius as needed
-                          side: BorderSide(
-                            color: user.numberClubsAvailable > user.clubs.length
-                                ? Colors.green
-                                : Colors.blueGrey, // Border color
-                          ),
-                        ),
-                        leading: Icon(
-                          iconClub,
-                        ),
-                        title: Text(
-                            'Number of Club${user.clubs.length > 1 ? 's' : ''}: ${user.clubs.length}/${user.numberClubsAvailable}'),
-                        subtitle: Text(
-                          'Number of clubs / number of available clubs',
-                          style: TextStyle(
-                            color: Colors.blueGrey,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        onTap: () {
-                          /// If the user has less clubs than the number of clubs available, show the dialog
-                          if (user.numberClubsAvailable > user.clubs.length) {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AssignPlayerOrClubDialog(isClub: true);
-                              },
-                            );
-                          } else {
-                            context.showSnackBarError(
-                                'You cannot have any additional club');
-                          }
-                        },
-                      ),
-
-                      /// Player tile
-                      ListTile(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              24), // Adjust border radius as needed
-                          side: BorderSide(
-                            color: user.numberPlayersAvailable >
-                                    user.players.length
-                                ? Colors.green
-                                : Colors.blueGrey, // Border color
-                          ),
-                        ),
-                        leading: Icon(
-                          iconPlayers,
-                        ),
-                        title: Text(
-                            'Number of Player${user.players.length > 1 ? 's' : ''}: ${user.players.length}/${user.numberPlayersAvailable}'),
-                        subtitle: Text(
-                          'Number of players / number of available players',
-                          style: TextStyle(
-                            color: Colors.blueGrey,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        onTap: () {
-                          /// If the user has less clubs than the number of clubs available, show the dialog
-                          if (user.numberPlayersAvailable >
-                              user.players.length) {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AssignPlayerOrClubDialog(isClub: false);
-                              },
-                            );
-                          } else {
-                            context.showSnackBarError(
-                                'You cannot have any additional player');
-                          }
-                        },
-                      ),
-                    ],
-                  ),
+                  userClubListWidget(context, user),
+                  userPlayerListWidget(context, user),
+                  _getUserWidget(user),
                 ],
               ),
             ),
@@ -377,57 +265,94 @@ class _UserPageState extends State<UserPage> {
     );
   }
 
-  // Widget _playerListWidget(BuildContext context, Profile user) {
-  //   if (user.players.isEmpty) {
-  //     return ListTile(
-  //     leading: const Icon(Icons.cancel, color: Colors.red),
-  //     title: const Text('You dont have any club yet'),
-  //     subtitle: const Text(
-  //         'Create a club to start your aventure and show your skills !',
-  //         style:
-  //             TextStyle(color: Colors.blueGrey, fontStyle: FontStyle.italic)),
-  //     trailing: IconButton(
-  //       tooltip: 'Get a club',
-  //       icon: const Icon(
-  //         Icons.add,
-  //         color: Colors.green,
-  //       ),
-  //       onPressed: () {
-  //         _assignPlayer(context);
-  //       },
-  //     ),
-  //   );
-  //   }
-  //   return Column(
-  //     children: [
-  //       const SizedBox(height: 12),
-  //       Expanded(
-  //         child: ListView.builder(
-  //           itemCount: user.players.length,
-  //           itemBuilder: (context, index) {
-  //             final Player player = user.players[index];
-  //             return InkWell(
-  //               onTap: () {
-  //                 Navigator.push(
-  //                   context,
-  //                   MaterialPageRoute(
-  //                     builder: (context) => PlayersPage(
-  //                       inputCriteria: {
-  //                         'id_player': [player.id]
-  //                       },
-  //                     ),
-  //                   ),
-  //                 );
-  //               },
-  //               child: PlayerCard(
-  //                   player: player,
-  //                   index: user.players.length == 1 ? 0 : index + 1,
-  //                   isExpanded: user.players.length == 1 ? true : false),
-  //             );
-  //           },
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
+  Widget _getUserWidget(Profile user) {
+    bool canCreateClub = user.numberClubsAvailable > user.clubs.length;
+    bool canCreatePlayer = user.numberPlayersAvailable > user.players.length;
+    return Column(
+      children: [
+        ListTile(
+          shape: shapePersoRoundedBorder(),
+          leading: Icon(
+            iconUser,
+            color: Colors.green,
+            size: iconSizeMedium,
+          ),
+          title: Text('Username: ${user.username}'),
+          subtitle: Row(
+            children: [
+              Icon(
+                Icons.timer,
+                size: iconSizeSmall,
+                color: Colors.green,
+              ),
+              Text(
+                'Since: ${DateFormat.yMMMMd('en_US').format(user.createdAt)}',
+                style: styleItalicBlueGrey,
+              ),
+            ],
+          ),
+        ),
+
+        /// Club tile
+        ListTile(
+          shape: shapePersoRoundedBorder(
+              canCreateClub ? Colors.green : Colors.orange),
+          leading: Icon(
+            iconClub,
+            color: canCreateClub ? Colors.green : Colors.orange,
+            size: iconSizeMedium,
+          ),
+          title: Text(
+              'Number of Club${user.clubs.length > 1 ? 's' : ''}: ${user.clubs.length} / ${user.numberClubsAvailable}'),
+          subtitle: Text(
+              canCreateClub
+                  ? 'You can ceate ${user.numberClubsAvailable - user.clubs.length} additional club${user.numberClubsAvailable - user.clubs.length > 1 ? 's' : ''}'
+                  : 'You cannot have any additional club',
+              style: styleItalicBlueGrey),
+          onTap: canCreateClub
+              ? () {
+                  /// If the user has less clubs than the number of clubs available, show the dialog
+                  if (user.numberClubsAvailable > user.clubs.length) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AssignPlayerOrClubDialog(isClub: true);
+                      },
+                    );
+                  }
+                }
+              : null,
+        ),
+
+        /// Player tile
+        ListTile(
+            shape: shapePersoRoundedBorder(
+                canCreatePlayer ? Colors.green : Colors.orange),
+            leading: Icon(
+              iconPlayers,
+              color: canCreatePlayer ? Colors.green : Colors.orange,
+              size: iconSizeMedium,
+            ),
+            title: Text(
+                'Number of Player${user.players.length > 1 ? 's' : ''}: ${user.players.length} / ${user.numberPlayersAvailable}'),
+            subtitle: Text(
+              canCreatePlayer
+                  ? 'You can ceate ${user.numberPlayersAvailable - user.players.length} additional player${user.numberPlayersAvailable - user.players.length > 1 ? 's' : ''}'
+                  : 'You cannot have any additional player',
+              style: styleItalicBlueGrey,
+            ),
+            onTap: canCreatePlayer
+                ? () {
+                    /// If the user has less clubs than the number of players available, show the dialog
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AssignPlayerOrClubDialog(isClub: false);
+                      },
+                    );
+                  }
+                : null),
+      ],
+    );
+  }
 }

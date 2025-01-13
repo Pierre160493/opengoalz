@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
+import 'package:opengoalz/models/club/clubHelper.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
@@ -221,50 +222,51 @@ class _ClubPageState extends State<ClubPage> {
                       );
                     },
                   ),
-                  formSpacer6,
 
                   /// Username of the club owner
                   ListTile(
                       shape: shapePersoRoundedBorder(),
                       title: getUserName(context, userName: club.userName),
-                      subtitle: club.userSince == null
-                          ? null
-                          : Text(
-                              'Club Owner Since: ' +
+                      subtitle: Text(
+                          club.userSince == null
+                              ? 'This club doesn'
+                                  't have a human manager, invite a friend !'
+                              : 'Since: ' +
                                   DateFormat.yMMMMd('en_US')
                                       .format(club.userSince!),
-                              style: styleItalicBlueGrey),
-                      onTap: () async => {
-                            /// Reset the user to the user that is being visited
-                            await Provider.of<SessionProvider>(context,
-                                    listen: false)
-                                .providerFetchUser(context,
-                                    userName: club.userName),
+                          style: styleItalicBlueGrey),
+                      onTap: club.userSince == null
+                          ? null
+                          : () async => {
+                                /// Reset the user to the user that is being visited
+                                await Provider.of<SessionProvider>(context,
+                                        listen: false)
+                                    .providerFetchUser(context,
+                                        userName: club.userName),
 
-                            /// Modify the app theme if the user is not the connected user
-                            Provider.of<ThemeProvider>(context, listen: false)
-                                .setOtherThemeWhenSelectedUserIsNotConnectedUser(
-                                    Provider.of<SessionProvider>(context,
-                                                listen: false)
-                                            .user
-                                            ?.isConnectedUser ??
-                                        false),
+                                /// Modify the app theme if the user is not the connected user
+                                Provider.of<ThemeProvider>(context,
+                                        listen: false)
+                                    .setOtherThemeWhenSelectedUserIsNotConnectedUser(
+                                        Provider.of<SessionProvider>(context,
+                                                    listen: false)
+                                                .user
+                                                ?.isConnectedUser ??
+                                            false),
 
-                            /// Go to the User's Page
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => UserPage(
-                                    // userName: club.userName,
-                                    ),
-                              ),
-                            ),
-                          }),
-                  formSpacer6,
+                                /// Go to the User's Page
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UserPage(
+                                        // userName: club.userName,
+                                        ),
+                                  ),
+                                ),
+                              }),
 
                   /// Multiverse
                   getMultiverseListTileFromId(context, club.idMultiverse),
-                  formSpacer6,
 
                   /// Players
                   ListTile(
@@ -289,36 +291,13 @@ class _ClubPageState extends State<ClubPage> {
                       'Number of players: ${club.players.length}',
                     ),
                   ),
-                  formSpacer6,
 
                   /// League
-                  ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LeaguePage(
-                            idLeague: club.idLeague,
-                          ),
-                        ),
-                      );
-                    },
-                    shape: shapePersoRoundedBorder(),
-                    leading: const Icon(
-                      iconLeague,
-                      size: 30,
-                      color: Colors.green,
-                    ), // Icon to indicate players
-                    title: club.league == null
-                        ? Text('League Not Found')
-                        : club.league!.getLeagueName(),
-                  ),
-                  formSpacer6,
+                  clubLeagueAndRankingListTile(context, club),
 
                   /// Country
                   getCountryListTileFromIdCountry(
                       context, club.idCountry, club.idMultiverse),
-                  formSpacer6,
 
                   /// Finances
                   getClubCashListTile(context, club),

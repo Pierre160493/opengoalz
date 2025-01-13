@@ -1,15 +1,6 @@
 part of 'league.dart';
 
 extension LeagueWidgetHelper on League {
-  /// Widget of the league name
-  Widget getLeagueName() {
-    return Row(
-      children: [
-        Text('League: ${level}.${number}'),
-      ],
-    );
-  }
-
   /// Clickable widget of the league name
   Widget getLeagueNameClickable(BuildContext context) {
     return Row(
@@ -22,7 +13,7 @@ extension LeagueWidgetHelper on League {
                 LeaguePage.route(id),
               );
             },
-            child: getLeagueName()),
+            child: Text(name)),
       ],
     );
   }

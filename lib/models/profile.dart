@@ -13,7 +13,6 @@ class Profile {
   bool isConnectedUser = false; // True if the profile is the connected user
   Club? selectedClub; // Selected club of the profile
   List<Club> clubs = []; // List of clubs belonging to the profile
-  int? idDefaultClub; // ID of the default club
   List<Player> players = []; // List of players belonging to the profile
   List<Mail> mails = []; // List of mails belonging to the profile
 
@@ -21,9 +20,8 @@ class Profile {
     required this.id,
     required this.username,
     required this.createdAt,
-    this.idDefaultClub,
-    this.lastUsernameUpdate,
-    // this.email,
+    required this.idDefaultClub,
+    required this.lastUsernameUpdate,
     required this.numberClubsAvailable,
     required this.numberPlayersAvailable,
   });
@@ -32,7 +30,7 @@ class Profile {
   final String username;
   final DateTime createdAt;
   final DateTime? lastUsernameUpdate;
-  // final String? email;
+  final int? idDefaultClub;
   final int numberClubsAvailable;
   final int numberPlayersAvailable;
 
@@ -46,7 +44,6 @@ class Profile {
         lastUsernameUpdate = map['last_username_update'] != null
             ? DateTime.parse(map['last_username_update']).toLocal()
             : null,
-        // email = map['email'],
         numberClubsAvailable = map['number_clubs_available'] ?? 1,
         numberPlayersAvailable = map['number_players_available'] ?? 1;
 
@@ -57,7 +54,6 @@ class Profile {
       'created_at': createdAt.toIso8601String(),
       'id_default_club': idDefaultClub,
       'last_username_update': lastUsernameUpdate?.toIso8601String(),
-      // 'email': email,
       'number_clubs_available': numberClubsAvailable,
       'number_players_available': numberPlayersAvailable,
     };

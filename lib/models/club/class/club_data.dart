@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:supabase/supabase.dart';
 
 class ClubData {
@@ -78,6 +80,47 @@ class ClubData {
         expensesStaffTarget = map['expenses_staff_target'],
         expensesScoutsTarget = map['expenses_scouts_target'];
 
+  // Method to stream club data history from Supabase
+  static Stream<List<ClubData>> streamClubDataHistory(int clubId) {
+    return supabase
+        .from('clubs_history_weekly')
+        .stream(primaryKey: ['id'])
+        .eq('id_club', clubId)
+        .order('week_number')
+        .order('season_number', ascending: true)
+        .map((maps) {
+          maps.forEach((map) {
+            print(
+                'Season: ${map['season_number']}, Week: ${map['week_number']}');
+          });
+          return maps.map((map) => ClubData.fromMap(map)).toList();
+        });
+  }
+
+  // Method to show club history dialog
+  static Future<void> showClubHistoryDialog(BuildContext context, Club club,
+      String columnName, String titleName, var dataToAppend) async {
+    final List<num>? dataHistory =
+        await fetchClubDataHistory(context, club.id, columnName);
+
+    if (dataHistory != null) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          final chartData = ChartData(
+            title: titleName,
+            yValues: [
+              [...dataHistory, dataToAppend]
+            ],
+            typeXAxis: XAxisType.weekHistory,
+          );
+
+          return ChartDialogBox(chartData: chartData);
+        },
+      );
+    }
+  }
+
   // Method to fetch club data history from Supabase
   static Future<List<num>?> fetchClubDataHistory(
       BuildContext context, int clubId, String dataToFetch) async {
@@ -85,9 +128,11 @@ class ClubData {
       final response = await supabase
           .from('clubs_history_weekly')
           .select(dataToFetch)
+          // .select('id')
           .eq('id_club', clubId)
-          .order('season_number')
-          .order('week_number');
+          .order('season_number', ascending: true)
+          .order('week_number', ascending: true);
+      print('response: $response');
       final List<num> values = (response as List<dynamic>)
           .map((item) => (item[dataToFetch] as num))
           .toList();
@@ -98,18 +143,5 @@ class ClubData {
       context.showSnackBarError('Unknown ERROR: $error');
     }
     return null;
-  }
-
-  // Method to stream club data history from Supabase
-  static Stream<List<ClubData>> streamClubDataHistory(int clubId) {
-    return supabase
-        .from('clubs_history_weekly')
-        .stream(primaryKey: ['id'])
-        .eq('id_club', clubId)
-        .order('season_number')
-        .order('week_number')
-        .map((maps) {
-          return maps.map((map) => ClubData.fromMap(map)).toList();
-        });
   }
 }

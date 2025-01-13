@@ -148,15 +148,8 @@ class _CountryPageState extends State<CountryPage>
       BuildContext context, Country country, int? idMultiverse) {
     return ListView(
       children: [
-        getCountryListTileFromCountry(context, country, idMultiverse),
-        ListTile(
-          title: Text('Is Active'),
-          subtitle: Text(country.isActive ? 'Yes' : 'No'),
-          leading: country.isActive
-              ? Icon(iconSuccessfulOperation, color: Colors.green)
-              : Icon(iconCancel, color: Colors.red),
-          shape: shapePersoRoundedBorder(),
-        ),
+        getCountryListTileFromCountry(context, country, idMultiverse,
+            isClickable: false),
         ListTile(
           title: Text('Clubs: ${country.clubs.length}'),
           subtitle: Text('Total number of clubs in this country',

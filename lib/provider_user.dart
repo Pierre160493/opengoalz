@@ -10,7 +10,6 @@ import 'package:rxdart/rxdart.dart';
 
 class SessionProvider extends ChangeNotifier {
   Profile? user;
-  bool _isFirstRun = true; // Flag to track the first run
 
   /// Initialize the user
   void providerInitUser(Profile userInput) {
@@ -73,6 +72,7 @@ class SessionProvider extends ChangeNotifier {
                 .from('clubs')
                 .stream(primaryKey: ['id'])
                 .eq('username', user.username)
+                .order('user_since', ascending: true)
                 .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
                 .map((List<Club> clubs) {
                   user.clubs = clubs;
@@ -132,9 +132,10 @@ class SessionProvider extends ChangeNotifier {
           })
           .listen((Profile user) {
             print('### Received new data from session provider stream');
-            if (_isFirstRun) {
-              providerInitUser(user);
-              _isFirstRun = false; // Set the flag to false after the first run
+            // Update the user object with the new data
+            this.user = user;
+            if (user.selectedClub == null && user.idDefaultClub != null) {
+              providerSetSelectedClub(user.idDefaultClub!);
             }
             notifyListeners(); // Ensure listeners are notified
             if (!completer.isCompleted) {

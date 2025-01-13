@@ -62,7 +62,8 @@ Widget getCountryListTileFromIdCountry(
 }
 
 Widget getCountryListTileFromCountry(
-    BuildContext context, Country country, int? idMultiverse) {
+    BuildContext context, Country country, int? idMultiverse,
+    {bool isClickable = true}) {
   return ListTile(
     title: Text(
       country.name,
@@ -80,12 +81,14 @@ Widget getCountryListTileFromCountry(
                 TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey)),
       ],
     ),
-    onTap: () {
-      Navigator.push(
-        context,
-        CountryPage.route(country.id, idMultiverse: idMultiverse),
-      );
-    },
+    onTap: isClickable == false
+        ? null
+        : () {
+            Navigator.push(
+              context,
+              CountryPage.route(country.id, idMultiverse: idMultiverse),
+            );
+          },
     shape: shapePersoRoundedBorder(),
     leading: getCountryFlag(country.iso2),
   );

@@ -6,21 +6,20 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
-import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
-import 'package:provider/provider.dart';
 import 'package:quiver/iterables.dart' as quiver;
 
 class FinancesPage extends StatefulWidget {
-  final int idClub;
-  const FinancesPage({Key? key, required this.idClub}) : super(key: key);
+  final Club club;
+  const FinancesPage({Key? key, required this.club}) : super(key: key);
 
-  static Route<void> route(int idClub) {
+  static Route<void> route(Club club) {
     return MaterialPageRoute(
-      builder: (context) => FinancesPage(idClub: idClub),
+      builder: (context) =>
+          FinancesPage(club: club), // Corrected parameter name
     );
   }
 
@@ -30,7 +29,6 @@ class FinancesPage extends StatefulWidget {
 
 class _FinancesPageState extends State<FinancesPage> {
   late Stream<List<ClubData>> _clubHistoryStream;
-  late Club _club;
   bool _showCashCurve = true;
   bool _showRevenuesCurve = true;
   bool _showExpensesCurve = true;
@@ -46,14 +44,19 @@ class _FinancesPageState extends State<FinancesPage> {
   int? _revenuesTotal;
   int? _expensesTotal;
   int? _weeklyTotal;
+  List<ClubData> _clubDataHistory = [];
 
   @override
   void initState() {
-    _clubHistoryStream = ClubData.streamClubDataHistory(widget.idClub);
-
-    _club = Provider.of<SessionProvider>(context, listen: false)
-        .user!
-        .selectedClub!;
+    _clubHistoryStream =
+        ClubData.streamClubDataHistory(widget.club.id).map((data) {
+      _clubDataHistory = [
+        widget.club.clubData,
+        ...data
+      ]; // Prepend current club data
+      _selectedWeekMax = _clubDataHistory.length - 1;
+      return _clubDataHistory;
+    });
 
     _selectedWeek = 0;
 
@@ -90,9 +93,15 @@ class _FinancesPageState extends State<FinancesPage> {
     // }
     _revenuesSponsors = clubData.revenuesSponsors;
     _expensesSalaries = clubData.expensesPlayers;
-    _expensesStaff = clubData.expensesStaffTarget;
-    _expensesScouts = clubData.expensesScoutsTarget;
-    _expensesTaxes = (clubData.cash * 0.05).floor();
+    _expensesStaff = _selectedWeek == 0
+        ? clubData.expensesStaffTarget
+        : clubData.expensesStaffApplied;
+    _expensesScouts = _selectedWeek == 0
+        ? clubData.expensesScoutsTarget
+        : clubData.expensesScoutsApplied;
+    _expensesTaxes = _selectedWeek == 0
+        ? (clubData.cash * 0.05).floor()
+        : clubData.expensesTax;
     _revenuesTransfersDone = clubData.revenuesTransfersDone;
     _expensesTransfersDone = clubData.expensesTransfersDone;
     _revenuesTotal = _revenuesSponsors! + _revenuesTransfersDone!;
@@ -117,15 +126,18 @@ class _FinancesPageState extends State<FinancesPage> {
           return Center(child: Text('No data available'));
         } else {
           List<ClubData> clubDataHistory = snapshot.data!;
-          clubDataHistory.add(_club.clubData); // Append current club data
-          _selectedWeekMax = -clubDataHistory.length + 1;
 
           /// Calculate the values to be displayed
-          _calculateValues(clubDataHistory[-_selectedWeekMax + _selectedWeek]);
+          _calculateValues(clubDataHistory[_selectedWeekMax - _selectedWeek]);
           // Process and display the club data history as needed
           return Scaffold(
             appBar: AppBar(
-              title: Text('Finances'),
+              title: Row(
+                children: [
+                  widget.club.getClubNameClickable(context),
+                  Text(' finances'),
+                ],
+              ),
             ),
             drawer: const AppDrawer(),
             body: MaxWidthContainer(
@@ -135,15 +147,15 @@ class _FinancesPageState extends State<FinancesPage> {
                   children: [
                     TabBar(
                       tabs: [
-                        buildTabWithIcon(icon: iconMoney, text: 'Finances'),
+                        buildTabWithIcon(icon: iconMoney, text: 'Weekly'),
                         buildTabWithIcon(icon: iconHistory, text: 'History'),
                       ],
                     ),
                     Expanded(
                       child: TabBarView(
                         children: [
-                          _getFinances(_club, clubDataHistory),
-                          _getFinancesHistory(_club, clubDataHistory),
+                          _getFinances(widget.club, clubDataHistory),
+                          _getFinancesHistory(widget.club, clubDataHistory),
                         ],
                       ),
                     ),
@@ -172,9 +184,9 @@ class _FinancesPageState extends State<FinancesPage> {
                 Text(
                   _selectedWeek == 0
                       ? 'Current Week'
-                      : _selectedWeek == -1
+                      : _selectedWeek == 1
                           ? 'Last week'
-                          : '${-_selectedWeek} weeks ago',
+                          : '${_selectedWeek} weeks ago',
                 ),
                 Row(
                   children: [
@@ -186,9 +198,9 @@ class _FinancesPageState extends State<FinancesPage> {
                           : () {
                               setState(() {
                                 _selectedWeek =
-                                    max(_selectedWeekMax, _selectedWeek - 7);
+                                    min(_selectedWeekMax, _selectedWeek + 7);
                                 _calculateValues(clubDataHistory[
-                                    -_selectedWeekMax + _selectedWeek]);
+                                    _selectedWeekMax - _selectedWeek]);
                               });
                             },
                     ),
@@ -200,9 +212,9 @@ class _FinancesPageState extends State<FinancesPage> {
                           : () {
                               setState(() {
                                 _selectedWeek =
-                                    max(_selectedWeekMax, _selectedWeek - 1);
+                                    min(_selectedWeekMax, _selectedWeek + 1);
                                 _calculateValues(clubDataHistory[
-                                    -_selectedWeekMax + _selectedWeek]);
+                                    _selectedWeekMax - _selectedWeek]);
                               });
                             },
                     ),
@@ -213,9 +225,9 @@ class _FinancesPageState extends State<FinancesPage> {
                           ? null
                           : () {
                               setState(() {
-                                _selectedWeek = min(0, _selectedWeek + 1);
+                                _selectedWeek = max(0, _selectedWeek - 1);
                                 _calculateValues(clubDataHistory[
-                                    -_selectedWeekMax + _selectedWeek]);
+                                    _selectedWeekMax - _selectedWeek]);
                               });
                             },
                     ),
@@ -226,9 +238,9 @@ class _FinancesPageState extends State<FinancesPage> {
                           ? null
                           : () {
                               setState(() {
-                                _selectedWeek = min(0, _selectedWeek + 7);
+                                _selectedWeek = max(0, _selectedWeek - 7);
                                 _calculateValues(clubDataHistory[
-                                    -_selectedWeekMax + _selectedWeek]);
+                                    _selectedWeekMax - _selectedWeek]);
                               });
                             },
                     ),
@@ -455,7 +467,7 @@ class _FinancesPageState extends State<FinancesPage> {
     }
 
     double minY = allValues.isNotEmpty ? allValues.reduce(min) : 0;
-    minY = (minY / 1000).floorToDouble() * 1000;
+    minY = min(0, (minY / 1000).floorToDouble() * 1000);
 
     double maxY = allValues.isNotEmpty ? allValues.reduce(max) : 0;
     maxY = (maxY / 1000).ceilToDouble() * 1000;

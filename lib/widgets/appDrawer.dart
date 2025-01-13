@@ -106,7 +106,7 @@ class AppDrawer extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FinancesPage(idClub: selectedClub.id),
+                builder: (context) => FinancesPage(club: selectedClub),
               ),
             ),
           ),

@@ -30,6 +30,7 @@ const maxWidth = 600.0;
 /// Icons
 
 const iconHome = Icons.home;
+const iconDefaultClub = Icons.star;
 const iconCash = Icons.savings_outlined;
 const iconFans = Icons.campaign_outlined;
 const iconStadium = Icons.stadium_outlined;
@@ -76,6 +77,7 @@ const iconStamina = Icons.ev_station;
 const iconEnergy = Icons.electric_bolt;
 const iconForm = Icons.directions_run;
 const iconExperience = Icons.school;
+const iconRankingPoints = Icons.insert_chart;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorDefault = Colors.blueGrey;
@@ -95,6 +97,16 @@ const Row persoCancelRow = Row(
     Text('Cancel'),
   ],
 );
+
+Row persoValidRow(String text) {
+  return Row(
+    children: [
+      Icon(iconSuccessfulOperation, color: Colors.green),
+      formSpacer3,
+      Text(text),
+    ],
+  );
+}
 
 RoundedRectangleBorder shapePersoRoundedBorder(
     [Color borderColor = Colors.blueGrey]) {

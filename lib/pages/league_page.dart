@@ -278,6 +278,12 @@ class _RankingPageState extends State<LeaguePage> {
                   appBar: AppBar(
                     title: Text(
                         'League ${league.name.toString()} of ${league.continent}'),
+                    leading: IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
                   ),
                   drawer: const AppDrawer(),
                   body: MaxWidthContainer(
@@ -313,10 +319,12 @@ class _RankingPageState extends State<LeaguePage> {
                           ),
                           TabBar(
                             tabs: [
-                              buildTabWithIcon(icon:
-                                  Icons.format_list_numbered, text:'Rankings'),
-                              buildTabWithIcon(icon:Icons.event, text:'Games'),
-                              buildTabWithIcon(icon:iconStats, text:'Stats'),
+                              buildTabWithIcon(
+                                  icon: Icons.format_list_numbered,
+                                  text: 'Rankings'),
+                              buildTabWithIcon(
+                                  icon: Icons.event, text: 'Games'),
+                              buildTabWithIcon(icon: iconStats, text: 'Stats'),
                             ],
                           ),
                           Expanded(
