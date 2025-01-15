@@ -16,7 +16,7 @@ BEGIN
         cash, revenues_sponsors, revenues_transfers_done, revenues_total,
         expenses_staff_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
         league_points, pos_league, league_goals_for, league_goals_against,
-        ranking_points, expenses_players_ratio_target, expenses_players_ratio,
+        elo_points, expenses_players_ratio_target, expenses_players_ratio,
         expenses_staff_target, expenses_scouts_target
     )
     SELECT
@@ -25,7 +25,7 @@ BEGIN
         cash, revenues_sponsors, revenues_transfers_done, revenues_total,
         expenses_staff_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
         league_points, pos_league, league_goals_for, league_goals_against,
-        ranking_points, expenses_players_ratio_target, expenses_players_ratio,
+        elo_points, expenses_players_ratio_target, expenses_players_ratio,
         expenses_staff_target, expenses_scouts_target
     FROM clubs
     WHERE id_multiverse = inp_multiverse.id;

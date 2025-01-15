@@ -78,6 +78,7 @@ const iconEnergy = Icons.electric_bolt;
 const iconForm = Icons.directions_run;
 const iconExperience = Icons.school;
 const iconRankingPoints = Icons.insert_chart;
+const iconCredits = Icons.credit_card;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorDefault = Colors.blueGrey;

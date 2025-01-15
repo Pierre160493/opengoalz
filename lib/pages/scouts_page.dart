@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/functions/stringValueSeparated.dart';
+import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
@@ -196,30 +196,12 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         icon: Icon(Icons.currency_exchange,
                             color: Colors.orange)),
                     onTap: () async {
-                      List<num>? expensesScoutsHistory =
-                          await ClubData.fetchClubDataHistory(
-                              context, club.id, 'expenses_scouts_applied');
-
-                      if (expensesScoutsHistory != null) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            final chartData = ChartData(
-                              title:
-                                  'Scouting Network Expenses History (per weeks)',
-                              yValues: [
-                                [
-                                  ...expensesScoutsHistory,
-                                  club.clubData.expensesScoutsTarget
-                                ]
-                              ],
-                              typeXAxis: XAxisType.weekHistory,
-                            );
-
-                            return ChartDialogBox(chartData: chartData);
-                          },
-                        );
-                      }
+                      ClubData.showClubHistoryChartDialog(
+                        context,
+                        club,
+                        'expenses_scouts_applied',
+                        'Scouting Network Expenses',
+                      );
                     },
                   ),
 
@@ -243,30 +225,12 @@ class _ScoutsPageState extends State<ScoutsPage> {
                     ),
                     shape: shapePersoRoundedBorder(),
                     onTap: () async {
-                      final List<num>? scoutsWeightHistory =
-                          await ClubData.fetchClubDataHistory(
-                              context, club.id, 'scouts_weight');
-
-                      if (scoutsWeightHistory != null) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            final chartData = ChartData(
-                              title:
-                                  'Scouting Network Skill History (per weeks)',
-                              yValues: [
-                                [
-                                  ...scoutsWeightHistory,
-                                  club.clubData.scoutsWeight
-                                ]
-                              ],
-                              typeXAxis: XAxisType.weekHistory,
-                            );
-
-                            return ChartDialogBox(chartData: chartData);
-                          },
-                        );
-                      }
+                      ClubData.showClubHistoryChartDialog(
+                        context,
+                        club,
+                        'scouts_weight',
+                        'Scouting Network Strength',
+                      );
                     },
                   ),
 

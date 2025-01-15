@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/league/league.dart';
@@ -276,8 +277,10 @@ class _RankingPageState extends State<LeaguePage> {
                 League league = snapshot.data!;
                 return Scaffold(
                   appBar: AppBar(
-                    title: Text(
-                        'League ${league.name.toString()} of ${league.continent}'),
+                    title: Tooltip(
+                        message:
+                            '${positionWithIndex(league.number)} league of ${positionWithIndex(league.level)} division of ${league.continent}',
+                        child: Text('League ${league.name.toString()}')),
                     leading: IconButton(
                       icon: Icon(Icons.arrow_back),
                       onPressed: () {

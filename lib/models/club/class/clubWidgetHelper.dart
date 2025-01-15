@@ -32,6 +32,7 @@ extension ClubWidgetHelper on Club {
       softWrap: false,
     );
     // Icon icon = Icon(isSelected ? iconHome : Icons.sports_soccer_outlined);
+
     Icon icon = Icon(
         isDefault
             ? iconDefaultClub

@@ -44,13 +44,7 @@ Widget userPlayerListWidget(BuildContext context, Profile user) {
       ),
       if (user.numberPlayersAvailable > user.players.length)
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(24), // Adjust border radius as needed
-            side: const BorderSide(
-              color: Colors.blueGrey, // Border color
-            ),
-          ),
+          shape: shapePersoRoundedBorder(Colors.green),
           leading: Icon(
               user.players.length > 1
                   ? Icons.person_add_alt_1

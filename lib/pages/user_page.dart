@@ -293,6 +293,18 @@ class _UserPageState extends State<UserPage> {
           ),
         ),
 
+        /// Credits tile
+        ListTile(
+          shape: shapePersoRoundedBorder(),
+          leading: Icon(
+            iconCredits,
+            color: Colors.green,
+            size: iconSizeMedium,
+          ),
+          title: Text('Credits: ${user.creditsAvailable}'),
+          subtitle: const Text('Available credits', style: styleItalicBlueGrey),
+        ),
+
         /// Club tile
         ListTile(
           shape: shapePersoRoundedBorder(

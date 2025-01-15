@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/functions/stringValueSeparated.dart';
+import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
@@ -160,29 +160,12 @@ class _StaffPageState extends State<StaffPage> {
                         icon: Icon(Icons.currency_exchange,
                             color: Colors.orange)),
                     onTap: () async {
-                      final List<num>? expensesStaffHistory =
-                          await ClubData.fetchClubDataHistory(
-                              context, club.id, 'expenses_staff_applied');
-
-                      if (expensesStaffHistory != null) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            final chartData = ChartData(
-                              title: 'Staff Expenses History (per weeks)',
-                              yValues: [
-                                [
-                                  ...expensesStaffHistory,
-                                  club.clubData.expensesStaffApplied
-                                ]
-                              ],
-                              typeXAxis: XAxisType.weekHistory,
-                            );
-
-                            return ChartDialogBox(chartData: chartData);
-                          },
-                        );
-                      }
+                      ClubData.showClubHistoryChartDialog(
+                        context,
+                        club,
+                        'expenses_staff_applied',
+                        'Weekly Staff Expenses',
+                      );
                     },
                   ),
 
@@ -206,36 +189,14 @@ class _StaffPageState extends State<StaffPage> {
                     ),
                     shape: shapePersoRoundedBorder(),
                     onTap: () async {
-                      final List<num>? staffWeightHistory =
-                          await ClubData.fetchClubDataHistory(
-                              context, club.id, 'staff_weight');
-
-                      if (staffWeightHistory != null) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            final chartData = ChartData(
-                              title: 'Staff Skill History (per weeks)',
-                              yValues: [
-                                [
-                                  ...staffWeightHistory,
-                                  club.clubData.staffWeight
-                                ]
-                              ],
-                              typeXAxis: XAxisType.weekHistory,
-                            );
-
-                            return ChartDialogBox(chartData: chartData);
-                          },
-                        );
-                      } else {
-                        context.showSnackBarError(
-                            'Error while fetching the staff skill history');
-                      }
+                      ClubData.showClubHistoryChartDialog(
+                        context,
+                        club,
+                        'staff_weight',
+                        'Weekly Staff Weight',
+                      );
                     },
                   ),
-                  // SizedBox(height: 12),
-                  // _getStaffExpensesHistory(club),
                 ],
               ),
             ),
@@ -244,26 +205,4 @@ class _StaffPageState extends State<StaffPage> {
       },
     );
   }
-
-  // Widget _getStaffExpensesHistory(Club club) {
-  //   List<FlSpot> data = club.lisStaffExpenses
-  //       .asMap()
-  //       .entries
-  //       .map((entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()))
-  //       .toList();
-
-  //   return Container(
-  //     height: 400,
-  //     child: LineChart(
-  //       LineChartData(
-  //         lineBarsData: [
-  //           LineChartBarData(
-  //             spots: data,
-  //             color: Colors.blue,
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 }

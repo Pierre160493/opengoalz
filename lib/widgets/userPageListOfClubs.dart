@@ -36,13 +36,7 @@ Widget userClubListWidget(BuildContext context, Profile user) {
       ),
       if (user.numberClubsAvailable > user.clubs.length)
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(24), // Adjust border radius as needed
-            side: const BorderSide(
-              color: Colors.blueGrey, // Border color
-            ),
-          ),
+          shape: shapePersoRoundedBorder(Colors.green),
           leading: const Icon(Icons.add_home_work, color: Colors.green),
           title: Text(user.clubs.length == 0
               ? 'You dont have any club yet'

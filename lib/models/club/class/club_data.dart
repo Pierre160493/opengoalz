@@ -24,7 +24,7 @@ class ClubData {
     required this.expensesScoutsApplied,
     required this.expensesTransfersDone,
     required this.revenuesTransfersDone,
-    required this.rankingPoints,
+    required this.eloPoints,
     required this.expensesPlayersRatioTarget,
     required this.expensesPlayersRatio,
     required this.expensesStaffTarget,
@@ -48,7 +48,7 @@ class ClubData {
   final int expensesScoutsApplied;
   final int expensesTransfersDone;
   final int revenuesTransfersDone;
-  final int rankingPoints;
+  final int eloPoints;
   final double expensesPlayersRatioTarget;
   final double expensesPlayersRatio;
   final int expensesStaffTarget;
@@ -72,7 +72,7 @@ class ClubData {
         expensesScoutsApplied = map['expenses_scouts_applied'],
         expensesTransfersDone = map['expenses_transfers_done'],
         revenuesTransfersDone = map['revenues_transfers_done'],
-        rankingPoints = map['ranking_points'],
+        eloPoints = map['elo_points'],
         expensesPlayersRatioTarget =
             (map['expenses_players_ratio_target'] as num).toDouble(),
         expensesPlayersRatio =
@@ -98,8 +98,9 @@ class ClubData {
   }
 
   // Method to show club history dialog
-  static Future<void> showClubHistoryDialog(BuildContext context, Club club,
-      String columnName, String titleName, var dataToAppend) async {
+  static Future<void> showClubHistoryChartDialog(
+      BuildContext context, Club club, String columnName, String titleName,
+      {var dataToAppend = null}) async {
     final List<num>? dataHistory =
         await fetchClubDataHistory(context, club.id, columnName);
 
@@ -110,7 +111,10 @@ class ClubData {
           final chartData = ChartData(
             title: titleName,
             yValues: [
-              [...dataHistory, dataToAppend]
+              if (dataToAppend != null)
+                [...dataHistory, dataToAppend]
+              else
+                dataHistory
             ],
             typeXAxis: XAxisType.weekHistory,
           );

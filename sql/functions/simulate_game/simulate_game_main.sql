@@ -372,8 +372,10 @@ BEGIN
         -- date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
         date_end = NOW(),
         ---- Score of the game
-        score_left = loc_score_left,
-        score_right = loc_score_right,
+        score_left = CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END,
+        score_right = CASE WHEN loc_score_right = -1 THEN 0 ELSE loc_score_right END,
+        is_left_forfeit = CASE WHEN loc_score_left = -1 THEN TRUE ELSE FALSE END,
+        is_right_forfeit = CASE WHEN loc_score_right = -1 THEN TRUE ELSE FALSE END,
         ---- Score of the penalty shootout
         score_penalty_left = loc_score_penalty_left,
         score_penalty_right = loc_score_penalty_right,

@@ -1,6 +1,13 @@
 -- DROP FUNCTION public.leagues_create_league(int8, int8, continents, int8, int8, int8, int8);
 
-CREATE OR REPLACE FUNCTION public.leagues_create_league(inp_id_multiverse bigint, inp_season_number bigint, inp_continent continents, inp_level bigint, inp_number bigint, inp_id_upper_league bigint, inp_id_league_to_create bigint DEFAULT NULL::bigint)
+CREATE OR REPLACE FUNCTION public.leagues_create_league(
+    inp_id_multiverse bigint,
+    inp_season_number bigint,
+    inp_continent continents,
+    inp_level bigint,
+    inp_number bigint,
+    inp_id_upper_league bigint,
+    inp_id_league_to_create bigint DEFAULT NULL::bigint)
  RETURNS bigint
  LANGUAGE plpgsql
 AS $function$
@@ -14,13 +21,13 @@ BEGIN
     VALUES (COALESCE(inp_id_league_to_create, nextval('leagues_id_seq')), inp_id_multiverse, inp_season_number, inp_continent, inp_level, inp_number, 
         ---- Name of the league
         CASE
-            WHEN continent = 'Africa' THEN 'AF'
-            WHEN continent = 'North America' THEN 'NA'
-            WHEN continent = 'South America' THEN 'SA'
-            WHEN continent = 'Asia' THEN 'AS'
-            WHEN continent = 'Europe' THEN 'EU'
-            WHEN continent = 'Oceania' THEN 'OC'
-            ELSE continent || '???'
+            WHEN inp_continent = 'Africa' THEN 'AF'
+            WHEN inp_continent = 'North America' THEN 'NA'
+            WHEN inp_continent = 'South America' THEN 'SA'
+            WHEN inp_continent = 'Asia' THEN 'AS'
+            WHEN inp_continent = 'Europe' THEN 'EU'
+            WHEN inp_continent = 'Oceania' THEN 'OC'
+            ELSE inp_continent || '???'
         END || inp_level || CASE WHEN inp_level = 1 THEN '' ELSE '(' || inp_number || ')' END,
         inp_id_upper_league)
     RETURNING id INTO loc_id_league;

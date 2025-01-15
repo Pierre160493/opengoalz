@@ -25,11 +25,11 @@ BEGIN
             ELSE 'ERROR '
         END || string_parser(games.id, 'idGame') || ' of ' || string_parser(games.id_league, 'idLeague') AS game_presentation,
         ---- Score of the game
-        CASE WHEN score_left = -1 THEN '0F' ELSE score_left::TEXT END ||
+        score_left::TEXT || CASE WHEN is_left_forfeit = TRUE THEN 'F' ELSE '' END ||
         CASE WHEN score_penalty_left IS NOT NULL THEN '[' || score_penalty_left || ']' ELSE '' END ||
         '-' ||
         CASE WHEN score_penalty_right IS NOT NULL THEN '[' || score_penalty_right || ']' ELSE '' END ||
-        CASE WHEN score_right = -1 THEN '0F' ELSE score_right::TEXT END
+        score_right::TEXT || CASE WHEN is_right_forfeit = TRUE THEN 'F' ELSE '' END
         AS text_score_game,
         ---- Overall text (if the game is a return game, display the overall winner etc...)
         CASE
@@ -47,19 +47,26 @@ BEGIN
             WHEN score_cumul_with_penalty_left > score_cumul_with_penalty_right THEN games.id_club_right
             ELSE games.id_club_left
         END AS id_club_overall_loser,
-        club_left.id_league AS id_league_club_left2, club_right.id_league AS id_league_club_right2,
         leagues.level AS league_level,
         leagues.number AS league_number,
         leagues.id_lower_league AS id_lower_league,
         games_description.description AS game_description,
-        5 AS exchanged_ranking_points
+        ROUND(games_description.elo_weight -- Base weight from the type of the game
+            * CASE 
+                WHEN ABS(score_left-score_right) = 1 THEN 1.0
+                WHEN ABS(score_left-score_right) = 2 THEN 1.5
+                ELSE (11 + ABS(score_left-score_right)) / 8.0
+            END -- Weight multiplier based on the difference of goals
+            * (CASE WHEN score_left > score_right THEN 1.0 WHEN score_left < score_right THEN 0.0 ELSE 0.5 END -- Result of the game
+            - games.expected_elo_result)) -- Expected result of the game
+            AS exchanged_elo_points
     INTO rec_game
     FROM games
-    JOIN clubs AS club_left ON club_left.id = games.id_club_left
-    JOIN clubs AS club_right ON club_right.id = games.id_club_right
     JOIN leagues ON leagues.id = games.id_league
     JOIN games_description ON games_description.id = games.id_games_description
     WHERE games.id = inp_id_game;
+
+-- RAISE NOTICE 'expected_elo_score= % || exchanged_ranking_points= %', rec_game.expected_elo_score, rec_game.exchanged_ranking_points;
 
     ------ Start writing the messages to be sent to the clubs
     tmp_text1 := rec_game.text_score_game || ' in ' ||  rec_game.game_presentation || ' against ';
@@ -241,13 +248,13 @@ BEGIN
             UPDATE clubs SET
                 -- pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_right),
                 pos_league_next_season = 1,
-                id_league_next_season = rec_game.id_league_club_right2
+                id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_right)
             WHERE id = rec_game.id_club_left;
 
             -- Loser of barrage 1 won, he will be promoted to the league of the 5th of the upper league
             UPDATE clubs SET
                 pos_league_next_season = 5,
-                id_league_next_season = rec_game.id_league_club_left2
+                id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_left)
             WHERE id = rec_game.id_club_right;
 
             -- Send messages
@@ -289,14 +296,14 @@ BEGIN
                 -- pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_right),
                 pos_league_next_season = 4,
                 -- id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_right)
-                id_league_next_season = rec_game.id_league_club_right2
+                id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_right)
             WHERE id = rec_game.id_club_left;
 
             UPDATE clubs SET
                 -- pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_left),
                 pos_league_next_season = 1,
                 -- id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_left)
-                id_league_next_season = rec_game.id_league_club_left2
+                id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_left)
             WHERE id = rec_game.id_club_right;
 
             -- Send messages
@@ -332,12 +339,7 @@ BEGIN
                 WHEN rec_game.score_diff < 0 THEN 0
                 ELSE 1
             END,
-        ranking_points = ranking_points + 
-            CASE 
-                WHEN rec_game.score_diff > 0 THEN rec_game.exchanged_ranking_points
-                WHEN rec_game.score_diff < 0 THEN - rec_game.exchanged_ranking_points
-                ELSE 0
-            END
+        elo_points = elo_points + rec_game.exchanged_elo_points
     WHERE id = rec_game.id_club_left;
 
     ------ Update right club
@@ -348,12 +350,7 @@ BEGIN
                 WHEN rec_game.score_diff < 0 THEN 3
                 ELSE 1
             END,
-        ranking_points = ranking_points + 
-            CASE 
-                WHEN rec_game.score_diff > 0 THEN - rec_game.exchanged_ranking_points
-                WHEN rec_game.score_diff < 0 THEN rec_game.exchanged_ranking_points
-                ELSE 0
-            END
+        elo_points = elo_points - rec_game.exchanged_elo_points
     WHERE id = rec_game.id_club_right;
 
     ------ Update the league points for games before week 10

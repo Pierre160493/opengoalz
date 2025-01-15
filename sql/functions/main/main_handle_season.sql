@@ -275,8 +275,8 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
             SELECT games.* FROM games
             JOIN games_description ON games.id_games_description = games_description.id
             WHERE id_multiverse = inp_multiverse.id
-            AND season_number = (SELECT season_number FROM multiverses WHERE speed = inp_multiverse.speed)
-            AND games_description.week_number = (SELECT week_number FROM multiverses WHERE id = inp_multiverse.id)
+            AND season_number = (SELECT season_number FROM multiverses WHERE id = inp_multiverse.id)
+            AND games_description.week_set_up = (SELECT week_number FROM multiverses WHERE id = inp_multiverse.id)
             AND (id_club_left IS NULL OR id_club_right IS NULL)
             ORDER BY games.id
         ) LOOP

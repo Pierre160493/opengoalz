@@ -32,27 +32,13 @@ Widget getClubCashListTile(BuildContext context, Club club) {
       style: styleItalicBlueGrey,
     ),
     onTap: () async {
-      final List<num>? cashHistory =
-          await ClubData.fetchClubDataHistory(context, club.id, 'cash');
-
-      if (cashHistory != null) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            final chartData = ChartData(
-              title: 'Available Cash History (per weeks)',
-              yValues: [
-                [...cashHistory, club.clubData.cash]
-              ],
-              typeXAxis: XAxisType.weekHistory,
-            );
-
-            return ChartDialogBox(chartData: chartData);
-          },
-        );
-      } else {
-        context.showSnackBarError('Error while fetching the cash history');
-      }
+      ClubData.showClubHistoryChartDialog(
+        context,
+        club,
+        'cash',
+        'Weekly Cash',
+        dataToAppend: club.clubData.cash,
+      );
     },
   );
 }

@@ -24,6 +24,7 @@ class Profile {
     required this.lastUsernameUpdate,
     required this.numberClubsAvailable,
     required this.numberPlayersAvailable,
+    required this.creditsAvailable,
   });
 
   final String id; // User ID of the profile stored in the auth.users table
@@ -33,6 +34,7 @@ class Profile {
   final int? idDefaultClub;
   final int numberClubsAvailable;
   final int numberPlayersAvailable;
+  final double creditsAvailable;
 
   Profile.fromMap(Map<String, dynamic> map, {String? connectedUserId})
       : id = map['uuid_user'],
@@ -44,6 +46,7 @@ class Profile {
         lastUsernameUpdate = map['last_username_update'] != null
             ? DateTime.parse(map['last_username_update']).toLocal()
             : null,
+        creditsAvailable = map['credits_available'].toDouble(),
         numberClubsAvailable = map['number_clubs_available'] ?? 1,
         numberPlayersAvailable = map['number_players_available'] ?? 1;
 

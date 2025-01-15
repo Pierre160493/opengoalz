@@ -142,11 +142,13 @@ SELECT array_agg(id_club) INTO loc_array_selected_id_clubs FROM (
                     -- Update the games table
                     IF I = 1 THEN
                         UPDATE games SET
-                            id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]]
+                            id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
+                            elo_left = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
                             WHERE id = rec_game.id;
                     ELSE
                         UPDATE games SET
-                            id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]]
+                            id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
+                            elo_right = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
                             WHERE id = rec_game.id;
                     END IF;
 --                -- Then there is an error
@@ -198,11 +200,13 @@ END IF;
                     -- Update the games table
                     IF I = 1 THEN
                         UPDATE games SET
-                            id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]]
+                            id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
+                            elo_left = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
                             WHERE id = rec_game.id;
                     ELSE
                         UPDATE games SET
-                            id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]]
+                            id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
+                            elo_right = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
                             WHERE id = rec_game.id;
                     END IF;
                     

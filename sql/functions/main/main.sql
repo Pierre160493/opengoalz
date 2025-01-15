@@ -21,7 +21,7 @@ BEGIN
         SELECT * FROM multiverses ORDER BY id)
     LOOP
         -- Start a new transaction for each multiverse
-        BEGIN
+        -- BEGIN
             ------ Loop while the current date is before the next handling date
             LOOP
                 ------ Refresh the multiverse record to get the updated week_number and date_handling
@@ -100,29 +100,28 @@ BEGIN
             --     RAISE EXCEPTION 'STOP THE SECOND MULTIVERSE';
             -- END IF;
 
-        EXCEPTION
+        -- EXCEPTION
 
-            WHEN OTHERS THEN
-                -- Rollback the transaction in case of an error
-                ROLLBACK;
-                RAISE NOTICE 'Error processing multiverse %: %', multiverse.id, SQLERRM;
+        --     WHEN OTHERS THEN
+        --         -- Rollback the transaction in case of an error
+        --         ROLLBACK;
+        --         RAISE NOTICE 'Error processing multiverse %: %', multiverse.id, SQLERRM;
 
-                -- Raise exception when not in cron mode
-                IF is_cron IS FALSE THEN
-                    RAISE EXCEPTION 'Error processing multiverse %: %', multiverse.id, SQLERRM;
-                END IF;
+        --         -- Raise exception when not in cron mode
+        --         IF is_cron IS FALSE THEN
+        --             RAISE EXCEPTION 'Error processing multiverse %: %', multiverse.id, SQLERRM;
+        --         END IF;
 
-                -- Store the error message in the multiverse record
-                UPDATE multiverses SET
-                    error = SQLERRM
-                WHERE id = multiverse.id;
-        
-        END;
-
+        --         -- Store the error message in the multiverse record
+        --         UPDATE multiverses SET
+        --             error = SQLERRM
+        --         WHERE id = multiverse.id;
+        -- END;
         ------ Commit the transaction for the current multiverse
         COMMIT;
     END LOOP; -- End of the loop through the multiverses
 
     RAISE NOTICE '************ END MAIN !!!';
+    -- RAISE EXCEPTION '************ END MAIN !!!';
 END;
 $procedure$;
