@@ -58,7 +58,7 @@ BEGIN
                 ELSE (11 + ABS(score_left-score_right)) / 8.0
             END -- Weight multiplier based on the difference of goals
             * (CASE WHEN score_left > score_right THEN 1.0 WHEN score_left < score_right THEN 0.0 ELSE 0.5 END -- Result of the game
-            - games.expected_elo_result)) -- Expected result of the game
+            - games.expected_elo_result[array_length(games.expected_elo_result, 1)])) -- Expected result of the game
             AS exchanged_elo_points
     INTO rec_game
     FROM games

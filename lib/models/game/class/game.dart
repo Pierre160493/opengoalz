@@ -6,6 +6,7 @@ import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/scoreWidget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/pages/game_page.dart';
+import 'package:opengoalz/widgets/graphWidget.dart';
 
 part 'game_widget_helper.dart';
 
@@ -92,7 +93,7 @@ class Game {
   final double? scoreCumulWithPenaltyLeft;
   final double? scoreCumulWithPenaltyRight;
   final bool? isLeftClubOverallWinner;
-  final double? expectedEloResult;
+  final List<double>? expectedEloResult;
   final bool isLeftForfeit;
   final bool isRightForfeit;
   final int? eloLeft;
@@ -147,7 +148,11 @@ class Game {
       scoreCumulWithPenaltyRight:
           (map['score_cumul_with_penalty_right'] as num?)?.toDouble(),
       isLeftClubOverallWinner: map['is_left_club_overall_winner'],
-      expectedEloResult: (map['expected_elo_result'] as num?)?.toDouble(),
+      expectedEloResult: (map['expected_elo_result'] as List<dynamic>?)
+              ?.where((e) => e != null)
+              .map((e) => (e as num).toDouble())
+              .toList() ??
+          [],
       isLeftForfeit: map['is_left_forfeit'] ?? false,
       isRightForfeit: map['is_right_forfeit'] ?? false,
       eloLeft: map['elo_left'],

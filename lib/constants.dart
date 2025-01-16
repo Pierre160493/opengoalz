@@ -114,12 +114,12 @@ Row persoValidRow(String text) {
 }
 
 RoundedRectangleBorder shapePersoRoundedBorder(
-    [Color borderColor = Colors.blueGrey]) {
+    [Color? borderColor, double borderWidth = 2]) {
   return RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(12), // Adjust border radius as needed
     side: BorderSide(
-      color: borderColor, // Border color
-      width: 2.0, // Border width
+      color: borderColor ?? Colors.blueGrey, // Border color
+      width: borderWidth, // Border width
     ),
   );
 }

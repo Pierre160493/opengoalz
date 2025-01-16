@@ -94,10 +94,12 @@ extension ClubWidgetHelper on Club {
         );
       },
       child: Row(children: [
-        Icon(iconLeague),
+        Icon(iconLeague, color: Colors.green),
         SizedBox(width: 3),
-        Text(positionWithIndex(clubData.posLeague) +
-            ' with ${clubData.leaguePoints} points'),
+        Text(
+            positionWithIndex(clubData.posLeague) +
+                ' with ${clubData.leaguePoints} points',
+            style: styleItalicBlueGrey),
       ]),
     );
   }

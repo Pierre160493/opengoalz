@@ -77,25 +77,46 @@ extension GameClassWidgetHelper on Game {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         clubEloRow(context, idClubLeft, eloLeft),
-        Row(
-          children: [
-            Icon(
-              Icons.balance,
-              color: Colors.green,
-            ),
-            Tooltip(
-              message: 'Left club expected win rate',
-              child: Text(
-                expectedEloResult == null
-                    ? '?'
-                    : expectedEloResult!.toStringAsFixed(2),
-                style: TextStyle(
-                  color: Colors.blueGrey,
-                  fontWeight: FontWeight.bold,
-                ),
+        Tooltip(
+          message: 'Left club expected win rate',
+          child: Row(
+            children: [
+              Icon(
+                Icons.balance,
+                color: Colors.green,
               ),
-            ),
-          ],
+              expectedEloResult == null
+                  ? Text('?',
+                      style: TextStyle(
+                          color: Colors.orange, fontWeight: FontWeight.bold))
+                  : InkWell(
+                      child: Text(
+                        expectedEloResult!.last.toStringAsFixed(2),
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            final chartData = ChartData(
+                              title:
+                                  'Expected win rate evolution of the left club',
+                              yValues: [
+                                expectedEloResult!.map((e) => e * 100).toList()
+                              ],
+                              typeXAxis: XAxisType.gameMinute,
+                            );
+
+                            return ChartDialogBox(chartData: chartData);
+                          },
+                        );
+                      },
+                    ),
+            ],
+          ),
         ),
         clubEloRow(context, idClubRight, eloRight),
       ],
@@ -165,11 +186,15 @@ extension GameClassWidgetHelper on Game {
                           },
                           child: Row(
                             children: [
-                              Icon(Icons.queue_play_next),
+                              Icon(Icons.queue_play_next, color: Colors.green),
                               formSpacer3,
-                              Text('First Leg Game: '),
-                              Text(
-                                  '${scorePreviousLeft == null ? '?' : scorePreviousLeft} - ${scorePreviousRight == null ? '?' : scorePreviousRight}'),
+                              Text('First Leg Game: ',
+                                  style: TextStyle(color: Colors.blueGrey)),
+                              getScoreRowFromScore(
+                                  scorePreviousLeft, scorePreviousRight, false,
+                                  isLeftClubSelected: isLeftClubSelected),
+                              // Text(
+                              //     '${scorePrehhhviousLeft == null ? '?' : scorePreviousLeft} - ${scorePreviousRight == null ? '?' : scorePreviousRight}'),
                             ],
                           )),
                     ],

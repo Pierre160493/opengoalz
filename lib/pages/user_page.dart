@@ -13,6 +13,7 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/clubAndPlayerCreationDialogBox.dart';
+import 'package:opengoalz/widgets/mailsWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
@@ -141,52 +142,12 @@ class _UserPageState extends State<UserPage> {
               onPressed: () {
                 Navigator.of(context).push(SettingsPage.route());
               },
-              icon: Icon(Icons.settings, size: iconSizeSmall),
+              icon: Icon(Icons.settings,
+                  size: iconSizeMedium, color: Colors.green),
             ),
           ),
           user.isConnectedUser
-              ? Tooltip(
-                  message: 'Open Mails Page',
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                MailsPage(idClub: user.selectedClub!.id)),
-                      );
-                    },
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Icon(iconMails, size: iconSizeMedium),
-                        Positioned(
-                          top: -8, // Adjust the position as needed
-                          right: -4, // Adjust the position as needed
-                          child: Container(
-                            padding: EdgeInsets.all(
-                                4), // Adjust the padding as needed
-                            decoration: BoxDecoration(
-                              color:
-                                  colorIsSelected, // Background color for the badge
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              // '99',
-                              // '${min(99, Provider.of<SessionProvider>(context, listen: false).user!.mails.length + (Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.length : 0))}',
-                              '${min(99, Provider.of<SessionProvider>(context, listen: false).user!.mails.where((mail) => mail.dateDelete == null && mail.isRead == false).length + (Provider.of<SessionProvider>(context, listen: false).user!.selectedClub != null ? Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.mails.where((mail) => mail.dateDelete == null && mail.isRead == false).length : 0))}',
-                              style: TextStyle(
-                                color: Colors.white, // Text color
-                                fontSize: 12, // Adjust the font size as needed
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
+              ? mailToolTip(context, user)
               : Tooltip(
                   message: 'Send Mail',
                   child: IconButton(

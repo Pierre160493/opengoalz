@@ -28,8 +28,8 @@ Widget getScoreRowFromGame(Game game) {
 }
 
 Widget getScoreRowFromScore(
-  int scoreLeft,
-  int scoreRight,
+  int? scoreLeft,
+  int? scoreRight,
   bool isCup, {
   int? scorePenaltyLeft,
   int? scorePenaltyRight,
@@ -41,50 +41,56 @@ Widget getScoreRowFromScore(
   Color colorLeftPenalty = Colors.white;
   Color colorRightPenalty = Colors.white;
 
-  /// If the left club is selected
-  if (isLeftClubSelected == true) {
-    if (scoreLeft > scoreRight) {
-      leftColor = Colors.green;
-      rightColor = Colors.green;
-    } else if (scoreLeft < scoreRight) {
-      leftColor = Colors.red;
-      rightColor = Colors.red;
-    } else if (scoreLeft == scoreRight) {
-      leftColor = Colors.blueGrey;
-      rightColor = Colors.blueGrey;
-    }
-    // if (isCup && scorePenaltyLeft != null && scorePenaltyRight != null) {
-    if (scorePenaltyLeft != null && scorePenaltyRight != null) {
-      if (scorePenaltyLeft > scorePenaltyRight) {
-        colorLeftPenalty = Colors.green;
-        colorRightPenalty = Colors.green;
-      } else {
-        colorLeftPenalty = Colors.red;
-        colorRightPenalty = Colors.red;
+  // if (scoreLeft == null || scoreRight == null) {
+  //   return Text('ERROR: Unknown left and right score');
+  // }
+
+  if (scoreLeft != null && scoreRight != null) {
+    /// If the left club is selected
+    if (isLeftClubSelected == true) {
+      if (scoreLeft > scoreRight) {
+        leftColor = Colors.green;
+        rightColor = Colors.green;
+      } else if (scoreLeft < scoreRight) {
+        leftColor = Colors.red;
+        rightColor = Colors.red;
+      } else if (scoreLeft == scoreRight) {
+        leftColor = Colors.blueGrey;
+        rightColor = Colors.blueGrey;
+      }
+      // if (isCup && scorePenaltyLeft != null && scorePenaltyRight != null) {
+      if (scorePenaltyLeft != null && scorePenaltyRight != null) {
+        if (scorePenaltyLeft > scorePenaltyRight) {
+          colorLeftPenalty = Colors.green;
+          colorRightPenalty = Colors.green;
+        } else {
+          colorLeftPenalty = Colors.red;
+          colorRightPenalty = Colors.red;
+        }
       }
     }
-  }
 
-  /// If the right club is selected
-  else if (isLeftClubSelected == false) {
-    if (scoreLeft > scoreRight) {
-      leftColor = Colors.red;
-      rightColor = Colors.red;
-    } else if (scoreLeft < scoreRight) {
-      leftColor = Colors.green;
-      rightColor = Colors.green;
-    } else if (scoreLeft == scoreRight) {
-      leftColor = Colors.blueGrey;
-      rightColor = Colors.blueGrey;
-    }
-    // if (isCup && scorePenaltyLeft != null && scorePenaltyRight != null) {
-    if (scorePenaltyLeft != null && scorePenaltyRight != null) {
-      if (scorePenaltyLeft > scorePenaltyRight) {
-        colorLeftPenalty = Colors.red;
-        colorRightPenalty = Colors.red;
-      } else {
-        colorLeftPenalty = Colors.green;
-        colorRightPenalty = Colors.green;
+    /// If the right club is selected
+    else if (isLeftClubSelected == false) {
+      if (scoreLeft > scoreRight) {
+        leftColor = Colors.red;
+        rightColor = Colors.red;
+      } else if (scoreLeft < scoreRight) {
+        leftColor = Colors.green;
+        rightColor = Colors.green;
+      } else if (scoreLeft == scoreRight) {
+        leftColor = Colors.blueGrey;
+        rightColor = Colors.blueGrey;
+      }
+      // if (isCup && scorePenaltyLeft != null && scorePenaltyRight != null) {
+      if (scorePenaltyLeft != null && scorePenaltyRight != null) {
+        if (scorePenaltyLeft > scorePenaltyRight) {
+          colorLeftPenalty = Colors.red;
+          colorRightPenalty = Colors.red;
+        } else {
+          colorLeftPenalty = Colors.green;
+          colorRightPenalty = Colors.green;
+        }
       }
     }
   }
@@ -100,7 +106,11 @@ Widget getScoreRowFromScore(
       children: [
         Text(
           // If the score is -1, display 0F for forfeit
-          scoreLeft == -1 ? '0(F)' : scoreLeft.toString(),
+          scoreLeft == null
+              ? '?'
+              : scoreLeft == -1
+                  ? '0(F)'
+                  : scoreLeft.toString(),
           style: TextStyle(
             // color: scorePenaltyLeft == null ? colorLeftPenalty : null,
             color: leftColor,
@@ -128,7 +138,11 @@ Widget getScoreRowFromScore(
             ),
           ),
         Text(
-          scoreRight == -1 ? '0(F)' : scoreRight.toString(),
+          scoreRight == null
+              ? '?'
+              : scoreRight == -1
+                  ? '0(F)'
+                  : scoreRight.toString(),
           style: TextStyle(
             // color: scorePenaltyRight == null ? colorRightPenalty : null,
             color: rightColor,
