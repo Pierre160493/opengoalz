@@ -48,7 +48,7 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
           subtitle: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              club.getRankingWidget(context),
+              club.getClubRankingRow(context),
               getMultiverseIconFromId_Clickable(context, club.idMultiverse),
             ],
           ),

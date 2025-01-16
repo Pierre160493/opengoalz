@@ -204,10 +204,8 @@ class _PlayersPageState extends State<PlayersPage> {
                   : Text(
                       '${players.length} Players',
                     ),
+          leading: goBackIconButton(context),
           actions: [
-            /// Go back button
-            goBackIconButton(context),
-
             /// Reload button when the stream should be updated
             if (_showReloadButton)
               IconButton(

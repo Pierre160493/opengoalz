@@ -45,6 +45,8 @@ class TeamComp {
     {
       'name': 'Goal Keeper',
       'type': 'Keeper',
+      'notes_small_default': 'GK',
+      'shirt_number_default': '1',
       'database': 'idgoalkeeper',
       'id': null,
       'player': null,
@@ -52,6 +54,8 @@ class TeamComp {
     {
       'name': 'Left Back Winger',
       'type': 'Defense',
+      'notes_small_default': 'BW_L',
+      'shirt_number_default': '2',
       'database': 'idleftbackwinger',
       'id': null,
       'player': null
@@ -59,6 +63,8 @@ class TeamComp {
     {
       'name': 'Left Central Back',
       'type': 'Defense',
+      'notes_small_default': 'CB_L',
+      'shirt_number_default': '4',
       'database': 'idleftcentralback',
       'id': null,
       'player': null
@@ -66,6 +72,8 @@ class TeamComp {
     {
       'name': 'Central Back',
       'type': 'Defense',
+      'notes_small_default': 'CB_C',
+      'shirt_number_default': '95',
       'database': 'idcentralback',
       'id': null,
       'player': null
@@ -73,6 +81,8 @@ class TeamComp {
     {
       'name': 'Right Central Back',
       'type': 'Defense',
+      'notes_small_default': 'CB_R',
+      'shirt_number_default': '5',
       'database': 'idrightcentralback',
       'id': null,
       'player': null
@@ -80,6 +90,8 @@ class TeamComp {
     {
       'name': 'Right Back Winger',
       'type': 'Defense',
+      'notes_small_default': 'BW_R',
+      'shirt_number_default': '3',
       'database': 'idrightbackwinger',
       'id': null,
       'player': null
@@ -87,6 +99,8 @@ class TeamComp {
     {
       'name': 'Left Winger',
       'type': 'Midfield',
+      'notes_small_default': 'WI_L',
+      'shirt_number_default': '7',
       'database': 'idleftwinger',
       'id': null,
       'player': null
@@ -94,6 +108,8 @@ class TeamComp {
     {
       'name': 'Left Midfielder',
       'type': 'Midfield',
+      'notes_small_default': 'MD_L',
+      'shirt_number_default': '6',
       'database': 'idleftmidfielder',
       'id': null,
       'player': null
@@ -101,6 +117,8 @@ class TeamComp {
     {
       'name': 'Central Midfielder',
       'type': 'Midfield',
+      'notes_small_default': 'MD_C',
+      'shirt_number_default': '96',
       'database': 'idcentralmidfielder',
       'id': null,
       'player': null
@@ -108,6 +126,8 @@ class TeamComp {
     {
       'name': 'Right Midfielder',
       'type': 'Midfield',
+      'notes_small_default': 'MD_R',
+      'shirt_number_default': '10',
       'database': 'idrightmidfielder',
       'id': null,
       'player': null
@@ -115,6 +135,8 @@ class TeamComp {
     {
       'name': 'Right Winger',
       'type': 'Midfield',
+      'notes_small_default': 'WI_R',
+      'shirt_number_default': '8',
       'database': 'idrightwinger',
       'id': null,
       'player': null
@@ -122,6 +144,8 @@ class TeamComp {
     {
       'name': 'Left Striker',
       'type': 'Attack',
+      'notes_small_default': 'ST_L',
+      'shirt_number_default': '9',
       'database': 'idleftstriker',
       'id': null,
       'player': null
@@ -129,6 +153,8 @@ class TeamComp {
     {
       'name': 'Central Striker',
       'type': 'Attack',
+      'notes_small_default': 'ST_C',
+      'shirt_number_default': '99',
       'database': 'idcentralstriker',
       'id': null,
       'player': null
@@ -136,6 +162,8 @@ class TeamComp {
     {
       'name': 'Right Striker',
       'type': 'Attack',
+      'notes_small_default': 'ST_R',
+      'shirt_number_default': '11',
       'database': 'idrightstriker',
       'id': null,
       'player': null
@@ -143,6 +171,8 @@ class TeamComp {
     {
       'name': 'Sub 1',
       'type': 'Sub',
+      'notes_small_default': 'Sub1',
+      'shirt_number_default': '12',
       'database': 'idsub1',
       'id': null,
       'player': null
@@ -150,6 +180,8 @@ class TeamComp {
     {
       'name': 'Sub 2',
       'type': 'Sub',
+      'notes_small_default': 'Sub2',
+      'shirt_number_default': '13',
       'database': 'idsub2',
       'id': null,
       'player': null
@@ -157,6 +189,8 @@ class TeamComp {
     {
       'name': 'Sub 3',
       'type': 'Sub',
+      'notes_small_default': 'Sub3',
+      'shirt_number_default': '14',
       'database': 'idsub3',
       'id': null,
       'player': null
@@ -164,6 +198,8 @@ class TeamComp {
     {
       'name': 'Sub 4',
       'type': 'Sub',
+      'notes_small_default': 'Sub4',
+      'shirt_number_default': '15',
       'database': 'idsub4',
       'id': null,
       'player': null
@@ -171,6 +207,8 @@ class TeamComp {
     {
       'name': 'Sub 5',
       'type': 'Sub',
+      'notes_small_default': 'Sub5',
+      'shirt_number_default': '16',
       'database': 'idsub5',
       'id': null,
       'player': null
@@ -178,6 +216,8 @@ class TeamComp {
     {
       'name': 'Sub 6',
       'type': 'Sub',
+      'notes_small_default': 'Sub6',
+      'shirt_number_default': '17',
       'database': 'idsub6',
       'id': null,
       'player': null
@@ -185,6 +225,8 @@ class TeamComp {
     {
       'name': 'Sub 7',
       'type': 'Sub',
+      'notes_small_default': 'Sub7',
+      'shirt_number_default': '18',
       'database': 'idsub7',
       'id': null,
       'player': null
@@ -237,5 +279,57 @@ class TeamComp {
       (player) => player['name'] == name,
       orElse: () => {},
     );
+  }
+
+  Future<void> updatePlayerNotesToDefaultBasedOnPos(BuildContext context,
+      {bool updateSmallNotes = false, bool updateShirtNumber = false}) async {
+    if (!updateSmallNotes && !updateShirtNumber) {
+      return;
+    }
+
+    String message = 'Are you sure you want to update ';
+    String details = '';
+    if (updateSmallNotes && updateShirtNumber) {
+      details = 'the small notes and shirt numbers';
+    } else if (updateSmallNotes) {
+      details = 'the small notes';
+    } else if (updateShirtNumber) {
+      details = 'the shirt numbers';
+    }
+    message += '$details for players based on their position?';
+
+    bool confirm = await context.showConfirmationDialog(message);
+
+    if (!confirm) return;
+
+    for (Map<String, dynamic> player in players) {
+      if (player['id'] != null) {
+        Map<String, dynamic> data = {};
+        if (updateSmallNotes) {
+          data['notes_small'] = player['notes_small_default'];
+        }
+        if (updateShirtNumber) {
+          data['shirt_number'] = player['shirt_number_default'];
+        }
+        bool isOK = await operationInDB(
+          context,
+          'UPDATE',
+          'players',
+          data: data,
+          matchCriteria: {'id': player['id']},
+        );
+        if (!isOK) {
+          context.showSnackBar(
+            'Couldn\'t update the notes for ${player['name']}',
+            icon: Icon(iconSuccessfulOperation, color: Colors.green),
+          );
+        }
+      }
+    }
+    context.showSnackBar(
+      'Successfully updated $details for all players based on their position',
+      icon: Icon(iconSuccessfulOperation, color: Colors.green),
+    );
+    Navigator.pop(context);
   }
 }

@@ -9,6 +9,7 @@ import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/financesGraphDialogBox.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
@@ -56,8 +57,8 @@ class _StaffPageState extends State<StaffPage> {
           return Scaffold(
             appBar: AppBar(
               title: Text('Staff of ${club.name}'),
+              leading: goBackIconButton(context),
             ),
-            drawer: const AppDrawer(),
             body: MaxWidthContainer(
               child: Column(
                 children: [
@@ -162,7 +163,7 @@ class _StaffPageState extends State<StaffPage> {
                     onTap: () async {
                       ClubData.showClubHistoryChartDialog(
                         context,
-                        club,
+                        club.id,
                         'expenses_staff_applied',
                         'Weekly Staff Expenses',
                       );
@@ -191,7 +192,7 @@ class _StaffPageState extends State<StaffPage> {
                     onTap: () async {
                       ClubData.showClubHistoryChartDialog(
                         context,
-                        club,
+                        club.id,
                         'staff_weight',
                         'Weekly Staff Weight',
                       );

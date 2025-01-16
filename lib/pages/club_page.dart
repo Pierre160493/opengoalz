@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/models/club/clubHelper.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
@@ -97,11 +98,8 @@ class _ClubPageState extends State<ClubPage> {
           return Scaffold(
             appBar: AppBar(
               title: club.getClubName(context),
-              actions: [
-                goBackIconButton(context),
-              ],
+              leading: goBackIconButton(context),
             ),
-            drawer: const AppDrawer(),
             body: MaxWidthContainer(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -289,6 +287,31 @@ class _ClubPageState extends State<ClubPage> {
                     ), // Icon to indicate players
                     title: Text(
                       'Number of players: ${club.players.length}',
+                    ),
+                  ),
+
+                  /// Fans
+                  ListTile(
+                    onTap: () async {
+                      ClubData.showClubHistoryChartDialog(
+                        context,
+                        club.id,
+                        'number_fans',
+                        'Number of fans',
+                      );
+                    },
+                    shape: shapePersoRoundedBorder(),
+                    leading: Icon(
+                      iconFans,
+                      size: iconSizeMedium,
+                      color: Colors.green,
+                    ), // Icon to indicate players
+                    title: Text(
+                      club.clubData.numberFans.toString(),
+                    ),
+                    subtitle: Text(
+                      'Size of the club fan base',
+                      style: styleItalicBlueGrey,
                     ),
                   ),
 

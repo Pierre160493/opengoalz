@@ -79,6 +79,10 @@ const iconForm = Icons.directions_run;
 const iconExperience = Icons.school;
 const iconRankingPoints = Icons.insert_chart;
 const iconCredits = Icons.credit_card;
+const iconGamePlayed = Icons.play_circle;
+const iconGameIsPlaying = Icons.notifications_active;
+const iconGameNotPlayed = Icons.arrow_circle_right_outlined;
+const iconElo = Icons.sports_score;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorDefault = Colors.blueGrey;

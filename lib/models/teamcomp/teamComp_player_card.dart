@@ -331,7 +331,10 @@ extension TeamCompPlayerCard on TeamComp {
             }
           },
           child: Container(
-            color: Colors.blueGrey,
+            decoration: BoxDecoration(
+              color: Colors.blueGrey,
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Icon(Icons.add, size: iconSizeLarge),
           ),
         ),

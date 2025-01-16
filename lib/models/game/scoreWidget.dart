@@ -7,7 +7,12 @@ Widget getScoreRowFromGame(Game game) {
   if (game.isPlaying == null)
     return Icon(Icons.sync, size: iconSizeSmall);
   else if (game.isPlaying == true)
-    return Icon(Icons.sync, size: iconSizeSmall, color: Colors.green);
+    return Row(
+      children: [
+        Icon(Icons.av_timer, size: iconSizeSmall, color: Colors.green),
+        Text('Game in progress', style: TextStyle(color: Colors.green)),
+      ],
+    );
   else if (game.scoreLeft == null && game.scoreRight == null)
     return Text('ERROR: Unknown left and right score of the game $game.id');
   else if (game.scoreRight == null)
@@ -15,7 +20,8 @@ Widget getScoreRowFromGame(Game game) {
   else if (game.scoreRight == null)
     return Text('ERROR: Unknown right score of the game $game.id');
 
-  return getScoreRowFromScore(game.scoreLeft!, game.scoreRight!, game.isCup,
+  return getScoreRowFromScore(game.isLeftForfeit ? -1 : game.scoreLeft!,
+      game.isRightForfeit ? -1 : game.scoreRight!, game.isCup,
       scorePenaltyLeft: game.scorePenaltyLeft,
       scorePenaltyRight: game.scorePenaltyRight,
       isLeftClubSelected: game.isLeftClubSelected);
@@ -86,8 +92,9 @@ Widget getScoreRowFromScore(
   return Container(
     padding: EdgeInsets.symmetric(horizontal: 6),
     decoration: BoxDecoration(
-      color: Colors.black,
+      // color: Colors.black,
       borderRadius: BorderRadius.circular(6),
+      border: Border.all(color: Colors.blueGrey),
     ),
     child: Row(
       children: [

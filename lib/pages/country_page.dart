@@ -8,6 +8,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/player_card.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
@@ -106,6 +107,7 @@ class _CountryPageState extends State<CountryPage>
           return Scaffold(
             appBar: AppBar(
               title: Text('Country: ${country.name}'),
+              leading: goBackIconButton(context),
             ),
             // drawer: const AppDrawer(),
             body: MaxWidthContainer(

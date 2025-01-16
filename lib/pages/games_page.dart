@@ -5,6 +5,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
@@ -293,19 +294,14 @@ class _HomePageState extends State<GamesPage> {
                     children: [
                       Row(
                         children: [
-                          Text('Games Page for '),
                           club.getClubNameClickable(context),
+                          Text(' Games Page'),
                         ],
                       ),
-                      // Container(
-                      //   decoration: BoxDecoration(color: Colors.white),
-                      //   child: club.getClubNameClickable(context,
-                      //       isRightClub: true),
-                      // ),
                     ],
                   ),
+                  leading: goBackIconButton(context),
                 ),
-                drawer: const AppDrawer(),
                 body: MaxWidthContainer(
                   child: DefaultTabController(
                     length: gamesCurrent.length == 0 ? 2 : 3, // Number of tabs
@@ -317,18 +313,18 @@ class _HomePageState extends State<GamesPage> {
                           tabs: [
                             /// Played games title
                             buildTabWithIcon(
-                                icon: Icons.play_circle,
+                                icon: iconGamePlayed,
                                 text: 'Played (${gamesPlayed.length})'),
 
                             /// Current games title
                             if (gamesCurrent.length > 0)
                               buildTabWithIcon(
-                                  icon: Icons.notifications_active,
+                                  icon: iconGameIsPlaying,
                                   text: 'Current (${gamesCurrent.length})'),
 
                             /// Incoming games title
                             buildTabWithIcon(
-                                icon: Icons.arrow_circle_right_outlined,
+                                icon: iconGameNotPlayed,
                                 text: 'Incoming (${gamesIncoming.length})'),
                           ],
                         ),
@@ -345,7 +341,7 @@ class _HomePageState extends State<GamesPage> {
                                       tabs: [
                                         // Current season played games
                                         buildTabWithIcon(
-                                            icon: Icons.play_circle,
+                                            icon: iconGamePlayed,
                                             text:
                                                 'Current season (${gamesPlayed.length})'),
                                         buildTabWithIcon(
@@ -380,7 +376,7 @@ class _HomePageState extends State<GamesPage> {
                                       tabs: [
                                         // Current season played games
                                         buildTabWithIcon(
-                                            icon: Icons.play_circle,
+                                            icon: iconGamePlayed,
                                             text:
                                                 'Current season (${gamesIncoming.length + club.teamComps.length})'),
                                         // Next season games

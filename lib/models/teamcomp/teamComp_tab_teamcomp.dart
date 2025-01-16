@@ -45,88 +45,158 @@ extension TeamCompTab on TeamComp {
               subtitle: Text(description, style: styleItalicBlueGrey),
               trailing: isPlayed
                   ? null
-                  : IconButton(
-                      icon: Icon(Icons.more_vert, color: Colors.green),
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return SingleChildScrollView(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  formSpacer12,
-                                  ListTile(
-                                    leading: Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
-                                    ),
-                                    shape: shapePersoRoundedBorder(Colors.red),
-                                    title: Text('Remove all'),
-                                    subtitle: Text(
-                                        'Remove all players from the teamcomp',
-                                        style: styleItalicBlueGrey),
-                                    onTap: () async {
-                                      bool confirm =
-                                          await context.showConfirmationDialog(
-                                              'Are you sure you want to remove all players from the teamcomp?');
+                  : Tooltip(
+                      message: 'More teamcomps options',
+                      child: IconButton(
+                          icon: Icon(Icons.more_vert, color: Colors.green),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      /// Rewrite small notes for players based on position
+                                      ListTile(
+                                        leading: Icon(
+                                          Icons.edit_note,
+                                          color: Colors.orange,
+                                          size: iconSizeMedium,
+                                        ),
+                                        shape: shapePersoRoundedBorder(
+                                            Colors.orange),
+                                        title: Text('Edit notes'),
+                                        subtitle: Text(
+                                            'Edit notes for players based on their position',
+                                            style: styleItalicBlueGrey),
+                                        onTap: () async {
+                                          await updatePlayerNotesToDefaultBasedOnPos(
+                                              context,
+                                              updateSmallNotes: true);
+                                        },
+                                        trailing: IconButton(
+                                          tooltip: 'Update shirts numbers too',
+                                          icon: Icon(iconShirt,
+                                              color: Colors.orange),
+                                          onPressed: () async {
+                                            await updatePlayerNotesToDefaultBasedOnPos(
+                                                context,
+                                                updateSmallNotes: true,
+                                                updateShirtNumber: true);
+                                          },
+                                        ),
+                                      ),
 
-                                      if (!confirm) return;
-                                      bool isOK = await operationInDB(context,
-                                          'FUNCTION', 'teamcomp_copy_previous',
-                                          data: {
-                                            'inp_id_teamcomp': id,
-                                            'inp_season_number': -999
-                                          }); // Use index to modify id
-                                      if (isOK) {
-                                        context.showSnackBar(
-                                            'The teamcomp has successfully being cleaned',
-                                            icon: Icon(iconSuccessfulOperation,
-                                                color: Colors.green));
-                                      }
-                                      Navigator.pop(context);
-                                    },
+                                      /// Rewrite small notes for players based on position
+                                      ListTile(
+                                        leading: Icon(
+                                          iconShirt,
+                                          color: Colors.orange,
+                                          size: iconSizeMedium,
+                                        ),
+                                        shape: shapePersoRoundedBorder(
+                                            Colors.orange),
+                                        title: Text('Update shirt number'),
+                                        subtitle: Text(
+                                            'Update shirt number for players based on their position',
+                                            style: styleItalicBlueGrey),
+                                        onTap: () async {
+                                          await updatePlayerNotesToDefaultBasedOnPos(
+                                              context,
+                                              updateShirtNumber: true);
+                                        },
+                                        trailing: IconButton(
+                                          tooltip: 'Update small notes too',
+                                          icon: Icon(Icons.edit_note,
+                                              color: Colors.orange),
+                                          onPressed: () async {
+                                            await updatePlayerNotesToDefaultBasedOnPos(
+                                                context,
+                                                updateSmallNotes: true,
+                                                updateShirtNumber: true);
+                                          },
+                                        ),
+                                      ),
+
+                                      /// Remove all players from the teamcomp
+                                      ListTile(
+                                        leading: Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                        shape:
+                                            shapePersoRoundedBorder(Colors.red),
+                                        title: Text('Remove all'),
+                                        subtitle: Text(
+                                            'Remove all players from the teamcomp',
+                                            style: styleItalicBlueGrey),
+                                        onTap: () async {
+                                          bool confirm = await context
+                                              .showConfirmationDialog(
+                                                  'Are you sure you want to remove all players from the teamcomp?');
+
+                                          if (!confirm) return;
+                                          bool isOK = await operationInDB(
+                                              context,
+                                              'FUNCTION',
+                                              'teamcomp_copy_previous',
+                                              data: {
+                                                'inp_id_teamcomp': id,
+                                                'inp_season_number': -999
+                                              }); // Use index to modify id
+                                          if (isOK) {
+                                            context.showSnackBar(
+                                                'The teamcomp has successfully being cleaned',
+                                                icon: Icon(
+                                                    iconSuccessfulOperation,
+                                                    color: Colors.green));
+                                          }
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+
+                                      ...List.generate(7, (index) {
+                                        return ListTile(
+                                          leading: Icon(Icons.save),
+                                          shape: shapePersoRoundedBorder(),
+                                          title: Text(
+                                              'Apply default ${index + 1} teamcomp'),
+                                          subtitle: Text(
+                                              'Apply the default ${index + 1} teamcomp to this teamcomp',
+                                              style: styleItalicBlueGrey),
+                                          onTap: () async {
+                                            bool confirm = await context
+                                                .showConfirmationDialog(
+                                                    'Are you sure you want to apply the default ${index + 1} teamcomp to this teamcomp ?');
+
+                                            if (!confirm) return;
+                                            bool isOK = await operationInDB(
+                                                context,
+                                                'FUNCTION',
+                                                'teamcomp_copy_previous',
+                                                data: {
+                                                  'inp_id_teamcomp': id,
+                                                  'inp_week_number': index + 1
+                                                }); // Use index to modify id
+                                            if (isOK) {
+                                              context.showSnackBar(
+                                                  'The teamcomp has successfully being applied',
+                                                  icon: Icon(
+                                                      iconSuccessfulOperation,
+                                                      color: Colors.green));
+                                            }
+                                            Navigator.pop(context);
+                                          },
+                                        );
+                                      }),
+                                    ],
                                   ),
-                                  ...List.generate(7, (index) {
-                                    return ListTile(
-                                      leading: Icon(Icons.save),
-                                      shape: shapePersoRoundedBorder(),
-                                      title: Text(
-                                          'Apply default ${index + 1} teamcomp'),
-                                      subtitle: Text(
-                                          'Apply the default ${index + 1} teamcomp to this teamcomp',
-                                          style: styleItalicBlueGrey),
-                                      onTap: () async {
-                                        bool confirm = await context
-                                            .showConfirmationDialog(
-                                                'Are you sure you want to apply the default ${index + 1} teamcomp to this teamcomp ?');
-
-                                        if (!confirm) return;
-                                        bool isOK = await operationInDB(
-                                            context,
-                                            'FUNCTION',
-                                            'teamcomp_copy_previous',
-                                            data: {
-                                              'inp_id_teamcomp': id,
-                                              'inp_week_number': index + 1
-                                            }); // Use index to modify id
-                                        if (isOK) {
-                                          context.showSnackBar(
-                                              'The teamcomp has successfully being applied',
-                                              icon: Icon(
-                                                  iconSuccessfulOperation,
-                                                  color: Colors.green));
-                                        }
-                                        Navigator.pop(context);
-                                      },
-                                    );
-                                  }),
-                                ],
-                              ),
+                                );
+                              },
                             );
-                          },
-                        );
-                      }),
+                          }),
+                    ),
               onTap: () async {
                 showDialog(
                   context: context,

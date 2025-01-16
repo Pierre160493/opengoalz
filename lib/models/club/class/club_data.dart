@@ -99,10 +99,10 @@ class ClubData {
 
   // Method to show club history dialog
   static Future<void> showClubHistoryChartDialog(
-      BuildContext context, Club club, String columnName, String titleName,
+      BuildContext context, int idClub, String columnName, String titleName,
       {var dataToAppend = null}) async {
     final List<num>? dataHistory =
-        await fetchClubDataHistory(context, club.id, columnName);
+        await fetchClubDataHistory(context, idClub, columnName);
 
     if (dataHistory != null) {
       showDialog(

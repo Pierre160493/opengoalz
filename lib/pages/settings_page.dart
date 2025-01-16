@@ -3,6 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/provider_theme_app.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
@@ -28,6 +29,7 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings'),
+        leading: goBackIconButton(context),
       ),
       body: MaxWidthContainer(
         child: ListView(

@@ -34,7 +34,7 @@ Widget getClubCashListTile(BuildContext context, Club club) {
     onTap: () async {
       ClubData.showClubHistoryChartDialog(
         context,
-        club,
+        club.id,
         'cash',
         'Weekly Cash',
         dataToAppend: club.clubData.cash,

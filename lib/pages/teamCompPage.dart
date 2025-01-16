@@ -3,6 +3,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -42,7 +43,8 @@ class TeamCompPage extends StatefulWidget {
     );
   }
 
-  static Route<void> routeWithDetails(int idClub, int seasonNumber, int weekNumber) {
+  static Route<void> routeWithDetails(
+      int idClub, int seasonNumber, int weekNumber) {
     return MaterialPageRoute(
       builder: (context) => TeamCompPage.withDetails(
           idClub: idClub, seasonNumber: seasonNumber, weekNumber: weekNumber),
@@ -68,7 +70,9 @@ class _TeamCompPageState extends State<TeamCompPage> {
           .stream(primaryKey: ['id'])
           .eq('id', widget.id!)
           .map((maps) => maps.map((map) => Club.fromMap(map)).first);
-    } else if (widget.idClub != null && widget.seasonNumber != null && widget.weekNumber != null) {
+    } else if (widget.idClub != null &&
+        widget.seasonNumber != null &&
+        widget.weekNumber != null) {
       _clubStream = supabase
           .from('clubs')
           .stream(primaryKey: ['id'])
@@ -79,11 +83,13 @@ class _TeamCompPageState extends State<TeamCompPage> {
                 .from('games_teamcomp')
                 .stream(primaryKey: ['id'])
                 .eq('id_club', club.id)
-                .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
+                .map(
+                    (maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
                 .map((teamComps) {
-                  for (TeamComp teamComp in teamComps.where((TeamComp teamcomp) =>
-                      teamcomp.seasonNumber == widget.seasonNumber &&
-                      teamcomp.weekNumber == widget.weekNumber)) {
+                  for (TeamComp teamComp in teamComps.where(
+                      (TeamComp teamcomp) =>
+                          teamcomp.seasonNumber == widget.seasonNumber &&
+                          teamcomp.weekNumber == widget.weekNumber)) {
                     club.teamComps.clear();
                     club.teamComps.add(teamComp);
                   }
@@ -134,8 +140,10 @@ class _TeamCompPageState extends State<TeamCompPage> {
 
             return Scaffold(
               appBar: AppBar(
-                  title: Text(
-                      'TeamComp for ${club.name} for week ${club.teamComps.first.weekNumber} of season ${club.teamComps.first.seasonNumber}')), //Row presentation of the game
+                title: Text(
+                    'TeamComp for ${club.name} for week ${club.teamComps.first.weekNumber} of season ${club.teamComps.first.seasonNumber}'),
+                leading: goBackIconButton(context),
+              ), //Row presentation of the game
               body: MaxWidthContainer(
                 child: DefaultTabController(
                     length: 3, // Number of tabs

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/calendar_page.dart';
 import 'package:opengoalz/pages/mails_page.dart';
 import 'package:opengoalz/pages/scouts_page.dart';
@@ -25,8 +26,8 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get the selected club
-    Club? selectedClub =
-        Provider.of<SessionProvider>(context, listen: false).user!.selectedClub;
+    Profile user = Provider.of<SessionProvider>(context, listen: false).user!;
+    Club? selectedClub = user.selectedClub;
 
     if (selectedClub == null) {
       return const Drawer(
@@ -40,11 +41,7 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         children: [
           ListTile(
-            // leading: const Icon(iconHome), // Add the home icon
-            // title: const Text('Home'),
-            title: Provider.of<SessionProvider>(context, listen: false)
-                .user!
-                .getUserName(context),
+            title: user.getUserName(context),
             onTap: () {
               Navigator.push(
                 context,
@@ -53,20 +50,21 @@ class AppDrawer extends StatelessWidget {
                 ),
               );
             },
-            subtitle: !Provider.of<SessionProvider>(context, listen: false)
-                    .user!
-                    .isConnectedUser
+            subtitle: !user.isConnectedUser
                 ? Text('Currently visiting this profile')
                 : null,
-            trailing: !Provider.of<SessionProvider>(context, listen: false)
-                    .user!
-                    .isConnectedUser
-                ? Provider.of<SessionProvider>(context, listen: false)
-                    .user!
-                    .returnToConnectedUserIconButton(context)
+            trailing: !user.isConnectedUser
+                ? user.returnToConnectedUserIconButton(context)
                 : null,
           ),
-          buildDrawerTitle('Club: ${selectedClub.name}'),
+          buildDrawerTitle(
+              Row(children: [selectedClub.getClubNameClickable(context)])),
+          ListTile(
+            leading: Icon(iconClub, size: iconSizeMedium, color: Colors.green),
+            title: selectedClub.getClubNameClickable(context),
+            shape: shapePersoRoundedBorder(Colors.green),
+            subtitle: selectedClub.getClubRankingRow(context),
+          ),
           buildDrawerListTile(context, iconCalendar, 'Calendar',
               CalendarPage(idClub: selectedClub.id)), // Add the finances page
           buildDrawerListTile(
@@ -139,7 +137,8 @@ class AppDrawer extends StatelessWidget {
           // ), // Add the Scouts page
           // buildDrawerListTile(
           //     context, icon_medics, 'Medics'), // Add the Medics page
-          buildDrawerTitle('Main Team'), // Add the Main Team page
+          buildDrawerTitle(
+              Row(children: [Text('Main Team')])), // Add the Main Team page
           buildDrawerListTile(
             context,
             iconPlayers,
@@ -175,7 +174,7 @@ class AppDrawer extends StatelessWidget {
           //   iconTraining,
           //   'Training',
           // ), // Add the Training page
-          buildDrawerTitle('Other'),
+          buildDrawerTitle(Row(children: [Text('Other')])),
 
           buildDrawerListTile(context, iconChat, 'Chat',
               const ChatPage()), // Add the Rankings page
@@ -185,7 +184,7 @@ class AppDrawer extends StatelessWidget {
   }
 }
 
-Widget buildDrawerTitle(String title) {
+Widget buildDrawerTitle(Row titleRow) {
   return Container(
     margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
     padding: const EdgeInsets.all(8.0),
@@ -193,14 +192,7 @@ Widget buildDrawerTitle(String title) {
       color: Colors.blueGrey,
       borderRadius: BorderRadius.circular(8.0),
     ),
-    child: Text(
-      title,
-      style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 16.0,
-        color: Colors.white,
-      ),
-    ),
+    child: titleRow,
   );
 }
 

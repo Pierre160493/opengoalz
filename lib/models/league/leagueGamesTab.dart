@@ -23,7 +23,7 @@ extension LeagueGamesTab on League {
           TabBar(
             tabs: [
               buildTabWithIcon(
-                  icon: Icons.play_circle,
+                  icon: iconGamePlayed,
                   text: 'Played (${gamesPlayed.length})'),
               if (gamesCurrent.length > 0)
                 buildTabWithIcon(

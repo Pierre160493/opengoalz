@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 
 import '../models/message.dart';
 import '../models/profile.dart';
@@ -57,7 +58,10 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(
+        title: const Text('Chat'),
+        leading: goBackIconButton(context),
+      ),
       body: StreamBuilder<List<Message>>(
         stream: _messagesStream,
         builder: (context, snapshot) {

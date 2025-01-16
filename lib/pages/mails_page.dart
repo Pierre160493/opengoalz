@@ -8,6 +8,7 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/descriptionParser.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
@@ -115,8 +116,8 @@ class _MailsPageState extends State<MailsPage> {
           appBar: AppBar(
             title: Text(
                 'Mails (${userMails.where((mail) => mail.isRead == false).length}) (${clubMails.where((mail) => mail.isRead == false).length})'),
+            leading: goBackIconButton(context),
           ),
-          drawer: const AppDrawer(),
           body: MaxWidthContainer(
             child: DefaultTabController(
               length: 2,

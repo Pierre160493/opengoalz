@@ -9,6 +9,7 @@ import 'package:opengoalz/models/teamcomp/teamComp_main_widget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -211,8 +212,9 @@ class _HomePageState extends State<GamePage> {
 
             return Scaffold(
               appBar: AppBar(
-                  title:
-                      game.getGameRow(context)), //Row presentation of the game
+                title: game.getGameResultRow(context),
+                leading: goBackIconButton(context),
+              ),
               body: Center(
                 child: Container(
                   constraints: BoxConstraints(
@@ -283,7 +285,7 @@ class _HomePageState extends State<GamePage> {
                 Column(
                   children: [
                     formSpacer12,
-                    game.getGameRow(context, isSpaceEvenly: true),
+                    game.getGameResultRow(context, isSpaceEvenly: true),
                     formSpacer12,
                     buildListOfEvents(context, game.events, game, true),
                   ],

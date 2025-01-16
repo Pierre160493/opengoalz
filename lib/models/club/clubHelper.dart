@@ -27,15 +27,16 @@ Widget clubLeagueAndRankingListTile(BuildContext context, Club club) {
         ? Text('League Not Found')
         : Text(
             '${positionWithIndex(club.clubData.posLeague)} of ${club.league!.name}'),
-    subtitle: clubRankingPointsRow(context, club),
+    subtitle: clubEloRow(context, club.id, club.clubData.eloPoints),
   );
 }
 
-Widget clubRankingPointsRow(BuildContext context, Club club) {
+Widget clubEloRow(BuildContext context, int? idClub, int? eloValue) {
+  if (idClub == null) return Container();
   return InkWell(
     onTap: () {
       ClubData.showClubHistoryChartDialog(
-          context, club, 'elo_points', 'Elo Points');
+          context, idClub, 'elo_points', 'Elo Points Evolution');
     },
     child: Row(
       children: [
@@ -44,7 +45,9 @@ Widget clubRankingPointsRow(BuildContext context, Club club) {
           size: iconSizeSmall,
           color: Colors.green,
         ),
-        Text(club.clubData.eloPoints.toString() + ' Elo Points'),
+        Text(eloValue.toString(),
+            style:
+                TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ],
     ),
   );

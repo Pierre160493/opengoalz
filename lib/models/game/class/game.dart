@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/clubHelper.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/scoreWidget.dart';
 import 'package:opengoalz/constants.dart';
@@ -42,10 +43,7 @@ class Game {
     required this.error,
     required this.scoreLeft,
     required this.scoreRight,
-    // required this.scoreCumulLeft,
-    // required this.scoreCumulRight,
     required this.idDescription,
-    this.isLeftClubSelected,
     required this.scorePreviousLeft,
     required this.scorePreviousRight,
     required this.scorePenaltyLeft,
@@ -53,6 +51,12 @@ class Game {
     required this.scoreCumulWithPenaltyLeft,
     required this.scoreCumulWithPenaltyRight,
     required this.isLeftClubOverallWinner,
+    this.isLeftClubSelected,
+    required this.expectedEloResult,
+    required this.isLeftForfeit,
+    required this.isRightForfeit,
+    required this.eloLeft,
+    required this.eloRight,
   });
 
   final int id;
@@ -80,8 +84,6 @@ class Game {
   final String? error;
   final int? scoreLeft;
   final int? scoreRight;
-  // final double? scoreCumulLeft;
-  // final double? scoreCumulRight;
   final int idDescription;
   final int? scorePreviousLeft;
   final int? scorePreviousRight;
@@ -90,6 +92,11 @@ class Game {
   final double? scoreCumulWithPenaltyLeft;
   final double? scoreCumulWithPenaltyRight;
   final bool? isLeftClubOverallWinner;
+  final double? expectedEloResult;
+  final bool isLeftForfeit;
+  final bool isRightForfeit;
+  final int? eloLeft;
+  final int? eloRight;
 
   factory Game.fromMap(Map<String, dynamic> map, int? idClubSelected) {
     bool? isLeftClubSelected;
@@ -129,8 +136,6 @@ class Game {
       error: map['error'],
       scoreLeft: map['score_left'],
       scoreRight: map['score_right'],
-      // scoreCumulLeft: (map['score_cumul_left'] as num?)?.toDouble(),
-      // scoreCumulRight: (map['score_cumul_right'] as num?)?.toDouble(),
       idDescription: map['id_games_description'],
       isLeftClubSelected: isLeftClubSelected,
       scorePreviousLeft: map['score_previous_left'],
@@ -142,6 +147,11 @@ class Game {
       scoreCumulWithPenaltyRight:
           (map['score_cumul_with_penalty_right'] as num?)?.toDouble(),
       isLeftClubOverallWinner: map['is_left_club_overall_winner'],
+      expectedEloResult: (map['expected_elo_result'] as num?)?.toDouble(),
+      isLeftForfeit: map['is_left_forfeit'] ?? false,
+      isRightForfeit: map['is_right_forfeit'] ?? false,
+      eloLeft: map['elo_left'],
+      eloRight: map['elo_right'],
     );
   }
 }

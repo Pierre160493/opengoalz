@@ -7,6 +7,7 @@ import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/scoutsDialogBox.dart';
@@ -91,8 +92,8 @@ class _ScoutsPageState extends State<ScoutsPage> {
                   ),
                 ),
               ],
+              leading: goBackIconButton(context),
             ),
-            drawer: const AppDrawer(),
             body: MaxWidthContainer(
               child: Column(
                 children: [
@@ -198,7 +199,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                     onTap: () async {
                       ClubData.showClubHistoryChartDialog(
                         context,
-                        club,
+                        club.id,
                         'expenses_scouts_applied',
                         'Scouting Network Expenses',
                       );
@@ -227,7 +228,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                     onTap: () async {
                       ClubData.showClubHistoryChartDialog(
                         context,
-                        club,
+                        club.id,
                         'scouts_weight',
                         'Scouting Network Strength',
                       );

@@ -339,6 +339,10 @@ BEGIN
                 WHEN rec_game.score_diff < 0 THEN 0
                 ELSE 1
             END,
+        number_fans = CASE
+            WHEN rec_game.score_diff > 0 THEN number_fans + 1
+            WHEN rec_game.score_diff < 0 THEN number_fans - 1
+            ELSE number_fans END,
         elo_points = elo_points + rec_game.exchanged_elo_points
     WHERE id = rec_game.id_club_left;
 
@@ -350,6 +354,10 @@ BEGIN
                 WHEN rec_game.score_diff < 0 THEN 3
                 ELSE 1
             END,
+        number_fans = CASE
+            WHEN rec_game.score_diff > 0 THEN number_fans - 1
+            WHEN rec_game.score_diff < 0 THEN number_fans + 1
+            ELSE number_fans END,
         elo_points = elo_points - rec_game.exchanged_elo_points
     WHERE id = rec_game.id_club_right;
 

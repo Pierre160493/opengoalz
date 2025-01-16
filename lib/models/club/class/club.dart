@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';

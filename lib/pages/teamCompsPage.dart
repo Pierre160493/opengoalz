@@ -5,6 +5,7 @@ import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/models/teamcomp/teamComp_main_widget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
@@ -83,7 +84,6 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
               });
         })
         .switchMap((Club club) {
-          print('Number Teamcomps: ${club.teamComps.length}');
           return supabase
               .from('players')
               .stream(primaryKey: ['id'])
@@ -106,17 +106,12 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                 print('Number players: ${players.length}');
                 for (TeamComp teamComp
                     in club.teamComps + club.defaultTeamComps) {
-                  print('passage ici');
-                  // teamComp.initPlayers(players
-                  //     .where((player) => player.idClub == club.id)
-                  //     .toList());
                   teamComp.initPlayers(players);
                 }
                 return club;
               });
         })
         .switchMap((Club club) {
-          print('Number Teamcomps2: ${club.teamComps.length}');
           return supabase
               .from('game_orders')
               .stream(primaryKey: ['id'])
@@ -166,6 +161,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
             return Scaffold(
               appBar: AppBar(
                 title: Text('TeamComps for season ${_seasonNumber}'),
+                leading: goBackIconButton(context),
                 actions: [
                   if (_seasonNumber > 1)
                     IconButton(
@@ -218,7 +214,8 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                         club.defaultTeamComps.length,
                                         (index) => buildTabWithIcon(
                                           icon: Icons.save,
-                                          iconColor: club.defaultTeamComps[index]
+                                          iconColor: club
+                                                      .defaultTeamComps[index]
                                                       .errors ==
                                                   null
                                               ? Colors.green

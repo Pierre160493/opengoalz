@@ -40,145 +40,84 @@ extension GameClassWidgetHelper on Game {
     ]);
   }
 
-  Widget getGameRow(BuildContext context, {bool isSpaceEvenly = false}) {
+  // Widget getGameRow(BuildContext context, {bool isSpaceEvenly = false}) {
+  //   return Column(
+  //     children: [
+  //       getGameResultRow(context, isSpaceEvenly: isSpaceEvenly),
+
+  //       /// Row for the game elo calculation
+  //       getGameEloRow(context, eloLeft, eloRight),
+  //     ],
+  //   );
+  // }
+
+  Widget getGameResultRow(BuildContext context, {bool isSpaceEvenly = false}) {
     return Row(
       mainAxisAlignment: isSpaceEvenly
           ? MainAxisAlignment.spaceBetween
           : MainAxisAlignment.start,
       children: [
         leftClub.getClubNameClickable(context),
-        SizedBox(width: 3),
-        // If dateEnd is null, the game is not played yet
-        dateEnd == null
-            // ? Text('VS')
-            ? Icon(Icons.sync, size: iconSizeSmall)
-            : getScoreRowFromGame(this),
-        SizedBox(width: 3),
+        formSpacer3,
+        // If isPlaying is null, the game has not started yet, if true, the game is in progress
+        isPlaying == null
+            ? Icon(Icons.sync, size: iconSizeSmall, color: Colors.green)
+            : isPlaying == true
+                ? Icon(iconGameIsPlaying,
+                    size: iconSizeSmall, color: Colors.green)
+                : getScoreRowFromGame(this),
+        formSpacer3,
         rightClub.getClubNameClickable(context, isRightClub: true),
       ],
     );
   }
 
-  // Widget getScoreRow() {
-  //   /// If the game is not played yet
-  //   if (isPlaying == null)
-  //     return Icon(Icons.sync, size: iconSizeSmall);
-  //   // Row(
-  //   //   children: [
-  //   //     Text(
-  //   //       ' : ',
-  //   //       style:
-  //   //           TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
-  //   //     ),
-  //   //   ],
-  //   // );
-  //   else if (scoreLeft == null && scoreRight == null)
-  //     return Text('ERROR: Unknown left and right score of the game $id');
-  //   else if (scoreRight == null)
-  //     return Text('ERROR: Unknown left score of the game $id');
-  //   else if (scoreRight == null)
-  //     return Text('ERROR: Unknown right score of the game $id');
+  Widget getGameEloRow(BuildContext context, int? eloLeft, int? eloRight) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        clubEloRow(context, idClubLeft, eloLeft),
+        Row(
+          children: [
+            Icon(
+              Icons.balance,
+              color: Colors.green,
+            ),
+            Tooltip(
+              message: 'Left club expected win rate',
+              child: Text(
+                expectedEloResult == null
+                    ? '?'
+                    : expectedEloResult!.toStringAsFixed(2),
+                style: TextStyle(
+                  color: Colors.blueGrey,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        clubEloRow(context, idClubRight, eloRight),
+      ],
+    );
+  }
 
-  //   /// Default white colors
-  //   Color leftColor = Colors.white;
-  //   Color rightColor = Colors.white;
-  //   Color colorLeftPenalty = Colors.white;
-  //   Color colorRightPenalty = Colors.white;
-
-  //   /// If the left club is selected
-  //   if (isLeftClubSelected == true) {
-  //     if (scoreLeft! > scoreRight!) {
-  //       leftColor = Colors.green;
-  //       rightColor = Colors.green;
-  //     } else if (scoreLeft! < scoreRight!) {
-  //       leftColor = Colors.red;
-  //       rightColor = Colors.red;
-  //     } else if (scoreLeft! == scoreRight!) {
-  //       leftColor = Colors.blueGrey;
-  //       rightColor = Colors.blueGrey;
-  //     }
-  //     // if (isCup && scorePenaltyLeft != null && scorePenaltyRight != null) {
-  //     if (scorePenaltyLeft != null && scorePenaltyRight != null) {
-  //       if (scorePenaltyLeft! > scorePenaltyRight!) {
-  //         colorLeftPenalty = Colors.green;
-  //         colorRightPenalty = Colors.green;
-  //       } else {
-  //         colorLeftPenalty = Colors.red;
-  //         colorRightPenalty = Colors.red;
-  //       }
-  //     }
-  //   }
-
-  //   /// If the left club is selected
-  //   else if (isLeftClubSelected == false) {
-  //     if (scoreLeft! > scoreRight!) {
-  //       leftColor = Colors.red;
-  //       rightColor = Colors.red;
-  //     } else if (scoreLeft! < scoreRight!) {
-  //       leftColor = Colors.green;
-  //       rightColor = Colors.green;
-  //     } else if (scoreLeft! == scoreRight!) {
-  //       leftColor = Colors.blueGrey;
-  //       rightColor = Colors.blueGrey;
-  //     }
-  //     // if (isCup && scorePenaltyLeft != null && scorePenaltyRight != null) {
-  //     if (scorePenaltyLeft != null && scorePenaltyRight != null) {
-  //       if (scorePenaltyLeft! > scorePenaltyRight!) {
-  //         colorLeftPenalty = Colors.red;
-  //         colorRightPenalty = Colors.red;
-  //       } else {
-  //         colorLeftPenalty = Colors.green;
-  //         colorRightPenalty = Colors.green;
-  //       }
-  //     }
-  //   }
-
-  //   return Container(
-  //     padding: EdgeInsets.symmetric(horizontal: 6),
-  //     decoration: BoxDecoration(
-  //       color: Colors.black,
-  //       borderRadius: BorderRadius.circular(6),
-  //     ),
+  // Widget rowEloScore(int? eloScore) {
+  //   return Tooltip(
+  //     message: 'Elo score of the club',
   //     child: Row(
   //       children: [
+  //         Icon(
+  //           iconElo,
+  //           color: Colors.green,
+  //         ),
   //         Text(
-  //           // If the score is -1, display 0F for forfeit
-  //           scoreLeft == -1 ? '0(F)' : scoreLeft.toString(),
+  //           eloScore.toString(),
   //           style: TextStyle(
-  //             // color: scorePenaltyLeft == null ? colorLeftPenalty : null,
-  //             color: leftColor,
+  //             color: Colors.blueGrey,
   //             fontWeight: FontWeight.bold,
   //           ),
   //         ),
-  //         if (scorePenaltyLeft != null)
-  //           Text(
-  //             ' [${scorePenaltyLeft.toString()}]',
-  //             style: TextStyle(
-  //               color: colorLeftPenalty,
-  //               fontWeight: FontWeight.bold,
-  //             ),
-  //           ),
-  //         Text(
-  //           ' : ',
-  //           style:
-  //               TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
-  //         ),
-  //         if (scorePenaltyRight != null)
-  //           Text(
-  //             '[${scorePenaltyRight.toString()}] ',
-  //             style: TextStyle(
-  //               color: colorRightPenalty,
-  //               fontWeight: FontWeight.bold,
-  //             ),
-  //           ),
-  //         Text(
-  //           scoreRight == -1 ? '0(F)' : scoreRight.toString(),
-  //           style: TextStyle(
-  //             // color: scorePenaltyRight == null ? colorRightPenalty : null,
-  //             color: rightColor,
-  //             fontWeight: FontWeight.bold,
-  //           ),
-  //         )
   //       ],
   //     ),
   //   );
@@ -188,7 +127,11 @@ extension GameClassWidgetHelper on Game {
     return Card(
       elevation: 6,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.blueGrey,
+          width: 3.0,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -196,14 +139,11 @@ extension GameClassWidgetHelper on Game {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             getGameIcon(),
-            SizedBox(width: 12.0),
+            formSpacer12,
             Expanded(
                 child: Column(
               children: [
-                getGameRow(context, isSpaceEvenly: true),
-                SizedBox(
-                  height: 12,
-                ),
+                getGameResultRow(context, isSpaceEvenly: true),
 
                 /// If this is a return game of a two games round, display the score
                 if (isReturnGameIdGameFirstRound != null)
@@ -226,7 +166,7 @@ extension GameClassWidgetHelper on Game {
                           child: Row(
                             children: [
                               Icon(Icons.queue_play_next),
-                              SizedBox(width: 3),
+                              formSpacer3,
                               Text('First Leg Game: '),
                               Text(
                                   '${scorePreviousLeft == null ? '?' : scorePreviousLeft} - ${scorePreviousRight == null ? '?' : scorePreviousRight}'),
@@ -234,6 +174,7 @@ extension GameClassWidgetHelper on Game {
                           )),
                     ],
                   ),
+                getGameEloRow(context, eloLeft, eloRight),
                 Row(
                   children: [
                     const Icon(
@@ -254,26 +195,27 @@ extension GameClassWidgetHelper on Game {
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: 6,
-                ),
                 Row(
                   children: [
                     Icon(
                       Icons.timer_outlined,
+                      color: Colors.blueGrey,
                     ),
                     // Text(' Date: '),
                     Text(
                       DateFormat(' dd/MM HH:mm').format(dateStart),
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.blueGrey),
                     ),
                     Spacer(),
                     Icon(
                       Icons.calendar_month_outlined,
+                      color: Colors.blueGrey,
                     ),
                     Text(
                       ' Week: $weekNumber',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.blueGrey),
                     ),
                   ],
                 ),

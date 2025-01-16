@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/models/player/player_card.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/club/class/club.dart';
@@ -157,6 +158,7 @@ class _TransferPageState extends State<TransferPage>
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  leading: goBackIconButton(context),
                   actions: [
                     IconButton(
                       tooltip: 'Search for players',

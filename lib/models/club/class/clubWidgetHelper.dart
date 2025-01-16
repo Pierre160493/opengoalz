@@ -81,7 +81,7 @@ extension ClubWidgetHelper on Club {
     );
   }
 
-  Widget getRankingWidget(BuildContext context) {
+  Widget getClubRankingRow(BuildContext context) {
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -96,8 +96,8 @@ extension ClubWidgetHelper on Club {
       child: Row(children: [
         Icon(iconLeague),
         SizedBox(width: 3),
-        Text(
-            '${clubData.posLeague == 1 ? "1st" : clubData.posLeague == 2 ? "2nd" : clubData.posLeague == 3 ? "3rd" : clubData.posLeague <= 6 ? "${clubData.posLeague}th" : clubData.posLeague} with ${clubData.leaguePoints.round()} points'),
+        Text(positionWithIndex(clubData.posLeague) +
+            ' with ${clubData.leaguePoints} points'),
       ]),
     );
   }

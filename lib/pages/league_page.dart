@@ -4,6 +4,7 @@ import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/league/league.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
@@ -281,14 +282,9 @@ class _RankingPageState extends State<LeaguePage> {
                         message:
                             '${positionWithIndex(league.number)} league of ${positionWithIndex(league.level)} division of ${league.continent}',
                         child: Text('League ${league.name.toString()}')),
-                    leading: IconButton(
-                      icon: Icon(Icons.arrow_back),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
+                    leading: goBackIconButton(context),
                   ),
-                  drawer: const AppDrawer(),
+                  // drawer: const AppDrawer(),
                   body: MaxWidthContainer(
                     child: DefaultTabController(
                       length: 3,

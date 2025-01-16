@@ -7,6 +7,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
@@ -138,8 +139,8 @@ class _FinancesPageState extends State<FinancesPage> {
                   Text(' finances'),
                 ],
               ),
+              leading: goBackIconButton(context),
             ),
-            drawer: const AppDrawer(),
             body: MaxWidthContainer(
               child: DefaultTabController(
                 length: 2, // The number of tabs
