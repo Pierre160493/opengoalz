@@ -2,8 +2,10 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 
 class Country {
-  List<Club> clubs = [];
-  List<Player> players = [];
+  List<Club> clubsAll = [];
+  List<Club> clubsSelected = [];
+  List<Player> playersAll = [];
+  List<Player> playersSelected = [];
   String? selectedContinent = null;
 
   final int id;

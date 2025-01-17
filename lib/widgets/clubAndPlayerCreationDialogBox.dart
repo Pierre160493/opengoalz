@@ -7,7 +7,8 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/pages/countries_page.dart';
+import 'package:opengoalz/models/multiverse/multiverseChoiceListTile.dart';
+import 'package:opengoalz/pages/countriesSelection_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
@@ -51,9 +52,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return AlertDialog(
-          title: widget.isClub
-              ? Text('Get a new club')
-              : Text('Create a new player'),
+          title: Text(widget.isClub ? 'Get a new club' : 'Create a new player'),
           content: SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -64,44 +63,17 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   /// Select the multiverse
-                  ListTile(
-                    leading: Icon(
-                      iconMultiverseSpeed,
-                      color: _selectedMultiverse == null
-                          ? Colors.red
-                          : Colors.green,
-                    ),
-                    shape: shapePersoRoundedBorder(_selectedMultiverse == null
-                        ? Colors.red
-                        : Colors.green),
-                    title: Text(
-                        _selectedMultiverse == null
-                            ? 'Select Multiverse'
-                            : _selectedMultiverse!.name,
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: _selectedMultiverse == null
-                        ? null
-                        : Text('Selected multiverse',
-                            style: styleItalicBlueGrey),
-                    trailing: _selectedMultiverse == null
-                        ? null
-                        : IconButton(
-                            tooltip: 'Reset the selected multiverse',
-                            onPressed: () {
-                              _selectedMultiverse = null;
-                              setState(() {});
-                            },
-                            icon: Icon(Icons.delete_forever, color: Colors.red),
-                          ),
-                    onTap: () async {
-                      _selectedMultiverse = await Navigator.push<Multiverse>(
-                        context,
-                        MultiversePage.route(
-                          1,
-                          isReturningMultiverse: true,
-                        ),
-                      );
-                      setState(() {});
+                  MultiverseChoiceListTile(
+                    selectedMultiverse: _selectedMultiverse,
+                    onMultiverseSelected: (multiverse) {
+                      setState(() {
+                        _selectedMultiverse = multiverse;
+                      });
+                    },
+                    onMultiverseReset: () {
+                      setState(() {
+                        _selectedMultiverse = null;
+                      });
                     },
                   ),
 
@@ -134,7 +106,7 @@ class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
                     onTap: () async {
                       _selectedCountry = await Navigator.push<Country>(
                         context,
-                        CountriesPage.route(),
+                        CountriesSelectionPage.route(),
                       );
                       setState(() {});
                     },

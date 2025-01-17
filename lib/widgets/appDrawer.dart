@@ -30,13 +30,18 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
+  String? _expandedTile;
+
+  @override
+  void initState() {
+    super.initState();
+    _expandedTile = 'Desktop'; // Initialize the expanded tile
+  }
+
   @override
   Widget build(BuildContext context) {
     // Get the selected club
     Profile user = Provider.of<SessionProvider>(context).user!;
-    int numUnreadMails = user.selectedClub!.mails
-        .where((mail) => mail.dateDelete == null && mail.isRead == false)
-        .length;
     Club? selectedClub = user.selectedClub;
 
     if (selectedClub == null) {
@@ -70,12 +75,19 @@ class _AppDrawerState extends State<AppDrawer> {
 
           /// Expansion Tile for various sections
           ExpansionTile(
+            key: Key('Desktop_${_expandedTile == 'Desktop'}'),
             leading:
                 Icon(Icons.event_seat, size: iconSizeLarge, color: Colors.blue),
             title: Text('Desktop'),
             subtitle: Text('Main club actions', style: styleItalicBlueGrey),
             shape: shapePersoRoundedBorder(Colors.blue),
-            initiallyExpanded: true,
+            initiallyExpanded: _expandedTile == 'Desktop',
+            onExpansionChanged: (bool expanded) {
+              setState(() {
+                _expandedTile = expanded ? 'Desktop' : null;
+                print('expanded: $expanded ($_expandedTile)');
+              });
+            },
             children: [
               /// Calendar Tile
               CustomListTile(
@@ -155,10 +167,17 @@ class _AppDrawerState extends State<AppDrawer> {
 
           /// Expansion Tile for Main Team
           ExpansionTile(
+            key: Key('MainTeam_${_expandedTile == 'Main Team'}'),
             leading: Icon(Icons.group, size: iconSizeLarge, color: Colors.blue),
             title: Text('Main Team'),
             subtitle: Text('Team management', style: styleItalicBlueGrey),
             shape: shapePersoRoundedBorder(Colors.blue),
+            initiallyExpanded: _expandedTile == 'Main Team',
+            onExpansionChanged: (bool expanded) {
+              setState(() {
+                _expandedTile = expanded ? 'Main Team' : null;
+              });
+            },
             children: [
               /// Players Tile
               CustomListTile(
@@ -210,11 +229,18 @@ class _AppDrawerState extends State<AppDrawer> {
           /// Other Title
           /// Expansion Tile for Main Team
           ExpansionTile(
+            key: Key('Other_${_expandedTile == 'Other'}'),
             leading: Icon(Icons.playlist_add_outlined,
                 size: iconSizeLarge, color: Colors.blue),
             title: Text('Other'),
             subtitle: Text('Other', style: styleItalicBlueGrey),
             shape: shapePersoRoundedBorder(Colors.blue),
+            initiallyExpanded: _expandedTile == 'Other',
+            onExpansionChanged: (bool expanded) {
+              setState(() {
+                _expandedTile = expanded ? 'Other' : null;
+              });
+            },
             children: [
               /// Chat Tile
               CustomListTile(
@@ -238,7 +264,9 @@ class _AppDrawerState extends State<AppDrawer> {
                 leadingIcon: iconCountries,
                 title: Text('Countries'),
                 // shape: shapePersoRoundedBorder(),
-                page: CountryPage(idCountry: user.selectedClub!.idCountry),
+                page: CountryPage(
+                    idCountry: user.selectedClub!.idCountry,
+                    idMultiverse: user.selectedClub!.idMultiverse),
               ),
             ],
           ),

@@ -161,7 +161,7 @@ class _MultiversePageState extends State<MultiversePage>
                         onPressed: () async {
                           Navigator.pop(context, _selectedMultiverse);
                         },
-                        child: Icon(Icons.check),
+                        child: Icon(Icons.check, color: Colors.green),
                       )
                     : null,
 
@@ -252,7 +252,8 @@ class _MultiversePageState extends State<MultiversePage>
                                             },
                                             tooltip:
                                                 'Select this multiverse for the club creation',
-                                            icon: Icon(Icons.reply),
+                                            icon: Icon(Icons.reply,
+                                                color: Colors.green),
                                           )
                                         : null,
                                     onTap: () {

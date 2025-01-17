@@ -5,7 +5,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/pages/countries_page.dart';
+import 'package:opengoalz/pages/countriesSelection_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 
 class playerSearchDialogBox extends StatefulWidget {
@@ -114,7 +114,7 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                       // Filter the stats to include only those that are null
                       final country = await Navigator.push<Country>(
                         context,
-                        CountriesPage.route(),
+                        CountriesSelectionPage.route(),
                       );
                       if (country != null) {
                         setState(() {

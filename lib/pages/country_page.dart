@@ -1,12 +1,16 @@
-import 'package:intl/intl.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/models/club/clubCardWidget.dart';
+import 'package:opengoalz/models/club/clubHelper.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/multiverse/multiverse.dart';
+import 'package:opengoalz/models/multiverse/multiverseChoiceListTile.dart';
+import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/player_card.dart';
-import 'package:opengoalz/models/profile.dart';
+import 'package:opengoalz/pages/countriesSelection_page.dart';
+import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -36,6 +40,8 @@ class _CountryPageState extends State<CountryPage>
     with SingleTickerProviderStateMixin {
   late Stream<Country> _countryStream; // Define the stream
   late TabController _tabController; // Add TabController
+  Multiverse? _selectedMultiverse; // Add the multiverse
+  Country? _selectedCountry; // Add the selected country
 
   @override
   void initState() {
@@ -44,10 +50,16 @@ class _CountryPageState extends State<CountryPage>
     _tabController =
         TabController(length: 3, vsync: this); // Initialize TabController
 
+    setMultiverse(widget.idMultiverse); // Initialize _idMultiverse
+
+    fetchCountry(widget.idCountry); // Fetch the country
+  }
+
+  Future<void> fetchCountry(int idCountry) async {
     _countryStream = supabase
         .from('countries')
         .stream(primaryKey: ['id'])
-        .eq('id', widget.idCountry)
+        .eq('id', idCountry)
         .map((maps) => Country.fromMap(maps.first))
 
         /// Fetch the clubs belonging to the country
@@ -56,9 +68,10 @@ class _CountryPageState extends State<CountryPage>
               .from('clubs')
               .stream(primaryKey: ['id'])
               .eq('id_country', country.id)
+              .order('elo_points', ascending: false)
               .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((clubs) {
-                country.clubs = clubs;
+                country.clubsAll = clubs;
                 return country;
               });
         })
@@ -72,10 +85,19 @@ class _CountryPageState extends State<CountryPage>
               .order('performance_score', ascending: false)
               .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
               .map((players) {
-                country.players = players;
+                country.playersAll = players;
                 return country;
               });
         });
+  }
+
+  Future<void> setMultiverse(int? idMultiverse) async {
+    if (idMultiverse == null) {
+      _selectedMultiverse = null;
+    } else {
+      _selectedMultiverse = await Multiverse.fromId(idMultiverse);
+    }
+    setState(() {});
   }
 
   @override
@@ -95,21 +117,66 @@ class _CountryPageState extends State<CountryPage>
           return const Center(child: CircularProgressIndicator());
         } else {
           Country country = snapshot.data!;
-
-          /// Remove the club and player if the idMultiverse is not null
-          if (widget.idMultiverse != null) {
-            country.clubs.removeWhere(
-                (club) => club.idMultiverse != widget.idMultiverse);
-            country.players.removeWhere(
-                (player) => player.idMultiverse != widget.idMultiverse);
-          }
+          // Set the clubs and players of the country
+          country.clubsSelected = _selectedMultiverse == null
+              ? country.clubsAll
+              : country.clubsAll
+                  .where((Club club) =>
+                      club.idMultiverse == _selectedMultiverse!.id)
+                  .toList();
+          country.playersSelected = _selectedMultiverse == null
+              ? country.playersAll
+              : country.playersAll
+                  .where((Player player) =>
+                      player.idMultiverse == _selectedMultiverse!.id)
+                  .toList();
 
           return Scaffold(
             appBar: AppBar(
-              title: Text('Country: ${country.name}'),
+              // title: Text('Country: ${country.name}'),
+              title: getCountryFlagAndNameWidget(country),
               leading: goBackIconButton(context),
+              actions: [
+                IconButton(
+                  tooltip: 'Change the country',
+                  icon: Icon(iconCountries, color: Colors.green),
+                  onPressed: () async {
+                    _selectedCountry = await Navigator.push<Country>(
+                      context,
+                      CountriesSelectionPage.route(),
+                    );
+                    if (_selectedCountry != null) {
+                      fetchCountry(_selectedCountry!.id);
+                    }
+                    setState(() {});
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Change the multiverse',
+                  icon: Icon(iconMultiverseSpeed,
+                      color: _selectedMultiverse == null
+                          ? Colors.orange
+                          : Colors.green),
+                  onPressed: () async {
+                    if (_selectedMultiverse != null) {
+                      setMultiverse(null);
+                      context.showSnackBarSuccess(
+                        'The multiverse has been reset',
+                      );
+                      return;
+                    }
+                    final multiverse = await Navigator.push<Multiverse>(
+                      context,
+                      MultiversePage.route(
+                        _selectedMultiverse?.id,
+                        isReturningMultiverse: true,
+                      ),
+                    );
+                    setMultiverse(multiverse?.id);
+                  },
+                ),
+              ],
             ),
-            // drawer: const AppDrawer(),
             body: MaxWidthContainer(
                 child: DefaultTabController(
               length: 3, // The number of outer tabs
@@ -119,16 +186,16 @@ class _CountryPageState extends State<CountryPage>
                     buildTabWithIcon(icon: iconCountries, text: country.name),
                     buildTabWithIcon(
                         icon: iconClub,
-                        text: 'Clubs (${country.clubs.length})'),
+                        text: 'Clubs (${country.clubsSelected.length})'),
                     buildTabWithIcon(
                         icon: iconPlayers,
-                        text: 'Players (${country.players.length})'),
+                        text: 'Players (${country.playersSelected.length})'),
                   ]),
                   Expanded(
                     child: TabBarView(controller: _tabController, children: [
                       /// Country presentation
                       _getCountryPresentationWidget(
-                          context, country, widget.idMultiverse),
+                          context, country, _selectedMultiverse?.id),
 
                       /// Clubs of the country
                       _getClubsWidget(context, country),
@@ -153,7 +220,8 @@ class _CountryPageState extends State<CountryPage>
         getCountryListTileFromCountry(context, country, idMultiverse,
             isClickable: false),
         ListTile(
-          title: Text('Clubs: ${country.clubs.length}'),
+          title: Text(
+              'Clubs: ${country.clubsSelected.length} ${_selectedMultiverse == null ? '' : '(${country.clubsAll.length})'}'),
           subtitle: Text('Total number of clubs in this country',
               style: styleItalicBlueGrey),
           leading: Icon(iconClub, color: Colors.green),
@@ -163,7 +231,8 @@ class _CountryPageState extends State<CountryPage>
           },
         ),
         ListTile(
-          title: Text('Players: ${country.players.length}'),
+          title: Text(
+              'Players: ${country.playersSelected.length} ${_selectedMultiverse == null ? '' : '(${country.playersAll.length})'}'),
           subtitle: Text('Total number of players in this country',
               style: styleItalicBlueGrey),
           leading: Icon(iconPlayers, color: Colors.green),
@@ -177,15 +246,15 @@ class _CountryPageState extends State<CountryPage>
   }
 
   _getClubsWidget(BuildContext context, Country country) {
-    if (country.clubs.isEmpty) {
+    if (country.clubsSelected.isEmpty) {
       return const Center(
         child: Text('No clubs found for this country'),
       );
     }
     return ListView.builder(
-      itemCount: country.clubs.length,
+      itemCount: country.clubsSelected.length,
       itemBuilder: (context, index) {
-        Club club = country.clubs[index];
+        Club club = country.clubsSelected[index];
 
         return ListTile(
           title: Row(
@@ -195,7 +264,16 @@ class _CountryPageState extends State<CountryPage>
               club.getLastResultsWidget(context),
             ],
           ),
-          subtitle: getUserNameClickable(context, userName: club.userName),
+          subtitle: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              clubEloRow(context, club.id, club.clubData.eloPoints),
+              _selectedMultiverse == null
+                  ? getMultiverseIconFromId_Clickable(
+                      context, club.idMultiverse)
+                  : club.getClubRankingRow(context),
+            ],
+          ),
           leading: Icon(iconClub, size: iconSizeMedium, color: Colors.green),
           shape: shapePersoRoundedBorder(),
         );
@@ -204,15 +282,15 @@ class _CountryPageState extends State<CountryPage>
   }
 
   _getPlayersWidget(BuildContext context, Country country) {
-    if (country.players.isEmpty) {
+    if (country.playersSelected.isEmpty) {
       return const Center(
         child: Text('No players found for this country'),
       );
     }
     return ListView.builder(
-      itemCount: country.players.length,
+      itemCount: country.playersSelected.length,
       itemBuilder: (context, index) {
-        Player player = country.players[index];
+        Player player = country.playersSelected[index];
         return PlayerCard(player: player, index: index + 1, isExpanded: false);
       },
     );

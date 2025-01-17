@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:supabase/supabase.dart';
 
@@ -89,10 +88,7 @@ class ClubData {
         .order('week_number')
         .order('season_number', ascending: true)
         .map((maps) {
-          maps.forEach((map) {
-            print(
-                'Season: ${map['season_number']}, Week: ${map['week_number']}');
-          });
+          maps.forEach((map) {});
           return maps.map((map) => ClubData.fromMap(map)).toList();
         });
   }

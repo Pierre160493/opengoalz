@@ -2,6 +2,7 @@ import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/country.dart';
+import 'package:opengoalz/pages/continent_page.dart';
 import 'package:opengoalz/pages/country_page.dart';
 
 // Widget getCountryListTile(BuildContext context, int? idCountry) {
@@ -76,9 +77,20 @@ Widget getCountryListTileFromCountry(
       children: [
         Icon(Icons.public, size: iconSizeSmall),
         formSpacer3,
-        Text(country.continents.first ?? 'Unknown',
-            style:
-                TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey)),
+        InkWell(
+          onTap: country.continents.first == null
+              ? null
+              : () {
+                  Navigator.push(
+                    context,
+                    ContinentPage.route(country.continents.first!,
+                        idMultiverse: idMultiverse),
+                  );
+                },
+          child: Text(country.continents.first ?? 'Unknown',
+              style: TextStyle(
+                  fontStyle: FontStyle.italic, color: Colors.blueGrey)),
+        ),
       ],
     ),
     onTap: isClickable == false

@@ -6,20 +6,20 @@ import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
-class CountriesPage extends StatefulWidget {
-  const CountriesPage({Key? key}) : super(key: key);
+class CountriesSelectionPage extends StatefulWidget {
+  const CountriesSelectionPage({Key? key}) : super(key: key);
 
   static Route<Country> route() {
     return MaterialPageRoute(
-      builder: (context) => CountriesPage(),
+      builder: (context) => CountriesSelectionPage(),
     );
   }
 
   @override
-  State<CountriesPage> createState() => _CountriesPageState();
+  State<CountriesSelectionPage> createState() => _CountriesSelectionPageState();
 }
 
-class _CountriesPageState extends State<CountriesPage> {
+class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
   late final Stream<List<Country>> _countriesStream;
   bool _isSearching = false;
   String _searchQuery = '';
