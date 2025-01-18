@@ -3,7 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/scoreWidget.dart';
-import 'package:opengoalz/widgets/descriptionParser.dart';
+import 'package:opengoalz/functions/descriptionParser.dart';
 
 Widget buildListOfEvents(BuildContext context, List<GameEvent> events,
     Game game, bool initialExpanded) {

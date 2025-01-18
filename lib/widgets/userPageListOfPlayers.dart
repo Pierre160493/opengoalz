@@ -59,7 +59,7 @@ Widget userPlayerListWidget(BuildContext context, Profile user) {
           onTap: () => showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AssignPlayerOrClubDialog(isClub: false);
+              return AssignPlayerOrClubDialogBox(isClub: false);
             },
           ),
         ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/widgets/descriptionParser.dart';
+import 'package:opengoalz/functions/descriptionParser.dart';
 
 class ClubCardHistoryWidget extends StatefulWidget {
   final Club club;

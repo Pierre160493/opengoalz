@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
-import 'package:opengoalz/models/player/playerHistoryWidget.dart';
+import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
 import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -314,7 +314,7 @@ class _PlayerCardState extends State<PlayerCard>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            getAgeListTile(widget.player),
+                            getAgeListTile(context, widget.player),
                             getCountryListTileFromIdCountry(
                                 context,
                                 widget.player.idCountry,
@@ -364,7 +364,7 @@ class _PlayerCardState extends State<PlayerCard>
         ),
         body: TabBarView(
           children: [
-            PlayerCardHistoryWidget(player: widget.player),
+            PlayerHistoryListTiles(player: widget.player),
             PostItNote(player: widget.player),
           ],
         ),

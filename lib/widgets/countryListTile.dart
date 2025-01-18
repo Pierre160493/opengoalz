@@ -75,7 +75,7 @@ Widget getCountryListTileFromCountry(
     ),
     subtitle: Row(
       children: [
-        Icon(Icons.public, size: iconSizeSmall),
+        Icon(Icons.public, size: iconSizeSmall, color: Colors.green),
         formSpacer3,
         InkWell(
           onTap: country.continents.first == null

@@ -171,7 +171,7 @@ extension ClubWidgetHelper on Club {
               borderRadius:
                   BorderRadius.circular(6), // Adjust border radius as needed
               border: Border.all(
-                color: Colors.blueGrey, // Border color
+                color: Colors.green, // Border color
               ),
             ),
             child: Column(
@@ -212,7 +212,7 @@ extension ClubWidgetHelper on Club {
               borderRadius:
                   BorderRadius.circular(6), // Adjust border radius as needed
               border: Border.all(
-                color: Colors.blueGrey, // Border color
+                color: Colors.green, // Border color
               ),
             ),
             child: Column(
@@ -254,7 +254,7 @@ extension ClubWidgetHelper on Club {
               borderRadius:
                   BorderRadius.circular(6), // Adjust border radius as needed
               border: Border.all(
-                color: Colors.blueGrey, // Border color
+                color: Colors.green, // Border color
               ),
             ),
             child: Column(
@@ -296,7 +296,7 @@ extension ClubWidgetHelper on Club {
               borderRadius:
                   BorderRadius.circular(6), // Adjust border radius as needed
               border: Border.all(
-                color: Colors.blueGrey, // Border color
+                color: Colors.green, // Border color
               ),
             ),
             child: Column(

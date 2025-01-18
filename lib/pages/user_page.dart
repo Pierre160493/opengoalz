@@ -289,7 +289,7 @@ class _UserPageState extends State<UserPage> {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
-                        return AssignPlayerOrClubDialog(isClub: true);
+                        return AssignPlayerOrClubDialogBox(isClub: true);
                       },
                     );
                   }
@@ -320,7 +320,7 @@ class _UserPageState extends State<UserPage> {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
-                        return AssignPlayerOrClubDialog(isClub: false);
+                        return AssignPlayerOrClubDialogBox(isClub: false);
                       },
                     );
                   }

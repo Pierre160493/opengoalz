@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 TextSpan parseDescriptionTextSpan(BuildContext context, String description,
     {Color colorDefaultText = Colors.white}) {
   final RegExp regex =
-      RegExp(r'\{id(Player|Club|League|Game|Teamcomp):(\d+),([^}]+)\}');
+      RegExp(r'\{id(Player|Club|League|Game|Teamcomp):(-?\d+),([^}]+)\}');
   final List<TextSpan> spans = [];
   int start = 0;
 

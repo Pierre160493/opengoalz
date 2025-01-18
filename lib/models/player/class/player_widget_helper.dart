@@ -176,7 +176,7 @@ extension PlayerWidgetsHelper on Player {
             children: [
               Row(
                 children: [
-                  Expanded(child: getAgeListTile(this)),
+                  Expanded(child: getAgeListTile(context, this)),
                   Expanded(
                       child: getCountryListTileFromIdCountry(
                           context, idCountry, idMultiverse)),
@@ -196,7 +196,7 @@ extension PlayerWidgetsHelper on Player {
           // Display information for smaller screens
           return Column(
             children: [
-              getAgeListTile(this),
+              getAgeListTile(context, this),
               getCountryListTileFromIdCountry(context, idCountry, idMultiverse),
               getPerformanceScoreListTile(context),
               getExpensesWidget(context),
@@ -275,9 +275,9 @@ extension PlayerWidgetsHelper on Player {
               formSpacer3,
               Text(
                 expensesExpected.toString(),
-                // style: TextStyle(
-                //   fontWeight: FontWeight.bold,
-                // ),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),

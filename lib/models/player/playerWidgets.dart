@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
 import 'package:opengoalz/models/player/playerNotesDialogBox.dart';
 import 'package:opengoalz/models/player/playerShirtNumberDialogBox.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -125,7 +126,7 @@ Widget getPlayerHistoryStreamGraph(
   );
 }
 
-Widget getAgeListTile(Player player) {
+Widget getAgeListTile(BuildContext context, Player player) {
   return ListTile(
     shape: shapePersoRoundedBorder(),
     leading: Icon(
@@ -135,18 +136,33 @@ Widget getAgeListTile(Player player) {
     ),
     title: Row(
       children: [
-        // Icon(iconAge, size: iconSizeMedium),
         getAgeStringRow(player.age),
       ],
     ),
     subtitle: Row(
       children: [
-        Icon(Icons.event, size: iconSizeSmall),
+        Icon(Icons.event, size: iconSizeSmall, color: Colors.green),
         formSpacer3,
         Text(DateFormat(persoDateFormat).format(player.dateBirth),
             style:
                 TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey)),
       ],
     ),
+    onTap: () {
+      /// Open a dialog box with the player's history
+      showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: maxWidth * 0.8, // Define a maximum width
+              ),
+              child: PlayerHistoryListTiles(player: player),
+            ),
+          );
+        },
+      );
+    },
   );
 }

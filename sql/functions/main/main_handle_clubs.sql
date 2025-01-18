@@ -156,10 +156,11 @@ BEGIN
             clubs.continent,
             COUNT(players.id) AS player_count,
             11 - COUNT(players.id) AS missing_players,
-            16 + 10 * RANDOM() AS player_age
+            15 + 5 * RANDOM() AS player_age
         FROM clubs
         LEFT JOIN players ON players.id_club = clubs.id
         WHERE clubs.id_multiverse = inp_multiverse.id
+        AND clubs.username IS NULL -- Only for bot clubs
         GROUP BY clubs.id, clubs.name, clubs.id_country, clubs.continent
         HAVING COUNT(players.id) < 11)
     LOOP

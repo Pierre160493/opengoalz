@@ -10,22 +10,22 @@ import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseChoiceListTile.dart';
 import 'package:opengoalz/pages/countriesSelection_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
-import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class AssignPlayerOrClubDialog extends StatefulWidget {
+class AssignPlayerOrClubDialogBox extends StatefulWidget {
   final isClub; // Should the assignement be for a club or a player
-  AssignPlayerOrClubDialog({required this.isClub});
+  AssignPlayerOrClubDialogBox({required this.isClub});
   @override
-  _AssignPlayerOrClubDialogState createState() =>
-      _AssignPlayerOrClubDialogState();
+  _AssignPlayerOrClubDialogBoxState createState() =>
+      _AssignPlayerOrClubDialogBoxState();
 }
 
-class _AssignPlayerOrClubDialogState extends State<AssignPlayerOrClubDialog> {
+class _AssignPlayerOrClubDialogBoxState
+    extends State<AssignPlayerOrClubDialogBox> {
   Multiverse? _selectedMultiverse;
   Country? _selectedCountry;
   Club? _selectedClub;

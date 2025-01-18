@@ -23,14 +23,19 @@ BEGIN
         motivation = LEAST(100, GREATEST(0,
             motivation + (random() * 20 - 8) -- Random [-8, +12]
             + ((70 - motivation) / 10) -- +7; -3 based on value
-            - ((expenses_missed / expenses_expected) ^ 0.5) * 10)),
+            - ((expenses_missed / expenses_expected) ^ 0.5) * 10
+            -- Lower motivation based on age for bot clubs
+            - (CASE
+                WHEN id_club IS NULL THEN 0
+                ELSE GREATEST(0, calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) - 30) END)
+        )),
         form = LEAST(100, GREATEST(0,
             form + (random() * 20 - 10) + ((70 - form) / 10)
             )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
         stamina = LEAST(100, GREATEST(0,
             stamina + (random() * 20 - 10) + ((70 - stamina) / 10)
             )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
-        experience = experience + 0.1
+        experience = experience + 0.025
     WHERE id_multiverse = inp_multiverse.id;
 
     ------ If player's motivation is too low, risk of leaving club

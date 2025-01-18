@@ -23,7 +23,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 part 'player_widget_helper.dart';
 part 'player_widget_actions.dart';
 part 'player_card_details.dart';
-part 'player_card_history.dart';
 
 class Player {
   Club? club;
