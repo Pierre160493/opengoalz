@@ -240,7 +240,6 @@ class _CalendarPageState extends State<CalendarPage> {
           child: ListView.builder(
             itemCount: _selectedEvents.length,
             itemBuilder: (context, index) {
-              print(_selectedEvents);
               final Map<DateTime, String> event = _selectedEvents[index];
 
               return ListTile(

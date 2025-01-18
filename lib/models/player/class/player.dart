@@ -66,6 +66,7 @@ class Player {
     required this.notes,
     required this.notesSmall,
     required this.performanceScore,
+    required this.idGamesPlayed,
   });
 
   final int id;
@@ -104,6 +105,7 @@ class Player {
   final String notes;
   final String notesSmall;
   final double performanceScore;
+  final List<int> idGamesPlayed;
 
   Player.fromMap(Map<String, dynamic> map)
       : id = map['id'],
@@ -145,7 +147,8 @@ class Player {
         dateArrival = DateTime.parse(map['date_arrival']).toLocal(),
         notes = map['notes'],
         notesSmall = map['notes_small'],
-        performanceScore = (map['performance_score'] as num).toDouble();
+        performanceScore = (map['performance_score'] as num).toDouble(),
+        idGamesPlayed = List<int>.from(map['id_games_played']);
 
   double get age {
     return calculateAge(dateBirth, multiverseSpeed);

@@ -310,7 +310,6 @@ class _AssignPlayerOrClubDialogBoxState
                                 matchCriteria: {
                                   'id': _selectedClub!.id,
                                 });
-                            print('isOK: $isOK');
 
                             if (isOK) {
                               context.showSnackBarSuccess(

@@ -107,7 +107,7 @@ class Club {
         revenuesTransfersExpected = map['revenues_transfers_expected'],
         expensesTransfersExpected = map['expenses_transfers_expected'],
         continent = map['continent'] {
-    print(map);
+    // print(map);
   }
 
   /// Fetch the club from its id

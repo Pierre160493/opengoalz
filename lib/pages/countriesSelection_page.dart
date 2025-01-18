@@ -118,7 +118,6 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
               !countriesByContinent.keys.contains(_selectedContinent)) {
             _selectedContinent = countriesByContinent.keys.first;
           }
-          print('Selected continent: $_selectedContinent');
 
           return Scaffold(
             appBar: AppBar(
@@ -211,7 +210,6 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
                             ],
                           ),
                           onTap: () {
-                            print('Selected country: ${country}');
                             if (country.selectedContinent == 'Others') {
                               context.showSnackBarError(
                                   'Cannot select country from continent "Others"');

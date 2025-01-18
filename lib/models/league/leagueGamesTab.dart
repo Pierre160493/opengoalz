@@ -23,8 +23,7 @@ extension LeagueGamesTab on League {
           TabBar(
             tabs: [
               buildTabWithIcon(
-                  icon: iconGamePlayed,
-                  text: 'Played (${gamesPlayed.length})'),
+                  icon: iconGamePlayed, text: 'Played (${gamesPlayed.length})'),
               if (gamesCurrent.length > 0)
                 buildTabWithIcon(
                     icon: Icons.notifications_active,
@@ -89,11 +88,9 @@ extension LeagueGamesTab on League {
                 onTap: () {
                   Navigator.of(context).push(GamePage.route(game.id, 0));
                 },
-                // child: _buildGameDescription(game),
                 child: game.getGamePresentation(context),
               );
             },
-            // leading: Text('test')
           ),
         ),
       ],

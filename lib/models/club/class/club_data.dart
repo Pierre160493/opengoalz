@@ -132,7 +132,6 @@ class ClubData {
           .eq('id_club', clubId)
           .order('season_number', ascending: true)
           .order('week_number', ascending: true);
-      print('response: $response');
       final List<num> values = (response as List<dynamic>)
           .map((item) => (item[dataToFetch] as num))
           .toList();

@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
-import 'package:opengoalz/models/player/player_card.dart';
+import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/subs.dart';

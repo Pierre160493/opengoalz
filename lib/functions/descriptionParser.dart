@@ -27,8 +27,6 @@ TextSpan parseDescriptionTextSpan(BuildContext context, String description,
     final String id = match.group(2)!;
     final String text = match.group(3)!;
 
-    // print('type: $type, id: $id, text: $text');
-
     spans.add(TextSpan(
       text: text,
       style: TextStyle(

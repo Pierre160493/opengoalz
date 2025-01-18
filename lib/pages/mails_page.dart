@@ -475,7 +475,6 @@ class _MailsPageState extends State<MailsPage> {
                   ),
                 ],
                 onExpansionChanged: (isExpanded) async {
-                  print('Click on MAIL: isExpanded: $isExpanded');
                   if (isExpanded && !mail.isRead) {
                     await operationInDB(context, 'UPDATE', 'messages_mail',
                         data: {
@@ -484,7 +483,6 @@ class _MailsPageState extends State<MailsPage> {
                         matchCriteria: {
                           'id': mail.id,
                         });
-                    print('FIN: Click on MAIL: isExpanded: $isExpanded');
                   }
                 },
               ),

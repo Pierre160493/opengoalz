@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
+import 'package:opengoalz/models/player/playerCardGamesTab.dart';
 import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
 import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
@@ -203,7 +204,7 @@ class _PlayerCardState extends State<PlayerCard>
                       /// History tab
                       // widget.player.playerCardStatsWidget(context),
                       // PostItNote(player: widget.player),
-                      PlayerOtherTab()
+                      PlayerCardOtherTab(widget.player)
                     ],
                   ),
                 ),
@@ -340,7 +341,7 @@ class _PlayerCardState extends State<PlayerCard>
                       /// Others tab
                       // widget.player.playerCardStatsWidget(context),
                       // PostItNote(player: widget.player),
-                      PlayerOtherTab()
+                      PlayerCardOtherTab(widget.player)
                     ],
                   ),
                 ),
@@ -350,25 +351,24 @@ class _PlayerCardState extends State<PlayerCard>
       ),
     );
   }
+}
 
-  Widget PlayerOtherTab() {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: TabBar(
-          tabs: [
-            // buildTabWithIcon(icon:iconGames, 'Games'),
-            buildTabWithIcon(icon: iconHistory, text: 'History'),
-            buildTabWithIcon(icon: iconNotesBig, text: 'Notes'),
-          ],
-        ),
-        body: TabBarView(
-          children: [
-            PlayerHistoryListTiles(player: widget.player),
-            PostItNote(player: widget.player),
-          ],
-        ),
+Widget PlayerCardOtherTab(Player player) {
+  return DefaultTabController(
+    length: 2,
+    child: Scaffold(
+      appBar: TabBar(
+        tabs: [
+          buildTabWithIcon(icon: iconGames, text: 'Games'),
+          buildTabWithIcon(icon: iconHistory, text: 'History'),
+        ],
       ),
-    );
-  }
+      body: TabBarView(
+        children: [
+          PlayerGamesTab(player),
+          PlayerHistoryListTiles(player: player),
+        ],
+      ),
+    ),
+  );
 }

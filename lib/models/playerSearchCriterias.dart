@@ -99,9 +99,7 @@ class PlayerSearchCriterias {
 
     if (multiverse != null) {
       minDateBirth = calculateDateBirth(selectedMinAge, multiverse!.speed);
-      print('Minimum Age: $selectedMinAge ==> $minDateBirth');
       maxDateBirth = calculateDateBirth(selectedMaxAge, multiverse!.speed);
-      print('Maximum Age: $selectedMaxAge ==> $maxDateBirth');
     } else {
       minDateBirth = null;
       maxDateBirth = null;
@@ -236,11 +234,7 @@ class PlayerSearchCriterias {
     }
 
     if (onTransferList) {
-      print('Filtering players on transfer list');
-      // query = query.isFilter('date_bid_end', null);
       query = query.not('date_bid_end', 'is', null);
-      // query.gte('date_bid_end', DateTime.now().toIso8601String());
-      // query.gte('date_bid_end', DateTime.now().toUtc().toIso8601String());
     }
 
     if (minDateBirth != null) {
@@ -265,7 +259,6 @@ class PlayerSearchCriterias {
     }
 
     // Fetch the data from the database
-    print('Query: ${query.toString()}');
     final data = await query; // Now query includes the filter if it was applied
 
     // Extract the IDs and add them to the playerIds list

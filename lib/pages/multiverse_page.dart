@@ -67,10 +67,6 @@ class _MultiversePageState extends State<MultiversePage>
             _calculateEventGames(_selectedMultiverse!);
             _selectedEvents = _getEventsOfSelectedDay(_selectedDay);
           }
-
-          print(
-              'Multiverse Stream: NEW DATA EMITED (${DateTime.now().hour}:${DateTime.now().minute})');
-
           return multiverses;
         });
     super.initState();
@@ -258,8 +254,6 @@ class _MultiversePageState extends State<MultiversePage>
                                         : null,
                                     onTap: () {
                                       setState(() {
-                                        print(
-                                            'Selected multiverse: ${multiverse.name}');
                                         _selectedMultiverse = multiverse;
                                         _calculateEventGames(
                                             _selectedMultiverse!);

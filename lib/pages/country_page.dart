@@ -8,7 +8,7 @@ import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseChoiceListTile.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/player_card.dart';
+import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/pages/countriesSelection_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';

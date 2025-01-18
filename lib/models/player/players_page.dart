@@ -9,7 +9,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/models/player/player_card.dart';
+import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'class/player.dart';
 import '../../constants.dart';
 

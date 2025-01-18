@@ -8,7 +8,6 @@ import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
-import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import '../constants.dart';
 
@@ -87,7 +86,6 @@ class _RankingPageState extends State<LeaguePage> {
               .first;
         })
         .switchMap((League league) {
-          print('Selected season: $_selectedSeason');
 
           return supabase
               .from('games')
@@ -110,7 +108,6 @@ class _RankingPageState extends State<LeaguePage> {
               .toSet()
               .toList()
               .cast<int>();
-          print('Clubs id Before Fetch' + clubsIds.toString());
           return supabase
               .from('clubs')
               .stream(primaryKey: ['id'])
@@ -118,17 +115,12 @@ class _RankingPageState extends State<LeaguePage> {
               .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((clubs) {
                 league.clubsAll = clubs;
-                print(league.games
-                    .where((game) => game.weekNumber == 1)
-                    .expand((game) => [game.idClubLeft, game.idClubRight]));
                 league.clubsLeague = clubs
                     .where((Club club) => league.games
                         .where((game) => game.weekNumber == 1)
                         .expand((game) => [game.idClubLeft, game.idClubRight])
                         .contains(club.id))
                     .toList();
-                print('Clubs id After Fetch: ' +
-                    league.clubsLeague.length.toString());
                 for (Game game in league.games) {
                   if (game.idClubLeft != null) {
                     game.leftClub = league.clubsAll.firstWhere(

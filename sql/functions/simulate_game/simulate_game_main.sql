@@ -165,7 +165,8 @@ BEGIN
 
             ------ Update player to say they are currently playing a game
         UPDATE players SET
-            is_playing = TRUE
+            is_playing = TRUE,
+            id_games_played = id_games_played || rec_game.id
         WHERE id = ANY(loc_array_players_id_left)
            OR id = ANY(loc_array_players_id_right);
         
