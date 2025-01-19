@@ -115,140 +115,32 @@ extension GameClassWidgetHelper on Game {
                         );
                       },
                     ),
+              if (eloExchangedPoints != null)
+                Tooltip(
+                  message: 'Number of elo points won',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.swap_horizontal_circle,
+                        color: Colors.green,
+                      ),
+                      Text(
+                        eloExchangedPoints == null
+                            ? '?'
+                            : eloExchangedPoints.toString(),
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
             ],
           ),
         ),
         clubEloRow(context, idClubRight, eloRight),
       ],
-    );
-  }
-
-  // Widget rowEloScore(int? eloScore) {
-  //   return Tooltip(
-  //     message: 'Elo score of the club',
-  //     child: Row(
-  //       children: [
-  //         Icon(
-  //           iconElo,
-  //           color: Colors.green,
-  //         ),
-  //         Text(
-  //           eloScore.toString(),
-  //           style: TextStyle(
-  //             color: Colors.blueGrey,
-  //             fontWeight: FontWeight.bold,
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  Widget getGamePresentation(BuildContext context) {
-    return Card(
-      elevation: 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Colors.blueGrey,
-          width: 3.0,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            getGameIcon(),
-            formSpacer12,
-            Expanded(
-                child: Column(
-              children: [
-                getGameResultRow(context, isSpaceEvenly: true),
-
-                /// If this is a return game of a two games round, display the score
-                if (isReturnGameIdGameFirstRound != null)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              GamePage.route(
-                                  isReturnGameIdGameFirstRound!,
-                                  isLeftClubSelected == null
-                                      ? 0
-                                      : isLeftClubSelected!
-                                          ? idClubLeft
-                                          : idClubRight),
-                            );
-                          },
-                          child: Row(
-                            children: [
-                              Icon(Icons.queue_play_next, color: Colors.green),
-                              formSpacer3,
-                              Text('First Leg Game: ',
-                                  style: TextStyle(color: Colors.blueGrey)),
-                              getScoreRowFromScore(
-                                  scorePreviousLeft, scorePreviousRight, false,
-                                  isLeftClubSelected: isLeftClubSelected),
-                              // Text(
-                              //     '${scorePrehhhviousLeft == null ? '?' : scorePreviousLeft} - ${scorePreviousRight == null ? '?' : scorePreviousRight}'),
-                            ],
-                          )),
-                    ],
-                  ),
-                getGameEloRow(context, eloLeft, eloRight),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.description,
-                      color: Colors.blueGrey,
-                    ),
-                    Expanded(
-                      child: Text(
-                        // idDescription.toString(),
-                        description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.blueGrey,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.timer_outlined,
-                      color: Colors.blueGrey,
-                    ),
-                    // Text(' Date: '),
-                    Text(
-                      DateFormat(' dd/MM HH:mm').format(dateStart),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.blueGrey),
-                    ),
-                    Spacer(),
-                    Icon(
-                      Icons.calendar_month_outlined,
-                      color: Colors.blueGrey,
-                    ),
-                    Text(
-                      ' Week: $weekNumber',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.blueGrey),
-                    ),
-                  ],
-                ),
-              ],
-            )),
-          ],
-        ),
-      ),
     );
   }
 }

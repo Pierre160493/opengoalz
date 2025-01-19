@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/game/gameCard.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:rxdart/rxdart.dart';
@@ -19,7 +20,8 @@ class PlayerGamesTab extends StatefulWidget {
 class _PlayerGamesTabState extends State<PlayerGamesTab> {
   late Stream<List<Game>> _gamesStream;
   late StreamSubscription _gamesSubscription;
-  int _seasonNumber = 0;
+  int? _selectedSeasonNumber;
+  int? _maxSeasonNumber;
 
   @override
   void initState() {
@@ -28,7 +30,7 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
         .from('games')
         .stream(primaryKey: ['id'])
         .inFilter('id', widget.player.idGamesPlayed)
-        .order('date_start', ascending: true)
+        .order('date_start', ascending: false)
         .map((maps) => maps.map((map) => Game.fromMap(map, null)).toList())
         .switchMap((List<Game> games) {
           List<int> clubsIds = games
@@ -89,9 +91,12 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
     _gamesSubscription = _gamesStream.listen((games) {
       if (mounted) {
         setState(() {
-          _seasonNumber = games
+          _maxSeasonNumber = games
               .map((game) => game.seasonNumber)
               .reduce((a, b) => a > b ? a : b);
+          if (_selectedSeasonNumber == null) {
+            _selectedSeasonNumber = _maxSeasonNumber;
+          }
         });
       }
     });
@@ -105,62 +110,100 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        ListTile(
-          title: Row(
+    return StreamBuilder(
+      stream: _gamesStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData) {
+          return Center(child: Text('No games found'));
+        } else {
+          List<Game> games = snapshot.data!;
+          List<Game> filteredGames = games
+              .where((game) => game.seasonNumber == _selectedSeasonNumber)
+              .toList();
+          return Column(
             children: [
-              Text('Modify Season Number'),
-              IconButton(
-                icon: Icon(Icons.backspace),
-                onPressed: () {
-                  _seasonNumber = _seasonNumber - 1;
-                  setState(() {});
-                },
+              ListTile(
+                leading: Icon(Icons.calendar_today,
+                    color: Colors.green, size: iconSizeMedium),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Text('Season Number: '),
+                        Text(
+                          _selectedSeasonNumber.toString(),
+                          style: TextStyle(
+                              color: Colors.green, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.remove,
+                              color: _selectedSeasonNumber == 0
+                                  ? Colors.red
+                                  : Colors.green),
+                          onPressed: _selectedSeasonNumber == 0
+                              ? null
+                              : () {
+                                  _selectedSeasonNumber =
+                                      _selectedSeasonNumber! - 1;
+                                  setState(() {});
+                                },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.add,
+                              color: _selectedSeasonNumber == _maxSeasonNumber
+                                  ? Colors.red
+                                  : Colors.green),
+                          onPressed: _selectedSeasonNumber == _maxSeasonNumber
+                              ? null
+                              : () {
+                                  _selectedSeasonNumber =
+                                      _selectedSeasonNumber! + 1;
+                                  setState(() {});
+                                },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                subtitle: Row(
+                  children: [
+                    Icon(Icons.sports_soccer,
+                        color: Colors.green, size: iconSizeSmall),
+                    Text(' Games played: '),
+                    Text(filteredGames.length.toString(),
+                        style: TextStyle(
+                            color: Colors.green, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                shape: shapePersoRoundedBorder(Colors.green, 3),
               ),
-              IconButton(
-                icon: Icon(Icons.backspace),
-                onPressed: () {
-                  _seasonNumber = _seasonNumber + 1;
-                  setState(() {});
-                },
-              ),
-            ],
-          ),
-          trailing: Icon(Icons.edit),
-          onTap: () {
-            // Add your logic to modify the season number here
-          },
-        ),
-        Expanded(
-          child: StreamBuilder(
-            stream: _gamesStream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData) {
-                return Center(child: Text('No games found'));
-              } else {
-                List<Game> games = snapshot.data!;
-                return ListView.builder(
-                  itemCount: games.length,
+              Expanded(
+                child: ListView.builder(
+                  itemCount: filteredGames.length,
                   itemBuilder: (context, index) {
-                    final Game game = games[index];
+                    final Game game = filteredGames[index];
                     return InkWell(
                       onTap: () {
                         Navigator.of(context).push(GamePage.route(game.id, 0));
                       },
-                      child: game.getGamePresentation(context),
+                      child: getGameCardWidget(context, game),
                     );
                   },
-                );
-              }
-            },
-          ),
-        ),
-      ],
+                ),
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 }

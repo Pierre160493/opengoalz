@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/game/gameCard.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
@@ -153,87 +154,6 @@ class _HomePageState extends State<GamesPage> {
                 return club;
               });
         });
-
-    // _clubStream = supabase
-    //     .from('clubs')
-    //     .stream(primaryKey: ['id'])
-    //     .eq('id', widget.idClub)
-    //     .map((maps) => Club.fromMap(maps.first))
-    //     .asyncMap((Club club) async {
-    //       final gamesLeftFuture =
-    //           supabase.from('games').select().eq('id_club_left', club.id);
-    //       final gamesRightFuture =
-    //           supabase.from('games').select().eq('id_club_right', club.id);
-    //       final gamesDescriptionFuture = supabase
-    //           .from('games_description')
-    //           .select()
-    //           .inFilter(
-    //               'id',
-    //               club.games
-    //                   .map((game) => game.idDescription)
-    //                   .toSet()
-    //                   .toList());
-    //       final clubsFuture = supabase.from('clubs').select().inFilter(
-    //           'id',
-    //           [
-    //             ...club.games.map((game) => game.idClubRight),
-    //             ...club.games.map((game) => game.idClubLeft)
-    //           ].toSet().toList());
-    //       final teamCompsFuture =
-    //           supabase.from('games_teamcomp').select().eq('id_club', club.id);
-
-    //       final results = await Future.wait([
-    //         gamesLeftFuture,
-    //         gamesRightFuture,
-    //         gamesDescriptionFuture,
-    //         clubsFuture,
-    //         teamCompsFuture
-    //       ]);
-
-    //       final gamesLeft = (results[0] as List)
-    //           .map((map) => Game.fromMap(map, widget.idClub))
-    //           .toList();
-    //       final gamesRight = (results[1] as List)
-    //           .map((map) => Game.fromMap(map, widget.idClub))
-    //           .toList();
-    //       final gamesDescription = results[2] as List;
-    //       final clubs =
-    //           (results[3] as List).map((map) => Club.fromMap(map)).toList();
-    //       final teamComps =
-    //           (results[4] as List).map((map) => TeamComp.fromMap(map)).toList();
-
-    //       club.games.addAll(gamesLeft
-    //           .where((game) => game.seasonNumber == club.seasonNumber));
-    //       club.games.addAll(gamesRight
-    //           .where((game) => game.seasonNumber == club.seasonNumber));
-    //       club.games.sort((a, b) => a.dateStart.compareTo(b.dateStart));
-
-    //       for (Game game in club.games) {
-    //         game.description = gamesDescription.firstWhere(
-    //             (map) => map['id'] == game.idDescription)['description'];
-    //         game.rightClub =
-    //             clubs.firstWhere((club) => club.id == game.idClubRight);
-    //         game.leftClub =
-    //             clubs.firstWhere((club) => club.id == game.idClubLeft);
-    //       }
-
-    //       for (TeamComp teamcomp in teamComps.where(
-    //           (teamcomp) => teamcomp.seasonNumber == club.seasonNumber)) {
-    //         if (!club.games
-    //             .any((game) => game.weekNumber == teamcomp.weekNumber)) {
-    //           club.teamComps.add(teamcomp);
-    //         }
-    //       }
-
-    //       // Capture the end time
-    //       final endTime = DateTime.now();
-
-    //       // Calculate the difference
-    //       final loadTime = endTime.difference(startTime);
-    //       print('Page loaded in ${loadTime.inMilliseconds} ms');
-
-    //       return club;
-    //     });
   }
 
   @override
@@ -463,13 +383,9 @@ class _HomePageState extends State<GamesPage> {
                   Navigator.of(context)
                       .push(GamePage.route(game.id, widget.idClub));
                 },
-                // child: _buildGameDescription(game),
-                child:
-                    // game.getGamePresentation(context, idClubSelected: widget.idClub),
-                    game.getGamePresentation(context),
+                child: getGameCardWidget(context, game),
               );
             },
-            // leading: Text('test')
           ),
         ),
       ],
@@ -808,10 +724,8 @@ class _HomePageState extends State<GamesPage> {
                             Navigator.of(context)
                                 .push(GamePage.route(game.id, widget.idClub));
                           },
-                          // child: _buildGameDescription(game),
-                          child: game.getGamePresentation(context));
+                          child: getGameCardWidget(context, game));
                     },
-                    // leading: Text('test')
                   ),
                 ),
               ],

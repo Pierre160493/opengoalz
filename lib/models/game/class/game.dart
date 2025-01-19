@@ -58,6 +58,7 @@ class Game {
     required this.isRightForfeit,
     required this.eloLeft,
     required this.eloRight,
+    required this.eloExchangedPoints,
   });
 
   final int id;
@@ -98,6 +99,7 @@ class Game {
   final bool isRightForfeit;
   final int? eloLeft;
   final int? eloRight;
+  final int? eloExchangedPoints;
 
   factory Game.fromMap(Map<String, dynamic> map, int? idClubSelected) {
     bool? isLeftClubSelected;
@@ -157,6 +159,9 @@ class Game {
       isRightForfeit: map['is_right_forfeit'] ?? false,
       eloLeft: map['elo_left'],
       eloRight: map['elo_right'],
+      eloExchangedPoints: map['elo_exchanged_points'],
     );
   }
+
+  getGameCardWidget(BuildContext context, Game game) {}
 }

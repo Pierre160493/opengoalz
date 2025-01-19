@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/game/gameCard.dart';
 import 'package:opengoalz/models/game/gameDetailsTab.dart';
 import 'package:opengoalz/models/game/gameStatsTab.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
@@ -268,7 +269,7 @@ class _HomePageState extends State<GamePage> {
                 /// Details of the game
                 Column(
                   children: [
-                    game.getGamePresentation(context),
+                    getGameCardWidget(context, game),
                     formSpacer12,
                     buildListOfEvents(
                         context,

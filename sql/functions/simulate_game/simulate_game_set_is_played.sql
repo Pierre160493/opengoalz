@@ -321,9 +321,11 @@ BEGIN
         (rec_game.id_club_overall_winner, 'Coach', text_title_winner, text_message_winner),
         (rec_game.id_club_overall_loser, 'Coach', text_title_loser, text_message_loser);
 
+
     ------ Set the game as played
     UPDATE games SET
-        is_playing = FALSE
+        is_playing = FALSE,
+        elo_exchanged_points = rec_game.exchanged_elo_points
     WHERE id = rec_game.id;
 
     ------ Update player to say they are not playing anymore

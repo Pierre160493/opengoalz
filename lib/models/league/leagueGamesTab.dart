@@ -88,7 +88,7 @@ extension LeagueGamesTab on League {
                 onTap: () {
                   Navigator.of(context).push(GamePage.route(game.id, 0));
                 },
-                child: game.getGamePresentation(context),
+                child: game.getGameCardWidget(context, game),
               );
             },
           ),
