@@ -145,52 +145,6 @@ BEGIN
             FROM clubs WHERE id_league = leagues.id)
     WHERE id_multiverse = inp_multiverse.id
     AND level > 0;
-    
-    ------ Handle clubs that have less then 11 players
-    FOR club IN
-        (SELECT
-            clubs.id,
-            clubs.id_multiverse,
-            clubs.name,
-            clubs.id_country,
-            clubs.continent,
-            COUNT(players.id) AS player_count,
-            11 - COUNT(players.id) AS missing_players,
-            15 + 5 * RANDOM() AS player_age
-        FROM clubs
-        LEFT JOIN players ON players.id_club = clubs.id
-        WHERE clubs.id_multiverse = inp_multiverse.id
-        AND clubs.username IS NULL -- Only for bot clubs
-        GROUP BY clubs.id, clubs.name, clubs.id_country, clubs.continent
-        HAVING COUNT(players.id) < 11)
-    LOOP
-
-        -- Create the missing players
-        loc_id_player := players_create_player(
-            inp_id_multiverse := club.id_multiverse,
-            inp_id_club := club.id,
-            inp_id_country := club.id_country,
-            inp_age := club.player_age,
-            inp_stats := ARRAY[
-                0 + POWER(RANDOM(), 3) * club.player_age, -- keeper
-                0 + RANDOM() * club.player_age, -- defense
-                0 + RANDOM() * club.player_age, -- passes
-                0 + RANDOM() * club.player_age, -- playmaking
-                0 + RANDOM() * club.player_age, -- winger
-                0 + RANDOM() * club.player_age, -- scoring
-                0 + POWER(RANDOM(), 3) * club.player_age], -- freekick
-            inp_notes := 'New Player'
-        );
-
-        -- Store in the club history
-        INSERT INTO clubs_history
-            (id_club, description)
-        VALUES (
-            club.id,
-            string_parser(club.id, 'idClub') || ' joined the squad because of a lack of players'
-        );
-
-    END LOOP;
 
 END;
 $function$

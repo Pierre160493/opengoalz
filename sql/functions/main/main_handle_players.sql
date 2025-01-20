@@ -8,6 +8,20 @@ DECLARE
     rec_player RECORD; -- Record for the player selection
 BEGIN
 
+    ------ Store player's stats in the history
+    INSERT INTO players_history_stats
+        (created_at, id_player, performance_score,
+        expenses_payed, expenses_expected, expenses_missed,
+        keeper, defense, passes, playmaking, winger, scoring, freekick,
+        motivation, form, stamina, energy, experience, training_points_used)
+    SELECT
+        inp_multiverse.date_handling, id, performance_score,
+        expenses_payed, expenses_expected, expenses_missed,
+        keeper, defense, passes, playmaking, winger, scoring, freekick,
+        motivation, form, stamina, energy, experience, training_points_used
+    FROM players
+    WHERE id_multiverse = inp_multiverse.id;
+
     ------ Update the players expenses_missed
     UPDATE players SET
         expenses_missed = CASE
@@ -24,11 +38,10 @@ BEGIN
             motivation + (random() * 20 - 8) -- Random [-8, +12]
             + ((70 - motivation) / 10) -- +7; -3 based on value
             - ((expenses_missed / expenses_expected) ^ 0.5) * 10
-            -- Lower motivation based on age for bot clubs
-            - (CASE
-                WHEN id_club IS NULL THEN 0
-                ELSE GREATEST(0, calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) - 30) END)
-        )),
+            -- Lower motivation based on age for bot clubs from 30 years old
+            - CASE WHEN id_club IS NULL OR (SELECT username FROM clubs WHERE id = id_club) IS NOT NULL THEN 0
+                ELSE GREATEST(0, calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) - 30) * RANDOM() END)
+        ),
         form = LEAST(100, GREATEST(0,
             form + (random() * 20 - 10) + ((70 - form) / 10)
             )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
@@ -79,20 +92,7 @@ BEGIN
         END IF;
     END LOOP;
 
-    ------ Store player's stats in the history
-    INSERT INTO players_history_stats
-        (created_at, id_player, performance_score,
-        expenses_payed, expenses_expected, expenses_missed,
-        keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, energy, experience, training_points_used)
-    SELECT
-        inp_multiverse.date_handling, id, performance_score,
-        expenses_payed, expenses_expected, expenses_missed,
-        keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, energy, experience, training_points_used
-    FROM players
-    WHERE id_multiverse = inp_multiverse.id;
-
+    ------ Update players stats based on training points
     WITH player_data AS (
         SELECT 
             players.id, -- Player's id

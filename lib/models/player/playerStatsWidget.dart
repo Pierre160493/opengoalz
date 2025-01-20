@@ -20,7 +20,7 @@ class PlayerCardStatsWidget extends StatefulWidget {
 class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
   late Stream<List<Map>> _playerHistoricStatsStream;
   int _playerHistoricStatsLength = 0; // Initialize with default value
-  int _playerHistoricStatsToDisplay = 0; // Initialize with default value
+  int _weekOffsetToCompareWithNow = 0; // Initialize with default value
   List<Map> listPlayerHistoricStats = [];
   bool _showTrainingCoef = false;
 
@@ -32,7 +32,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
         .from('players_history_stats')
         .stream(primaryKey: ['id'])
         .eq('id_player', widget.player.id)
-        .order('created_at');
+        .order('created_at', ascending: true);
 
     _listenToPlayerHistoricStream();
   }
@@ -42,7 +42,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
       setState(() {
         listPlayerHistoricStats = data;
         _playerHistoricStatsLength = listPlayerHistoricStats.length;
-        _playerHistoricStatsToDisplay =
+        _weekOffsetToCompareWithNow =
             max(0, min(15, _playerHistoricStatsLength) - 1);
         print('Player historic stats: $_playerHistoricStatsLength');
       });
@@ -85,16 +85,16 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
       widget.player.freekick,
     ];
     var statsHistoric = [];
-    if (listPlayerHistoricStats.isNotEmpty &&
-        _playerHistoricStatsToDisplay > 0) {
+    if (listPlayerHistoricStats.isNotEmpty && _weekOffsetToCompareWithNow > 0) {
+      int index = listPlayerHistoricStats.length - _weekOffsetToCompareWithNow;
       statsHistoric = [
-        listPlayerHistoricStats[_playerHistoricStatsToDisplay]['keeper'],
-        listPlayerHistoricStats[_playerHistoricStatsToDisplay]['defense'],
-        listPlayerHistoricStats[_playerHistoricStatsToDisplay]['passes'],
-        listPlayerHistoricStats[_playerHistoricStatsToDisplay]['playmaking'],
-        listPlayerHistoricStats[_playerHistoricStatsToDisplay]['winger'],
-        listPlayerHistoricStats[_playerHistoricStatsToDisplay]['scoring'],
-        listPlayerHistoricStats[_playerHistoricStatsToDisplay]['freekick'],
+        listPlayerHistoricStats[index]['keeper'],
+        listPlayerHistoricStats[index]['defense'],
+        listPlayerHistoricStats[index]['passes'],
+        listPlayerHistoricStats[index]['playmaking'],
+        listPlayerHistoricStats[index]['winger'],
+        listPlayerHistoricStats[index]['scoring'],
+        listPlayerHistoricStats[index]['freekick'],
       ];
     }
 
@@ -180,7 +180,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
                       .toList(),
                 widget.player.motivation
               ],
-              _playerHistoricStatsToDisplay,
+              _weekOffsetToCompareWithNow,
               context),
           widget.player.getStatLinearWidget(
               'Form',
@@ -191,7 +191,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
                       .toList(),
                 widget.player.form
               ],
-              _playerHistoricStatsToDisplay,
+              _weekOffsetToCompareWithNow,
               context),
           widget.player.getStatLinearWidget(
               'Stamina',
@@ -202,7 +202,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
                       .toList(),
                 widget.player.stamina
               ],
-              _playerHistoricStatsToDisplay,
+              _weekOffsetToCompareWithNow,
               context),
           widget.player.getStatLinearWidget(
               'Energy',
@@ -213,7 +213,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
                       .toList(),
                 widget.player.energy
               ],
-              _playerHistoricStatsToDisplay,
+              _weekOffsetToCompareWithNow,
               context),
           widget.player.getStatLinearWidget(
               'Experience',
@@ -224,7 +224,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
                       .toList(),
                 widget.player.experience
               ],
-              _playerHistoricStatsToDisplay,
+              _weekOffsetToCompareWithNow,
               context),
         ],
       ),
@@ -248,24 +248,46 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
             // style: TextStyle(fontWeight: FontWeight.bold),
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios),
+                tooltip: 'Previous 7 weeks',
+                icon: Icon(Icons.keyboard_double_arrow_left),
                 onPressed: () {
                   setState(() {
-                    _playerHistoricStatsToDisplay = min(
+                    _weekOffsetToCompareWithNow = min(
                         _playerHistoricStatsLength - 1,
-                        _playerHistoricStatsToDisplay + 1);
+                        _weekOffsetToCompareWithNow + 7);
                   });
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.arrow_forward_ios),
+                tooltip: 'Previous week',
+                icon: Icon(Icons.keyboard_arrow_left),
                 onPressed: () {
                   setState(() {
-                    _playerHistoricStatsToDisplay =
-                        max(0, _playerHistoricStatsToDisplay - 1);
+                    _weekOffsetToCompareWithNow = min(
+                        _playerHistoricStatsLength - 1,
+                        _weekOffsetToCompareWithNow + 1);
+                  });
+                },
+              ),
+              IconButton(
+                tooltip: 'Next week',
+                icon: Icon(Icons.keyboard_arrow_right),
+                onPressed: () {
+                  setState(() {
+                    _weekOffsetToCompareWithNow =
+                        max(0, _weekOffsetToCompareWithNow - 1);
+                  });
+                },
+              ),
+              IconButton(
+                tooltip: 'Next 7 weeks',
+                icon: Icon(Icons.keyboard_double_arrow_right),
+                onPressed: () {
+                  setState(() {
+                    _weekOffsetToCompareWithNow =
+                        max(0, _weekOffsetToCompareWithNow - 7);
                   });
                 },
               ),
@@ -274,11 +296,11 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
         ],
       ),
       subtitle: Text(
-        _playerHistoricStatsToDisplay == 0
+        _weekOffsetToCompareWithNow == 0
             ? 'No comparison'
-            : _playerHistoricStatsToDisplay == 1
+            : _weekOffsetToCompareWithNow == 1
                 ? 'Compare with last week'
-                : 'Compare with ${_playerHistoricStatsToDisplay} weeks ago',
+                : 'Compare with ${_weekOffsetToCompareWithNow} weeks ago',
         style: styleItalicBlueGrey,
       ),
       shape: shapePersoRoundedBorder(),

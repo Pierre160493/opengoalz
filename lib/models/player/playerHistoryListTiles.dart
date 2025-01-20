@@ -4,7 +4,6 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/functions/descriptionParser.dart';
-import 'package:opengoalz/widgets/max_width_widget.dart';
 
 class PlayerHistoryListTiles extends StatefulWidget {
   final Player player;

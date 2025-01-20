@@ -429,7 +429,7 @@ extension PlayerWidgetsHelper on Player {
   }
 
   Widget getStatLinearWidget(String label, List<double> lisStatsHistoryAll,
-      int indexHistoryToDisplay, BuildContext context) {
+      int weekOffsetToCompareWithNow, BuildContext context) {
     IconData getIcon(String label) {
       switch (label) {
         case 'Motivation':
@@ -450,7 +450,8 @@ extension PlayerWidgetsHelper on Player {
     IconData icon = getIcon(label);
 
     double valueNow = lisStatsHistoryAll.last;
-    double valueOld = lisStatsHistoryAll[indexHistoryToDisplay];
+    double valueOld = lisStatsHistoryAll[
+        lisStatsHistoryAll.length - 1 - weekOffsetToCompareWithNow];
 
     return ListTile(
       shape: shapePersoRoundedBorder(),
@@ -501,13 +502,6 @@ extension PlayerWidgetsHelper on Player {
         ],
       ),
       onTap: () async {
-        // showDialog(
-        //   context: context,
-        //   builder: (BuildContext context) {
-        //     return getPlayerHistoryStreamGraph(context, id, postgreSqlField,
-        //         'Expenses History (${getShortName()})');
-        //   },
-        // );
         final chartData = ChartData(
           title: 'Player $label History',
           yValues: [lisStatsHistoryAll],
