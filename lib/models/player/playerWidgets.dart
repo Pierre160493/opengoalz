@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
 import 'package:opengoalz/models/player/playerNotesDialogBox.dart';
 import 'package:opengoalz/models/player/playerShirtNumberDialogBox.dart';
+import 'package:opengoalz/models/profile.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:provider/provider.dart';
@@ -163,6 +166,100 @@ Widget getAgeListTile(BuildContext context, Player player) {
           );
         },
       );
+    },
+  );
+}
+
+Widget playerSetAsFavoriteIconButton(
+    BuildContext context, Player player, Profile user) {
+  int? promisedExpenses;
+  if (player.isFavorite == null) {
+    return Icon(iconFavorite, color: Colors.orange);
+  }
+  return IconButton(
+    tooltip: 'Set as Favorite',
+    icon: Icon(iconFavorite,
+        color: player.isFavorite! ? Colors.red : Colors.blueGrey),
+    iconSize: iconSizeSmall,
+    onPressed: () async {
+      if (player.idClub != null && player.idClub != user.selectedClub!.id) {
+        /// Show dialog box asking if the user wants to set a promised expenses
+        promisedExpenses = await showDialog<int>(
+          context: context,
+          builder: (BuildContext context) {
+            int? promisedExpenses;
+            return AlertDialog(
+              title: Text('Set Promised Expenses'),
+              content: TextField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Enter promised expenses',
+                ),
+                onChanged: (value) {
+                  promisedExpenses = int.tryParse(value);
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(promisedExpenses);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        await showDialog<int>(
+          context: context,
+          builder: (BuildContext context) {
+            int? promisedExpenses;
+            return AlertDialog(
+              title: Text('Set Promised Expenses'),
+              content: TextField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Enter promised expenses',
+                ),
+                onChanged: (value) {
+                  promisedExpenses = int.tryParse(value);
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(promisedExpenses);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+      bool isOK =
+          await operationInDB(context, 'INSERT', 'players_favorite', data: {
+        'id_club': user.selectedClub!.id,
+        'id_player': player.id,
+        'promised_expenses': promisedExpenses,
+      });
+      if (isOK) {
+        context.showSnackBar(
+            'Successfully set ${player.getFullName()} in the list of favorite players',
+            icon: Icon(iconSuccessfulOperation, color: Colors.green));
+      }
     },
   );
 }

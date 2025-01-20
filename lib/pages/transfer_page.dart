@@ -184,7 +184,7 @@ class _TransferPageState extends State<TransferPage>
                           }
                         });
                       },
-                      icon: Icon(Icons.person_search),
+                      icon: Icon(Icons.person_search, color: Colors.green),
                     ),
                   ],
                 ),

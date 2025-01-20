@@ -2,9 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/players_sorting_function.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/models/player/playerSearchDialogBox.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
@@ -87,6 +89,33 @@ class _PlayersPageState extends State<PlayersPage> {
           .inFilter('id', playerIds)
           .order('date_birth', ascending: false)
           .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+
+          /// Fetch if the players are favorites
+          .switchMap((List<Player> players) {
+            return supabase
+                .from('players_favorite')
+                .stream(primaryKey: ['id'])
+                .eq(
+                    'id_club',
+                    Provider.of<SessionProvider>(context, listen: false)
+                        .user!
+                        .selectedClub!
+                        .id)
+                .map((maps) => maps.map((map) => map).toList())
+                .map((maps) {
+                  final favoritePlayerIds =
+                      maps.map((map) => map['id_player']).toSet();
+                  for (Player player in players) {
+                    if (favoritePlayerIds.contains(player.id)) {
+                      player.isFavorite = true;
+                      // player.promisedExpenses = map['promised_expenses'];
+                    } else {
+                      player.isFavorite = false;
+                    }
+                  }
+                  return players;
+                });
+          })
 
           /// Fetch their transfers bids
           .switchMap((List<Player> players) {

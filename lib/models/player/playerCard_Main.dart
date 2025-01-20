@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
@@ -6,9 +7,9 @@ import 'package:opengoalz/models/player/playerCardGamesTab.dart';
 import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
 import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
-import 'package:opengoalz/widgets/playersNotes.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'class/player.dart';
@@ -74,6 +75,7 @@ class _PlayerCardState extends State<PlayerCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /// Title of the card
           ListTile(
             leading: CircleAvatar(
               backgroundColor: (Provider.of<SessionProvider>(context,
@@ -114,6 +116,11 @@ class _PlayerCardState extends State<PlayerCard>
                               .playerPopUpMenuItem(context, widget.index),
                         ],
                       ),
+                    playerSetAsFavoriteIconButton(
+                        context,
+                        widget.player,
+                        Provider.of<SessionProvider>(context, listen: false)
+                            .user!),
                   ],
                 ),
                 IconButton(

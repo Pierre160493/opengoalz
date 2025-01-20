@@ -28,6 +28,7 @@ class Player {
   Club? club;
   List<TransferBid> transferBids = [];
   Multiverse? multiverse;
+  bool? isFavorite;
 
   Player({
     required this.id,
