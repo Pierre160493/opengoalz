@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/players_sorting_function.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
+import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -101,17 +102,14 @@ class _PlayersPageState extends State<PlayersPage> {
                         .user!
                         .selectedClub!
                         .id)
-                .map((maps) => maps.map((map) => map).toList())
-                .map((maps) {
-                  final favoritePlayerIds =
-                      maps.map((map) => map['id_player']).toSet();
-                  for (Player player in players) {
-                    if (favoritePlayerIds.contains(player.id)) {
-                      player.isFavorite = true;
-                      // player.promisedExpenses = map['promised_expenses'];
-                    } else {
-                      player.isFavorite = false;
-                    }
+                .map((maps) =>
+                    maps.map((map) => PlayerFavorite.fromMap(map)).toList())
+                .map((List<PlayerFavorite> favorites) {
+                  final favoriteMap = {
+                    for (var fav in favorites) fav.idPlayer: fav
+                  };
+                  for (var player in players) {
+                    player.favorite = favoriteMap[player.id] ?? null;
                   }
                   return players;
                 });

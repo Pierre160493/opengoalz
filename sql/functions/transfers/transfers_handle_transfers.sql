@@ -8,7 +8,7 @@ DECLARE
     player RECORD; -- Record variable to store each row from the query
     last_bid RECORD; -- Record variable to store the last bid for each player
     teamcomp RECORD; -- Record variable to store the teamcomp
-    loc_count INTEGER; -- Variable to store the count of rows affected by the query
+    loc_tmp INT8; -- Variable to store the count of rows affected by the query
 BEGIN
 
     -- Query to select rows to process (bids finished and player is not currently playing a game)
@@ -90,6 +90,27 @@ BEGIN
                             inp_bool_try_to_correct := TRUE,
                             inp_bool_notify_user := FALSE);
                     END LOOP;
+
+                    ------ If the club is a bot club
+                    IF (SELECT username FROM clubs WHERE id = player.id_club) IS NULL THEN
+                        
+                        -- Create a new player to replace the one that left
+                        loc_tmp := players_create_player(
+                            inp_id_multiverse := player.id_multiverse,
+                            inp_id_club := player.id_club,
+                            inp_id_country := player.id_country,
+                            inp_age := 15 + RANDOM() * 5,
+                            inp_shirt_number := player.shirt_number
+                        );
+
+                        -- Store in the club history
+                        INSERT INTO clubs_history
+                            (id_club, description)
+                        VALUES (
+                            club.id,
+                            string_parser(loc_tmp, 'idPlayer') || ' joined the squad because of a lack of players');
+
+                    END IF;
 
                 -- Then the player is not sold
                 ELSE
@@ -198,6 +219,27 @@ BEGIN
                 transfer_price = NULL,
                 date_bid_end = NULL
             WHERE id = player.id;
+
+            ------ If the club is a bot club
+            IF (SELECT username FROM clubs WHERE id = player.id_club) IS NULL THEN
+                
+                -- Create a new player to replace the one that left
+                loc_tmp := players_create_player(
+                    inp_id_multiverse := player.id_multiverse,
+                    inp_id_club := player.id_club,
+                    inp_id_country := player.id_country,
+                    inp_age := 15 + RANDOM() * 5,
+                    inp_shirt_number := player.shirt_number
+                );
+
+                -- Store in the club history
+                INSERT INTO clubs_history
+                    (id_club, description)
+                VALUES (
+                    club.id,
+                    string_parser(loc_tmp, 'idPlayer') || ' joined the squad because of a lack of players');
+
+            END IF;
 
         END IF;
 

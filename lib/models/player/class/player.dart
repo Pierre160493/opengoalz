@@ -8,6 +8,7 @@ import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
+import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
@@ -28,7 +29,7 @@ class Player {
   Club? club;
   List<TransferBid> transferBids = [];
   Multiverse? multiverse;
-  bool? isFavorite;
+  PlayerFavorite? favorite;
 
   Player({
     required this.id,

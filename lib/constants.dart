@@ -84,6 +84,7 @@ const iconGameIsPlaying = Icons.notifications_active;
 const iconGameNotPlayed = Icons.arrow_circle_right_outlined;
 const iconElo = Icons.sports_score;
 const iconFavorite = Icons.favorite;
+const iconPoaching = Icons.my_location;
 
 /// Color for players or clubs belonging to the currently connected user
 const Color colorDefault = Colors.blueGrey;

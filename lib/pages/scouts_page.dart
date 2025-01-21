@@ -5,7 +5,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player_favorite.dart';
+import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -33,12 +33,12 @@ class ScoutsPage extends StatefulWidget {
 
 class _ScoutsPageState extends State<ScoutsPage> {
   int _costForNewPlayer = 7000;
-  late Stream<List<PlayerFavorite>> _favoritePlayersStream;
+  late Stream<List<PlayerFavorite>> _playersPoachingStream;
 
   @override
   void initState() {
-    _favoritePlayersStream = supabase
-        .from('players_favorite')
+    _playersPoachingStream = supabase
+        .from('players_poaching')
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.club.id)
         .map((maps) => maps.map((map) => PlayerFavorite.fromMap(map)).toList())
@@ -106,7 +106,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
         child: DefaultTabController(
           length: 2,
           child: StreamBuilder<List<PlayerFavorite>>(
-            stream: _favoritePlayersStream,
+            stream: _playersPoachingStream,
             builder: (context, snapshot) {
               return Column(
                 children: [
@@ -119,7 +119,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         text:
                             snapshot.connectionState == ConnectionState.waiting
                                 ? 'Loading...'
-                                : 'Favorites',
+                                : 'Favorites (${snapshot.data!.length})',
                       ),
                     ],
                   ),
@@ -134,17 +134,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         else if (!snapshot.hasData || snapshot.data!.isEmpty)
                           Center(child: Text('No favorite players found'))
                         else
-                          ListView.builder(
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              final playerFavorite = snapshot.data![index];
-                              return ListTile(
-                                title: Text(playerFavorite.player!.firstName),
-                                subtitle: Text(
-                                    'Position: ${playerFavorite.player!.lastName}'),
-                              );
-                            },
-                          ),
+                          _getPlayersPoachingTab(snapshot.data!.toList()),
                       ],
                     ),
                   ),
@@ -314,6 +304,27 @@ class _ScoutsPageState extends State<ScoutsPage> {
                   },
           ),
       ],
+    );
+  }
+
+  Widget _getPlayersPoachingTab(List<PlayerFavorite> playersPoaching) {
+    return ListView.builder(
+      itemCount: playersPoaching.length,
+      itemBuilder: (context, index) {
+        final playerFavorite = playersPoaching[index];
+        return ListTile(
+          leading: Icon(playerFavorite.player!.getPlayerIcon()),
+          title: playerFavorite.player!.getPlayerNameClickable(context),
+          subtitle: playerFavorite.promisedExpenses == null
+              ? Text('No promised expenses', style: styleItalicBlueGrey)
+              : Row(children: [
+                  Text('Promised Expenses: ', style: styleItalicBlueGrey),
+                  Text(
+                    playerFavorite.promisedExpenses!.toString(),
+                  )
+                ]),
+        );
+      },
     );
   }
 }

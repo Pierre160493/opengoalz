@@ -38,6 +38,8 @@ BEGIN
             motivation + (random() * 20 - 8) -- Random [-8, +12]
             + ((70 - motivation) / 10) -- +7; -3 based on value
             - ((expenses_missed / expenses_expected) ^ 0.5) * 10
+            -- Lower motivation if player is favorite and promised expenses
+            
             -- Lower motivation based on age for bot clubs from 30 years old
             - CASE WHEN id_club IS NULL OR (SELECT username FROM clubs WHERE id = id_club) IS NOT NULL THEN 0
                 ELSE GREATEST(0, calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) - 30) * RANDOM() END)

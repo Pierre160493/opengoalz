@@ -8,6 +8,8 @@ class PlayerFavorite {
   final int idClub;
   final int idPlayer;
   final int? promisedExpenses;
+  final String? notes;
+  final DateTime? dateDelete;
 
   PlayerFavorite({
     required this.id,
@@ -15,6 +17,8 @@ class PlayerFavorite {
     required this.idClub,
     required this.idPlayer,
     this.promisedExpenses,
+    this.notes,
+    this.dateDelete,
   });
 
   factory PlayerFavorite.fromMap(Map<String, dynamic> map) {
@@ -24,16 +28,10 @@ class PlayerFavorite {
       idClub: map['id_club'],
       idPlayer: map['id_player'],
       promisedExpenses: map['promised_expenses'],
+      notes: map['notes'],
+      dateDelete: map['date_delete'] != null
+          ? DateTime.parse(map['date_delete'])
+          : null,
     );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'created_at': createdAt.toIso8601String(),
-      'id_club': idClub,
-      'id_players': idPlayer,
-      'promised_expenses': promisedExpenses,
-    };
   }
 }

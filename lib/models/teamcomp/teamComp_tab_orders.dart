@@ -167,7 +167,7 @@ extension TabOrders on TeamComp {
                             child: Text('${sub.minuteReal}\''),
                           )
                         : Icon(
-                            Icons.cancel,
+                              Icons.cancel,
                             color: Colors.red,
                           )
                     : IconButton(
