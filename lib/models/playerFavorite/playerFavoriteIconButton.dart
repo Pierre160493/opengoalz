@@ -7,8 +7,8 @@ import 'package:opengoalz/postgresql_requests.dart';
 
 Widget playerSetAsFavoriteIconButton(
     BuildContext context, Player player, Profile user) {
-  String? notes = null;
-  DateTime? dateDelete = null;
+  String? _notes = null;
+  DateTime? _dateDelete = null;
 
   return player.favorite != null
 
@@ -38,7 +38,7 @@ Widget playerSetAsFavoriteIconButton(
           iconSize: iconSizeSmall,
           onPressed: () async {
             /// Show dialog box asking if the user wants to add a note and a date to remove the player from the list of favorite players
-            notes = await showDialog<String>(
+            bool? shouldContinue = await showDialog<bool>(
               context: context,
               builder: (BuildContext context) {
                 return StatefulBuilder(
@@ -57,7 +57,7 @@ Widget playerSetAsFavoriteIconButton(
                                   hintText: 'Enter notes on the player',
                                 ),
                                 onChanged: (value) {
-                                  notes = value;
+                                  _notes = value;
                                 },
                               ),
                               subtitle: Text(
@@ -67,8 +67,8 @@ Widget playerSetAsFavoriteIconButton(
                           ListTile(
                             leading: Icon(Icons.auto_delete, color: Colors.red),
                             title: TextButton(
-                              child: Text(dateDelete != null
-                                  ? formatDate(dateDelete!.toLocal())
+                              child: Text(_dateDelete != null
+                                  ? formatDate(_dateDelete!.toLocal())
                                   : 'Pick a date to automatically remove the player (optional)'),
                               onPressed: () async {
                                 DateTime? picked = await showDatePicker(
@@ -79,7 +79,7 @@ Widget playerSetAsFavoriteIconButton(
                                 );
                                 if (picked != null) {
                                   setState(() {
-                                    dateDelete = picked;
+                                    _dateDelete = picked;
                                   });
                                 }
                               },
@@ -98,7 +98,7 @@ Widget playerSetAsFavoriteIconButton(
                             TextButton(
                               child: persoCancelRow,
                               onPressed: () {
-                                Navigator.of(context).pop();
+                                Navigator.of(context).pop(false);
                               },
                             ),
                             TextButton(
@@ -114,7 +114,7 @@ Widget playerSetAsFavoriteIconButton(
                                 ],
                               ),
                               onPressed: () {
-                                Navigator.of(context).pop(notes);
+                                Navigator.of(context).pop(true);
                               },
                             ),
                           ],
@@ -126,21 +126,25 @@ Widget playerSetAsFavoriteIconButton(
               },
             );
 
-            if (notes != null || dateDelete != null) {
+            if (shouldContinue == true) {
               bool isOK = await operationInDB(
                   context, 'INSERT', 'players_favorite',
                   data: {
                     'id_club': user.selectedClub!.id,
                     'id_player': player.id,
-                    if (notes != null) 'notes': notes,
-                    if (dateDelete != null)
-                      'date_delete': dateDelete!.toIso8601String(),
+                    if (_notes != null) 'notes': _notes,
+                    if (_dateDelete != null)
+                      'date_delete': _dateDelete!.toIso8601String(),
                   });
               if (isOK) {
                 context.showSnackBar(
                     'Successfully set ${player.getFullName()} in the list of favorite players',
                     icon: Icon(iconSuccessfulOperation, color: Colors.green));
               }
+            } else {
+              context.showSnackBar(
+                  'Canceled setting ${player.getFullName()} as favorite',
+                  icon: Icon(iconCancel, color: Colors.red));
             }
           },
         );

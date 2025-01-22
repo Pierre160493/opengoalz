@@ -6,6 +6,7 @@ import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
 import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/playerFavorite/playerFavoriteIconButton.dart';
+import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
@@ -56,13 +57,14 @@ class _PlayerCardState extends State<PlayerCard>
 
   /// Build Large
   Widget _buildLarge() {
+    /// Player Card
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius:
             BorderRadius.circular(12), // Adjust border radius as needed
         side: const BorderSide(
           color: Colors.blueGrey, // Border color
-          width: 3.0,
+          width: 6.0,
         ),
       ),
       child: Column(
@@ -109,7 +111,16 @@ class _PlayerCardState extends State<PlayerCard>
                               .playerPopUpMenuItem(context, widget.index),
                         ],
                       ),
+
+                    /// Favorite icon button
                     playerSetAsFavoriteIconButton(
+                        context,
+                        widget.player,
+                        Provider.of<SessionProvider>(context, listen: false)
+                            .user!),
+
+                    /// Poaching icon button
+                    playerSetAsPoachingIconButton(
                         context,
                         widget.player,
                         Provider.of<SessionProvider>(context, listen: false)
@@ -184,7 +195,6 @@ class _PlayerCardState extends State<PlayerCard>
                   body: TabBarView(
                     children: [
                       /// Details tab
-                      // widget.player.playerCardDetailsWidget(context),
                       SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

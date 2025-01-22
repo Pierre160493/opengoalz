@@ -68,10 +68,11 @@ BEGIN
     NEW.multiverse_speed = (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse);
 
     ------ Calculate the expected expenses
-    NEW.expenses_expected = FLOOR((50 +
+    NEW.expenses_target = FLOOR((50 +
         GREATEST(NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.winger, NEW.scoring, NEW.freekick) / 2 +
         (NEW.keeper + NEW.defense + NEW.passes + NEW.playmaking + NEW.winger + NEW.scoring + NEW.freekick) / 4
-        ) * 0.75);
+        ));
+    NEW.expenses_expected = FLOOR(NEW.expenses_target * 0.75);
 
     ------ Calculate experience
     IF NEW.experience IS NULL THEN
@@ -83,10 +84,6 @@ BEGIN
         ARRAY[NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.scoring, NEW.freekick, NEW.winger,
         NEW.motivation, NEW.form, NEW.experience, NEW.energy, NEW.stamina]
     );
-
-    -- Log history
-    --INSERT INTO players_history (id_player, description)
-    --VALUES (NEW.id, 'User ' || NEW.username || ' has been assigned to the club');
 
     -- Return the new record to proceed with the update
     RETURN NEW;

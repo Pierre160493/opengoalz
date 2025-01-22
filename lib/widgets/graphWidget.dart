@@ -42,6 +42,12 @@ class ChartDialogBox extends StatelessWidget {
       );
     }).toList();
 
+    final List<Color> colors = [
+      Colors.green,
+      Colors.red,
+      Colors.blue
+    ]; // Define colors for curves
+
     return AlertDialog(
       title: Center(child: Text(chartData.title)),
       content: Container(
@@ -49,12 +55,15 @@ class ChartDialogBox extends StatelessWidget {
         width: MediaQuery.of(context).size.width * 0.9,
         child: LineChart(
           LineChartData(
-            lineBarsData: data.map((curveData) {
+            lineBarsData: data.asMap().entries.map((entry) {
+              int index = entry.key;
+              List<FlSpot> curveData = entry.value;
               return LineChartBarData(
                 spots: curveData,
                 isCurved: false,
                 dotData: FlDotData(show: true),
                 aboveBarData: BarAreaData(show: false),
+                color: colors[index % colors.length],
               );
             }).toList(),
             minY: 0,

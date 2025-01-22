@@ -256,10 +256,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                 --     ) * 0.25)),
                 expenses_expected = FLOOR(
                     (expenses_expected * 0.75 + 
-                    (50 +
-                    (GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2) +
-                    (keeper + defense + playmaking + passes + winger + scoring + freekick) / 4
-                    ) * 0.25)),
+                    expenses_target * 0.25)),
                 training_points_used = 0
             WHERE id_multiverse = inp_multiverse.id;
 

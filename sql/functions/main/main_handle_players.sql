@@ -11,12 +11,12 @@ BEGIN
     ------ Store player's stats in the history
     INSERT INTO players_history_stats
         (created_at, id_player, performance_score,
-        expenses_payed, expenses_expected, expenses_missed,
+        expenses_payed, expenses_expected, expenses_missed, expenses_target,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience, training_points_used)
     SELECT
         inp_multiverse.date_handling, id, performance_score,
-        expenses_payed, expenses_expected, expenses_missed,
+        expenses_payed, expenses_expected, expenses_missed, expenses_target,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience, training_points_used
     FROM players
@@ -78,6 +78,17 @@ BEGIN
                 (rec_player.id_club, 'Treasurer',
                 string_parser(rec_player.id, 'idPlayer') || ' asked to leave the club !',
                 string_parser(rec_player.id, 'idPlayer') || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
+
+            -- Send mails to clubs following the player
+            INSERT INTO messages_mail (
+                id_club_to, sender_role, title, message
+            )
+            SELECT 
+                id_club, 'Scouts', 
+                string_parser(rec_player.id, 'idPlayer') || ' asked to leave ' || string_parser(rec_player.id_club, 'idClub'),
+                string_parser(rec_player.id, 'idPlayer') || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.'
+            FROM players_favorite
+            WHERE id_player = rec_player.id;
 
 --RAISE NOTICE '==> RageQuit => % (%) has asked to leave club [%]', rec_player.full_name, rec_player.id, rec_player.id_club;
 
@@ -177,11 +188,15 @@ BEGIN
     WHERE players.id = final_data.id;
 
     ------ Calculate player performance score
-    UPDATE players
-    SET performance_score = players_calculate_player_best_weight(
-        ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
-        motivation, form, experience, energy, stamina]
-    )
+    UPDATE players SET
+        performance_score = players_calculate_player_best_weight(
+            ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
+            motivation, form, experience, energy, stamina]
+        ),
+        expenses_target = FLOOR((50 +
+            GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2 +
+            (keeper + defense + passes + playmaking + winger + scoring + freekick) / 4
+            ))
     WHERE id_multiverse = inp_multiverse.id;
 
 END;

@@ -376,8 +376,8 @@ extension PlayerWidgetsHelper on Player {
       onTap: () => showDialog(
         context: context,
         builder: (BuildContext context) {
-          return getPlayerHistoryStreamGraph(
-              context, id, 'expenses_expected', 'Expenses');
+          return getPlayerHistoryStreamGraph(context, id,
+              ['expenses_expected', 'expenses_target'], 'Expenses');
         },
       ),
     );
@@ -404,7 +404,7 @@ extension PlayerWidgetsHelper on Player {
       onTap: () => showDialog(
         context: context,
         builder: (BuildContext context) {
-          return getPlayerHistoryStreamGraph(context, id, 'performance_score',
+          return getPlayerHistoryStreamGraph(context, id, ['performance_score'],
               'Performance Score History (${getShortName()})');
         },
       ),

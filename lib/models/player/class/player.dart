@@ -7,6 +7,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
+import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
@@ -23,13 +24,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'player_widget_helper.dart';
 part 'player_widget_actions.dart';
-part 'player_card_details.dart';
 
 class Player {
   Club? club;
   List<TransferBid> transferBids = [];
   Multiverse? multiverse;
   PlayerFavorite? favorite;
+  PlayerPoaching? poaching;
 
   Player({
     required this.id,
@@ -47,6 +48,7 @@ class Player {
     required this.expensesExpected,
     required this.expensesPayed,
     required this.expensesMissed,
+    required this.expensesTarget,
     required this.trainingPointsUsed,
     required this.trainingCoef,
     required this.keeper,
@@ -86,6 +88,7 @@ class Player {
   final int expensesExpected;
   final int expensesPayed;
   final int expensesMissed;
+  final int expensesTarget;
   final double trainingPointsUsed;
   final List<int> trainingCoef;
   final double keeper;
@@ -125,6 +128,7 @@ class Player {
         expensesExpected = map['expenses_expected'],
         expensesPayed = map['expenses_payed'],
         expensesMissed = map['expenses_missed'],
+        expensesTarget = map['expenses_target'],
         trainingPointsUsed = (map['training_points_used'] as num).toDouble(),
         trainingCoef = List<int>.from(map['training_coef']),
         keeper = (map['keeper'] as num).toDouble(),
@@ -199,6 +203,8 @@ class Player {
         return expensesPayed;
       case 'expensesMissed':
         return expensesMissed;
+      case 'expensesTarget':
+        return expensesTarget;
       case 'trainingPointsUsed':
         return trainingPointsUsed;
       case 'keeper':

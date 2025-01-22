@@ -119,7 +119,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         text:
                             snapshot.connectionState == ConnectionState.waiting
                                 ? 'Loading...'
-                                : 'Favorites (${snapshot.data!.length})',
+                                : 'Followed (${snapshot.data!.length})',
                       ),
                     ],
                   ),

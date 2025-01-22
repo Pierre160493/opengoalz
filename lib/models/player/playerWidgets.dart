@@ -86,7 +86,7 @@ Widget playerSmallNotesIcon(BuildContext context, Player player) {
 }
 
 Widget getPlayerHistoryStreamGraph(
-    BuildContext context, int id, String field, String title) {
+    BuildContext context, int id, List<String> fieldsToPlot, String title) {
   Stream<List<Map>> _historyStream = supabase
       .from('players_history_stats')
       .stream(primaryKey: ['id'])
@@ -95,7 +95,7 @@ Widget getPlayerHistoryStreamGraph(
       .map((maps) => maps
           .map((map) => {
                 'created_at': map['created_at'],
-                field: map[field],
+                for (var field in fieldsToPlot) field: map[field],
               })
           .toList());
 
@@ -113,14 +113,11 @@ Widget getPlayerHistoryStreamGraph(
 
       final chartData = ChartData(
         title: title,
-        // xValues: historyData
-        //     .map((item) => DateTime.parse(item['created_at'])
-        //         .millisecondsSinceEpoch
-        //         .toDouble())
-        //     .toList(),
-        yValues: [
-          historyData.map((item) => (item[field] as num).toDouble()).toList()
-        ],
+        yValues: fieldsToPlot.map((field) {
+          return historyData
+              .map((item) => (item[field] as num).toDouble())
+              .toList();
+        }).toList(),
         typeXAxis: XAxisType.weekHistory,
       );
 
@@ -169,5 +166,3 @@ Widget getAgeListTile(BuildContext context, Player player) {
     },
   );
 }
-
-

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/players_sorting_function.dart';
+import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -104,12 +105,36 @@ class _PlayersPageState extends State<PlayersPage> {
                         .id)
                 .map((maps) =>
                     maps.map((map) => PlayerFavorite.fromMap(map)).toList())
-                .map((List<PlayerFavorite> favorites) {
+                .map((List<PlayerFavorite> favoritePlayers) {
                   final favoriteMap = {
-                    for (var fav in favorites) fav.idPlayer: fav
+                    for (var fav in favoritePlayers) fav.idPlayer: fav
                   };
                   for (var player in players) {
                     player.favorite = favoriteMap[player.id] ?? null;
+                  }
+                  return players;
+                });
+          })
+
+          /// Fetch if the players are poached
+          .switchMap((List<Player> players) {
+            return supabase
+                .from('players_poaching')
+                .stream(primaryKey: ['id'])
+                .eq(
+                    'id_club',
+                    Provider.of<SessionProvider>(context, listen: false)
+                        .user!
+                        .selectedClub!
+                        .id)
+                .map((maps) =>
+                    maps.map((map) => PlayerPoaching.fromMap(map)).toList())
+                .map((List<PlayerPoaching> poachingPlayers) {
+                  final poachingMap = {
+                    for (var poach in poachingPlayers) poach.idPlayer: poach
+                  };
+                  for (var player in players) {
+                    player.poaching = poachingMap[player.id] ?? null;
                   }
                   return players;
                 });
