@@ -9,11 +9,11 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/scoutsDialogBox.dart';
 import 'package:provider/provider.dart';
 
-class ScoutsTab extends StatelessWidget {
+class ScoutsMainTab extends StatelessWidget {
   final Club club;
   final int _costForNewPlayer = 7000;
 
-  ScoutsTab(this.club);
+  ScoutsMainTab(this.club);
 
   @override
   Widget build(BuildContext context) {

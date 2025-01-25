@@ -147,7 +147,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                   Expanded(
                     child: TabBarView(
                       children: [
-                        ScoutsTab(widget.club),
+                        ScoutsMainTab(widget.club),
                         if (snapshot.connectionState == ConnectionState.waiting)
                           Center(child: CircularProgressIndicator())
                         else if (snapshot.hasError)

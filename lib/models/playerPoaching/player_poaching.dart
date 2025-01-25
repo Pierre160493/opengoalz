@@ -9,9 +9,11 @@ class PlayerPoaching {
   final int idPlayer;
   final String? notes;
   final DateTime? dateDelete;
-  final List<int> investmentWeekly;
-  final List<int> affinity;
   final int investmentTarget;
+  final List<int> investmentWeekly;
+  final double affinity;
+  final List<double> lisAffinity;
+  final int? maxPrice;
 
   PlayerPoaching({
     required this.id,
@@ -20,9 +22,11 @@ class PlayerPoaching {
     required this.idPlayer,
     this.notes,
     this.dateDelete,
+    required this.investmentTarget,
     required this.investmentWeekly,
     required this.affinity,
-    required this.investmentTarget,
+    required this.lisAffinity,
+    this.maxPrice,
   });
 
   factory PlayerPoaching.fromMap(Map<String, dynamic> map) {
@@ -35,9 +39,13 @@ class PlayerPoaching {
       dateDelete: map['date_delete'] != null
           ? DateTime.parse(map['date_delete'])
           : null,
-      investmentWeekly: List<int>.from(map['investment_weekly']),
-      affinity: List<int>.from(map['affinity']),
       investmentTarget: map['investment_target'],
+      investmentWeekly: List<int>.from(map['investment_weekly']),
+      affinity: (map['affinity'] as num).toDouble(),
+      lisAffinity: (map['lis_affinity'] as List)
+          .map((e) => (e as num).toDouble())
+          .toList(),
+      maxPrice: map['max_price'],
     );
   }
 }

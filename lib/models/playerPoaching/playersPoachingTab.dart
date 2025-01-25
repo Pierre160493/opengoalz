@@ -62,7 +62,7 @@ Widget getPlayersPoachingTab(List<Player> players) {
                       children: [
                         Text('Affinity: ', style: styleItalicBlueGrey),
                         Text(
-                          player.poaching!.affinity.last.toString(),
+                          player.poaching!.affinity.toString(),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         )
                       ],
@@ -70,7 +70,12 @@ Widget getPlayersPoachingTab(List<Player> players) {
                     onTap: () async {
                       final chartData = ChartData(
                         title: 'Player affinity to the club',
-                        yValues: [player.poaching!.affinity],
+                        yValues: [
+                          [
+                            ...player.poaching!.lisAffinity,
+                            player.poaching!.affinity
+                          ]
+                        ],
                         typeXAxis: XAxisType.weekHistory,
                       );
 

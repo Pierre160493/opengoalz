@@ -45,13 +45,15 @@ BEGIN
 
     ---- Update the players affinity
     UPDATE players_poaching SET
-        affinity = affinity ||
-            -- Add to last element
-            affinity[array_length(affinity, 1)] +
-            (CASE WHEN clubs.scouts_weight > 0 THEN players_poaching.investment_target ELSE 0 END) / 100,
+        -- Add the current affinity to the array to store history
+        lis_affinity = lis_affinity || affinity,
+        -- Store the investment target in the array to store history
         investment_weekly = investment_weekly ||
             -- If the club has a positive scouts weight, apply the investment target
-            CASE WHEN clubs.scouts_weight > 0 THEN players_poaching.investment_target ELSE 0 END
+            CASE WHEN clubs.scouts_weight > 0 THEN players_poaching.investment_target ELSE 0 END,
+        -- Calculate the new affinity based on the investment target * random
+        affinity = affinity + RANDOM() *
+            (CASE WHEN clubs.scouts_weight > 0 THEN players_poaching.investment_target ELSE 0 END) / 1000.0
     FROM clubs
     WHERE clubs.id = players_poaching.id_club
     AND clubs.id_multiverse = inp_multiverse.id;
@@ -66,7 +68,7 @@ BEGIN
             CASE WHEN clubs.username IS NULL THEN TRUE
             ELSE FALSE END AS is_bot_club,
             COUNT(players_poaching.id_player) AS poaching_count,
-            COALESCE(MAX(players_poaching.affinity[array_length(players_poaching.affinity, 1)]), 0) AS affinity_max
+            COALESCE(MAX(players_poaching.affinity), 0) AS affinity_max
         FROM players
         JOIN multiverses ON multiverses.id = players.id_multiverse
         LEFT JOIN clubs ON clubs.id = players.id_club 
@@ -80,7 +82,7 @@ BEGIN
             + ((70 - motivation) / 10) -- +7; -3 based on value
             - ((expenses_missed / expenses_expected) ^ 0.5) * 10
             -- Lower motivation if player is being poached
-            - players1.affinity_max / 10 -- Reduce motivation based on the max affinity
+            - players1.affinity_max * RANDOM() -- Reduce motivation based on the max affinity
             - (players1.poaching_count ^ 0.5) -- Reduce motivation for each poaching attempt
             -- Lower motivation based on age for bot clubs from 30 years old
             - CASE WHEN (players.id_club IS NULL OR players1.is_bot_club = FALSE) THEN 0
