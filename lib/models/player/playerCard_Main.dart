@@ -120,11 +120,16 @@ class _PlayerCardState extends State<PlayerCard>
                             .user!),
 
                     /// Poaching icon button
-                    playerSetAsPoachingIconButton(
-                        context,
-                        widget.player,
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!),
+                    if (Provider.of<SessionProvider>(context, listen: false)
+                            .user!
+                            .selectedClub!
+                            .id !=
+                        widget.player.idClub)
+                      playerSetAsPoachingIconButton(
+                          context,
+                          widget.player,
+                          Provider.of<SessionProvider>(context, listen: false)
+                              .user!),
                   ],
                 ),
                 IconButton(

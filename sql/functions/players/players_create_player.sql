@@ -48,7 +48,7 @@ BEGIN
                 loc_tmp + 10 * (1 + random()), -- Defense
                 loc_tmp + 10 * random(), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
-                loc_tmp + 10 * random(), -- Winger
+                loc_tmp + 10 * (1 + random()), -- Winger
                 0, -- Scoring
                 0]; -- Freekick
         ---- Central Backs
@@ -56,7 +56,7 @@ BEGIN
             inp_stats := ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * (1 + random()), -- Defense
-                loc_tmp + 10 * random(), -- Passes
+                loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp * 10 * random(), -- Playmaking
                 0, -- Winger
                 0, -- Scoring
@@ -76,7 +76,7 @@ BEGIN
             inp_stats := ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * random(), -- Defense
-                loc_tmp + 10 * random(), -- Passes
+                loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * (1 + random()), -- Winger
                 loc_tmp + 10 * random(), -- Scoring
@@ -86,7 +86,7 @@ BEGIN
             inp_stats := ARRAY[
                 0, -- Keeper
                 0, -- Defense
-                loc_tmp + 10 * random(), -- Passes
+                loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * random(), -- Winger
                 loc_tmp + 10 * (1 + random()), -- Scoring

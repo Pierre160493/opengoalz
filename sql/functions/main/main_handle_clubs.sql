@@ -109,9 +109,7 @@ BEGIN
         -- Update the staff weight of the club 
         staff_weight = LEAST(5000, GREATEST(0.1, 
             (staff_weight + expenses_staff_applied) * 0.5)),
-        -- Update the scouting network weight
-        -- scouts_weight = LEAST(5000, GREATEST(0.1, 
-        --     (scouts_weight + expenses_scouts_applied) * 0.5))
+        -- Update the scouting network weight of the clubs
         scouts_weight = FLOOR(scouts_weight * 0.99) + expenses_scouts_applied
     WHERE id_multiverse = inp_multiverse.id;
 

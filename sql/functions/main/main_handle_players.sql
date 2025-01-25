@@ -32,16 +32,58 @@ BEGIN
         END
     WHERE id_multiverse = inp_multiverse.id;
 
+    ---- Update the clubs scouts weight based on the players_poaching table
+    UPDATE clubs SET
+        scouts_weight = CASE
+            WHEN scouts_weight > 0 THEN
+                scouts_weight -
+                    COALESCE(
+                        (SELECT SUM(investment_target::bigint) FROM players_poaching WHERE id_club = clubs.id),
+                        0)
+            ELSE scouts_weight END
+    WHERE id_multiverse = inp_multiverse.id;
+
+    ---- Update the players affinity
+    UPDATE players_poaching SET
+        affinity = affinity ||
+            -- Add to last element
+            affinity[array_length(affinity, 1)] +
+            (CASE WHEN clubs.scouts_weight > 0 THEN players_poaching.investment_target ELSE 0 END) / 100,
+        investment_weekly = investment_weekly ||
+            -- If the club has a positive scouts weight, apply the investment target
+            CASE WHEN clubs.scouts_weight > 0 THEN players_poaching.investment_target ELSE 0 END
+    FROM clubs
+    WHERE clubs.id = players_poaching.id_club
+    AND clubs.id_multiverse = inp_multiverse.id;
+
     ------ Update players motivation, form and stamina
+    WITH players1 AS (
+        SELECT 
+            players.id,
+            player_get_full_name(players.id) AS full_name,
+            calculate_age(multiverses.speed, players.date_birth) AS age,
+            players.id_club,
+            CASE WHEN clubs.username IS NULL THEN TRUE
+            ELSE FALSE END AS is_bot_club,
+            COUNT(players_poaching.id_player) AS poaching_count,
+            COALESCE(MAX(players_poaching.affinity[array_length(players_poaching.affinity, 1)]), 0) AS affinity_max
+        FROM players
+        JOIN multiverses ON multiverses.id = players.id_multiverse
+        LEFT JOIN clubs ON clubs.id = players.id_club 
+        LEFT JOIN players_poaching ON players_poaching.id_player = players.id
+        WHERE players.id_multiverse = 3
+        GROUP BY players.id, multiverses.speed, players.id_club, clubs.username
+    )
     UPDATE players SET
         motivation = LEAST(100, GREATEST(0,
             motivation + (random() * 20 - 8) -- Random [-8, +12]
             + ((70 - motivation) / 10) -- +7; -3 based on value
             - ((expenses_missed / expenses_expected) ^ 0.5) * 10
-            -- Lower motivation if player is favorite and promised expenses
-            
+            -- Lower motivation if player is being poached
+            - players1.affinity_max / 10 -- Reduce motivation based on the max affinity
+            - (players1.poaching_count ^ 0.5) -- Reduce motivation for each poaching attempt
             -- Lower motivation based on age for bot clubs from 30 years old
-            - CASE WHEN id_club IS NULL OR (SELECT username FROM clubs WHERE id = id_club) IS NOT NULL THEN 0
+            - CASE WHEN (players.id_club IS NULL OR players1.is_bot_club = FALSE) THEN 0
                 ELSE GREATEST(0, calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) - 30) * RANDOM() END)
         ),
         form = LEAST(100, GREATEST(0,
@@ -51,7 +93,9 @@ BEGIN
             stamina + (random() * 20 - 10) + ((70 - stamina) / 10)
             )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
         experience = experience + 0.025
-    WHERE id_multiverse = inp_multiverse.id;
+    FROM players1
+    WHERE players.id_multiverse = inp_multiverse.id
+    AND players.id = players1.id;
 
     ------ If player's motivation is too low, risk of leaving club
     FOR rec_player IN (
@@ -194,6 +238,7 @@ BEGIN
             motivation, form, experience, energy, stamina]
         ),
         expenses_target = FLOOR((50 +
+            2 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) +
             GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2 +
             (keeper + defense + passes + playmaking + winger + scoring + freekick) / 4
             ))

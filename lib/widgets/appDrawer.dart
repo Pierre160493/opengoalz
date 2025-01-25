@@ -7,7 +7,7 @@ import 'package:opengoalz/pages/calendar_page.dart';
 import 'package:opengoalz/pages/country_page.dart';
 import 'package:opengoalz/pages/mails_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
-import 'package:opengoalz/pages/scouts_page.dart';
+import 'package:opengoalz/pages/scouts_page/scouts_page.dart';
 import 'package:opengoalz/pages/staff_page.dart';
 import 'package:opengoalz/pages/teamCompsPage.dart';
 import 'package:opengoalz/provider_user.dart';

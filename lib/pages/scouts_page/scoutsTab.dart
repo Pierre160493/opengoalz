@@ -4,150 +4,19 @@ import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
-import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
-import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/scoutsDialogBox.dart';
-import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
 
-class ScoutsPage extends StatefulWidget {
+class ScoutsTab extends StatelessWidget {
   final Club club;
-  const ScoutsPage({Key? key, required this.club}) : super(key: key);
+  final int _costForNewPlayer = 7000;
 
-  static Route<void> route(Club club) {
-    return MaterialPageRoute(
-      builder: (context) => ScoutsPage(club: club),
-    );
-  }
-
-  @override
-  State<ScoutsPage> createState() => _ScoutsPageState();
-}
-
-class _ScoutsPageState extends State<ScoutsPage> {
-  int _costForNewPlayer = 7000;
-  late Stream<List<PlayerFavorite>> _playersPoachingStream;
-
-  @override
-  void initState() {
-    _playersPoachingStream = supabase
-        .from('players_poaching')
-        .stream(primaryKey: ['id'])
-        .eq('id_club', widget.club.id)
-        .map((maps) => maps.map((map) => PlayerFavorite.fromMap(map)).toList())
-        .switchMap((List<PlayerFavorite> playerFavorites) {
-          final playerIds = playerFavorites.map((e) => e.idPlayer).toList();
-          return supabase
-              .from('players')
-              .stream(primaryKey: ['id'])
-              .inFilter('id', playerIds)
-              .map((maps) {
-                final players = maps.map((map) => Player.fromMap(map)).toList();
-                playerFavorites.forEach((playerFavorite) {
-                  playerFavorite.player = players.firstWhere(
-                      (player) => player.id == playerFavorite.idPlayer);
-                });
-                return playerFavorites;
-              });
-        });
-
-    super.initState();
-  }
+  ScoutsTab(this.club);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Scouting Network'),
-        actions: [
-          Tooltip(
-            message: 'Help',
-            child: IconButton(
-              icon: Icon(Icons.help_outline, color: Colors.green),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Scouting System Help'),
-                      content: Text(
-                        'The scouting system allows you to manage and track the expenses and skills of your scouting network.\n\n'
-                        'Every week, you can invest a sum of money into the scouting network to build up its strength.\n\n'
-                        'The expenses dedicated to scouting are theoretical and represent the amount you plan to spend each week, if your finances permit it !\n\n'
-                        'As you continue to invest, the scouting network strength will increase.\n\n'
-                        'Once the scouting strength reaches ${_costForNewPlayer}, you can call the scouts to find a new player.\n\n'
-                        'You can also view the historical data of scouting expenses and the strength of your scouting network over time.',
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('Close'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-        leading: goBackIconButton(context),
-      ),
-      body: MaxWidthContainer(
-        child: DefaultTabController(
-          length: 2,
-          child: StreamBuilder<List<PlayerFavorite>>(
-            stream: _playersPoachingStream,
-            builder: (context, snapshot) {
-              return Column(
-                children: [
-                  TabBar(
-                    tabs: [
-                      buildTabWithIcon(
-                          icon: iconScouts, text: 'Scouting network'),
-                      buildTabWithIcon(
-                        icon: iconFavorite,
-                        text:
-                            snapshot.connectionState == ConnectionState.waiting
-                                ? 'Loading...'
-                                : 'Followed (${snapshot.data!.length})',
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        _getScoutsTab(widget.club),
-                        if (snapshot.connectionState == ConnectionState.waiting)
-                          Center(child: CircularProgressIndicator())
-                        else if (snapshot.hasError)
-                          Center(child: Text('Error loading favorite players'))
-                        else if (!snapshot.hasData || snapshot.data!.isEmpty)
-                          Center(child: Text('No favorite players found'))
-                        else
-                          _getPlayersPoachingTab(snapshot.data!.toList()),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _getScoutsTab(Club club) {
     return Column(
       children: [
         ListTile(
@@ -304,27 +173,6 @@ class _ScoutsPageState extends State<ScoutsPage> {
                   },
           ),
       ],
-    );
-  }
-
-  Widget _getPlayersPoachingTab(List<PlayerFavorite> playersPoaching) {
-    return ListView.builder(
-      itemCount: playersPoaching.length,
-      itemBuilder: (context, index) {
-        final playerFavorite = playersPoaching[index];
-        return ListTile(
-          leading: Icon(playerFavorite.player!.getPlayerIcon()),
-          title: playerFavorite.player!.getPlayerNameClickable(context),
-          subtitle: playerFavorite.promisedExpenses == null
-              ? Text('No promised expenses', style: styleItalicBlueGrey)
-              : Row(children: [
-                  Text('Promised Expenses: ', style: styleItalicBlueGrey),
-                  Text(
-                    playerFavorite.promisedExpenses!.toString(),
-                  )
-                ]),
-        );
-      },
     );
   }
 }

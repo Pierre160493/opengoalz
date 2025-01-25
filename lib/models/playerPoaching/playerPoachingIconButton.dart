@@ -7,8 +7,8 @@ import 'package:opengoalz/postgresql_requests.dart';
 
 Widget playerSetAsPoachingIconButton(
     BuildContext context, Player player, Profile user) {
-  int? promisedExpenses;
-  int? promisedPrice;
+  String? _notes;
+  int _investmentTarget = 100;
 
   return player.poaching != null
 
@@ -31,7 +31,7 @@ Widget playerSetAsPoachingIconButton(
           },
         )
 
-      /// If the player is not poached, show the icon in blue
+      /// If the player is not poached, show the icon
       : IconButton(
           tooltip: 'Try to poach this player',
           icon: Icon(iconPoaching, color: Colors.blueGrey),
@@ -51,16 +51,16 @@ Widget playerSetAsPoachingIconButton(
                           ListTile(
                               leading: Icon(iconNotesBig, color: Colors.green),
                               title: TextField(
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.text,
                                 decoration: InputDecoration(
-                                  hintText: 'Enter promised expenses',
+                                  hintText: 'Notes (optional)',
                                 ),
                                 onChanged: (value) {
-                                  promisedExpenses = int.tryParse(value);
+                                  _notes = value;
                                 },
                               ),
                               subtitle: Text(
-                                  'Promised expenses for the player (optional)',
+                                  'Notes about the player (optional)',
                                   style: styleItalicBlueGrey),
                               shape: shapePersoRoundedBorder()),
                           ListTile(
@@ -68,14 +68,19 @@ Widget playerSetAsPoachingIconButton(
                               title: TextField(
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
-                                  hintText: 'Enter promised price',
+                                  hintText:
+                                      'Weekly scouting network investment',
                                 ),
                                 onChanged: (value) {
-                                  promisedPrice = int.tryParse(value);
+                                  int? parsedValue = int.tryParse(value);
+                                  _investmentTarget =
+                                      (parsedValue != null && parsedValue > 0)
+                                          ? parsedValue
+                                          : 100;
                                 },
                               ),
                               subtitle: Text(
-                                  'Promised price for the player (optional)',
+                                  'Weekly investment from the scouting network',
                                   style: styleItalicBlueGrey),
                               shape: shapePersoRoundedBorder()),
                         ],
@@ -99,7 +104,7 @@ Widget playerSetAsPoachingIconButton(
                                   ),
                                   formSpacer3,
                                   Text(
-                                      'Set ${player.getFullName()} as poached'),
+                                      'Start poaching ${player.getFullName()}'),
                                 ],
                               ),
                               onPressed: () {
@@ -121,9 +126,8 @@ Widget playerSetAsPoachingIconButton(
                   data: {
                     'id_club': user.selectedClub!.id,
                     'id_player': player.id,
-                    if (promisedExpenses != null)
-                      'promised_expenses': promisedExpenses,
-                    if (promisedPrice != null) 'promised_price': promisedPrice,
+                    'investment_target': _investmentTarget,
+                    if (_notes != null) 'notes': _notes,
                   });
               if (isOK) {
                 context.showSnackBar(
