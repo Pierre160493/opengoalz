@@ -93,7 +93,7 @@ class ClubData {
         });
   }
 
-  // Method to show club history dialog
+  // Method to show club history dialog box
   static Future<void> showClubHistoryChartDialog(
       BuildContext context, int idClub, String columnName, String titleName,
       {var dataToAppend = null}) async {

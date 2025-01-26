@@ -3,7 +3,8 @@
 CREATE OR REPLACE FUNCTION public.transfers_handle_new_bid(
     inp_id_player bigint,
     inp_id_club_bidder bigint,
-    inp_amount bigint)
+    inp_amount bigint,
+    inp_max_price bigint DEFAULT NULL)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
@@ -70,8 +71,35 @@ BEGIN
         IF latest_bid IS NOT NULL THEN
 
             -- Check: Bid should be at least 1% increase from the previous bid
-            IF inp_amount < CEIL(latest_bid.amount * 1.01)  THEN
-                RAISE EXCEPTION 'The new bid (%) should be greater than 1 percent of the previous bid (%) !', inp_amount, latest_bid.amount;
+            IF inp_amount < CEIL(latest_bid.amount * 1.01) THEN
+
+                IF inp_max_price IS NOT NULL AND inp_max_price > CEIL(latest_bid.amount * 1.01) THEN
+                    
+                    -- Set the new bid to the max price * 1.01
+                    inp_amount := CEIL(latest_bid.amount * 1.01);
+
+                ELSE
+                    RAISE EXCEPTION 'The new bid (%) should be greater than 1 percent of the previous bid (%) !', inp_amount, latest_bid.amount;
+                END IF;
+            END IF;
+
+            -- Check if the latest bid has a max price and if it is higher than the new bid
+            IF latest_bid.max_price IS NOT NULL AND latest_bid.max_price >= inp_amount THEN
+
+                -- If the input bid has a higher max price then the new bidder wins the bid
+                IF inp_max_price IS NOT NULL AND inp_max_price > latest_bid.max_price THEN
+
+                    -- Set the new bid to the max price * 1.01    
+                    inp_amount := CEIL(latest_bid.max_price * 1.01);
+                
+                -- If the input bid has a lower max price then the previous bidder wins the bid
+                ELSE
+
+                    -- Set the new bid to the max price
+                    inp_amount := CEIL(latest_bid.max_price * 1.01);
+                    inp_id_club_bidder := latest_bid.id_club;
+
+                END IF;
             END IF;
 
             -- Reset available cash for previous bidder
@@ -97,8 +125,8 @@ BEGIN
         END IF;
 
         ---- Insert the new bid
-        INSERT INTO transfers_bids (id_player, id_club, amount, name_club)
-        VALUES (rec_player.id, rec_club_bidder.id, inp_amount, (SELECT name FROM clubs WHERE id = rec_club_bidder.id));
+        INSERT INTO transfers_bids (id_player, id_club, amount, name_club, max_price)
+        VALUES (rec_player.id, rec_club_bidder.id, inp_amount, (SELECT name FROM clubs WHERE id = rec_club_bidder.id), inp_max_price);
 
         ---- Decrease available cash for current bidder
         UPDATE clubs SET

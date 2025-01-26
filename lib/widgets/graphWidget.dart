@@ -67,14 +67,14 @@ class ChartDialogBox extends StatelessWidget {
               );
             }).toList(),
             minY: 0,
-            maxY: (max(
-                            100,
-                            data
-                                .expand((curve) => curve.map((spot) => spot.y))
-                                .reduce(max)) /
-                        10)
-                    .ceil() *
-                10,
+            // maxY: (max(
+            //                 100,
+            //                 data
+            //                     .expand((curve) => curve.map((spot) => spot.y))
+            //                     .reduce(max)) /
+            //             10)
+            //         .ceil() *
+            //     10,
             titlesData: FlTitlesData(
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(

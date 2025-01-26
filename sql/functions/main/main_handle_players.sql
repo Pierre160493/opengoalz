@@ -6,6 +6,7 @@ CREATE OR REPLACE FUNCTION public.main_handle_players(inp_multiverse record)
 AS $function$
 DECLARE
     rec_player RECORD; -- Record for the player selection
+    rec_poaching RECORD; -- Record for the list of poaching players
 BEGIN
 
     ------ Store player's stats in the history
@@ -125,15 +126,25 @@ BEGIN
                 string_parser(rec_player.id, 'idPlayer') || ' asked to leave the club !',
                 string_parser(rec_player.id, 'idPlayer') || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
 
+            -- Loop through the list of clubs poaching this player
+            FOR rec_poaching IN (
+                SELECT * FROM players_poaching WHERE id_player = rec_player.id
+                ORDER BY max_price DESC, created_at ASC
+            ) LOOP
+
+                IF
+
+            END LOOP;
+
             -- Send mails to clubs following the player
             INSERT INTO messages_mail (
                 id_club_to, sender_role, title, message
             )
             SELECT 
                 id_club, 'Scouts', 
-                string_parser(rec_player.id, 'idPlayer') || ' asked to leave ' || string_parser(rec_player.id_club, 'idClub'),
-                string_parser(rec_player.id, 'idPlayer') || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.'
-            FROM players_favorite
+                string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub'),
+                string_parser(rec_player.id, 'idPlayer') || ' who is being poached by our scouting network has asked to leave his club. He will be leaving before next week because of low motivation: ' || rec_player.motivation || '. It''s time to make a move !'
+            FROM players_poaching
             WHERE id_player = rec_player.id;
 
 --RAISE NOTICE '==> RageQuit => % (%) has asked to leave club [%]', rec_player.full_name, rec_player.id, rec_player.id_club;

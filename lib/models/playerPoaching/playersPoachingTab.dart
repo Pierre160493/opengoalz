@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/playerChartDialogBox.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 
@@ -99,20 +100,17 @@ Widget getPlayersPoachingTab(List<Player> players) {
                         )
                       ],
                     ),
-                    // onTap: () async {
-                    //   final chartData = ChartData(
-                    //     title: 'Player motivation',
-                    //     yValues: [player.motivation],
-                    //     typeXAxis: XAxisType.weekHistory,
-                    //   );
 
-                    //   showDialog(
-                    //     context: context,
-                    //     builder: (BuildContext context) {
-                    //       return ChartDialogBox(chartData: chartData);
-                    //     },
-                    //   );
-                    // },
+                    /// Fetch the data from the database and display it on the graph dialog box
+                    onTap: () async {
+                      await showHistoryChartDialog(
+                        context,
+                        player.id,
+                        'motivation',
+                        'Player motivation over time',
+                        dataToAppend: player.motivation,
+                      );
+                    },
                   ),
                 ],
               ),
