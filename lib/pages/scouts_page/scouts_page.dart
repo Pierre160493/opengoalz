@@ -36,12 +36,14 @@ class _ScoutsPageState extends State<ScoutsPage> {
         .from('players_favorite')
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.club.id)
+        .order('created_at', ascending: true)
         .map((maps) => maps.map((map) => PlayerFavorite.fromMap(map)).toList());
 
     final playersPoachingStream = supabase
         .from('players_poaching')
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.club.id)
+        .order('created_at', ascending: true)
         .map((maps) => maps.map((map) => PlayerPoaching.fromMap(map)).toList());
 
     _playersStream = Rx.combineLatest2(
@@ -57,6 +59,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
             .from('players')
             .stream(primaryKey: ['id'])
             .inFilter('id', playerIds)
+            .order('date_birth', ascending: true)
             .map((maps) {
               final players = maps.map((map) => Player.fromMap(map)).toList();
               players.forEach((player) {

@@ -53,8 +53,8 @@ BEGIN
             -- If the club has a positive scouts weight, apply the investment target
             CASE WHEN clubs.scouts_weight > 0 THEN players_poaching.investment_target ELSE 0 END,
         -- Calculate the new affinity based on the investment target * random
-        affinity = affinity + RANDOM() *
-            (CASE WHEN clubs.scouts_weight > 0 THEN players_poaching.investment_target ELSE 0 END) / 1000.0
+        affinity = affinity - affinity * 0.1 - 1 + --Remove 10% of the affinity and -1
+            (0.1 + RANDOM()) * (CASE WHEN clubs.scouts_weight > 0 THEN players_poaching.investment_target ELSE 0 END) ^ 0.5
     FROM clubs
     WHERE clubs.id = players_poaching.id_club
     AND clubs.id_multiverse = inp_multiverse.id;
@@ -83,7 +83,7 @@ BEGIN
             + ((70 - motivation) / 10) -- +7; -3 based on value
             - ((expenses_missed / expenses_expected) ^ 0.5) * 10
             -- Lower motivation if player is being poached
-            - players1.affinity_max * RANDOM() -- Reduce motivation based on the max affinity
+            - players1.affinity_max * (0.1 + RANDOM()) -- Reduce motivation based on the max affinity
             - (players1.poaching_count ^ 0.5) -- Reduce motivation for each poaching attempt
             -- Lower motivation based on age for bot clubs from 30 years old
             - CASE WHEN (players.id_club IS NULL OR players1.is_bot_club = FALSE) THEN 0
@@ -128,11 +128,46 @@ BEGIN
 
             -- Loop through the list of clubs poaching this player
             FOR rec_poaching IN (
-                SELECT * FROM players_poaching WHERE id_player = rec_player.id
+                SELECT *, ROW_NUMBER() OVER (ORDER BY max_price DESC, created_at ASC) AS row_num
+                FROM players_poaching 
+                WHERE id_player = rec_player.id
                 ORDER BY max_price DESC, created_at ASC
             ) LOOP
 
-                IF
+                -- Handle the first row
+                IF rec_poaching.row_num = 1 AND rec_poaching.max_price >= 100 THEN
+
+                    -- Return the cash to the bidding club
+                    UPDATE clubs SET
+                        cash = cash + rec_poaching.max_price,
+                        expenses_transfers_expected = expenses_transfers_expected - 100
+                    WHERE id = rec_poaching.id_club;
+
+                    -- Call the transfers_handle_new_bid function to insert the first bid
+                    PERFORM transfers_handle_new_bid(
+                        rec_player.id,
+                        rec_poaching.id_club,
+                        100,
+                        rec_poaching.max_price);
+
+                    -- Send message to the club
+                    INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                    VALUES (
+                        rec_poaching.id_club, 'Scouts',
+                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
+                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club (' || string_parser(rec_player.id_club, 'idClub') || ') and we made a bid to get him, his affinity towards our club is ' || rec_poaching.affinity || ' and the max price is ' || rec_poaching.max_price || '.');
+
+                ELSE
+
+                    -- Send message to interested clubs
+                    INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                    VALUES (
+                        rec_poaching.id_club, 'Scouts',
+                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
+                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub') || ', it''s time to make a move, knowing that his affinity towards our club is ' || rec_poaching.affinity || '.');
+
+
+                END IF;
 
             END LOOP;
 
@@ -142,9 +177,9 @@ BEGIN
             )
             SELECT 
                 id_club, 'Scouts', 
-                string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub'),
-                string_parser(rec_player.id, 'idPlayer') || ' who is being poached by our scouting network has asked to leave his club. He will be leaving before next week because of low motivation: ' || rec_player.motivation || '. It''s time to make a move !'
-            FROM players_poaching
+                string_parser(rec_player.id, 'idPlayer') || ' (favorite) asked to leave his club',
+                string_parser(rec_player.id, 'idPlayer') || ' who is one of your favorite player has asked to leave ' || string_parser(rec_player.id_club, 'idClub') ||'. He will be leaving before next week because of low motivation: ' || rec_player.motivation || '. It''s time to make a move !'
+            FROM players_favorite
             WHERE id_player = rec_player.id;
 
 --RAISE NOTICE '==> RageQuit => % (%) has asked to leave club [%]', rec_player.full_name, rec_player.id, rec_player.id_club;
@@ -251,7 +286,7 @@ BEGIN
             motivation, form, experience, energy, stamina]
         ),
         expenses_target = FLOOR((50 +
-            2 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) +
+            1 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) +
             GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2 +
             (keeper + defense + passes + playmaking + winger + scoring + freekick) / 4
             ))

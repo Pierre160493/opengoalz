@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerChartDialogBox.dart';
-import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:provider/provider.dart';
 
 Widget getPlayersPoachingTab(List<Player> players) {
   return Column(
     children: [
       ListTile(
         leading: Icon(iconPoaching, color: Colors.green, size: iconSizeMedium),
-        title: Text('Poached Players',
+        title: Text('${players.length} Poached Players',
             style: TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text('List of players your scouting network are working on',
             style: styleItalicBlueGrey),
@@ -22,23 +23,31 @@ Widget getPlayersPoachingTab(List<Player> players) {
           itemCount: players.length,
           itemBuilder: (context, index) {
             final player = players[index];
+            double? diffLastWeekAffinity = player
+                    .poaching!.lisAffinity.isNotEmpty
+                ? player.poaching!.affinity - player.poaching!.lisAffinity.last
+                : null;
             return ListTile(
               leading: Icon(player.getPlayerIcon(),
-                  size: iconSizeMedium, color: Colors.green),
+                  size: iconSizeLarge, color: Colors.green),
               title: player.getPlayerNameClickable(context),
               subtitle: Column(
                 children: [
-                  /// Promied expenses
+                  /// Weekly scouting staff investment
 
                   InkWell(
                     child: Row(
                       children: [
-                        Text('Weekly scouting staff investment: ',
-                            style: styleItalicBlueGrey),
+                        Icon(iconScouts,
+                            color: player.poaching!.investmentTarget > 0
+                                ? Colors.green
+                                : Colors.red),
                         Text(
                           player.poaching!.investmentTarget.toString(),
                           style: TextStyle(fontWeight: FontWeight.bold),
-                        )
+                        ),
+                        Text(' Weekly scouting staff investment',
+                            style: styleItalicBlueGrey),
                       ],
                     ),
                     onTap: () async {
@@ -61,11 +70,29 @@ Widget getPlayersPoachingTab(List<Player> players) {
                   InkWell(
                     child: Row(
                       children: [
-                        Text('Affinity: ', style: styleItalicBlueGrey),
+                        Icon(Icons.verified,
+                            color: player.poaching!.affinity < 10
+                                ? Colors.red
+                                : player.poaching!.affinity < 25
+                                    ? Colors.orange
+                                    : Colors.green),
                         Text(
                           player.poaching!.affinity.toString(),
                           style: TextStyle(fontWeight: FontWeight.bold),
-                        )
+                        ),
+                        Text(' Club Affinity', style: styleItalicBlueGrey),
+                        if (diffLastWeekAffinity != null)
+                          Tooltip(
+                            message: 'Compared to last week',
+                            child: Text(
+                              ' (${diffLastWeekAffinity < 0 ? '' : '+'}${diffLastWeekAffinity.toStringAsFixed(2)})',
+                              style: TextStyle(
+                                  color: diffLastWeekAffinity < 0
+                                      ? Colors.red
+                                      : Colors.green,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
                       ],
                     ),
                     onTap: () async {
@@ -93,11 +120,17 @@ Widget getPlayersPoachingTab(List<Player> players) {
                   InkWell(
                     child: Row(
                       children: [
-                        Text('Motivation: ', style: styleItalicBlueGrey),
+                        Icon(iconMotivation,
+                            color: player.motivation > 50
+                                ? Colors.green
+                                : player.motivation > 20
+                                    ? Colors.orange
+                                    : Colors.red),
                         Text(
                           player.motivation.toString(),
                           style: TextStyle(fontWeight: FontWeight.bold),
-                        )
+                        ),
+                        Text(' Motivation', style: styleItalicBlueGrey),
                       ],
                     ),
 
@@ -115,22 +148,8 @@ Widget getPlayersPoachingTab(List<Player> players) {
                 ],
               ),
               shape: shapePersoRoundedBorder(),
-              trailing: IconButton(
-                icon: Icon(iconCancel, color: Colors.red),
-                onPressed: () async {
-                  bool isOK = await operationInDB(
-                      context, 'DELETE', 'players_poaching',
-                      matchCriteria: {
-                        'id': player.poaching!.id,
-                      });
-                  if (isOK) {
-                    context.showSnackBar(
-                        'Successfully removed ${player.getFullName()} from the list of poached players',
-                        icon:
-                            Icon(iconSuccessfulOperation, color: Colors.green));
-                  }
-                },
-              ),
+              trailing: playerSetAsPoachingIconButton(context, player,
+                  Provider.of<SessionProvider>(context, listen: false).user!),
             );
           },
         ),
