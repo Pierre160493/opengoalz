@@ -49,13 +49,13 @@ BEGIN
                 IF player.transfer_price = -100 THEN
 
                     -- Insert a message to say that the player left the club
-                    INSERT INTO messages_mail (id_club_to, sender_role, title, message) VALUES
+                    INSERT INTO mails (id_club_to, sender_role, title, message) VALUES
                         (player.id_club, 'Treasurer',
                         player.special_string_player || ' found no bidder and leaves the club',
                         player.special_string_player || ' has not received any bid, the selling is over and he is not part of the club anymore. He is now clubless and was removed from the club''s teamcomps.');
 
                     -- Send mail to the clubs following the player
-                    INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                    INSERT INTO mails (id_club_to, sender_role, title, message)
                     SELECT DISTINCT id_club, 'Scouts',
                         player.special_string_player || ' (followed) found no bidder and leaves ' || player.special_string_club,
                         'The transfer of ' || player.special_string_player || ' (followed) has been canceled because no bids were made. He is now clubless'
@@ -129,7 +129,7 @@ BEGIN
                 ELSE
 
                     -- Insert a message to say that the player was not sold
-                    INSERT INTO messages_mail (
+                    INSERT INTO mails (
                         id_club_to, created_at, sender_role, title, message)
                     VALUES
                         (player.id_club, player.date_bid_end, 'Treasurer',
@@ -137,7 +137,7 @@ BEGIN
                         player.special_string_player || ' has not received any bid, the selling is canceled and he will stay in the club');
 
                     -- Send mail to the clubs following the player
-                    INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                    INSERT INTO mails (id_club_to, sender_role, title, message)
                     SELECT DISTINCT id_club, 'Scouts',
                         player.special_string_player || ' (followed) found no bidder so stays in ' || player.special_string_club,
                         'The transfer of ' || player.special_string_player || ' (followed) has been canceled because no bids were made. He stays in ' || player.special_string_club
@@ -171,7 +171,7 @@ BEGIN
             IF player.id_club IS NULL THEN
 
                 -- Insert a message to say that the player was sold
-                INSERT INTO messages_mail (
+                INSERT INTO mails (
                     id_club_to, created_at, sender_role, title, message)
                 VALUES
                     (last_bid.id_club, player.date_bid_end, 'Treasurer',
@@ -179,7 +179,7 @@ BEGIN
                     player.special_string_player || ' who was clubless has been bought for ' || last_bid.amount);
                 
                 -- Send mail to the clubs following the player
-                INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                INSERT INTO mails (id_club_to, sender_role, title, message)
                 SELECT DISTINCT id_club, 'Scouts',
                     player.special_string_player || ' (followed) sold for ' || last_bid.amount,
                     player.special_string_player || ' (followed) who was clubless has been sold for ' || last_bid.amount || ' to ' || string_parser(last_bid.id_club, 'idClub') || '.'
@@ -192,7 +192,7 @@ BEGIN
             ELSE
 
                 -- Insert a message to say that the player was sold
-                INSERT INTO messages_mail
+                INSERT INTO mails
                     (id_club_to, created_at, sender_role, title, message)
                 VALUES
                     (player.id_club, player.date_bid_end, 'Treasurer',
@@ -203,7 +203,7 @@ BEGIN
                         player.special_string_player || ' has been bought for ' || last_bid.amount || '. I hope he will be a good addition to our team !');
 
                 -- Send mail to the clubs following the player
-                INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                INSERT INTO mails (id_club_to, sender_role, title, message)
                 SELECT DISTINCT id_club, 'Scouts',
                     player.special_string_player || ' (followed) sold for ' || last_bid.amount,
                     player.special_string_player || ' (followed) has been sold for ' || last_bid.amount || ' from ' || player.special_string_club || ' to ' || string_parser(last_bid.id_club, 'idClub') || '.'

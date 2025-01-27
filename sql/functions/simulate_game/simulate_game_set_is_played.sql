@@ -200,7 +200,7 @@ BEGIN
         WHERE id = (SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6);
 
         -- Send message to the club going down
-        INSERT INTO messages_mail (id_club_to, sender_role, title, message) 
+        INSERT INTO mails (id_club_to, sender_role, title, message) 
         VALUES
             ((SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), 'Coach',
             rec_game.game_presentation || ' of barrage 1 played ==> DEMOTED to ' ||
@@ -316,7 +316,7 @@ BEGIN
     END IF; -- End of the handling of the different games
 
     ------ Send messages
-    INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+    INSERT INTO mails (id_club_to, sender_role, title, message)
     VALUES
         (rec_game.id_club_overall_winner, 'Coach', text_title_winner, text_message_winner),
         (rec_game.id_club_overall_loser, 'Coach', text_title_loser, text_message_loser);

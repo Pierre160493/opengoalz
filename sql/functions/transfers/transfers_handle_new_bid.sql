@@ -116,7 +116,7 @@ BEGIN
             END IF;
             
             -- Send message to previous bidder
-            INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+            INSERT INTO mails (id_club_to, sender_role, title, message)
             VALUES (
                 latest_bid.id_club, 'Treasurer',
                 'Outbided on ' || string_parser(rec_player.id, 'idPlayer'),

@@ -69,7 +69,7 @@ BEGIN
     WHERE players.id_club = clubs_finances.id_club),
     ------ Insert messages for clubs that paid missed expenses
     message_debt_payed AS (
-        INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+        INSERT INTO mails (id_club_to, sender_role, title, message)
     SELECT 
         id_club AS id_club_to, 'Treasurer' AS sender_role,
         --inp_multiverse.date_handling + INTERVAL '1 second' * EXTRACT(SECOND FROM CURRENT_TIMESTAMP) + INTERVAL '1 millisecond' * EXTRACT(MILLISECOND FROM CURRENT_TIMESTAMP),
@@ -87,7 +87,7 @@ BEGIN
     WHERE clubs.id = clubs_finances.id_club;
 
     ------ Send mail for clubs that are in debt
-    INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+    INSERT INTO mails (id_club_to, sender_role, title, message)
         SELECT 
             id AS id_club_to, 'Treasurer' AS sender_role,
             'Negative Cash: Staff, Souts and Players not paid' AS title,

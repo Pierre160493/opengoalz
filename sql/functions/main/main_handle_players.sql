@@ -119,7 +119,7 @@ BEGIN
             WHERE id = rec_player.id;
 
             -- Create a new mail warning saying that the player is leaving club
-            INSERT INTO messages_mail (
+            INSERT INTO mails (
                 id_club_to, sender_role, title, message)
             VALUES
                 (rec_player.id_club, 'Treasurer',
@@ -151,7 +151,7 @@ BEGIN
                         rec_poaching.max_price);
 
                     -- Send message to the club
-                    INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                    INSERT INTO mails (id_club_to, sender_role, title, message)
                     VALUES (
                         rec_poaching.id_club, 'Scouts',
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
@@ -160,7 +160,7 @@ BEGIN
                 ELSE
 
                     -- Send message to interested clubs
-                    INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                    INSERT INTO mails (id_club_to, sender_role, title, message)
                     VALUES (
                         rec_poaching.id_club, 'Scouts',
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
@@ -172,7 +172,7 @@ BEGIN
             END LOOP;
 
             -- Send mails to clubs following the player
-            INSERT INTO messages_mail (
+            INSERT INTO mails (
                 id_club_to, sender_role, title, message
             )
             SELECT 
@@ -187,7 +187,7 @@ BEGIN
         ELSE
 
             -- Create a new mail warning saying that the player is at risk leaving club
-            INSERT INTO messages_mail (
+            INSERT INTO mails (
                 id_club_to, sender_role, title, message)
             VALUES
                 (rec_player.id_club, 'Coach',

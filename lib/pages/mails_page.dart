@@ -44,7 +44,7 @@ class _MailsPageState extends State<MailsPage> {
     //     Exception('The club does not have a username');
     //   }
     //   return supabase
-    //       .from('messages_mail')
+    //       .from('mails')
     //       .stream(primaryKey: ['id'])
     //       .eq('username_to', club.userName!)
     //       .order('created_at', ascending: false)
@@ -56,7 +56,7 @@ class _MailsPageState extends State<MailsPage> {
     // })
     // .switchMap((Club club) {
     //   return supabase
-    //       .from('messages_mail')
+    //       .from('mails')
     //       .stream(primaryKey: ['id'])
     //       .eq('id_club_to', club.id)
     //       .order('created_at', ascending: false)
@@ -302,7 +302,7 @@ class _MailsPageState extends State<MailsPage> {
                           onPressed: () async {
                             if (mail.isRead) {
                               bool isOk = await operationInDB(
-                                  context, 'UPDATE', 'messages_mail',
+                                  context, 'UPDATE', 'mails',
                                   data: {
                                     'is_read': false
                                   },
@@ -316,8 +316,7 @@ class _MailsPageState extends State<MailsPage> {
                               //           color: Colors.green));
                               // }
                             } else {
-                              await operationInDB(
-                                  context, 'UPDATE', 'messages_mail',
+                              await operationInDB(context, 'UPDATE', 'mails',
                                   data: {
                                     'is_read': true,
                                   },
@@ -353,8 +352,7 @@ class _MailsPageState extends State<MailsPage> {
                           ),
                           onPressed: () async {
                             if (mail.isFavorite) {
-                              await operationInDB(
-                                  context, 'UPDATE', 'messages_mail',
+                              await operationInDB(context, 'UPDATE', 'mails',
                                   data: {
                                     'is_favorite': false,
                                   },
@@ -362,8 +360,7 @@ class _MailsPageState extends State<MailsPage> {
                                     'id': mail.id,
                                   });
                             } else {
-                              await operationInDB(
-                                  context, 'UPDATE', 'messages_mail',
+                              await operationInDB(context, 'UPDATE', 'mails',
                                   data: {
                                     'is_favorite': true,
                                   },
@@ -382,7 +379,7 @@ class _MailsPageState extends State<MailsPage> {
                             ),
                             onPressed: () async {
                               bool isOk = await operationInDB(
-                                  context, 'UPDATE', 'messages_mail',
+                                  context, 'UPDATE', 'mails',
                                   data: {
                                     'date_delete': DateTime.now()
                                         .add(Duration(days: 7))
@@ -405,7 +402,7 @@ class _MailsPageState extends State<MailsPage> {
                             icon: Icon(Icons.restore_from_trash),
                             onPressed: () async {
                               bool isOk = await operationInDB(
-                                  context, 'UPDATE', 'messages_mail',
+                                  context, 'UPDATE', 'mails',
                                   data: {
                                     'date_delete': null,
                                   },
@@ -476,13 +473,11 @@ class _MailsPageState extends State<MailsPage> {
                 ],
                 onExpansionChanged: (isExpanded) async {
                   if (isExpanded && !mail.isRead) {
-                    await operationInDB(context, 'UPDATE', 'messages_mail',
-                        data: {
-                          'is_read': true,
-                        },
-                        matchCriteria: {
-                          'id': mail.id,
-                        });
+                    await operationInDB(context, 'UPDATE', 'mails', data: {
+                      'is_read': true,
+                    }, matchCriteria: {
+                      'id': mail.id,
+                    });
                   }
                 },
               ),
@@ -554,7 +549,7 @@ class _MailsPageState extends State<MailsPage> {
           isOk = await operationInDB(
             context,
             'UPDATE',
-            'messages_mail',
+            'mails',
             data: data,
             inFilterMatchCriteria: {
               'id': mails.map((mail) => mail.id).toList()

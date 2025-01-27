@@ -115,7 +115,7 @@ BEGIN
         IF loc_score_left = -1 AND loc_score_right = -1 THEN
 
             -- Send mails to the clubs
-            INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
+            INSERT INTO mails (id_club_to, created_at, sender_role, title, message)
             VALUES
                 (rec_game.id_club_left, rec_game.date_start, 'Referee',
                     'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
@@ -129,7 +129,7 @@ BEGIN
             loc_score_right := 3; -- Set the right club as winner by 3-0
 
             -- Send mails to the clubs
-            INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
+            INSERT INTO mails (id_club_to, created_at, sender_role, title, message)
             VALUES
                 (rec_game.id_club_left, rec_game.date_start, 'Referee',
                     'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
@@ -143,7 +143,7 @@ BEGIN
             loc_score_left := 3; -- Set the left club as winner by 3-0
 
             -- Send mails to the clubs
-            INSERT INTO messages_mail (id_club_to, created_at, sender_role, title, message)
+            INSERT INTO mails (id_club_to, created_at, sender_role, title, message)
             VALUES
                 (rec_game.id_club_left, rec_game.date_start, 'Referee',
                     string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Opponent has no valid teamcomp',

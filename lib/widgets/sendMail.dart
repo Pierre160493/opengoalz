@@ -51,7 +51,7 @@ void sendMailDialog(BuildContext context, {int? idClub, String? username}) {
               bool isOk = await operationInDB(
                 context,
                 'INSERT',
-                'messages_mail',
+                'mails',
                 data: {
                   'id_club': idClub,
                   'title': titleController.text,

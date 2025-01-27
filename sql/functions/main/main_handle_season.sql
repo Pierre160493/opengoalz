@@ -54,7 +54,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
                 ORDER BY overall_points DESC
             )
             -- Send mail to each club indicating their position in the league
-            INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+            INSERT INTO mails (id_club_to, sender_role, title, message)
             SELECT 
                 id AS id_club_to, 'Coach' AS sender_role,
                 -- inp_multiverse.date_handling + INTERVAL '1 second' * EXTRACT(SECOND FROM CURRENT_TIMESTAMP) + INTERVAL '1 millisecond' * EXTRACT(MILLISECOND FROM CURRENT_TIMESTAMP),
@@ -236,7 +236,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                 GROUP BY id_club
             )
             -- Send mail to each club indicating their position in the league
-            INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+            INSERT INTO mails (id_club_to, sender_role, title, message)
                 SELECT 
                     id AS id_club_to, 'Treasurer' AS sender_role,
                     -- inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),

@@ -264,7 +264,7 @@ BEGIN
             IF inp_bool_notify_user IS TRUE THEN
 
                 ---- Send a message to the user
-                INSERT INTO messages_mail (id_club_to, sender_role, title, message)
+                INSERT INTO mails (id_club_to, sender_role, title, message)
                     VALUES
                         (rec_teamcomp.id_club, 'Coach',
                         -- (SELECT date_now FROM multiverses WHERE id = (SELECT id_multiverse FROM clubs WHERE id = rec_teamcomp.id_club)),

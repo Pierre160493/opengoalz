@@ -96,7 +96,7 @@ class SessionProvider extends ChangeNotifier {
           /// Fetch the mails of the user
           .switchMap((Profile profile) {
             return supabase
-                .from('messages_mail')
+                .from('mails')
                 .stream(primaryKey: ['id'])
                 .eq('username_to', profile.username)
                 .order('created_at', ascending: false)
@@ -114,7 +114,7 @@ class SessionProvider extends ChangeNotifier {
               return Stream.value(profile);
             }
             return supabase
-                .from('messages_mail')
+                .from('mails')
                 .stream(primaryKey: ['id'])
                 .inFilter(
                     'id_club_to', profile.clubs.map((club) => club.id).toList())
