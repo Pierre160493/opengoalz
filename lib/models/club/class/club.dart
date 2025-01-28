@@ -7,6 +7,8 @@ import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/models/mail.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/players_page.dart';
+import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
+import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
@@ -26,6 +28,8 @@ class Club {
   List<TeamComp> defaultTeamComps = []; // List of the teamcomps of the club
   List<Game> games = []; // Games of this club
   List<Player> players = []; // List of players of the club
+  List<PlayerFavorite> playersFavorite = []; // List of players of the club
+  List<PlayerPoaching> playersPoached = []; // List of players of the club
   List<Mail> mails = []; // List of mails for the club
   Multiverse? multiverse; // Multiverse of the club
   League? league; // League of the club

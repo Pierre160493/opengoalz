@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/models/profile.dart';
@@ -7,7 +5,6 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/pages/mails_page.dart';
 import 'package:opengoalz/pages/settings_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
@@ -75,7 +72,7 @@ class _UserPageState extends State<UserPage> {
                   .map(
                       (maps) => maps.map((map) => Player.fromMap(map)).toList())
                   .map((List<Player> players) {
-                    user.players = players;
+                    user.playersIncarnated = players;
                     return user;
                   });
             });
@@ -201,13 +198,14 @@ class _UserPageState extends State<UserPage> {
                         user.clubs.length == 0 ? Colors.red : Colors.green),
                 buildTabWithIcon(
                     icon: iconPlayers,
-                    text: user.players.length == 0
+                    text: user.playersIncarnated.length == 0
                         ? 'No player'
-                        : user.players.length == 1
+                        : user.playersIncarnated.length == 1
                             ? '1 player'
-                            : '${user.players.length} players',
-                    iconColor:
-                        user.players.length == 0 ? Colors.red : Colors.green),
+                            : '${user.playersIncarnated.length} players',
+                    iconColor: user.playersIncarnated.length == 0
+                        ? Colors.red
+                        : Colors.green),
                 buildTabWithIcon(icon: Icons.description, text: 'User'),
               ],
             ),
@@ -228,7 +226,8 @@ class _UserPageState extends State<UserPage> {
 
   Widget _getUserWidget(Profile user) {
     bool canCreateClub = user.numberClubsAvailable > user.clubs.length;
-    bool canCreatePlayer = user.numberPlayersAvailable > user.players.length;
+    bool canCreatePlayer =
+        user.numberPlayersAvailable > user.playersIncarnated.length;
     return Column(
       children: [
         ListTile(
@@ -307,10 +306,10 @@ class _UserPageState extends State<UserPage> {
               size: iconSizeMedium,
             ),
             title: Text(
-                'Number of Player${user.players.length > 1 ? 's' : ''}: ${user.players.length} / ${user.numberPlayersAvailable}'),
+                'Number of Player${user.playersIncarnated.length > 1 ? 's' : ''}: ${user.playersIncarnated.length} / ${user.numberPlayersAvailable}'),
             subtitle: Text(
               canCreatePlayer
-                  ? 'You can ceate ${user.numberPlayersAvailable - user.players.length} additional player${user.numberPlayersAvailable - user.players.length > 1 ? 's' : ''}'
+                  ? 'You can ceate ${user.numberPlayersAvailable - user.playersIncarnated.length} additional player${user.numberPlayersAvailable - user.playersIncarnated.length > 1 ? 's' : ''}'
                   : 'You cannot have any additional player',
               style: styleItalicBlueGrey,
             ),

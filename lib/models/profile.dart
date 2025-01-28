@@ -13,7 +13,8 @@ class Profile {
   bool isConnectedUser = false; // True if the profile is the connected user
   Club? selectedClub; // Selected club of the profile
   List<Club> clubs = []; // List of clubs belonging to the profile
-  List<Player> players = []; // List of players belonging to the profile
+  List<Player> playersIncarnated =
+      []; // List of players belonging to the profile
   List<Mail> mails = []; // List of mails belonging to the profile
 
   Profile({

@@ -4,7 +4,7 @@ class Mail {
   final int idClubTo;
   final String? usernameTo;
   final String title;
-  final String message;
+  final String? message;
   final String? userNameFrom;
   final String? senderRole;
   final bool isRead;
@@ -43,4 +43,3 @@ class Mail {
     );
   }
 }
-

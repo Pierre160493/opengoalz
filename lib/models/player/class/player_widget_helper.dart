@@ -14,7 +14,7 @@ extension PlayerWidgetsHelper on Player {
     /// Check if the player belongs to the currently connected user
     bool isMine = Provider.of<SessionProvider>(context, listen: false)
         .user!
-        .players
+        .playersIncarnated
         .map((player) => player.id)
         .toList()
         .contains(id);

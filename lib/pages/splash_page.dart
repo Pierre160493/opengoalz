@@ -29,17 +29,14 @@ class SplashPageState extends State<SplashPage> {
     await Future.delayed(Duration.zero); // Await for the widget to mount
 
     if (supabase.auth.currentSession == null) {
-      print('############ supabase.auth.currentSession is null');
       Navigator.of(context)
           .pushAndRemoveUntil(LoginPage.route(), (route) => false);
     } else {
-      print('############ supabase.auth.currentSession is not null');
       // Fetch the user from the database
       try {
         await Provider.of<SessionProvider>(context, listen: false)
             .providerFetchUser(context, userId: supabase.auth.currentUser!.id);
 
-        print('############ User found, try to launch UserPage');
         setState(() {
           _isConnected = true;
         });
@@ -74,7 +71,6 @@ class SplashPageState extends State<SplashPage> {
         Navigator.of(context)
             .pushAndRemoveUntil(LoginPage.route(), (route) => false);
       }
-      print('############ End of _redirect()');
     }
   }
 

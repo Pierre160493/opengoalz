@@ -25,7 +25,10 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
         ListTile(
           onTap: () {
             Provider.of<SessionProvider>(context, listen: false)
-                .providerSetSelectedClub(club.id);
+                // .providerSetSelectedClub(club.id);
+                .providerFetchUser(context,
+                    userId: supabase.auth.currentUser!.id,
+                    selectedIdClub: club.id);
           },
           leading: CircleAvatar(
             backgroundColor: (club.id == user.selectedClub?.id)
@@ -114,7 +117,7 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
           Column(
             children: [
               const SizedBox(height: 6),
-              club.getQuickAccessWidget(context, club.id),
+              club.getQuickAccessWidget(context, user.selectedClub!),
               const SizedBox(height: 6),
             ],
           ),

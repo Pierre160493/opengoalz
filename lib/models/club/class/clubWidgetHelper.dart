@@ -146,7 +146,7 @@ extension ClubWidgetHelper on Club {
     );
   }
 
-  Widget getQuickAccessWidget(BuildContext context, int? idSelectedClub) {
+  Widget getQuickAccessWidget(BuildContext context, Club selectedClub) {
     double containerWidth = 80;
     double containerImgRadius = 24;
     return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
@@ -177,7 +177,7 @@ extension ClubWidgetHelper on Club {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Players'),
+                Text('${selectedClub.players.length} Players'),
                 CircleAvatar(
                   radius: containerImgRadius,
                   child: Icon(
@@ -284,7 +284,7 @@ extension ClubWidgetHelper on Club {
               MaterialPageRoute(
                 builder: (context) => LeaguePage(
                   idLeague: idLeague,
-                  idSelectedClub: idSelectedClub,
+                  idSelectedClub: selectedClub.id,
                 ),
               ),
             );

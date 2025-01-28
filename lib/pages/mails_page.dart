@@ -378,8 +378,8 @@ class _MailsPageState extends State<MailsPage> {
                               color: Colors.red,
                             ),
                             onPressed: () async {
-                              bool isOk = await operationInDB(
-                                  context, 'UPDATE', 'mails',
+                              print('Delete button pressed');
+                              await operationInDB(context, 'UPDATE', 'mails',
                                   data: {
                                     'date_delete': DateTime.now()
                                         .add(Duration(days: 7))
@@ -465,9 +465,12 @@ class _MailsPageState extends State<MailsPage> {
                       //     fontStyle: FontStyle.italic,
                       //   ),
                       // ),
-                      child: RichText(
-                        text: parseDescriptionTextSpan(context, mail.message),
-                      ),
+                      child: mail.message == null
+                          ? Text('Empty message')
+                          : RichText(
+                              text: parseDescriptionTextSpan(
+                                  context, mail.message!),
+                            ),
                     ),
                   ),
                 ],
@@ -545,8 +548,7 @@ class _MailsPageState extends State<MailsPage> {
             await context.showConfirmationDialog(confirmationMessage);
 
         if (shouldUpdate == true) {
-          bool isOk;
-          isOk = await operationInDB(
+          bool isOk = await operationInDB(
             context,
             'UPDATE',
             'mails',

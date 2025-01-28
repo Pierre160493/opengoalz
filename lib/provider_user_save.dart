@@ -13,6 +13,33 @@ import 'package:rxdart/rxdart.dart';
 class SessionProvider extends ChangeNotifier {
   Profile? user;
 
+  /// Initialize the user
+  // void providerInitUser(Profile userInput) {
+  //   user = userInput;
+  //   if (user!.idDefaultClub != null) {
+  //     providerSetSelectedClub(user!.idDefaultClub!);
+  //   }
+  //   notifyListeners();
+  // }
+
+  // /// Set the selected club of the user
+  // void providerSetSelectedClub(int idClub) {
+  //   Club? selectedClub;
+  //   for (Club club in user!.clubs) {
+  //     if (club.id == idClub) {
+  //       selectedClub = club;
+  //       print('Selected club: ${selectedClub.name}');
+  //       break;
+  //     }
+  //   }
+  //   if (selectedClub == null) {
+  //     throw Exception('Club not found');
+  //   } else {
+  //     user!.selectedClub = selectedClub;
+  //   }
+  //   notifyListeners();
+  // }
+
   /// Fetch the user from the database
   Future<void> providerFetchUser(BuildContext context,
       {String? userId, String? userName, int? selectedIdClub}) async {
@@ -204,10 +231,7 @@ class SessionProvider extends ChangeNotifier {
 
           /// Listen to the stream
           .listen((Profile user) {
-            final now = DateTime.now();
-            final formattedTime = '${now.hour}:${now.minute}:${now.second}';
-            print(
-                '### [$formattedTime] Received new data from session provider stream');
+            print('### Received new data from session provider stream');
             // Update the user object with the new data
             this.user = user;
             // if (user.selectedClub == null && user.idDefaultClub != null) {

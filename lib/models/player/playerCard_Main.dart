@@ -76,7 +76,7 @@ class _PlayerCardState extends State<PlayerCard>
               backgroundColor: (Provider.of<SessionProvider>(context,
                           listen: false)
                       .user!
-                      .players
+                      .playersIncarnated
                       .any((Player player) => player.id == widget.player.id))
                   ? Colors.purple
                   : null,
@@ -96,7 +96,7 @@ class _PlayerCardState extends State<PlayerCard>
                     widget.player.getStatusRow(),
                     if (Provider.of<SessionProvider>(context, listen: false)
                             .user!
-                            .players
+                            .playersIncarnated
                             .any((Player player) =>
                                 player.id == widget.player.id) ||
                         Provider.of<SessionProvider>(context, listen: false)
