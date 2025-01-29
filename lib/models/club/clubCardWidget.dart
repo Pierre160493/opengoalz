@@ -116,7 +116,7 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
           Column(
             children: [
               const SizedBox(height: 6),
-              club.getQuickAccessWidget(context, user.selectedClub!),
+              club.getQuickAccessWidget(context, user),
               const SizedBox(height: 6),
             ],
           ),

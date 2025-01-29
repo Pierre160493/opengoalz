@@ -155,7 +155,7 @@ BEGIN
                     VALUES (
                         rec_poaching.id_club, 'Scouts',
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club (' || string_parser(rec_player.id_club, 'idClub') || ') and we made a bid to get him, his affinity towards our club is ' || rec_poaching.affinity || ' and the max price is ' || rec_poaching.max_price || '.');
+                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club (' || string_parser(rec_player.id_club, 'idClub') || ') and we made a bid to get him, his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || ' and the max price is ' || ROUND(rec_poaching.max_price::numeric, 1) || '.');
 
                 ELSE
 
@@ -164,7 +164,7 @@ BEGIN
                     VALUES (
                         rec_poaching.id_club, 'Scouts',
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub') || ', it''s time to make a move, knowing that his affinity towards our club is ' || rec_poaching.affinity || '.');
+                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub') || ', it''s time to make a move, knowing that his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || '.');
 
 
                 END IF;

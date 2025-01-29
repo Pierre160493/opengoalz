@@ -3,16 +3,17 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerChartDialogBox.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
+import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:provider/provider.dart';
 
-Widget getPlayersPoachingTab(List<Player> players) {
+Widget getPlayersPoachingTab(List<PlayerPoaching> playersPoached) {
   return Column(
     children: [
       ListTile(
         leading: Icon(iconPoaching, color: Colors.green, size: iconSizeMedium),
-        title: Text('${players.length} Poached Players',
+        title: Text('${playersPoached.length} Poached Players',
             style: TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text('List of players your scouting network are working on',
             style: styleItalicBlueGrey),
@@ -20,23 +21,30 @@ Widget getPlayersPoachingTab(List<Player> players) {
       ),
       Expanded(
         child: ListView.builder(
-          itemCount: players.length,
+          itemCount: playersPoached.length,
           itemBuilder: (context, index) {
-            final player = players[index];
-            double? diffLastWeekAffinity = player
-                    .poaching!.lisAffinity.isNotEmpty
-                ? player.poaching!.affinity - player.poaching!.lisAffinity.last
+            PlayerPoaching playerPoached = playersPoached[index];
+            double? diffLastWeekAffinity = playerPoached.lisAffinity.isNotEmpty
+                ? playerPoached.affinity - playerPoached.lisAffinity.last
                 : null;
+            if (playerPoached.player == null) {
+              return ListTile(
+                leading: Icon(Icons.error, color: Colors.red),
+                title: Text('Player not found'),
+                subtitle: Text('Player ID: ${playerPoached.idPlayer}'),
+                shape: shapePersoRoundedBorder(Colors.red),
+              );
+            }
             return ListTile(
               leading: Tooltip(
-                message: player.poaching!.toDelete == true ? 'To delete' : '',
-                child: Icon(player.getPlayerIcon(),
+                message: playerPoached.toDelete == true ? 'To delete' : '',
+                child: Icon(playerPoached.player!.getPlayerIcon(),
                     size: iconSizeLarge,
-                    color: player.poaching!.toDelete == true
+                    color: playerPoached.toDelete == true
                         ? Colors.red
                         : Colors.green),
               ),
-              title: player.getPlayerNameClickable(context),
+              title: playerPoached.player!.getPlayerNameClickable(context),
               subtitle: Column(
                 children: [
                   /// Weekly scouting staff investment
@@ -45,11 +53,11 @@ Widget getPlayersPoachingTab(List<Player> players) {
                     child: Row(
                       children: [
                         Icon(iconScouts,
-                            color: player.poaching!.investmentTarget > 0
+                            color: playerPoached.investmentTarget > 0
                                 ? Colors.green
                                 : Colors.red),
                         Text(
-                          player.poaching!.investmentTarget.toString(),
+                          playerPoached.investmentTarget.toString(),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(' Weekly scouting staff investment',
@@ -59,7 +67,7 @@ Widget getPlayersPoachingTab(List<Player> players) {
                     onTap: () async {
                       final chartData = ChartData(
                         title: 'Weekly scouting staff investment',
-                        yValues: [player.poaching!.investmentWeekly],
+                        yValues: [playerPoached.investmentWeekly],
                         typeXAxis: XAxisType.weekHistory,
                       );
 
@@ -77,13 +85,13 @@ Widget getPlayersPoachingTab(List<Player> players) {
                     child: Row(
                       children: [
                         Icon(Icons.verified,
-                            color: player.poaching!.affinity < 10
+                            color: playerPoached.affinity < 10
                                 ? Colors.red
-                                : player.poaching!.affinity < 25
+                                : playerPoached.affinity < 25
                                     ? Colors.orange
                                     : Colors.green),
                         Text(
-                          player.poaching!.affinity.toString(),
+                          playerPoached.affinity.toString(),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(' Club Affinity', style: styleItalicBlueGrey),
@@ -105,10 +113,7 @@ Widget getPlayersPoachingTab(List<Player> players) {
                       final chartData = ChartData(
                         title: 'Player affinity to the club',
                         yValues: [
-                          [
-                            ...player.poaching!.lisAffinity,
-                            player.poaching!.affinity
-                          ]
+                          [...playerPoached.lisAffinity, playerPoached.affinity]
                         ],
                         typeXAxis: XAxisType.weekHistory,
                       );
@@ -127,13 +132,13 @@ Widget getPlayersPoachingTab(List<Player> players) {
                     child: Row(
                       children: [
                         Icon(iconMotivation,
-                            color: player.motivation > 50
+                            color: playerPoached.player!.motivation > 50
                                 ? Colors.green
-                                : player.motivation > 20
+                                : playerPoached.player!.motivation > 20
                                     ? Colors.orange
                                     : Colors.red),
                         Text(
-                          player.motivation.toString(),
+                          playerPoached.player!.motivation.toString(),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(' Motivation', style: styleItalicBlueGrey),
@@ -144,17 +149,19 @@ Widget getPlayersPoachingTab(List<Player> players) {
                     onTap: () async {
                       await showHistoryChartDialog(
                         context,
-                        player.id,
+                        playerPoached.player!.id,
                         'motivation',
                         'Player motivation over time',
-                        dataToAppend: player.motivation,
+                        dataToAppend: playerPoached.player!.motivation,
                       );
                     },
                   ),
                 ],
               ),
               shape: shapePersoRoundedBorder(),
-              trailing: playerSetAsPoachingIconButton(context, player,
+              trailing: playerSetAsPoachingIconButton(
+                  context,
+                  playerPoached.player!,
                   Provider.of<SessionProvider>(context, listen: false).user!),
             );
           },

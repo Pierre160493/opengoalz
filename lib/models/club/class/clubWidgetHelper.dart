@@ -146,7 +146,7 @@ extension ClubWidgetHelper on Club {
     );
   }
 
-  Widget getQuickAccessWidget(BuildContext context, Club selectedClub) {
+  Widget getQuickAccessWidget(BuildContext context, Profile user) {
     double containerWidth = 80;
     double containerImgRadius = 24;
     return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
@@ -179,7 +179,7 @@ extension ClubWidgetHelper on Club {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Text(selectedClub.players.length.toString(),
+                  Text(user.selectedClub!.players.length.toString(),
                       style: TextStyle(fontWeight: FontWeight.bold)),
                   Text(' Players'),
                 ],
@@ -192,12 +192,14 @@ extension ClubWidgetHelper on Club {
                 height: iconSizeSmall * 1.5,
                 child: IconButton(
                   tooltip:
-                      '${selectedClub.playersFavorite.length} Favorite Players',
+                      '${user.selectedClub!.playersFavorite.length} Favorite Players',
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ScoutsPage(club: selectedClub),
+                        builder: (context) => ScoutsPage(
+                            user: user,
+                            initialTab: ScoutsPageTab.followedPlayers),
                       ),
                     );
                   },
@@ -212,12 +214,14 @@ extension ClubWidgetHelper on Club {
                 height: iconSizeSmall * 1.5,
                 child: IconButton(
                   tooltip:
-                      '${selectedClub.playersPoached.length} Poached Players',
+                      '${user.selectedClub!.playersPoached.length} Poached Players',
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ScoutsPage(club: selectedClub),
+                        builder: (context) => ScoutsPage(
+                            user: user,
+                            initialTab: ScoutsPageTab.poachedPlayers),
                       ),
                     );
                   },
@@ -331,7 +335,7 @@ extension ClubWidgetHelper on Club {
               MaterialPageRoute(
                 builder: (context) => LeaguePage(
                   idLeague: idLeague,
-                  idSelectedClub: selectedClub.id,
+                  idSelectedClub: user.selectedClub!.id,
                 ),
               ),
             );

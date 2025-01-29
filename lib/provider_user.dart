@@ -117,14 +117,19 @@ class SessionProvider extends ChangeNotifier {
         });
   }
 
-  void _fetchClubRelatedData(BuildContext context, Club? selectedClub) {
+  void _fetchClubRelatedData(BuildContext context, Club? selectedClub) async {
     if (selectedClub == null) return;
 
     _fetchClubMails(context, selectedClub);
     _fetchClubPlayers(context, selectedClub);
-    _fetchClubFavoritePlayers(context, selectedClub);
-    _fetchClubPoachingPlayers(context, selectedClub);
-    _fetchFollowedPlayers(context, selectedClub);
+
+    // Await the completion of both _fetchClubFavoritePlayers and _fetchClubPoachingPlayers
+    await Future.wait([
+      _fetchClubFavoritePlayers(context, selectedClub),
+      _fetchClubPoachingPlayers(context, selectedClub),
+    ]);
+
+    // _fetchFollowedPlayers(context, selectedClub);
   }
 
   void _fetchClubMails(BuildContext context, Club selectedClub) {
@@ -155,8 +160,9 @@ class SessionProvider extends ChangeNotifier {
         });
   }
 
-  void _fetchClubFavoritePlayers(BuildContext context, Club selectedClub) {
-    supabase
+  Future<void> _fetchClubFavoritePlayers(
+      BuildContext context, Club selectedClub) async {
+    await supabase
         .from('players_favorite')
         .stream(primaryKey: ['id'])
         .eq('id_club', selectedClub.id)
@@ -165,11 +171,13 @@ class SessionProvider extends ChangeNotifier {
           print('Favorite Players: ${playersFavorite.length}');
           selectedClub.playersFavorite = playersFavorite;
           notifyListeners();
-        });
+        })
+        .asFuture();
   }
 
-  void _fetchClubPoachingPlayers(BuildContext context, Club selectedClub) {
-    supabase
+  Future<void> _fetchClubPoachingPlayers(
+      BuildContext context, Club selectedClub) async {
+    await supabase
         .from('players_poaching')
         .stream(primaryKey: ['id'])
         .eq('id_club', selectedClub.id)
@@ -178,10 +186,15 @@ class SessionProvider extends ChangeNotifier {
           print('Poaching Players: ${playersPoaching.length}');
           selectedClub.playersPoached = playersPoaching;
           notifyListeners();
-        });
+        })
+        .asFuture();
   }
 
-  void _fetchFollowedPlayers(BuildContext context, Club selectedClub) {
+  void fetchFollowedPlayers(BuildContext context, Club selectedClub) {
+    print([
+      ...selectedClub.playersFavorite.map((pf) => pf.idPlayer),
+      ...selectedClub.playersPoached.map((pp) => pp.idPlayer)
+    ]);
     supabase
         .from('players')
         .stream(primaryKey: ['id'])

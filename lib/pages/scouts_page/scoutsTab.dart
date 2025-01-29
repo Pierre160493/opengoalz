@@ -112,6 +112,34 @@ class ScoutsMainTab extends StatelessWidget {
           },
         ),
 
+        /// Scouting network poaching
+        ListTile(
+          leading:
+              Icon(iconPoaching, size: iconSizeMedium, color: Colors.green),
+          title: Row(
+            children: [
+              Text('Poaching expenses: '),
+              Text(
+                stringValueSeparated(club.playersPoached.isEmpty
+                    ? 0
+                    : club.playersPoached
+                        .map((e) => e.investmentTarget)
+                        .reduce((a, b) => a + b)),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.orange),
+              ),
+            ],
+          ),
+          subtitle: Text(
+            'Weekly scouting network investment due to poaching ${club.playersPoached.length} players',
+            style: styleItalicBlueGrey,
+          ),
+          shape: shapePersoRoundedBorder(),
+          onTap: () {
+            print('Poaching expenses');
+          },
+        ),
+
         /// Scouting Network weight
         ListTile(
           leading:

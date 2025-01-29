@@ -151,7 +151,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 leadingIconSize: iconSizeMedium,
                 title: Text('Scouts'),
                 // shape: shapePersoRoundedBorder(),
-                page: ScoutsPage(club: selectedClub),
+                page: ScoutsPage(user: user),
               ),
 
               /// Transfers Tile
