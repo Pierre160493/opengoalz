@@ -151,43 +151,90 @@ extension ClubWidgetHelper on Club {
     double containerImgRadius = 24;
     return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
       /// Players box
-      Tooltip(
-        message: 'Open the Players page',
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PlayersPage(
-                  playerSearchCriterias: PlayerSearchCriterias(idClub: [id]),
-                ),
-              ),
-            );
-          },
-          child: Container(
-            width: containerWidth, // Fixed width for each tile
-            height: containerWidth, // Fixed height for each tile
-            decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(6), // Adjust border radius as needed
-              border: Border.all(
-                color: Colors.green, // Border color
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('${selectedClub.players.length} Players'),
-                CircleAvatar(
-                  radius: containerImgRadius,
-                  child: Icon(
-                    iconPlayers,
-                    size: containerImgRadius,
-                  ),
-                ),
-              ],
-            ),
+      Container(
+        width: containerWidth, // Fixed width for each tile
+        height: containerWidth, // Fixed height for each tile
+        decoration: BoxDecoration(
+          borderRadius:
+              BorderRadius.circular(6), // Adjust border radius as needed
+          border: Border.all(
+            color: Colors.green, // Border color
           ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PlayersPage(
+                      playerSearchCriterias:
+                          PlayerSearchCriterias(idClub: [id]),
+                    ),
+                  ),
+                );
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(selectedClub.players.length.toString(),
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(' Players'),
+                ],
+              ),
+            ),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              /// Favorite icon button for opening scouts page
+              SizedBox(
+                width: iconSizeSmall * 1.5,
+                height: iconSizeSmall * 1.5,
+                child: IconButton(
+                  tooltip:
+                      '${selectedClub.playersFavorite.length} Favorite Players',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ScoutsPage(club: selectedClub),
+                      ),
+                    );
+                  },
+                  icon: Icon(iconFavorite,
+                      color: Colors.red, size: iconSizeSmall),
+                ),
+              ),
+
+              /// Poaching icon button for opening scouts page
+              SizedBox(
+                width: iconSizeSmall * 1.5,
+                height: iconSizeSmall * 1.5,
+                child: IconButton(
+                  tooltip:
+                      '${selectedClub.playersPoached.length} Poached Players',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ScoutsPage(club: selectedClub),
+                      ),
+                    );
+                  },
+                  icon: Icon(iconPoaching,
+                      color: Colors.red, size: iconSizeSmall),
+                ),
+              ),
+            ]),
+
+            // CircleAvatar(
+            //   radius: containerImgRadius,
+            //   child: Icon(
+            //     iconPlayers,
+            //     size: containerImgRadius,
+            //   ),
+            // ),
+          ],
         ),
       ),
 

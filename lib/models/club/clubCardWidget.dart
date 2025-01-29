@@ -9,7 +9,6 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 
 Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
-  // Profile user = Provider.of<SessionProvider>(context, listen: false).user!;
   bool isSelectedCLub = club.id == user.selectedClub?.id;
   return Card(
     shape: RoundedRectangleBorder(

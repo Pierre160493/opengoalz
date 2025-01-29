@@ -141,6 +141,11 @@ BEGIN
         WHERE rn > 900
     );
 
+    ------ Delete the players poaching
+    DELETE FROM players_poaching
+    WHERE to_delete = TRUE
+    AND affinity < 0;
+
     RAISE NOTICE '************ END MAIN !!!';
     -- RAISE EXCEPTION '************ END MAIN !!!';
 END;

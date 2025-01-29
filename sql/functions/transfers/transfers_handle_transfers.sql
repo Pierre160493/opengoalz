@@ -265,7 +265,9 @@ BEGIN
                 id_club = last_bid.id_club,
                 date_arrival = date_bid_end,
                 motivation = LEAST(100, motivation + 10),
-                expenses_expected = expenses_target,
+                -- new expenses_expected = expenses_expected * (125 - affinity) / 100.0,
+                expenses_expected = expenses_expected *
+                    (125 - COALESCE((SELECT affinity FROM players_poaching WHERE id_player = player.id AND id_club = last_bid.id_club), 0)) / 100.0,
                 transfer_price = NULL,
                 date_bid_end = NULL
             WHERE id = player.id;

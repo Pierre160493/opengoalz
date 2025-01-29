@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 
 import 'package:opengoalz/pages/splash_page.dart';
-import 'package:opengoalz/pages/settings_page.dart';
 
 const supabaseUrl =
     'https://kaderxuszmqjknsoyjpi.supabase.co'; // Get from Supabase Dashboard

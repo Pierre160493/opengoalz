@@ -1,167 +1,224 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 
-Future<void> showPoachingDialog(BuildContext context, Player player,
-    Profile user, String title, String operation) async {
-  String? _notes = player.poaching?.notes;
-  int _investmentTarget = player.poaching?.investmentTarget ?? 50;
-  int? _maxPrice = player.poaching?.maxPrice;
+class PoachingDialog extends StatefulWidget {
+  final Player player;
+  final Profile user;
+  final String title;
+  final String operation;
 
-  await showDialog<void>(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Row(
-              children: [
-                Icon(iconPoaching, color: Colors.green, size: iconSizeMedium),
-                Text(title),
-              ],
+  PoachingDialog({
+    required this.player,
+    required this.user,
+    required this.title,
+    required this.operation,
+  });
+
+  @override
+  _PoachingDialogState createState() => _PoachingDialogState();
+}
+
+class _PoachingDialogState extends State<PoachingDialog> {
+  String? _notes;
+  int _investmentTarget = 50;
+  int? _maxPrice;
+  String? _investmentTargetError;
+  String? _maxPriceError;
+
+  late TextEditingController _investmentTargetController;
+  late TextEditingController _notesController;
+  late TextEditingController _maxPriceController;
+
+  @override
+  void initState() {
+    super.initState();
+    _notes = widget.player.poaching?.notes;
+    _investmentTarget = widget.player.poaching?.investmentTarget ?? 50;
+    _maxPrice = widget.player.poaching?.maxPrice;
+
+    _investmentTargetController =
+        TextEditingController(text: _investmentTarget.toString());
+    _notesController = TextEditingController(text: _notes);
+    _maxPriceController = TextEditingController(text: _maxPrice?.toString());
+  }
+
+  @override
+  void dispose() {
+    _investmentTargetController.dispose();
+    _notesController.dispose();
+    _maxPriceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(iconPoaching, color: Colors.green, size: iconSizeMedium),
+          Text(widget.title),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(iconMoney, color: Colors.green),
+            title: TextField(
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                hintText: 'Weekly scouting network investment (>= 0)',
+                errorText: _investmentTargetError,
+              ),
+              controller: _investmentTargetController,
+              onChanged: (value) {
+                int? parsedValue = int.tryParse(value);
+                setState(() {
+                  if (parsedValue == null || parsedValue < 0) {
+                    _investmentTargetError = 'Investment must be >= 0';
+                  } else {
+                    _investmentTargetError = null;
+                    _investmentTarget = parsedValue;
+                  }
+                });
+              },
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                /// Scouting network investment
-                ListTile(
-                    leading: Icon(iconMoney, color: Colors.green),
-                    title: TextField(
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: 'Weekly scouting network investment (>= 0)',
-                      ),
-                      controller: TextEditingController(
-                          text: _investmentTarget.toString()),
-                      onChanged: (value) {
-                        int? parsedValue = int.tryParse(value);
-                        setState(() {
-                          _investmentTarget =
-                              (parsedValue != null && parsedValue > 0)
-                                  ? parsedValue
-                                  : 100;
-                        });
-                      },
-                    ),
-                    subtitle: Text(
-                        'Weekly investment from the scouting network',
-                        style: styleItalicBlueGrey),
-                    shape: shapePersoRoundedBorder()),
-
-                /// Notes
-                ListTile(
-                    leading: Icon(iconNotesBig,
-                        color: _notes == null || _notes!.isEmpty
-                            ? Colors.orange
-                            : Colors.green),
-                    title: TextField(
-                      keyboardType: TextInputType.text,
-                      controller: TextEditingController(text: _notes),
-                      decoration: InputDecoration(
-                        hintText: 'Notes (optional)',
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _notes = value;
-                        });
-                      },
-                    ),
-                    subtitle: Text('Notes about the player (optional)',
-                        style: styleItalicBlueGrey),
-                    shape: shapePersoRoundedBorder()),
-
-                /// Max price
-                ListTile(
-                    leading: Icon(iconTransfers,
-                        color:
-                            _maxPrice == null ? Colors.orange : Colors.green),
-                    title: TextField(
-                      keyboardType: TextInputType.number,
-                      controller:
-                          TextEditingController(text: _maxPrice.toString()),
-                      decoration: InputDecoration(
-                        hintText:
-                            'Max price to bid for the player when he enters auction (optional)',
-                      ),
-                      onChanged: (value) {
-                        int? parsedValue = int.tryParse(value);
-                        setState(() {
-                          _maxPrice = parsedValue;
-                        });
-                      },
-                    ),
-                    subtitle: Text(
-                        'Max price to bid for the player when he enters auction (optional)',
-                        style: styleItalicBlueGrey),
-                    shape: shapePersoRoundedBorder()),
-              ],
+            subtitle: Text('Weekly investment from the scouting network',
+                style: styleItalicBlueGrey),
+            shape: shapePersoRoundedBorder(),
+          ),
+          ListTile(
+            leading: Icon(iconNotesBig,
+                color: _notes == null || _notes!.isEmpty
+                    ? Colors.orange
+                    : Colors.green),
+            title: TextField(
+              keyboardType: TextInputType.text,
+              controller: _notesController,
+              decoration: InputDecoration(
+                hintText: 'Notes (optional)',
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _notes = value;
+                });
+              },
             ),
-            actions: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  /// Cancel button
-                  TextButton(
-                    child: persoCancelRow,
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+            subtitle: Text('Notes about the player (optional)',
+                style: styleItalicBlueGrey),
+            shape: shapePersoRoundedBorder(),
+          ),
+          ListTile(
+            leading: Icon(iconTransfers,
+                color: _maxPrice == null ? Colors.orange : Colors.green),
+            title: TextField(
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              controller: _maxPriceController,
+              decoration: InputDecoration(
+                hintText:
+                    'Max price to bid for the player when he enters auction (optional)',
+                errorText: _maxPriceError,
+              ),
+              onChanged: (value) {
+                int? parsedValue = int.tryParse(value);
+                setState(() {
+                  if (parsedValue != null && parsedValue < 100) {
+                    _maxPriceError = 'Max price must be >= 100';
+                  } else {
+                    _maxPriceError = null;
+                    _maxPrice = parsedValue;
+                  }
+                });
+              },
+            ),
+            subtitle: Text(
+                'Max price to bid for the player when he enters auction (optional)',
+                style: styleItalicBlueGrey),
+            shape: shapePersoRoundedBorder(),
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            TextButton(
+              child: persoCancelRow,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            if (widget.operation == 'UPDATE')
+              TextButton(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.delete_forever,
+                      color: Colors.red,
+                    ),
+                    formSpacer3,
+                    Text('Stop poaching'),
+                  ],
+                ),
+                onPressed: () async {
+                  bool isOk = await operationInDB(
+                      context, 'UPDATE', 'players_poaching',
+                      matchCriteria: {
+                        'id': widget.player.poaching!.id,
+                      },
+                      data: {
+                        'investment_target': 0,
+                        'notes': _notes,
+                        'max_price': null,
+                        'to_delete': true,
+                      });
+                  if (isOk)
+                    context.showSnackBar(
+                        'The scouting network will stop working on ${widget.player.getFullName()}, no more investment will be made and will be deleted soon');
+                  Navigator.of(context).pop();
+                },
+              ),
+            TextButton(
+              child: Row(
+                children: [
+                  Icon(
+                    iconSuccessfulOperation,
+                    color: Colors.green,
                   ),
+                  formSpacer3,
+                  Text('Confirm'),
+                ],
+              ),
+              onPressed: (_investmentTargetError != null ||
+                      _maxPriceError != null)
+                  ? null
+                  : () async {
+                      if (_investmentTarget < 0) {
+                        setState(() {
+                          _investmentTargetError = 'Investment must be >= 0';
+                        });
+                        return;
+                      }
 
-                  /// Delete button
-                  if (operation == 'UPDATE')
-                    TextButton(
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_forever,
-                            color: Colors.red,
-                          ),
-                          formSpacer3,
-                          Text('Stop poaching'),
-                        ],
-                      ),
-                      onPressed: () async {
-                        /// The player is no longer poached
-                        bool isOk = await operationInDB(
-                            context, 'UPDATE', 'players_poaching',
-                            matchCriteria: {
-                              'id': player.poaching!.id,
-                            },
-                            data: {
-                              'investment_target': 0,
-                              'notes': _notes,
-                              'max_price': null,
-                            });
-                        if (isOk)
-                          context.showSnackBar(
-                              'The scouting network will soon stop working on ${player.getFullName()} and no more investment will be made');
-                        Navigator.of(context).pop();
-                      },
-                    ),
+                      if (_maxPrice != null && _maxPrice! < 100) {
+                        setState(() {
+                          _maxPriceError = 'Max price must be >= 100';
+                        });
+                        return;
+                      }
 
-                  /// Confirm button
-                  TextButton(
-                    child: Row(
-                      children: [
-                        Icon(
-                          iconSuccessfulOperation,
-                          color: Colors.green,
-                        ),
-                        formSpacer3,
-                        Text('Confirm'),
-                      ],
-                    ),
-                    onPressed: () async {
-                      if (operation == 'UPDATE') {
-                        /// If it's an UPDATE
+                      if (widget.operation == 'UPDATE') {
                         await operationInDB(
                             context, 'UPDATE', 'players_poaching',
                             matchCriteria: {
-                              'id': player.poaching!.id,
+                              'id': widget.player.poaching!.id,
                             },
                             data: {
                               'investment_target': _investmentTarget,
@@ -169,27 +226,37 @@ Future<void> showPoachingDialog(BuildContext context, Player player,
                               'max_price': _maxPrice,
                             });
                       } else {
-                        /// If it's an INSERT
                         await operationInDB(
                             context, 'INSERT', 'players_poaching',
                             data: {
-                              'id_club': user.selectedClub!.id,
-                              'id_player': player.id,
+                              'id_club': widget.user.selectedClub!.id,
+                              'id_player': widget.player.id,
                               'investment_target': _investmentTarget,
                               if (_notes != null) 'notes': _notes,
                               if (_maxPrice != null) 'max_price': _maxPrice,
                             });
                       }
-
                       Navigator.of(context).pop();
                     },
-                  ),
-                ],
-              ),
-            ],
-          );
-        },
-      );
-    },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+Future<void> showPoachingDialog(BuildContext context, Player player,
+    Profile user, String title, String operation) async {
+  await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PoachingDialog(
+        player: player,
+        user: user,
+        title: title,
+        operation: operation,
+      ),
+    ),
   );
 }

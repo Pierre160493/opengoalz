@@ -14,6 +14,7 @@ class PlayerPoaching {
   final double affinity;
   final List<double> lisAffinity;
   final int? maxPrice;
+  final bool toDelete;
 
   PlayerPoaching({
     required this.id,
@@ -27,6 +28,7 @@ class PlayerPoaching {
     required this.affinity,
     required this.lisAffinity,
     this.maxPrice,
+    required this.toDelete,
   });
 
   factory PlayerPoaching.fromMap(Map<String, dynamic> map) {
@@ -46,6 +48,7 @@ class PlayerPoaching {
           .map((e) => (e as num).toDouble())
           .toList(),
       maxPrice: map['max_price'],
+      toDelete: map['to_delete'],
     );
   }
 }

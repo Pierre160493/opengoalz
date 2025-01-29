@@ -28,8 +28,14 @@ Widget getPlayersPoachingTab(List<Player> players) {
                 ? player.poaching!.affinity - player.poaching!.lisAffinity.last
                 : null;
             return ListTile(
-              leading: Icon(player.getPlayerIcon(),
-                  size: iconSizeLarge, color: Colors.green),
+              leading: Tooltip(
+                message: player.poaching!.toDelete == true ? 'To delete' : '',
+                child: Icon(player.getPlayerIcon(),
+                    size: iconSizeLarge,
+                    color: player.poaching!.toDelete == true
+                        ? Colors.red
+                        : Colors.green),
+              ),
               title: player.getPlayerNameClickable(context),
               subtitle: Column(
                 children: [
