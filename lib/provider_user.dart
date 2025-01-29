@@ -8,7 +8,6 @@ import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/handleFatalError.dart';
-import 'package:rxdart/rxdart.dart';
 
 class SessionProvider extends ChangeNotifier {
   Profile? user;
@@ -42,181 +41,13 @@ class SessionProvider extends ChangeNotifier {
                     connectedUserId: supabase.auth.currentUser!.id))
                 .first;
           })
-
-          /// Fetch the mails of the user
-          .switchMap((Profile profile) {
-            return supabase
-                .from('mails')
-                .stream(primaryKey: ['id'])
-                .eq('username_to', profile.username)
-                .order('created_at', ascending: false)
-                .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
-                .map((List<Mail> mails) {
-                  profile.mails = mails;
-                  return profile;
-                });
-          })
-
-          /// Incarnated players of the user
-          .switchMap((Profile user) {
-            return supabase
-                .from('players')
-                .stream(primaryKey: ['id'])
-                .eq('username', user.username)
-                .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
-                .map((List<Player> players) {
-                  user.playersIncarnated = players;
-                  return user;
-                });
-          })
-
-          /// Fetch the clubs of the user
-          .switchMap((Profile user) {
-            return supabase
-                .from('clubs')
-                .stream(primaryKey: ['id'])
-                .eq('username', user.username)
-                .order('user_since', ascending: true)
-                .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
-                .map((List<Club> clubs) {
-                  user.clubs = clubs;
-
-                  /// Set the selected club of the user
-                  if (selectedIdClub == null) {
-                    selectedIdClub = user.idDefaultClub;
-                  }
-
-                  /// If the selected club is null, set using the default club of the user
-                  if (selectedIdClub != null) {
-                    user.selectedClub = clubs.firstWhere(
-                        (club) => club.id == selectedIdClub,
-                        orElse: () => clubs.first);
-                  }
-
-                  return user;
-                });
-          })
-
-          /// Fetch the mails of the selected club of the user
-          .switchMap((Profile user) {
-            if (user.selectedClub == null) {
-              return Stream.value(user);
-            }
-            return supabase
-                .from('mails')
-                .stream(primaryKey: ['id'])
-                .eq('id_club_to',
-                    user.selectedClub!.id) // Filter by selected club
-                .order('created_at', ascending: false)
-                .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
-                .map((List<Mail> mails) {
-                  print('Club mails: ${mails.length}');
-                  user.selectedClub!.mails = mails;
-                  return user;
-                });
-          })
-
-          /// Fetch the players of the club
-          .switchMap((Profile user) {
-            if (user.selectedClub == null) {
-              return Stream.value(user);
-            }
-            return supabase
-                .from('players')
-                .stream(primaryKey: ['id'])
-                .eq('id_club', user.selectedClub!.id) // Filter by selected club
-                .order('date_birth', ascending: true)
-                .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
-                .map((List<Player> players) {
-                  print('Club Players: ${players.length}');
-                  user.selectedClub!.players = players;
-                  return user;
-                });
-          })
-
-          /// Fetch the favorite players of the club
-          .switchMap((Profile user) {
-            if (user.selectedClub == null) {
-              return Stream.value(user);
-            }
-            return supabase
-                .from('players_favorite')
-                .stream(primaryKey: ['id'])
-                .eq('id_club', user.selectedClub!.id) // Filter by selected club
-                .map((maps) =>
-                    maps.map((map) => PlayerFavorite.fromMap(map)).toList())
-                .map((List<PlayerFavorite> playersFavorite) {
-                  print('Favorite Players: ${playersFavorite.length}');
-                  user.selectedClub!.playersFavorite = playersFavorite;
-                  return user;
-                });
-          })
-
-          /// Fetch the poaching of the club
-          .switchMap((Profile user) {
-            if (user.selectedClub == null) {
-              return Stream.value(user);
-            }
-            return supabase
-                .from('players_poaching')
-                .stream(primaryKey: ['id'])
-                .eq('id_club', user.selectedClub!.id) // Filter by selected club
-                .map((maps) =>
-                    maps.map((map) => PlayerPoaching.fromMap(map)).toList())
-                .map((List<PlayerPoaching> playersPoaching) {
-                  print('Poaching Players: ${playersPoaching.length}');
-                  user.selectedClub!.playersPoached = playersPoaching;
-                  return user;
-                });
-          })
-
-          /// Fetch the followed players (favorite and poaching) of the club
-          .switchMap((Profile user) {
-            if (user.selectedClub == null) {
-              return Stream.value(user);
-            }
-            return supabase
-                .from('players')
-                .stream(primaryKey: ['id'])
-                .inFilter('id', [
-                  ...user.selectedClub!.playersFavorite
-                      .map((pf) => pf.idPlayer),
-                  ...user.selectedClub!.playersPoached.map((pp) => pp.idPlayer)
-                ])
-                .order('date_birth', ascending: true)
-                .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
-                .map((List<Player> players) {
-                  print('Followed Players: ${players.length}');
-                  for (PlayerFavorite pf
-                      in user.selectedClub!.playersFavorite) {
-                    Player? player = players
-                        .firstWhere((player) => player.id == pf.idPlayer);
-                    pf.player = player;
-                  }
-                  for (PlayerPoaching pp in user.selectedClub!.playersPoached) {
-                    Player? player = players
-                        .firstWhere((player) => player.id == pp.idPlayer);
-                    pp.player = player;
-                  }
-                  return user;
-                });
-          })
-
-          /// Listen to the stream
           .listen((Profile user) {
-            final now = DateTime.now();
-            final formattedTime = '${now.hour}:${now.minute}:${now.second}';
-            print(
-                '### [$formattedTime] Received new data from session provider stream');
-            // Update the user object with the new data
             this.user = user;
-            // if (user.selectedClub == null && user.idDefaultClub != null) {
-            //   providerSetSelectedClub(user.idDefaultClub!);
-            // }
-            notifyListeners(); // Ensure listeners are notified
+            notifyListeners();
             if (!completer.isCompleted) {
               completer.complete();
             }
+            _fetchUserRelatedData(context, user, selectedIdClub);
           });
     } catch (error) {
       await handleFatalError(context, error.toString());
@@ -226,5 +57,153 @@ class SessionProvider extends ChangeNotifier {
     }
 
     return completer.future;
+  }
+
+  void _fetchUserRelatedData(
+      BuildContext context, Profile user, int? selectedIdClub) {
+    _fetchUserMails(context, user);
+    _fetchUserPlayers(context, user);
+    _fetchUserClubs(context, user, selectedIdClub);
+  }
+
+  void _fetchUserMails(BuildContext context, Profile user) {
+    supabase
+        .from('mails')
+        .stream(primaryKey: ['id'])
+        .eq('username_to', user.username)
+        .order('created_at', ascending: false)
+        .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
+        .listen((List<Mail> mails) {
+          user.mails = mails;
+          notifyListeners();
+        });
+  }
+
+  void _fetchUserPlayers(BuildContext context, Profile user) {
+    supabase
+        .from('players')
+        .stream(primaryKey: ['id'])
+        .eq('username', user.username)
+        .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+        .listen((List<Player> players) {
+          user.playersIncarnated = players;
+          notifyListeners();
+        });
+  }
+
+  void _fetchUserClubs(
+      BuildContext context, Profile user, int? selectedIdClub) {
+    supabase
+        .from('clubs')
+        .stream(primaryKey: ['id'])
+        .eq('username', user.username)
+        .order('user_since', ascending: true)
+        .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+        .listen((List<Club> clubs) {
+          user.clubs = clubs;
+
+          if (selectedIdClub == null) {
+            selectedIdClub = user.idDefaultClub;
+          }
+
+          if (selectedIdClub != null) {
+            user.selectedClub = clubs.firstWhere(
+                (club) => club.id == selectedIdClub,
+                orElse: () => clubs.first);
+          }
+
+          notifyListeners();
+          _fetchClubRelatedData(context, user.selectedClub);
+        });
+  }
+
+  void _fetchClubRelatedData(BuildContext context, Club? selectedClub) {
+    if (selectedClub == null) return;
+
+    _fetchClubMails(context, selectedClub);
+    _fetchClubPlayers(context, selectedClub);
+    _fetchClubFavoritePlayers(context, selectedClub);
+    _fetchClubPoachingPlayers(context, selectedClub);
+    _fetchFollowedPlayers(context, selectedClub);
+  }
+
+  void _fetchClubMails(BuildContext context, Club selectedClub) {
+    supabase
+        .from('mails')
+        .stream(primaryKey: ['id'])
+        .eq('id_club_to', selectedClub.id)
+        .order('created_at', ascending: false)
+        .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
+        .listen((List<Mail> mails) {
+          print('Club mails: ${mails.length}');
+          selectedClub.mails = mails;
+          notifyListeners();
+        });
+  }
+
+  void _fetchClubPlayers(BuildContext context, Club selectedClub) {
+    supabase
+        .from('players')
+        .stream(primaryKey: ['id'])
+        .eq('id_club', selectedClub.id)
+        .order('date_birth', ascending: true)
+        .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+        .listen((List<Player> players) {
+          print('Club Players: ${players.length}');
+          selectedClub.players = players;
+          notifyListeners();
+        });
+  }
+
+  void _fetchClubFavoritePlayers(BuildContext context, Club selectedClub) {
+    supabase
+        .from('players_favorite')
+        .stream(primaryKey: ['id'])
+        .eq('id_club', selectedClub.id)
+        .map((maps) => maps.map((map) => PlayerFavorite.fromMap(map)).toList())
+        .listen((List<PlayerFavorite> playersFavorite) {
+          print('Favorite Players: ${playersFavorite.length}');
+          selectedClub.playersFavorite = playersFavorite;
+          notifyListeners();
+        });
+  }
+
+  void _fetchClubPoachingPlayers(BuildContext context, Club selectedClub) {
+    supabase
+        .from('players_poaching')
+        .stream(primaryKey: ['id'])
+        .eq('id_club', selectedClub.id)
+        .map((maps) => maps.map((map) => PlayerPoaching.fromMap(map)).toList())
+        .listen((List<PlayerPoaching> playersPoaching) {
+          print('Poaching Players: ${playersPoaching.length}');
+          selectedClub.playersPoached = playersPoaching;
+          notifyListeners();
+        });
+  }
+
+  void _fetchFollowedPlayers(BuildContext context, Club selectedClub) {
+    supabase
+        .from('players')
+        .stream(primaryKey: ['id'])
+        .inFilter('id', [
+          ...selectedClub.playersFavorite.map((pf) => pf.idPlayer),
+          ...selectedClub.playersPoached.map((pp) => pp.idPlayer)
+        ])
+        .order('date_birth', ascending: true)
+        .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+        .listen((List<Player> players) {
+          print('Followed Players: ${players.length}');
+          for (PlayerFavorite pf in selectedClub.playersFavorite) {
+            Player? player =
+                players.firstWhere((player) => player.id == pf.idPlayer);
+            pf.player = player;
+          }
+          for (PlayerPoaching pp in selectedClub.playersPoached) {
+            Player? player =
+                players.firstWhere((player) => player.id == pp.idPlayer);
+            pp.player = player;
+          }
+          notifyListeners();
+        });
   }
 }
