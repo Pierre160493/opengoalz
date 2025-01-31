@@ -5,6 +5,7 @@ import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/gameCard.dart';
 import 'package:opengoalz/models/game/gameDetailsTab.dart';
 import 'package:opengoalz/models/game/gameStatsTab.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/models/teamcomp/teamComp_main_widget.dart';
 import 'package:opengoalz/constants.dart';
@@ -36,10 +37,13 @@ class GamePage extends StatefulWidget {
 
 class _HomePageState extends State<GamePage> {
   late Stream<Game> _gameStream;
+  late final Profile currentUser;
 
   @override
   void initState() {
     super.initState();
+    currentUser =
+        Provider.of<UserSessionProvider>(context, listen: false).user!;
 
     _gameStream = supabase
         .from('games')
@@ -140,7 +144,8 @@ class _HomePageState extends State<GamePage> {
                     .where((id) => id != null)
                     .cast<int>()
               ])
-              .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+              .map((maps) =>
+                  maps.map((map) => Player.fromMap(map, currentUser)).toList())
               .map((players) {
                 game.leftClub.teamComps.first.initPlayers(players
                     .where((player) => player.idClub == game.idClubLeft)
@@ -316,11 +321,7 @@ class _HomePageState extends State<GamePage> {
               children: [
                 /// Left Club TeamComp
                 if (game.dateEnd == null &&
-                    game.leftClub.id !=
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub!
-                            .id)
+                    game.leftClub.id != currentUser.selectedClub!.id)
                   Center(
                     child: Text(
                         'Only the team manager can see the teamcomp before the game is played'),
@@ -331,11 +332,7 @@ class _HomePageState extends State<GamePage> {
 
                 /// Right Club TeamComp
                 if (game.dateEnd == null &&
-                    game.rightClub.id !=
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub!
-                            .id)
+                    game.rightClub.id != currentUser.selectedClub!.id)
                   Center(
                     child: Text(
                         'Only the team manager can see the teamcomp before the game is played'),

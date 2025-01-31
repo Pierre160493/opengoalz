@@ -3,6 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/profile.dart';
+import 'package:opengoalz/pages/scouts_page/scouts_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 
 Widget playerSetAsFavoriteIconButton(
@@ -10,24 +11,22 @@ Widget playerSetAsFavoriteIconButton(
   String? _notes = null;
   DateTime? _dateDelete = null;
 
-  return player.favorite != null
+  return player.isSelectedClubFavoritePlayer
 
       /// If the player is already a favorite, show the icon in red
       ? IconButton(
-          tooltip: 'Remove from favorite players',
+          tooltip: 'Open favorite players page',
           icon: Icon(iconFavorite, color: Colors.red),
           iconSize: iconSizeSmall,
-          onPressed: () async {
-            bool isOK = await operationInDB(
-                context, 'DELETE', 'players_favorite',
-                matchCriteria: {
-                  'id': player.favorite!.id,
-                });
-            if (isOK) {
-              context.showSnackBar(
-                  'Successfully removed ${player.getFullName()} from the list of favorite players',
-                  icon: Icon(iconSuccessfulOperation, color: Colors.green));
-            }
+          onPressed: () {
+            /// Open the scouts page in favorite tab
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    ScoutsPage(initialTab: ScoutsPageTab.followedPlayers),
+              ),
+            );
           },
         )
 

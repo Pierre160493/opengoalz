@@ -11,10 +11,12 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/pages/countriesSelection_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'dart:async';
 
@@ -83,7 +85,12 @@ class _CountryPageState extends State<CountryPage>
               .stream(primaryKey: ['id'])
               .eq('id_country', country.id)
               .order('performance_score', ascending: false)
-              .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+              .map((maps) => maps
+                  .map((map) => Player.fromMap(
+                      map,
+                      Provider.of<UserSessionProvider>(context, listen: false)
+                          .user!))
+                  .toList())
               .map((players) {
                 country.playersAll = players;
                 return country;

@@ -41,10 +41,13 @@ class ClubPage extends StatefulWidget {
 
 class _ClubPageState extends State<ClubPage> {
   late Stream<Club> _clubStream;
+  late final Profile currentUser;
 
   @override
   void initState() {
     super.initState();
+    currentUser =
+        Provider.of<UserSessionProvider>(context, listen: false).user!;
 
     _clubStream = supabase
 
@@ -73,7 +76,8 @@ class _ClubPageState extends State<ClubPage> {
               .from('players')
               .stream(primaryKey: ['id'])
               .eq('id_club', club.id)
-              .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+              .map((maps) =>
+                  maps.map((map) => Player.fromMap(map, currentUser)).toList())
               .map((players) {
                 club.players = players;
                 return club;
@@ -92,9 +96,7 @@ class _ClubPageState extends State<ClubPage> {
           return const Center(child: CircularProgressIndicator());
         } else {
           Club club = snapshot.data!;
-          bool isSelectedClub =
-              Provider.of<SessionProvider>(context).user?.selectedClub!.id ==
-                  club.id;
+          bool isSelectedClub = currentUser.selectedClub!.id == club.id;
           return Scaffold(
             appBar: AppBar(
               title: club.getClubName(context),
@@ -237,7 +239,7 @@ class _ClubPageState extends State<ClubPage> {
                           ? null
                           : () async => {
                                 /// Reset the user to the user that is being visited
-                                await Provider.of<SessionProvider>(context,
+                                await Provider.of<UserSessionProvider>(context,
                                         listen: false)
                                     .providerFetchUser(context,
                                         userName: club.userName),
@@ -246,7 +248,8 @@ class _ClubPageState extends State<ClubPage> {
                                 Provider.of<ThemeProvider>(context,
                                         listen: false)
                                     .setOtherThemeWhenSelectedUserIsNotConnectedUser(
-                                        Provider.of<SessionProvider>(context,
+                                        Provider.of<UserSessionProvider>(
+                                                    context,
                                                     listen: false)
                                                 .user
                                                 ?.isConnectedUser ??

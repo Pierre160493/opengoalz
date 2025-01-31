@@ -41,7 +41,7 @@ class _UserPageState extends State<UserPage> {
     super.initState();
     if (widget.userName != null) {
       final connectedUser =
-          Provider.of<SessionProvider>(context, listen: false).user;
+          Provider.of<UserSessionProvider>(context, listen: false).user;
       if (connectedUser != null && widget.userName == connectedUser.username) {
         // Use the data from the provider if the username matches the connected user
         _userStream = Stream.value(connectedUser);
@@ -69,8 +69,8 @@ class _UserPageState extends State<UserPage> {
                   .from('players')
                   .stream(primaryKey: ['id'])
                   .eq('username', user.username)
-                  .map(
-                      (maps) => maps.map((map) => Player.fromMap(map)).toList())
+                  .map((maps) =>
+                      maps.map((map) => Player.fromMap(map, user)).toList())
                   .map((List<Player> players) {
                     user.playersIncarnated = players;
                     return user;
@@ -98,9 +98,9 @@ class _UserPageState extends State<UserPage> {
         },
       );
     } else {
-      return Consumer<SessionProvider>(
-        builder: (context, sessionProvider, child) {
-          Profile? user = sessionProvider.user;
+      return Consumer<UserSessionProvider>(
+        builder: (context, UserSessionProvider, child) {
+          Profile? user = UserSessionProvider.user;
           return _buildUserWidget(user);
         },
       );
@@ -174,7 +174,7 @@ class _UserPageState extends State<UserPage> {
                         size: iconSizeSmall, color: Colors.red),
                   ),
                 )
-              : Provider.of<SessionProvider>(context, listen: false)
+              : Provider.of<UserSessionProvider>(context, listen: false)
                   .user!
                   .returnToConnectedUserIconButton(context),
         ],

@@ -139,7 +139,7 @@ BEGIN
         SELECT id
         FROM ranked_mails
         WHERE rn > 900
-    );
+    );    
 
     ------ Delete the players poaching
     DELETE FROM players_poaching

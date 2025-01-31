@@ -30,7 +30,7 @@ Future<void> main() async {
   final version = await _readVersion();
 
   runApp(ChangeNotifierProvider.value(
-    value: SessionProvider(),
+    value: UserSessionProvider(),
     child: MyApp(version: version),
   ));
 }

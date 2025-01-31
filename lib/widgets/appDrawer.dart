@@ -41,8 +41,9 @@ class _AppDrawerState extends State<AppDrawer> {
   @override
   Widget build(BuildContext context) {
     // Get the selected club
-    Profile user = Provider.of<SessionProvider>(context).user!;
-    Club? selectedClub = user.selectedClub;
+    Profile currentUser =
+        Provider.of<UserSessionProvider>(context, listen: true).user!;
+    Club? selectedClub = currentUser.selectedClub;
 
     if (selectedClub == null) {
       return const Drawer(
@@ -57,8 +58,8 @@ class _AppDrawerState extends State<AppDrawer> {
         children: [
           /// User Tile
           CustomListTile(
-            title: user.getUserName(context),
-            subtitle: !user.isConnectedUser
+            title: currentUser.getUserName(context),
+            subtitle: !currentUser.isConnectedUser
                 ? Text('Currently visiting this profile')
                 : null,
             page: const UserPage(),
@@ -100,11 +101,11 @@ class _AppDrawerState extends State<AppDrawer> {
 
               /// Mails Tile
               CustomListTile(
-                leadingWidget: mailToolTip(context, user),
+                leadingWidget: mailToolTip(context, currentUser),
                 leadingIconSize: iconSizeMedium,
                 title: Text('Mails'),
                 // shape: shapePersoRoundedBorder(),
-                page: MailsPage(idClub: selectedClub.id),
+                page: MailsPage(),
               ),
 
               /// Finances Tile
@@ -151,7 +152,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 leadingIconSize: iconSizeMedium,
                 title: Text('Scouts'),
                 // shape: shapePersoRoundedBorder(),
-                page: ScoutsPage(user: user),
+                page: ScoutsPage(), // Pass the updated user here
               ),
 
               /// Transfers Tile
@@ -256,7 +257,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 title: Text('Multiverses'),
                 // shape: shapePersoRoundedBorder(),
                 page: MultiversePage(
-                    idMultiverse: user.selectedClub!.idMultiverse),
+                    idMultiverse: currentUser.selectedClub!.idMultiverse),
               ),
 
               /// Countries Tile
@@ -265,8 +266,8 @@ class _AppDrawerState extends State<AppDrawer> {
                 title: Text('Countries'),
                 // shape: shapePersoRoundedBorder(),
                 page: CountryPage(
-                    idCountry: user.selectedClub!.idCountry,
-                    idMultiverse: user.selectedClub!.idMultiverse),
+                    idCountry: currentUser.selectedClub!.idCountry,
+                    idMultiverse: currentUser.selectedClub!.idMultiverse),
               ),
             ],
           ),

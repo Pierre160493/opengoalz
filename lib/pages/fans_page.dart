@@ -46,7 +46,7 @@ class _FansPageState extends State<FansPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text(Provider.of<SessionProvider>(context, listen: false)
+          title: Text(Provider.of<UserSessionProvider>(context, listen: false)
               .user!
               .selectedClub!
               .name)),
@@ -60,7 +60,7 @@ class _FansPageState extends State<FansPage> {
           children: [
             const SizedBox(height: 16),
             // Text(
-            //   'Hello ${Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.username} !',
+            //   'Hello ${Provider.of<UserSessionProvider>(context, listen: false).user!.selectedClub!.username} !',
             //   style: const TextStyle(fontSize: 24),
             // ),
             const SizedBox(height: 16),

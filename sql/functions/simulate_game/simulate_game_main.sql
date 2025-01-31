@@ -296,7 +296,7 @@ BEGIN
                 );
 
                 ------ Insert a new row in the game_stats table
-                INSERT INTO games_stats (id_game, period, minute, weights_left, weights_right)
+                INSERT INTO game_stats (id_game, period, minute, weights_left, weights_right)
                 VALUES (rec_game.id, loc_period_game, loc_minute_game, loc_array_team_weights_left, loc_array_team_weights_right);
                 
                 ------ Update players stats (energy, experience)

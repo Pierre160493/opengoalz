@@ -40,7 +40,10 @@ class _PlayerTransferBidDialogBoxState
         .from('players')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idPlayer)
-        .map((maps) => maps.map((map) => Player.fromMap(map)).first)
+        .map((maps) => maps
+            .map((map) => Player.fromMap(map,
+                Provider.of<UserSessionProvider>(context, listen: false).user!))
+            .first)
 
         /// Fetch its transfers bids
         .switchMap((Player player) {
@@ -126,10 +129,11 @@ class _PlayerTransferBidDialogBoxState
     }
 
     if (_bidAmount! >
-        Provider.of<SessionProvider>(context, listen: false)
+        Provider.of<UserSessionProvider>(context, listen: false)
             .user!
             .selectedClub!
-            .clubData.cash) {
+            .clubData
+            .cash) {
       _bidAmount = null;
       return 'Insufficient funds to place a bid of $_bidAmount';
     }
@@ -172,7 +176,8 @@ class _PlayerTransferBidDialogBoxState
                     children: [
                       getClubCashListTile(
                           context,
-                          Provider.of<SessionProvider>(context, listen: false)
+                          Provider.of<UserSessionProvider>(context,
+                                  listen: false)
                               .user!
                               .selectedClub!),
                       PlayerCardTransferWidget(player: player),
@@ -259,12 +264,12 @@ class _PlayerTransferBidDialogBoxState
                         onPressed: () async {
                           print({
                             'inp_id_player': player.id,
-                            'inp_id_club_bidder': Provider.of<SessionProvider>(
-                                    context,
-                                    listen: false)
-                                .user!
-                                .selectedClub!
-                                .id,
+                            'inp_id_club_bidder':
+                                Provider.of<UserSessionProvider>(context,
+                                        listen: false)
+                                    .user!
+                                    .selectedClub!
+                                    .id,
                             'inp_amount': int.parse(_bidController.text)
                           });
                           bool isOK = await operationInDB(
@@ -272,7 +277,7 @@ class _PlayerTransferBidDialogBoxState
                               data: {
                                 'inp_id_player': player.id,
                                 'inp_id_club_bidder':
-                                    Provider.of<SessionProvider>(context,
+                                    Provider.of<UserSessionProvider>(context,
                                             listen: false)
                                         .user!
                                         .selectedClub!

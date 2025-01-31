@@ -10,6 +10,8 @@ import 'package:opengoalz/models/subs.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/provider_user.dart';
+import 'package:provider/provider.dart';
 
 part 'teamComp_tab_teamcomp.dart';
 part 'teamComp_tab_orders.dart';

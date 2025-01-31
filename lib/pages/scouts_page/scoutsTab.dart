@@ -170,7 +170,7 @@ class ScoutsMainTab extends StatelessWidget {
 
         /// Fetch a new player
         if (club.id ==
-            Provider.of<SessionProvider>(context, listen: false)
+            Provider.of<UserSessionProvider>(context, listen: false)
                 .user!
                 .selectedClub!
                 .id)

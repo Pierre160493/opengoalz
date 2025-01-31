@@ -3,7 +3,7 @@ part of 'club.dart';
 extension ClubWidgetHelper on Club {
   Widget getClubName(BuildContext context, {bool isRightClub = false}) {
     Profile connectedUser =
-        Provider.of<SessionProvider>(context, listen: false).user!;
+        Provider.of<UserSessionProvider>(context, listen: false).user!;
 
     /// If the club belongs to the current user
     bool isMine =
@@ -198,7 +198,6 @@ extension ClubWidgetHelper on Club {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ScoutsPage(
-                            user: user,
                             initialTab: ScoutsPageTab.followedPlayers),
                       ),
                     );
@@ -220,7 +219,6 @@ extension ClubWidgetHelper on Club {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ScoutsPage(
-                            user: user,
                             initialTab: ScoutsPageTab.poachedPlayers),
                       ),
                     );

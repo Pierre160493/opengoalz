@@ -86,10 +86,11 @@ class _PlayerShirtNumberDialogBoxState
           context, 'FUNCTION', 'player_change_shirt_number',
           data: {
             'inp_id_player': widget.player.id,
-            'inp_id_club': Provider.of<SessionProvider>(context, listen: false)
-                .user!
-                .selectedClub!
-                .id,
+            'inp_id_club':
+                Provider.of<UserSessionProvider>(context, listen: false)
+                    .user!
+                    .selectedClub!
+                    .id,
             'inp_shirt_number': _shirtNumberController.text.isEmpty
                 ? null
                 : int.parse(_shirtNumberController.text)

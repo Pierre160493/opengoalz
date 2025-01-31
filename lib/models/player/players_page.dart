@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/players_sorting_function.dart';
-import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
-import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -27,7 +26,8 @@ class PlayersPage extends StatefulWidget {
       this.isReturningPlayer = false})
       : super(key: key);
 
-  static Route<void> route(PlayerSearchCriterias playerSearchCriterias) {
+  static Route<void> route(
+      Profile user, PlayerSearchCriterias playerSearchCriterias) {
     return MaterialPageRoute(
       builder: (context) =>
           PlayersPage(playerSearchCriterias: playerSearchCriterias),
@@ -51,10 +51,8 @@ class _PlayersPageState extends State<PlayersPage> {
   @override
   void initState() {
     super.initState();
-
     _currentSearchCriterias = widget.playerSearchCriterias;
     _playerStream = _playerStreamController.stream;
-    _initializeStreams();
     _startPeriodicFetch();
   }
 
@@ -77,7 +75,7 @@ class _PlayersPageState extends State<PlayersPage> {
     return true;
   }
 
-  Future<void> _initializeStreams() async {
+  Future<void> _initializeStreams(Profile user) async {
     try {
       List<int> playerIds = await _currentSearchCriterias.fetchPlayerIds();
       _previousPlayerIds = playerIds;
@@ -90,55 +88,7 @@ class _PlayersPageState extends State<PlayersPage> {
           .stream(primaryKey: ['id'])
           .inFilter('id', playerIds)
           .order('date_birth', ascending: false)
-          .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
-
-          /// Fetch if the players are favorites
-          .switchMap((List<Player> players) {
-            return supabase
-                .from('players_favorite')
-                .stream(primaryKey: ['id'])
-                .eq(
-                    'id_club',
-                    Provider.of<SessionProvider>(context, listen: false)
-                        .user!
-                        .selectedClub!
-                        .id)
-                .map((maps) =>
-                    maps.map((map) => PlayerFavorite.fromMap(map)).toList())
-                .map((List<PlayerFavorite> favoritePlayers) {
-                  final favoriteMap = {
-                    for (var fav in favoritePlayers) fav.idPlayer: fav
-                  };
-                  for (var player in players) {
-                    player.favorite = favoriteMap[player.id] ?? null;
-                  }
-                  return players;
-                });
-          })
-
-          /// Fetch if the players are poached
-          .switchMap((List<Player> players) {
-            return supabase
-                .from('players_poaching')
-                .stream(primaryKey: ['id'])
-                .eq(
-                    'id_club',
-                    Provider.of<SessionProvider>(context, listen: false)
-                        .user!
-                        .selectedClub!
-                        .id)
-                .map((maps) =>
-                    maps.map((map) => PlayerPoaching.fromMap(map)).toList())
-                .map((List<PlayerPoaching> poachingPlayers) {
-                  final poachingMap = {
-                    for (var poach in poachingPlayers) poach.idPlayer: poach
-                  };
-                  for (var player in players) {
-                    player.poaching = poachingMap[player.id] ?? null;
-                  }
-                  return players;
-                });
-          })
+          .map((maps) => maps.map((map) => Player.fromMap(map, user)).toList())
 
           /// Fetch their transfers bids
           .switchMap((List<Player> players) {
@@ -213,40 +163,48 @@ class _PlayersPageState extends State<PlayersPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<void>(
-      future: _initializeStreams(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          return StreamBuilder<List<Player>>(
-            stream: _playerStream,
-            builder: (context, streamSnapshot) {
-              if (streamSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (streamSnapshot.hasError) {
-                return Center(child: Text('Error: ${streamSnapshot.error}'));
-              } else {
-                final List<Player> players = streamSnapshot.data ?? [];
-                if (widget.playerSearchCriterias.idPlayerRemove.isNotEmpty) {
-                  if (_hideRemovedPlayers) {
-                    players.removeWhere((player) => widget
-                        .playerSearchCriterias.idPlayerRemove
-                        .contains(player.id));
+    return Consumer<UserSessionProvider>(
+      builder: (context, userSessionProvider, child) {
+        Profile user = userSessionProvider.user!;
+        return FutureBuilder<void>(
+          future: _initializeStreams(user),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else {
+              return StreamBuilder<List<Player>>(
+                stream: _playerStream,
+                builder: (context, streamSnapshot) {
+                  if (streamSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (streamSnapshot.hasError) {
+                    return Center(
+                        child: Text('Error: ${streamSnapshot.error}'));
+                  } else {
+                    final List<Player> players = streamSnapshot.data ?? [];
+                    if (widget
+                        .playerSearchCriterias.idPlayerRemove.isNotEmpty) {
+                      if (_hideRemovedPlayers) {
+                        players.removeWhere((player) => widget
+                            .playerSearchCriterias.idPlayerRemove
+                            .contains(player.id));
+                      }
+                    }
+                    return _buildPlayersList(user, players);
                   }
-                }
-                return _buildPlayersList(players);
-              }
-            },
-          );
-        }
+                },
+              );
+            }
+          },
+        );
       },
     );
   }
 
-  Widget _buildPlayersList(List<Player> players) {
+  Widget _buildPlayersList(Profile user, List<Player> players) {
     return Scaffold(
         appBar: AppBar(
           title: players.isEmpty
@@ -265,7 +223,7 @@ class _PlayersPageState extends State<PlayersPage> {
                 onPressed: () {
                   setState(() {
                     _showReloadButton = false;
-                    _initializeStreams();
+                    _initializeStreams(user);
                   });
                 },
                 icon: Icon(Icons.refresh, color: Colors.orange),
@@ -302,7 +260,7 @@ class _PlayersPageState extends State<PlayersPage> {
                   if (playerSearchCriterias != null) {
                     setState(() {
                       _currentSearchCriterias = playerSearchCriterias;
-                      _initializeStreams();
+                      _initializeStreams(user);
                     });
                   }
                 });
@@ -364,121 +322,4 @@ class _PlayersPageState extends State<PlayersPage> {
           ),
         ));
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return StreamBuilder<List<Player>>(
-  //       stream: _playerStream,
-  //       builder: (context, snapshot) {
-  //         if (snapshot.connectionState == ConnectionState.waiting) {
-  //           return const Center(
-  //             child: CircularProgressIndicator(),
-  //           );
-  //         } else if (snapshot.hasError) {
-  //           return Center(
-  //             child: Text('ERROR: ${snapshot.error}'),
-  //           );
-  //         } else {
-  //           final List<Player> players = (snapshot.data ?? []);
-  //           print('StreamBuilder snapshot data: $players');
-
-  //           return Scaffold(
-  //               appBar: AppBar(
-  //                 title: players.isEmpty
-  //                     ? Text('No Players Found')
-  //                     : players.length == 1
-  //                         ? players.first.getPlayerNameToolTip(context)
-  //                         : Text(
-  //                             '${players.length} Players',
-  //                           ),
-  //                 actions: [
-  //                   goBackIconButton(context),
-  //                   if (_showReloadButton)
-  //                     IconButton(
-  //                       tooltip:
-  //                           'Reload the list of players to see the latest changes',
-  //                       onPressed: () {
-  //                         setState(() {
-  //                           _showReloadButton = false;
-  //                           _initializeStreams();
-  //                         });
-  //                       },
-  //                       icon: Icon(Icons.refresh, color: Colors.green),
-  //                     ),
-  //                   IconButton(
-  //                     tooltip: 'Modify Search Criterias',
-  //                     onPressed: () {
-  //                       showDialog<PlayerSearchCriterias>(
-  //                         context: context,
-  //                         builder: (BuildContext context) {
-  //                           return playerSearchDialogBox(
-  //                             inputPlayerSearchCriterias:
-  //                                 _currentSearchCriterias,
-  //                           );
-  //                         },
-  //                       ).then((playerSearchCriterias) {
-  //                         if (playerSearchCriterias != null) {
-  //                           setState(() {
-  //                             _currentSearchCriterias = playerSearchCriterias;
-  //                             _initializeStreams();
-  //                           });
-  //                         }
-  //                       });
-  //                     },
-  //                     icon: Icon(Icons.person_search),
-  //                   ),
-  //                   IconButton(
-  //                       tooltip: 'Sort players by...',
-  //                       onPressed: () {
-  //                         showSortingOptions(context, setState, players);
-  //                       },
-  //                       icon: Icon(Icons.align_horizontal_left_rounded)),
-  //                 ],
-  //               ),
-  //               drawer: (widget.isReturningPlayer || players.length == 1)
-  //                   ? null
-  //                   : const AppDrawer(),
-  //               body: MaxWidthContainer(
-  //                 child: Column(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   children: [
-  //                     Expanded(
-  //                       child: ListView.builder(
-  //                         itemCount: players.length,
-  //                         itemBuilder: (context, index) {
-  //                           final Player player = players[index];
-  //                           return InkWell(
-  //                             onTap: () {
-  //                               if (widget.isReturningPlayer) {
-  //                                 Navigator.of(context).pop(player);
-  //                               } else if (players.length > 1) {
-  //                                 Navigator.push(
-  //                                   context,
-  //                                   MaterialPageRoute(
-  //                                     builder: (context) => PlayersPage(
-  //                                       playerSearchCriterias:
-  //                                           PlayerSearchCriterias(
-  //                                               idPlayer: [player.id]),
-  //                                     ),
-  //                                   ),
-  //                                 );
-  //                               } else {
-  //                                 // Handle logic for single player directly
-  //                               }
-  //                             },
-  //                             child: PlayerCard(
-  //                                 player: player,
-  //                                 index: players.length == 1 ? 0 : index + 1,
-  //                                 isExpanded:
-  //                                     players.length == 1 ? true : false),
-  //                           );
-  //                         },
-  //                       ),
-  //                     )
-  //                   ],
-  //                 ),
-  //               ));
-  //         }
-  //       });
-  // }
 }

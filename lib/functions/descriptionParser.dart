@@ -60,7 +60,7 @@ TextSpan parseDescriptionTextSpan(BuildContext context, String description,
               context,
               GamePage.route(
                   int.parse(id),
-                  Provider.of<SessionProvider>(context, listen: false)
+                  Provider.of<UserSessionProvider>(context, listen: false)
                       .user!
                       .selectedClub!
                       .id),

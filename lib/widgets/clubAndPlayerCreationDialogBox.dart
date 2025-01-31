@@ -300,7 +300,7 @@ class _AssignPlayerOrClubDialogBoxState
                             bool isOK = await operationInDB(
                                 context, 'UPDATE', 'clubs',
                                 data: {
-                                  'username': Provider.of<SessionProvider>(
+                                  'username': Provider.of<UserSessionProvider>(
                                           context,
                                           listen: false)
                                       .user!
@@ -357,7 +357,7 @@ class _AssignPlayerOrClubDialogBoxState
                             bool isOK = await operationInDB(
                                 context, 'INSERT', 'players',
                                 data: {
-                                  'username': Provider.of<SessionProvider>(
+                                  'username': Provider.of<UserSessionProvider>(
                                           context,
                                           listen: false)
                                       .user!

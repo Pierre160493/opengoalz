@@ -5,9 +5,11 @@ import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/models/teamcomp/teamComp_main_widget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class TeamCompsPage extends StatefulWidget {
@@ -101,7 +103,12 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                         .where((id) => id != null)
                         .cast<Object>()
                   ].toSet().toList())
-              .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+              .map((maps) => maps
+                  .map((map) => Player.fromMap(
+                      map,
+                      Provider.of<UserSessionProvider>(context, listen: false)
+                          .user!))
+                  .toList())
               .map((players) {
                 print('Number players: ${players.length}');
                 for (TeamComp teamComp
@@ -157,7 +164,6 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
             );
           } else {
             Club club = snapshot.data!;
-
             return Scaffold(
               appBar: AppBar(
                 title: Text('TeamComps for season ${_seasonNumber}'),
@@ -201,85 +207,101 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                       Expanded(
                         child: TabBarView(
                           children: [
-                            DefaultTabController(
-                              length: club.defaultTeamComps
-                                  .length, // Number of tabs for the outer TabController
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  TabBar(
-                                    isScrollable: true,
-                                    tabs: [
-                                      ...List<Widget>.generate(
-                                        club.defaultTeamComps.length,
-                                        (index) => buildTabWithIcon(
-                                          icon: Icons.save,
-                                          iconColor: club
-                                                      .defaultTeamComps[index]
-                                                      .errors ==
-                                                  null
-                                              ? Colors.green
-                                              : Colors.red,
-                                          text:
-                                              club.defaultTeamComps[index].name,
+                            /// Default teamcomps
+                            club.defaultTeamComps.length == 0
+                                ? Center(
+                                    child:
+                                        Text('No default teamcomps found...'))
+                                : DefaultTabController(
+                                    length: club.defaultTeamComps
+                                        .length, // Number of tabs for the outer TabController
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        TabBar(
+                                          isScrollable: true,
+                                          tabs: [
+                                            ...List<Widget>.generate(
+                                              club.defaultTeamComps.length,
+                                              (index) => buildTabWithIcon(
+                                                icon: Icons.save,
+                                                iconColor:
+                                                    club.defaultTeamComps[index]
+                                                                .errors ==
+                                                            null
+                                                        ? Colors.green
+                                                        : Colors.red,
+                                                text: club
+                                                    .defaultTeamComps[index]
+                                                    .name,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  Expanded(
-                                    child: TabBarView(
-                                      children: List<Widget>.generate(
-                                          club.defaultTeamComps.length,
-                                          (index) =>
-                                              // club.defaultTeamComps[index]
-                                              //     .getMainTeamCompWidget(context),
-                                              TeamCompWidget(
-                                                  teamComp:
-                                                      club.defaultTeamComps[
-                                                          index])),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            DefaultTabController(
-                              length: club.teamComps
-                                  .length, // Number of tabs for the outer TabController
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  TabBar(
-                                    isScrollable: true,
-                                    tabs: List<Widget>.generate(
-                                      club.teamComps.length,
-                                      (index) => Tab(
-                                        child: Text(
-                                          (index + 1).toString(),
-                                          style: TextStyle(
-                                              color:
-                                                  // If played, show default color, if error == null show green, else show red
-                                                  club.teamComps[index].isPlayed
-                                                      ? null
-                                                      : club.teamComps[index]
-                                                                  .errors ==
-                                                              null
-                                                          ? Colors.green
-                                                          : Colors.red),
+                                        Expanded(
+                                          child: TabBarView(
+                                            children: List<Widget>.generate(
+                                                club.defaultTeamComps.length,
+                                                (index) =>
+                                                    // club.defaultTeamComps[index]
+                                                    //     .getMainTeamCompWidget(context),
+                                                    TeamCompWidget(
+                                                        teamComp:
+                                                            club.defaultTeamComps[
+                                                                index])),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   ),
-                                  Expanded(
-                                    child: TabBarView(
-                                      children: List<Widget>.generate(
-                                          14,
-                                          (index) => TeamCompWidget(
-                                              teamComp: club.teamComps[index])),
+
+                            /// Season teamcomps
+                            club.teamComps.length == 0
+                                ? Center(
+                                    child: Text(
+                                        'No teamcomps found for season $_seasonNumber...'))
+                                : DefaultTabController(
+                                    length: club.teamComps
+                                        .length, // Number of tabs for the outer TabController
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        TabBar(
+                                          isScrollable: true,
+                                          tabs: List<Widget>.generate(
+                                            club.teamComps.length,
+                                            (index) => Tab(
+                                              child: Text(
+                                                (index + 1).toString(),
+                                                style: TextStyle(
+                                                    color:
+                                                        // If played, show default color, if error == null show green, else show red
+                                                        club.teamComps[index]
+                                                                .isPlayed
+                                                            ? null
+                                                            : club.teamComps[index]
+                                                                        .errors ==
+                                                                    null
+                                                                ? Colors.green
+                                                                : Colors.red),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: TabBarView(
+                                            children: List<Widget>.generate(
+                                                14,
+                                                (index) => TeamCompWidget(
+                                                    teamComp:
+                                                        club.teamComps[index])),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
                           ],
                         ),
                       )

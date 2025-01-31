@@ -57,7 +57,14 @@ class _PlayerCardState extends State<PlayerCard>
 
   /// Build Large
   Widget _buildLarge() {
+    final user = Provider.of<UserSessionProvider>(context, listen: false).user!;
+
     /// Player Card
+    Color playerColor = widget.player.isSelectedUserIncarnatedPlayer
+        ? colorIsMine
+        : widget.player.isSelectedClubPlayer
+            ? colorIsSelected
+            : colorDefault;
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius:
@@ -73,13 +80,7 @@ class _PlayerCardState extends State<PlayerCard>
           /// Title of the card
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: (Provider.of<SessionProvider>(context,
-                          listen: false)
-                      .user!
-                      .playersIncarnated
-                      .any((Player player) => player.id == widget.player.id))
-                  ? Colors.purple
-                  : null,
+              backgroundColor: playerColor,
               child: widget.index == null
                   ? Icon(widget.player.getPlayerIcon())
                   : Text(
@@ -94,16 +95,8 @@ class _PlayerCardState extends State<PlayerCard>
                   children: [
                     widget.player.getPlayerNameToolTip(context),
                     widget.player.getStatusRow(),
-                    if (Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .playersIncarnated
-                            .any((Player player) =>
-                                player.id == widget.player.id) ||
-                        Provider.of<SessionProvider>(context, listen: false)
-                                .user!
-                                .selectedClub!
-                                .id ==
-                            widget.player.idClub)
+                    if (widget.player.isSelectedUserIncarnatedPlayer ||
+                        widget.player.isSelectedClubPlayer)
                       Row(
                         children: [
                           SizedBox(width: 3.0),
@@ -113,23 +106,12 @@ class _PlayerCardState extends State<PlayerCard>
                       ),
 
                     /// Favorite icon button
-                    playerSetAsFavoriteIconButton(
-                        context,
-                        widget.player,
-                        Provider.of<SessionProvider>(context, listen: false)
-                            .user!),
+                    playerSetAsFavoriteIconButton(context, widget.player, user),
 
                     /// Poaching icon button
-                    if (Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub!
-                            .id !=
-                        widget.player.idClub)
+                    if (widget.player.isSelectedClubPlayer)
                       playerSetAsPoachingIconButton(
-                          context,
-                          widget.player,
-                          Provider.of<SessionProvider>(context, listen: false)
-                              .user!),
+                          context, widget.player, user),
                   ],
                 ),
                 IconButton(
@@ -153,11 +135,7 @@ class _PlayerCardState extends State<PlayerCard>
                 Row(
                   children: [
                     playerShirtNumberIcon(context, widget.player),
-                    if (Provider.of<SessionProvider>(context, listen: false)
-                            .user!
-                            .selectedClub!
-                            .id ==
-                        widget.player.idClub)
+                    if (user.selectedClub!.id == widget.player.idClub)
                       formSpacer3,
                     playerSmallNotesIcon(context, widget.player),
                   ],

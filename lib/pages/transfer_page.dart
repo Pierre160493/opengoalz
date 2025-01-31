@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
@@ -38,11 +39,14 @@ class _TransferPageState extends State<TransferPage>
   late TabController _tabController;
   late Stream<List<TransferBid>> _IdPlayersTransferStream;
   late Stream<List<Player>> _playersStream;
+  late final Profile currentUser;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    currentUser =
+        Provider.of<UserSessionProvider>(context, listen: false).user!;
 
     // Stream to fetch the list of player IDs that the club has shown interest in
     _IdPlayersTransferStream = supabase
@@ -62,7 +66,8 @@ class _TransferPageState extends State<TransferPage>
           .stream(primaryKey: ['id'])
           .inFilter('id', playerIdsList)
           .order('date_birth', ascending: true)
-          .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+          .map((maps) =>
+              maps.map((map) => Player.fromMap(map, currentUser)).toList())
           .switchMap((List<Player> players) {
             // Fetch the club's players
             return supabase
@@ -72,7 +77,9 @@ class _TransferPageState extends State<TransferPage>
                     'id_club',
                     widget
                         .idClub) // Fetch the club's players to get their clubs
-                .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+                .map((maps) => maps
+                    .map((map) => Player.fromMap(map, currentUser))
+                    .toList())
                 .map((List<Player> playersSell) {
                   players.addAll(
                       playersSell.where((player) => player.dateBidEnd != null));
@@ -192,11 +199,7 @@ class _TransferPageState extends State<TransferPage>
                 body: MaxWidthContainer(
                   child: Column(
                     children: [
-                      getClubCashListTile(
-                          context,
-                          Provider.of<SessionProvider>(context, listen: false)
-                              .user!
-                              .selectedClub!),
+                      getClubCashListTile(context, currentUser.selectedClub!),
                       TabBar(
                         controller: _tabController,
                         tabs: [

@@ -3,8 +3,10 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class TeamCompPage extends StatefulWidget {
@@ -106,7 +108,12 @@ class _TeamCompPageState extends State<TeamCompPage> {
                       .where((id) => id != null)
                       .cast<int>()
                 ])
-                .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+                .map((maps) => maps
+                    .map((map) => Player.fromMap(
+                        map,
+                        Provider.of<UserSessionProvider>(context, listen: false)
+                            .user!))
+                    .toList())
                 .map((players) {
                   club.teamComps.first.initPlayers(players
                       .where((player) => player.idClub == club.id)

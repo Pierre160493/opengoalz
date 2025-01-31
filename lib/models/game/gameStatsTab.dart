@@ -224,7 +224,7 @@ class GameStat {
 
 Future<List<GameStat>> fetchGameStats(int idGame) async {
   final response = await supabase
-      .from('games_stats')
+      .from('game_stats')
       .select()
       .eq('id_game', idGame)
       .order('period', ascending: true)

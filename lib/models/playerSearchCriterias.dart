@@ -58,7 +58,9 @@ class PlayerSearchCriterias {
 
   Future<void> setDefaultMultiverse(BuildContext context) async {
     final selectedClub =
-        Provider.of<SessionProvider>(context, listen: false).user?.selectedClub;
+        Provider.of<UserSessionProvider>(context, listen: false)
+            .user
+            ?.selectedClub;
 
     if (selectedClub == null) {
       context.showSnackBarError(

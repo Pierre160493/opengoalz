@@ -10,6 +10,7 @@ import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
@@ -29,8 +30,6 @@ class Player {
   Club? club;
   List<TransferBid> transferBids = [];
   Multiverse? multiverse;
-  PlayerFavorite? favorite;
-  PlayerPoaching? poaching;
 
   Player({
     required this.id,
@@ -71,6 +70,10 @@ class Player {
     required this.notesSmall,
     required this.performanceScore,
     required this.idGamesPlayed,
+    required this.isSelectedUserIncarnatedPlayer,
+    required this.isSelectedClubPlayer,
+    required this.isSelectedClubFavoritePlayer,
+    required this.isSelectedClubPoachedPlayer,
   });
 
   final int id;
@@ -111,8 +114,12 @@ class Player {
   final String notesSmall;
   final double performanceScore;
   final List<int> idGamesPlayed;
+  final bool isSelectedUserIncarnatedPlayer;
+  final bool isSelectedClubPlayer;
+  final bool isSelectedClubFavoritePlayer;
+  final bool isSelectedClubPoachedPlayer;
 
-  Player.fromMap(Map<String, dynamic> map)
+  Player.fromMap(Map<String, dynamic> map, Profile user)
       : id = map['id'],
         created_at = DateTime.parse(map['created_at']).toLocal(),
         idClub = map['id_club'],
@@ -154,22 +161,19 @@ class Player {
         notes = map['notes'],
         notesSmall = map['notes_small'],
         performanceScore = (map['performance_score'] as num).toDouble(),
-        idGamesPlayed = List<int>.from(map['id_games_played']);
+        idGamesPlayed = List<int>.from(map['id_games_played']),
+        isSelectedClubPlayer = user.selectedClub?.id == map['id_club'],
+        isSelectedUserIncarnatedPlayer = user.username == map['username'],
+        isSelectedClubFavoritePlayer = user.selectedClub?.playersFavorite
+                .any((element) => element.idPlayer == map['id']) ??
+            false,
+        isSelectedClubPoachedPlayer = user.selectedClub?.playersPoached
+                .any((element) => element.idPlayer == map['id']) ??
+            false;
 
   double get age {
     return calculateAge(dateBirth, multiverseSpeed);
   }
-
-  // double get stats_average {
-  //   return (keeper +
-  //           defense +
-  //           playmaking +
-  //           passes +
-  //           scoring +
-  //           freekick +
-  //           winger) /
-  //       7.0;
-  // }
 
   dynamic getPropertyValue(String propertyName) {
     switch (propertyName) {

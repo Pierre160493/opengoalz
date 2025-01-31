@@ -136,14 +136,14 @@ class Profile {
 
           // If switch is confirmed, proceed with switching
           if (switchConfirmed == true) {
-            await Provider.of<SessionProvider>(context, listen: false)
+            await Provider.of<UserSessionProvider>(context, listen: false)
                 .providerFetchUser(context,
                     userId: supabase.auth.currentUser!.id);
 
             /// Modify the app theme if the user is not the connected user
             Provider.of<ThemeProvider>(context, listen: false)
                 .setOtherThemeWhenSelectedUserIsNotConnectedUser(
-                    Provider.of<SessionProvider>(context, listen: false)
+                    Provider.of<UserSessionProvider>(context, listen: false)
                             .user
                             ?.isConnectedUser ??
                         false);
@@ -171,7 +171,7 @@ Widget getUserName(BuildContext context, {String? userName, int? idClub}) {
   }
 
   bool isSelected = userName ==
-      Provider.of<SessionProvider>(context, listen: false).user?.username;
+      Provider.of<UserSessionProvider>(context, listen: false).user?.username;
 
   return Row(
     children: [

@@ -108,10 +108,10 @@ class _LoginPageState extends State<LoginPage> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('emailOrUsername', _inputController.text);
 
-      // Fetch user data and initialize SessionProvider
-      final sessionProvider =
-          Provider.of<SessionProvider>(context, listen: false);
-      await sessionProvider.providerFetchUser(context,
+      // Fetch user data and initialize UserSessionProvider
+      final userSessionProvider =
+          Provider.of<UserSessionProvider>(context, listen: false);
+      await userSessionProvider.providerFetchUser(context,
           userId: supabase.auth.currentUser!.id);
 
       Navigator.of(context)

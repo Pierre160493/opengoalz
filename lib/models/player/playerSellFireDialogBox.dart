@@ -9,6 +9,8 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/provider_user.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
@@ -62,7 +64,10 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
         .from('players')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idPlayer)
-        .map((maps) => maps.map((map) => Player.fromMap(map)).first)
+        .map((maps) => maps
+            .map((map) => Player.fromMap(map,
+                Provider.of<UserSessionProvider>(context, listen: false).user!))
+            .first)
         .switchMap((Player player) {
           if (player.idClub == null) {
             return Stream.value(player);
@@ -374,7 +379,7 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
                         // Call the transfers_new_transfer function
                         // await supabase.rpc('transfers_handle_new_bid', params: {
                         //   'inp_id_player': player.id,
-                        //   'inp_id_club_bidder': Provider.of<SessionProvider>(
+                        //   'inp_id_club_bidder': Provider.of<UserSessionProvider>(
                         //           context,
                         //           listen: false)
                         //       .user!

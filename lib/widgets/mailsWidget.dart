@@ -20,8 +20,7 @@ Widget mailToolTip(BuildContext context, Profile user) {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-              builder: (context) => MailsPage(idClub: user.selectedClub!.id)),
+          MaterialPageRoute(builder: (context) => MailsPage()),
         );
       },
       child: Stack(

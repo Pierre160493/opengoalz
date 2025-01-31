@@ -38,7 +38,10 @@ extension LeagueStatsTab on League {
               sortedPlayerGoals.map((e) => e.key).toList(),
               sortedPlayerAssists.map((e) => e.key).toList()
             ].expand((x) => x).toSet().toList())
-        .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+        .map((maps) => maps
+            .map((map) => Player.fromMap(map,
+                Provider.of<UserSessionProvider>(context, listen: false).user!))
+            .toList())
         .switchMap((List<Player> players) {
           return supabase
               .from('clubs')

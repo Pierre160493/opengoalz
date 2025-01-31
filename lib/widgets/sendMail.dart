@@ -58,7 +58,7 @@ void sendMailDialog(BuildContext context, {int? idClub, String? username}) {
                   'message': messageController.text,
                   'username_to': username,
                   'username_from':
-                      Provider.of<SessionProvider>(context, listen: false)
+                      Provider.of<UserSessionProvider>(context, listen: false)
                           .user!
                           .username,
                 },

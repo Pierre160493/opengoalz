@@ -23,7 +23,7 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
       children: [
         ListTile(
           onTap: () {
-            Provider.of<SessionProvider>(context, listen: false)
+            Provider.of<UserSessionProvider>(context, listen: false)
                 // .providerSetSelectedClub(club.id);
                 .providerFetchUser(context,
                     userId: supabase.auth.currentUser!.id,

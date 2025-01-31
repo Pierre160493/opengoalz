@@ -9,7 +9,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/handleFatalError.dart';
 
-class SessionProvider extends ChangeNotifier {
+class UserSessionProvider extends ChangeNotifier {
   Profile? user;
 
   /// Fetch the user from the database
@@ -84,7 +84,7 @@ class SessionProvider extends ChangeNotifier {
         .from('players')
         .stream(primaryKey: ['id'])
         .eq('username', user.username)
-        .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
+        .map((maps) => maps.map((map) => Player.fromMap(map, user)).toList())
         .listen((List<Player> players) {
           user.playersIncarnated = players;
           notifyListeners();
@@ -121,13 +121,10 @@ class SessionProvider extends ChangeNotifier {
     if (selectedClub == null) return;
 
     _fetchClubMails(context, selectedClub);
-    _fetchClubPlayers(context, selectedClub);
+    // _fetchClubPlayers(context, selectedClub);
 
-    // Await the completion of both _fetchClubFavoritePlayers and _fetchClubPoachingPlayers
-    await Future.wait([
-      _fetchClubFavoritePlayers(context, selectedClub),
-      _fetchClubPoachingPlayers(context, selectedClub),
-    ]);
+    _fetchClubFavoritePlayers(context, selectedClub);
+    _fetchClubPoachingPlayers(context, selectedClub);
 
     // _fetchFollowedPlayers(context, selectedClub);
   }
@@ -140,82 +137,53 @@ class SessionProvider extends ChangeNotifier {
         .order('created_at', ascending: false)
         .map((maps) => maps.map((map) => Mail.fromMap(map)).toList())
         .listen((List<Mail> mails) {
-          print('Club mails: ${mails.length}');
+          String timestamp = DateTime.now().toLocal().toString().split(' ')[1];
+          print('[$timestamp] PROVIDER: Club mails: ${mails.length}');
           selectedClub.mails = mails;
           notifyListeners();
         });
   }
 
-  void _fetchClubPlayers(BuildContext context, Club selectedClub) {
-    supabase
-        .from('players')
-        .stream(primaryKey: ['id'])
-        .eq('id_club', selectedClub.id)
-        .order('date_birth', ascending: true)
-        .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
-        .listen((List<Player> players) {
-          print('Club Players: ${players.length}');
-          selectedClub.players = players;
-          notifyListeners();
-        });
-  }
+  // void _fetchClubPlayers(BuildContext context, Club selectedClub) {
+  //   supabase
+  //       .from('players')
+  //       .stream(primaryKey: ['id'])
+  //       .eq('id_club', selectedClub.id)
+  //       .order('date_birth', ascending: true)
+  //       .map((maps) => maps.map((map) => Player.fromMap(map, user!)).toList())
+  //       .listen((List<Player> players) {
+  //         print('PROVIDER: Club Players: ${players.length}');
+  //         selectedClub.players = players;
+  //         notifyListeners();
+  //       });
+  // }
 
-  Future<void> _fetchClubFavoritePlayers(
-      BuildContext context, Club selectedClub) async {
-    await supabase
+  void _fetchClubFavoritePlayers(BuildContext context, Club selectedClub) {
+    supabase
         .from('players_favorite')
         .stream(primaryKey: ['id'])
         .eq('id_club', selectedClub.id)
         .map((maps) => maps.map((map) => PlayerFavorite.fromMap(map)).toList())
         .listen((List<PlayerFavorite> playersFavorite) {
-          print('Favorite Players: ${playersFavorite.length}');
+          String timestamp = DateTime.now().toLocal().toString().split(' ')[1];
+          print(
+              '[$timestamp] PROVIDER: Favorite Players: ${playersFavorite.length}');
           selectedClub.playersFavorite = playersFavorite;
           notifyListeners();
-        })
-        .asFuture();
+        });
   }
 
-  Future<void> _fetchClubPoachingPlayers(
-      BuildContext context, Club selectedClub) async {
-    await supabase
+  void _fetchClubPoachingPlayers(BuildContext context, Club selectedClub) {
+    supabase
         .from('players_poaching')
         .stream(primaryKey: ['id'])
         .eq('id_club', selectedClub.id)
         .map((maps) => maps.map((map) => PlayerPoaching.fromMap(map)).toList())
         .listen((List<PlayerPoaching> playersPoaching) {
-          print('Poaching Players: ${playersPoaching.length}');
+          String timestamp = DateTime.now().toLocal().toString().split(' ')[1];
+          print(
+              '[$timestamp] PROVIDER: Poaching Players: ${playersPoaching.length}');
           selectedClub.playersPoached = playersPoaching;
-          notifyListeners();
-        })
-        .asFuture();
-  }
-
-  void fetchFollowedPlayers(BuildContext context, Club selectedClub) {
-    print([
-      ...selectedClub.playersFavorite.map((pf) => pf.idPlayer),
-      ...selectedClub.playersPoached.map((pp) => pp.idPlayer)
-    ]);
-    supabase
-        .from('players')
-        .stream(primaryKey: ['id'])
-        .inFilter('id', [
-          ...selectedClub.playersFavorite.map((pf) => pf.idPlayer),
-          ...selectedClub.playersPoached.map((pp) => pp.idPlayer)
-        ])
-        .order('date_birth', ascending: true)
-        .map((maps) => maps.map((map) => Player.fromMap(map)).toList())
-        .listen((List<Player> players) {
-          print('Followed Players: ${players.length}');
-          for (PlayerFavorite pf in selectedClub.playersFavorite) {
-            Player? player =
-                players.firstWhere((player) => player.id == pf.idPlayer);
-            pf.player = player;
-          }
-          for (PlayerPoaching pp in selectedClub.playersPoached) {
-            Player? player =
-                players.firstWhere((player) => player.id == pp.idPlayer);
-            pp.player = player;
-          }
           notifyListeners();
         });
   }

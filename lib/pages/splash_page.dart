@@ -34,7 +34,7 @@ class SplashPageState extends State<SplashPage> {
     } else {
       // Fetch the user from the database
       try {
-        await Provider.of<SessionProvider>(context, listen: false)
+        await Provider.of<UserSessionProvider>(context, listen: false)
             .providerFetchUser(context, userId: supabase.auth.currentUser!.id);
 
         setState(() {

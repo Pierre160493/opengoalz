@@ -7,9 +7,9 @@ class Mail {
   final String? message;
   final String? userNameFrom;
   final String? senderRole;
-  final bool isRead;
-  final bool isFavorite;
-  final DateTime? dateDelete;
+  bool isRead;
+  bool isFavorite;
+  DateTime? dateDelete;
 
   Mail({
     required this.id,

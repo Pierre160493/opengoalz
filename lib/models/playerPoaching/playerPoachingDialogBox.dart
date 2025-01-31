@@ -3,16 +3,19 @@ import 'package:flutter/services.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 
 class PoachingDialog extends StatefulWidget {
+  final PlayerPoaching? playerPoached;
   final Player player;
   final Profile user;
   final String title;
   final String operation;
 
   PoachingDialog({
+    required this.playerPoached,
     required this.player,
     required this.user,
     required this.title,
@@ -37,9 +40,12 @@ class _PoachingDialogState extends State<PoachingDialog> {
   @override
   void initState() {
     super.initState();
-    _notes = widget.player.poaching?.notes;
-    _investmentTarget = widget.player.poaching?.investmentTarget ?? 50;
-    _maxPrice = widget.player.poaching?.maxPrice;
+    _notes = widget.playerPoached == null ? '' : widget.playerPoached!.notes;
+    _investmentTarget = widget.playerPoached == null
+        ? 50
+        : widget.playerPoached!.investmentTarget;
+    _maxPrice =
+        widget.playerPoached == null ? null : widget.playerPoached!.maxPrice;
 
     _investmentTargetController =
         TextEditingController(text: _investmentTarget.toString());
@@ -171,7 +177,7 @@ class _PoachingDialogState extends State<PoachingDialog> {
                   bool isOk = await operationInDB(
                       context, 'UPDATE', 'players_poaching',
                       matchCriteria: {
-                        'id': widget.player.poaching!.id,
+                        'id': widget.player.id,
                       },
                       data: {
                         'investment_target': 0,
@@ -218,7 +224,7 @@ class _PoachingDialogState extends State<PoachingDialog> {
                         await operationInDB(
                             context, 'UPDATE', 'players_poaching',
                             matchCriteria: {
-                              'id': widget.player.poaching!.id,
+                              'id': widget.player.id,
                             },
                             data: {
                               'investment_target': _investmentTarget,
@@ -244,19 +250,4 @@ class _PoachingDialogState extends State<PoachingDialog> {
       ],
     );
   }
-}
-
-Future<void> showPoachingDialog(BuildContext context, Player player,
-    Profile user, String title, String operation) async {
-  await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => PoachingDialog(
-        player: player,
-        user: user,
-        title: title,
-        operation: operation,
-      ),
-    ),
-  );
 }

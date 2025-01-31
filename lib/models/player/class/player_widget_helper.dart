@@ -11,19 +11,15 @@ extension PlayerWidgetsHelper on Player {
 
   Widget getPlayerNameTextWidget(BuildContext context,
       {bool isSurname = false}) {
-    /// Check if the player belongs to the currently connected user
-    bool isMine = Provider.of<SessionProvider>(context, listen: false)
-        .user!
-        .playersIncarnated
-        .map((player) => player.id)
-        .toList()
-        .contains(id);
-
     return Text(
       getPlayerNameString(isSurname: isSurname),
       style: TextStyle(
         fontWeight: FontWeight.bold,
-        color: isMine ? colorIsMine : null,
+        color: isSelectedUserIncarnatedPlayer
+            ? colorIsMine
+            : isSelectedClubPlayer
+                ? colorIsSelected
+                : null,
       ),
       overflow: TextOverflow.fade, // or TextOverflow.ellipsis
       maxLines: 1,
@@ -285,7 +281,7 @@ extension PlayerWidgetsHelper on Player {
             IconButton(
               tooltip: 'Past expenses not payed ${expensesMissed.toString()}',
               onPressed: () {
-                if (Provider.of<SessionProvider>(context, listen: false)
+                if (Provider.of<UserSessionProvider>(context, listen: false)
                         .user!
                         .selectedClub!
                         .id ==
@@ -318,7 +314,7 @@ extension PlayerWidgetsHelper on Player {
                                   children: [
                                     Icon(iconMoney, color: Colors.green),
                                     Text(
-                                      ' ${Provider.of<SessionProvider>(context, listen: false).user!.selectedClub!.clubData.cash.toString()}',
+                                      ' ${Provider.of<UserSessionProvider>(context, listen: false).user!.selectedClub!.clubData.cash.toString()}',
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),

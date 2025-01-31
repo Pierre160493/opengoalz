@@ -162,7 +162,8 @@ Widget getPlayersPoachingTab(List<PlayerPoaching> playersPoached) {
               trailing: playerSetAsPoachingIconButton(
                   context,
                   playerPoached.player!,
-                  Provider.of<SessionProvider>(context, listen: false).user!),
+                  Provider.of<UserSessionProvider>(context, listen: false)
+                      .user!),
             );
           },
         ),
