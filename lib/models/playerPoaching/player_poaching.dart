@@ -1,8 +1,4 @@
-import 'package:opengoalz/models/player/class/player.dart';
-
 class PlayerPoaching {
-  Player? player;
-
   final int id;
   final DateTime createdAt;
   final int idClub;

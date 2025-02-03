@@ -257,8 +257,10 @@ BEGIN
                     'Joined ' || string_parser(last_bid.id_club, 'idClub') || ' for ' || last_bid.amount
                 );
 
-            -- Remove the player from the clubs_poaching tables
-            DELETE FROM players_poaching WHERE id_player = player.id;
+            -- Update the players from the clubs_poaching tables
+            UPDATE players_poaching SET
+                investment_target = 0
+            WHERE id_player = player.id;
 
             -- Update the player
             UPDATE players SET

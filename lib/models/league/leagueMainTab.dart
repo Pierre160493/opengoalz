@@ -118,43 +118,35 @@ extension LeagueMainTab on League {
                   subtitle: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Tooltip(
-                        message: 'Number of Victories / Draws / Loss',
-                        child: Row(
-                          children: [
-                            Icon(Icons.emoji_events),
-                            formSpacer3,
-                            Text(
-                              club.victories.toString(),
-                              style: TextStyle(
-                                color:
-                                    Colors.green, // Set the text color to green
-                                fontWeight:
-                                    FontWeight.bold, // Make the text bold
-                              ),
+                      Row(
+                        children: [
+                          Icon(Icons.emoji_events),
+                          formSpacer3,
+                          Text(
+                            club.victories.toString(),
+                            style: TextStyle(
+                              color:
+                                  Colors.green, // Set the text color to green
+                              fontWeight: FontWeight.bold, // Make the text bold
                             ),
-                            Text(' / '),
-                            Text(
-                              club.draws.toString(),
-                              style: TextStyle(
-                                color:
-                                    Colors.grey, // Set the text color to green
-                                fontWeight:
-                                    FontWeight.bold, // Make the text bold
-                              ),
+                          ),
+                          Text(' / '),
+                          Text(
+                            club.draws.toString(),
+                            style: TextStyle(
+                              color: Colors.grey, // Set the text color to green
+                              fontWeight: FontWeight.bold, // Make the text bold
                             ),
-                            Text(' / '),
-                            Text(
-                              club.defeats.toString(),
-                              style: TextStyle(
-                                color:
-                                    Colors.red, // Set the text color to green
-                                fontWeight:
-                                    FontWeight.bold, // Make the text bold
-                              ),
+                          ),
+                          Text(' / '),
+                          Text(
+                            club.defeats.toString(),
+                            style: TextStyle(
+                              color: Colors.red, // Set the text color to green
+                              fontWeight: FontWeight.bold, // Make the text bold
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                       Tooltip(
                         message: 'Goal Difference (Goals For / Against)',

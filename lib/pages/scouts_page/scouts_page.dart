@@ -4,8 +4,8 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
-import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerPoaching/playersPoachingTab.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -45,7 +45,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
   Widget build(BuildContext context) {
     return Consumer<UserSessionProvider>(
       builder: (context, userSessionProvider, child) {
-        final _user = userSessionProvider.user!;
+        final _user = userSessionProvider.user;
         final followedPlayerIds = [
           ..._user.selectedClub!.playersFavorite.map((pf) => pf.idPlayer),
           ..._user.selectedClub!.playersPoached.map((pp) => pp.idPlayer)
@@ -65,15 +65,17 @@ class _ScoutsPageState extends State<ScoutsPage> {
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else {
+              print(
+                  'ScoutsPage: _user.selectedClub!.playersFavorite: ${_user.selectedClub!.playersFavorite.length}');
               final players = snapshot.data ?? [];
-              for (PlayerFavorite pf in _user.selectedClub!.playersFavorite) {
-                pf.player =
-                    players.firstWhere((player) => player.id == pf.idPlayer);
-              }
-              for (PlayerPoaching pp in _user.selectedClub!.playersPoached) {
-                pp.player =
-                    players.firstWhere((player) => player.id == pp.idPlayer);
-              }
+              // for (Player player in players) {
+              //   print('ScoutsPage: player: ${player.id}');
+              //   player.favorite = _user.selectedClub!.playersFavorite
+              //       .firstWhere((pf) => pf.idPlayer == player.id orElse: () => null);
+              //   player.poaching = _user.selectedClub!.playersPoached
+              //       .firstWhere((pp) => pp.idPlayer == player.id);
+              // }
+              print('ScoutsPage2: snapshot.data: ${snapshot.data}');
 
               return Scaffold(
                 appBar: AppBar(
@@ -138,7 +140,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                           child: TabBarView(
                             children: [
                               ScoutsMainTab(_user.selectedClub!),
-                              _getFollowedPlayersTab(_user.selectedClub!),
+                              _getFollowedPlayersTab(_user, players),
                             ],
                           ),
                         ),
@@ -154,7 +156,11 @@ class _ScoutsPageState extends State<ScoutsPage> {
     );
   }
 
-  Widget _getFollowedPlayersTab(Club club) {
+  Widget _getFollowedPlayersTab(Profile user, List<Player> players) {
+    List<Player> playersFavorite =
+        players.where((player) => player.favorite != null).toList();
+    List<Player> playersPoached =
+        players.where((player) => player.poaching != null).toList();
     return DefaultTabController(
       length: 2,
       initialIndex: widget.initialTab == ScoutsPageTab.poachedPlayers ? 1 : 0,
@@ -164,29 +170,34 @@ class _ScoutsPageState extends State<ScoutsPage> {
             tabs: [
               buildTabWithIcon(
                   icon: iconScouts,
-                  text: 'Favorites (${club.playersFavorite.length})'),
+                  text: 'Favorites (${playersFavorite.length})'),
               buildTabWithIcon(
                 icon: iconFavorite,
-                text: 'Poaching (${club.playersPoached.length})',
+                text: 'Poaching (${playersPoached.length})',
               ),
             ],
           ),
           Expanded(
             child: TabBarView(
               children: [
-                ListView.builder(
-                  itemCount: club.playersFavorite.length,
-                  itemBuilder: (context, index) {
-                    PlayerFavorite playerFavorite = club.playersFavorite[index];
-                    return playerFavorite.player == null
-                        ? Text('null')
-                        : PlayerCard(
-                            player: playerFavorite.player!,
-                            index: index + 1,
-                            isExpanded: false);
-                  },
-                ),
-                getPlayersPoachingTab(club.playersPoached),
+                /// Favorites
+                playersFavorite.length == 0
+                    ? Center(child: Text('No favorite players found'))
+                    : ListView.builder(
+                        itemCount: playersFavorite.length,
+                        itemBuilder: (context, index) {
+                          Player player = playersFavorite[index];
+                          return player.favorite == null
+                              ? Text('null')
+                              : PlayerCard(
+                                  player: player,
+                                  index: index + 1,
+                                  isExpanded: false);
+                        },
+                      ),
+
+                /// Poached
+                getPlayersPoachingTab(playersPoached, user),
               ],
             ),
           ),

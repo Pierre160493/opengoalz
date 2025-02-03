@@ -57,7 +57,7 @@ class _PlayerCardState extends State<PlayerCard>
 
   /// Build Large
   Widget _buildLarge() {
-    final user = Provider.of<UserSessionProvider>(context, listen: false).user!;
+    final user = Provider.of<UserSessionProvider>(context, listen: false).user;
 
     /// Player Card
     Color playerColor = widget.player.isSelectedUserIncarnatedPlayer
@@ -106,12 +106,10 @@ class _PlayerCardState extends State<PlayerCard>
                       ),
 
                     /// Favorite icon button
-                    playerSetAsFavoriteIconButton(context, widget.player, user),
+                    PlayerFavoriteIconButton(player: widget.player, user: user),
 
                     /// Poaching icon button
-                    if (widget.player.isSelectedClubPlayer)
-                      playerSetAsPoachingIconButton(
-                          context, widget.player, user),
+                    PlayerPoachingIconButton(player: widget.player, user: user),
                   ],
                 ),
                 IconButton(

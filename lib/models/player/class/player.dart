@@ -22,6 +22,7 @@ import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:collection/collection.dart';
 
 part 'player_widget_helper.dart';
 part 'player_widget_actions.dart';
@@ -31,50 +32,8 @@ class Player {
   List<TransferBid> transferBids = [];
   Multiverse? multiverse;
 
-  Player({
-    required this.id,
-    required this.created_at,
-    required this.idClub,
-    required this.userName,
-    required this.firstName,
-    required this.lastName,
-    required this.surName,
-    required this.shirtNumber,
-    required this.dateBirth,
-    required this.idMultiverse,
-    required this.multiverseSpeed,
-    required this.idCountry,
-    required this.expensesExpected,
-    required this.expensesPayed,
-    required this.expensesMissed,
-    required this.expensesTarget,
-    required this.trainingPointsUsed,
-    required this.trainingCoef,
-    required this.keeper,
-    required this.defense,
-    required this.playmaking,
-    required this.passes,
-    required this.scoring,
-    required this.freekick,
-    required this.winger,
-    required this.dateEndInjury,
-    required this.dateBidEnd,
-    required this.transferPrice,
-    required this.dateArrival,
-    required this.motivation,
-    required this.form,
-    required this.stamina,
-    required this.energy,
-    required this.experience,
-    required this.notes,
-    required this.notesSmall,
-    required this.performanceScore,
-    required this.idGamesPlayed,
-    required this.isSelectedUserIncarnatedPlayer,
-    required this.isSelectedClubPlayer,
-    required this.isSelectedClubFavoritePlayer,
-    required this.isSelectedClubPoachedPlayer,
-  });
+  PlayerFavorite? favorite;
+  PlayerPoaching? poaching;
 
   final int id;
   final DateTime created_at;
@@ -116,8 +75,6 @@ class Player {
   final List<int> idGamesPlayed;
   final bool isSelectedUserIncarnatedPlayer;
   final bool isSelectedClubPlayer;
-  final bool isSelectedClubFavoritePlayer;
-  final bool isSelectedClubPoachedPlayer;
 
   Player.fromMap(Map<String, dynamic> map, Profile user)
       : id = map['id'],
@@ -164,12 +121,10 @@ class Player {
         idGamesPlayed = List<int>.from(map['id_games_played']),
         isSelectedClubPlayer = user.selectedClub?.id == map['id_club'],
         isSelectedUserIncarnatedPlayer = user.username == map['username'],
-        isSelectedClubFavoritePlayer = user.selectedClub?.playersFavorite
-                .any((element) => element.idPlayer == map['id']) ??
-            false,
-        isSelectedClubPoachedPlayer = user.selectedClub?.playersPoached
-                .any((element) => element.idPlayer == map['id']) ??
-            false;
+        favorite = user.selectedClub?.playersFavorite.firstWhereOrNull(
+            (PlayerFavorite element) => element.idPlayer == map['id']),
+        poaching = user.selectedClub?.playersPoached.firstWhereOrNull(
+            (PlayerPoaching element) => element.idPlayer == map['id']);
 
   double get age {
     return calculateAge(dateBirth, multiverseSpeed);

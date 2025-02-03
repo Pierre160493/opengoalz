@@ -10,7 +10,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/handleFatalError.dart';
 
 class UserSessionProvider extends ChangeNotifier {
-  Profile? user;
+  late Profile user;
 
   /// Fetch the user from the database
   Future<void> providerFetchUser(BuildContext context,
@@ -113,18 +113,18 @@ class UserSessionProvider extends ChangeNotifier {
           }
 
           notifyListeners();
-          _fetchClubRelatedData(context, user.selectedClub);
+          _fetchClubRelatedData(context, user);
         });
   }
 
-  void _fetchClubRelatedData(BuildContext context, Club? selectedClub) async {
-    if (selectedClub == null) return;
+  void _fetchClubRelatedData(BuildContext context, Profile user) async {
+    if (user.selectedClub == null) return;
 
-    _fetchClubMails(context, selectedClub);
-    // _fetchClubPlayers(context, selectedClub);
+    _fetchClubMails(context, user.selectedClub!);
+    // _fetchClubPlayers(context, user.selectedClub!);
 
-    _fetchClubFavoritePlayers(context, selectedClub);
-    _fetchClubPoachingPlayers(context, selectedClub);
+    _fetchClubFavoritePlayers(context, user.selectedClub!);
+    _fetchClubPoachingPlayers(context, user.selectedClub!);
 
     // _fetchFollowedPlayers(context, selectedClub);
   }
@@ -150,9 +150,10 @@ class UserSessionProvider extends ChangeNotifier {
   //       .stream(primaryKey: ['id'])
   //       .eq('id_club', selectedClub.id)
   //       .order('date_birth', ascending: true)
-  //       .map((maps) => maps.map((map) => Player.fromMap(map, user!)).toList())
+  //       .map((maps) => maps.map((map) => Player.fromMap(map, user)).toList())
   //       .listen((List<Player> players) {
-  //         print('PROVIDER: Club Players: ${players.length}');
+  //         String timestamp = DateTime.now().toLocal().toString().split(' ')[1];
+  //         print('[$timestamp] PROVIDER: Club Players: ${players.length}');
   //         selectedClub.players = players;
   //         notifyListeners();
   //       });
