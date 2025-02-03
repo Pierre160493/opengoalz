@@ -179,7 +179,7 @@ extension ClubWidgetHelper on Club {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Text(user.selectedClub!.players.length.toString(),
+                  Text(user.selectedClub!.numberPlayers.toString(),
                       style: TextStyle(fontWeight: FontWeight.bold)),
                   Text(' Players'),
                 ],

@@ -82,7 +82,7 @@ class _PlayerPoachingIconButtonState extends State<PlayerPoachingIconButton> {
     return IconButton(
       tooltip: widget.player.poaching == null
           ? 'Poach this player'
-          : 'Open poaching page',
+          : 'Open poaching settings',
       icon: Icon(iconPoaching,
           color:
               widget.player.poaching == null ? Colors.blueGrey : Colors.orange),

@@ -45,28 +45,6 @@ class Club {
       false; // If the club belongs to the current user
   bool isCurrentlySelected = false; // If the club is currently selected
 
-  Club({
-    required this.id,
-    required this.createdAt,
-    required this.userSince,
-    required this.idMultiverse,
-    required this.idLeague,
-    required this.userName,
-    required this.name,
-    required this.clubData,
-    required this.idCountry,
-    required this.lisLastResults,
-    required this.seasonNumber,
-    required this.idLeagueNextSeason,
-    this.posLeagueNextSeason,
-    required this.posLastSeason,
-    required this.canUpdateName,
-    required this.continent,
-    required this.revenuesSponsorsLastSeason,
-    required this.revenuesTransfersExpected,
-    required this.expensesTransfersExpected,
-  });
-
   final int id;
   final DateTime createdAt;
   final DateTime? userSince;
@@ -78,6 +56,7 @@ class Club {
   final int idCountry;
   final List<int> lisLastResults;
   final int seasonNumber;
+  final int numberPlayers;
   final int? idLeagueNextSeason;
   final int? posLeagueNextSeason;
   final int? posLastSeason;
@@ -104,6 +83,7 @@ class Club {
         idCountry = map['id_country'],
         lisLastResults = List<int>.from(map['lis_last_results']),
         seasonNumber = map['season_number'],
+        numberPlayers = map['number_players'],
         idLeagueNextSeason = map['id_league_next_season'],
         posLeagueNextSeason = map['pos_league_next_season'],
         posLastSeason = map['pos_last_season'],

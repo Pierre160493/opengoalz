@@ -259,7 +259,8 @@ BEGIN
 
             -- Update the players from the clubs_poaching tables
             UPDATE players_poaching SET
-                investment_target = 0
+                investment_target = 0,
+                affinity = 0
             WHERE id_player = player.id;
 
             -- Update the player
