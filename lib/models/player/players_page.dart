@@ -165,7 +165,7 @@ class _PlayersPageState extends State<PlayersPage> {
   Widget build(BuildContext context) {
     return Consumer<UserSessionProvider>(
       builder: (context, userSessionProvider, child) {
-        Profile user = userSessionProvider.user!;
+        Profile user = userSessionProvider.user;
         return FutureBuilder<void>(
           future: _initializeStreams(user),
           builder: (context, snapshot) {

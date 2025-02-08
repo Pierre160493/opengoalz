@@ -36,8 +36,6 @@ class _HomePageState extends State<GamesPage> {
   void initState() {
     super.initState();
 
-    final startTime = DateTime.now();
-
     /// Get the club
     _clubStream = supabase
         .from('clubs')
@@ -143,13 +141,6 @@ class _HomePageState extends State<GamesPage> {
                     club.teamComps.add(teamcomp);
                   }
                 }
-
-                // Capture the end time
-                final endTime = DateTime.now();
-
-                // Calculate the difference
-                final loadTime = endTime.difference(startTime);
-                print('Page loaded in ${loadTime.inMilliseconds} ms');
 
                 return club;
               });

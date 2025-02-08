@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/functions/descriptionParser.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 
 class ClubCardHistoryWidget extends StatefulWidget {
@@ -24,32 +25,6 @@ class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.club.id)
         .order('created_at');
-  }
-
-  TextSpan _parseDescription(String description) {
-    final RegExp regex = RegExp(r'\{(.+?)\}');
-    final List<TextSpan> spans = [];
-    int start = 0;
-
-    for (final match in regex.allMatches(description)) {
-      if (match.start > start) {
-        spans.add(TextSpan(text: description.substring(start, match.start)));
-      }
-      spans.add(TextSpan(
-        text: match.group(1),
-        style: TextStyle(
-          color: Colors.blue,
-          decoration: TextDecoration.underline,
-        ),
-      ));
-      start = match.end;
-    }
-
-    if (start < description.length) {
-      spans.add(TextSpan(text: description.substring(start)));
-    }
-
-    return TextSpan(children: spans);
   }
 
   @override
@@ -77,8 +52,8 @@ class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
                   leading: Icon(iconHistory,
                       color: Colors.green, size: iconSizeMedium),
                   title: RichText(
-                    text: _parseDescription(
-                        history['description'] ?? 'No description'),
+                    text: parseDescriptionTextSpan(
+                        context, history['description'] ?? 'No description'),
                   ),
                   subtitle: Row(
                     children: [
@@ -88,7 +63,8 @@ class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
                         size: iconSizeSmall,
                       ),
                       Text(
-                        'Date: ${DateFormat(persoDateFormat).format(DateTime.parse(history['created_at']))}',
+                        DateFormat(persoDateFormat)
+                            .format(DateTime.parse(history['created_at'])),
                         style: styleItalicBlueGrey,
                       ),
                     ],

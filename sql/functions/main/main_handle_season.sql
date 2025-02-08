@@ -249,14 +249,19 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
             -- Update players
             UPDATE players SET
                 -- Calculate the new salary based on the target
-                expenses_expected = FLOOR(
-                    (expenses_expected * 0.75 + 
-                    expenses_target * 0.25)),
+                expenses_expected = CASE
+                    -- If the player has no club, do not modify the expected expenses
+                    WHEN id_club IS NULL THEN expenses_expected
+                    -- If the player has a club, calculate the new expected expenses
+                    ELSE FLOOR(
+                        (expenses_expected * 0.75 + 
+                        expenses_target * 0.25))
+                    END,
                 -- Reset the training points used
                 training_points_used = 0
             WHERE id_multiverse = inp_multiverse.id;
 
-RAISE NOTICE 'Start ici';
+            ------ Clean the old games
             ---- Delete the old games ==> And game_stats, game_events
             DELETE FROM games WHERE id_multiverse = inp_multiverse.id AND season_number < inp_multiverse.season_number - 50;
             ---- Delete the old games_teamcomp ==> games_orders
@@ -266,8 +271,6 @@ RAISE NOTICE 'Start ici';
                 AND clubs.id_multiverse = inp_multiverse.id
                 AND games_teamcomp.season_number < inp_multiverse.season_number - 50
                 AND games_teamcomp.season_number > 0;
-
-RAISE NOTICE 'End ici';
 
         ELSE
     END CASE;
