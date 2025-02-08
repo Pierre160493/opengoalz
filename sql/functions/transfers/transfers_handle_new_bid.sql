@@ -4,7 +4,8 @@ CREATE OR REPLACE FUNCTION public.transfers_handle_new_bid(
     inp_id_player bigint,
     inp_id_club_bidder bigint,
     inp_amount bigint,
-    inp_max_price bigint DEFAULT NULL)
+    inp_max_price bigint DEFAULT NULL,
+    is_auto boolean DEFAULT FALSE)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
@@ -37,7 +38,14 @@ BEGIN
         RAISE EXCEPTION 'Player with id % does not exist', inp_id_player;
     ------ Check that the bidding time isn't over yet
     ELSIF rec_player.date_bid_end < now() THEN
-        RAISE EXCEPTION 'Cannot bid on % because the bidding time is over', rec_player.full_name;
+        IF is_auto THEN
+            -- Extend the bidding time by 5 minutes
+            UPDATE players SET
+                date_bid_end = date_trunc('minute', NOW()) + INTERVAL '5 minutes'
+            WHERE id = inp_id_player;
+        ELSE
+            RAISE EXCEPTION 'Cannot bid on % because the bidding time is over', rec_player.full_name;
+        END IF;
     END IF;
 
     ------ Get the club bidder record
@@ -62,6 +70,7 @@ BEGIN
         WHERE id_player = inp_id_player
         ORDER BY created_at DESC
         LIMIT 1
+        --FOR UPDATE -- Lock the row for update
     ) AS latest_bid;
 
     ------ Handle normal players

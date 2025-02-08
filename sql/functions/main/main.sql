@@ -47,6 +47,7 @@ BEGIN
                 PERFORM transfers_handle_transfers(
                     inp_multiverse := multiverse
                 );
+                COMMIT;
 
                 ------ Check if we can pass to the next day
                 IF main_simulate_day(inp_multiverse := multiverse) = FALSE THEN
@@ -92,6 +93,7 @@ BEGIN
             ------ Store the last run date of the multiverse
             UPDATE multiverses SET
                 last_run = now(),
+                date_next_handling = multiverse.date_handling,
                 error = NULL
             WHERE id = multiverse.id;
 
@@ -122,7 +124,6 @@ BEGIN
     END LOOP; -- End of the loop through the multiverses
 
     ------ Cleanup
-
     ---- Delete mails that must be deleted
     DELETE FROM mails WHERE now() > date_delete;
 

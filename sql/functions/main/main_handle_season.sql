@@ -256,11 +256,18 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                 training_points_used = 0
             WHERE id_multiverse = inp_multiverse.id;
 
+RAISE NOTICE 'Start ici';
             ---- Delete the old games ==> And game_stats, game_events
             DELETE FROM games WHERE id_multiverse = inp_multiverse.id AND season_number < inp_multiverse.season_number - 50;
             ---- Delete the old games_teamcomp ==> games_orders
-            -- DELETE FROM games_teamcomp WHERE id_multiverse = inp_multiverse.id
-            -- AND season_number < inp_multiverse.season_number - 50 AND season_number > 0;
+            DELETE FROM games_teamcomp
+            USING clubs
+                WHERE games_teamcomp.id_club = clubs.id
+                AND clubs.id_multiverse = inp_multiverse.id
+                AND games_teamcomp.season_number < inp_multiverse.season_number - 50
+                AND games_teamcomp.season_number > 0;
+
+RAISE NOTICE 'End ici';
 
         ELSE
     END CASE;

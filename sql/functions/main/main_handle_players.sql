@@ -95,7 +95,7 @@ BEGIN
         stamina = LEAST(100, GREATEST(0,
             stamina + (random() * 20 - 10) + ((70 - stamina) / 10)
             )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
-        experience = experience + 0.025
+        experience = experience + 0.05
     FROM players1
     WHERE players.id_multiverse = inp_multiverse.id
     AND players.id = players1.id;
@@ -148,7 +148,8 @@ BEGIN
                         rec_player.id,
                         rec_poaching.id_club,
                         100,
-                        rec_poaching.max_price);
+                        rec_poaching.max_price,
+                        TRUE);
 
                     -- Send message to the club
                     INSERT INTO mails (id_club_to, sender_role, title, message)
