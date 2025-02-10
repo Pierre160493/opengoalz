@@ -52,7 +52,7 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
 
   void _initializeDateTime() {
     _selectedDateTime = DateTime.now()
-        .add(Duration(minutes: 1))
+        .add(Duration(minutes: 5))
         .copyWith(second: 0, millisecond: 0, microsecond: 0);
     _isDateValid = true;
     _dateController.text =
@@ -66,7 +66,7 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
         .eq('id', widget.idPlayer)
         .map((maps) => maps
             .map((map) => Player.fromMap(map,
-                Provider.of<UserSessionProvider>(context, listen: false).user!))
+                Provider.of<UserSessionProvider>(context, listen: false).user))
             .first)
         .switchMap((Player player) {
           if (player.idClub == null) {

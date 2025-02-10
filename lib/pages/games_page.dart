@@ -71,7 +71,7 @@ class _HomePageState extends State<GamesPage> {
                 .map((List<Game> games) {
                   if (games.isEmpty) {
                     throw Exception(
-                        'No games found for club with id ${widget.idClub}');
+                        'No games found for club with id ${widget.idClub} for the current season');
                   }
                   club.games = games;
                   _seasonNumberDisplayed = club.games.first.seasonNumber;
@@ -209,57 +209,45 @@ class _HomePageState extends State<GamesPage> {
             );
           } else {
             Club club = snapshot.data!;
-            if (club.games.isEmpty) {
-              return Scaffold(
-                appBar: AppBar(
-                  title: Text(
-                      'Empty Games Page for club with id: ${widget.idClub}'),
-                ),
-                drawer: const AppDrawer(),
-                body: Center(
-                  child:
-                      Text('No games found for club with id ${widget.idClub}'),
-                ),
-              );
-            } else {
-              final List<Game> gamesCurrent = [];
-              final List<Game> gamesIncoming = [];
-              final List<Game> gamesPlayed = [];
 
-              /// Loop through games to store them in the right list
-              for (Game game in club.games) {
-                /// Games for this season
+            final List<Game> gamesCurrent = [];
+            final List<Game> gamesIncoming = [];
+            final List<Game> gamesPlayed = [];
 
-                // Game is not played yet
-                if (game.isPlaying == null) {
-                  gamesIncoming.add(game);
-                } else if (game.isPlaying!) {
-                  gamesCurrent.add(game);
-                } else if (game.isPlaying! == false) {
-                  gamesPlayed.add(game);
-                } else {
-                  throw Exception('Game ${game.id} has no isPlaying value');
-                }
+            /// Loop through games to store them in the right list
+            for (Game game in club.games) {
+              /// Games for this season
 
-                gamesIncoming
-                    .sort((a, b) => a.dateStart.compareTo(b.dateStart));
-                gamesCurrent.sort((a, b) => a.dateStart.compareTo(b.dateStart));
-                gamesPlayed.sort((a, b) => b.dateStart.compareTo(a.dateStart));
+              // Game is not played yet
+              if (game.isPlaying == null) {
+                gamesIncoming.add(game);
+              } else if (game.isPlaying!) {
+                gamesCurrent.add(game);
+              } else if (game.isPlaying! == false) {
+                gamesPlayed.add(game);
+              } else {
+                throw Exception('Game ${game.id} has no isPlaying value');
               }
-              return Scaffold(
-                appBar: AppBar(
-                  title: Row(
-                    children: [
-                      Row(
-                        children: [
-                          club.getClubNameClickable(context),
-                          Text(' Games for season $_seasonNumberDisplayed'),
-                        ],
-                      ),
-                    ],
-                  ),
-                  leading: goBackIconButton(context),
-                  actions: [
+
+              gamesIncoming.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+              gamesCurrent.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+              gamesPlayed.sort((a, b) => b.dateStart.compareTo(a.dateStart));
+            }
+            return Scaffold(
+              appBar: AppBar(
+                title: Row(
+                  children: [
+                    Row(
+                      children: [
+                        club.getClubNameClickable(context),
+                        Text(' Games for season $_seasonNumberDisplayed'),
+                      ],
+                    ),
+                  ],
+                ),
+                leading: goBackIconButton(context),
+                actions: [
+                  if (_seasonNumberDisplayed > 1)
                     IconButton(
                       tooltip: 'Previous season',
                       icon: Icon(Icons.remove, color: Colors.green),
@@ -270,75 +258,106 @@ class _HomePageState extends State<GamesPage> {
                         });
                       },
                     ),
-                    IconButton(
-                      tooltip: 'Reset to current season',
-                      icon: Icon(Icons.refresh, color: Colors.green),
-                      onPressed: () {
-                        setState(() {
-                          _seasonNumberForStream = null;
-                          _loadClubGames();
-                        });
-                      },
-                    ),
-                    IconButton(
-                      tooltip: 'Next season',
-                      icon: Icon(Icons.add, color: Colors.green),
-                      onPressed: () {
-                        setState(() {
-                          _seasonNumberForStream = _seasonNumberDisplayed + 1;
-                          _loadClubGames();
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                body: MaxWidthContainer(
-                  child: DefaultTabController(
-                    length: gamesCurrent.length == 0 ? 2 : 3, // Number of tabs
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        /// Level 1 Tabs
-                        TabBar(
-                          tabs: [
-                            /// Played games title
-                            buildTabWithIcon(
-                                icon: iconGamePlayed,
-                                text: 'Played (${gamesPlayed.length})'),
+                  IconButton(
+                    tooltip: 'Reset to current season',
+                    icon: Icon(Icons.refresh, color: Colors.green),
+                    onPressed: () {
+                      setState(() {
+                        _seasonNumberForStream = null;
+                        _loadClubGames();
+                      });
+                    },
+                  ),
+                  IconButton(
+                    tooltip: 'Next season',
+                    icon: Icon(Icons.add, color: Colors.green),
+                    onPressed: () {
+                      setState(() {
+                        _seasonNumberForStream = _seasonNumberDisplayed + 1;
+                        _loadClubGames();
+                      });
+                    },
+                  ),
+                ],
+              ),
+              body: MaxWidthContainer(
+                child: DefaultTabController(
+                  length: gamesCurrent.length == 0 ? 2 : 3, // Number of tabs
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      /// Level 1 Tabs
+                      TabBar(
+                        tabs: [
+                          /// Played games title
+                          buildTabWithIcon(
+                              icon: iconGamePlayed,
+                              text: 'Played (${gamesPlayed.length})'),
 
-                            /// Current games title
+                          /// Current games title
+                          if (gamesCurrent.length > 0)
+                            buildTabWithIcon(
+                                icon: iconGameIsPlaying,
+                                text: 'Current (${gamesCurrent.length})'),
+
+                          /// Incoming games title
+                          buildTabWithIcon(
+                              icon: iconGameNotPlayed,
+                              text:
+                                  'Incoming (${gamesIncoming.length}+${club.teamComps.length})'),
+                        ],
+                      ),
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            /// Played games
+                            _buildGameList(gamesPlayed),
+
+                            /// Current games (if exists)
                             if (gamesCurrent.length > 0)
-                              buildTabWithIcon(
-                                  icon: iconGameIsPlaying,
-                                  text: 'Current (${gamesCurrent.length})'),
+                              _buildGameList(gamesCurrent),
 
-                            /// Incoming games title
-                            buildTabWithIcon(
-                                icon: iconGameNotPlayed,
-                                text: 'Incoming (${gamesIncoming.length})'),
+                            /// Incoming games
+                            // _buildGameList(gamesIncoming),
+                            DefaultTabController(
+                              length: 2, // Number of tabs
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  TabBar(
+                                    tabs: [
+                                      // Current season organized games
+                                      buildTabWithIcon(
+                                          icon: Icons.calendar_month,
+                                          text:
+                                              'Planned (${gamesIncoming.length})'),
+
+                                      // Current season unorganized games yet
+                                      buildTabWithIcon(
+                                          icon: Icons.edit_calendar,
+                                          text:
+                                              'Unplanned (${club.teamComps.length})'),
+                                    ],
+                                  ),
+                                  Expanded(
+                                    child: TabBarView(
+                                      children: [
+                                        _buildGameList(gamesIncoming),
+                                        _buildTeamCompList(club),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                        Expanded(
-                          child: TabBarView(
-                            children: [
-                              /// Played games
-                              _buildGameList(gamesPlayed),
-
-                              /// Current games (if exists)
-                              if (gamesCurrent.length > 0)
-                                _buildGameList(gamesCurrent),
-
-                              /// Incoming games
-                              _buildGameList(gamesIncoming),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            }
+              ),
+            );
           }
         });
   }
@@ -421,6 +440,7 @@ class _HomePageState extends State<GamesPage> {
                     ],
                   ),
                   trailing: Icon(Icons.arrow_forward_ios),
+                  shape: shapePersoRoundedBorder(),
                 ),
               );
             },
@@ -429,287 +449,4 @@ class _HomePageState extends State<GamesPage> {
       ],
     );
   }
-
-  // Widget _buildFutureGames() {
-  //   /// Get the club
-  //   Stream<Club> _clubStream = supabase
-  //       .from('clubs')
-  //       .stream(primaryKey: ['id'])
-  //       .eq('id', widget.idClub)
-  //       .map((maps) => Club.fromMap(maps.first))
-
-  //       /// Fetch the games where the club is left
-  //       .switchMap((Club club) {
-  //         return supabase
-  //             .from('games')
-  //             .stream(primaryKey: ['id'])
-  //             .eq('id_club_left', club.id)
-  //             .map((maps) =>
-  //                 maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
-  //             .map((games) {
-  //               games
-  //                   .where((game) => game.seasonNumber > club.seasonNumber)
-  //                   .forEach((game) {
-  //                 club.games.add(game);
-  //               });
-  //               return club;
-  //             });
-  //       })
-
-  //       /// Fetch the games where the club is right
-  //       .switchMap((Club club) {
-  //         return supabase
-  //             .from('games')
-  //             .stream(primaryKey: ['id'])
-  //             .eq('id_club_right', club.id)
-  //             .map((maps) =>
-  //                 maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
-  //             .map((games) {
-  //               games
-  //                   .where((game) => game.seasonNumber > club.seasonNumber)
-  //                   .forEach((game) {
-  //                 club.games.add(game);
-  //               });
-  //               // Order club.games by dateStart
-  //               club.games.sort((a, b) => a.dateStart.compareTo(b.dateStart));
-  //               return club;
-  //             });
-  //       })
-
-  //       /// Fetch the clubs for the games
-  //       .switchMap((Club club) {
-  //         return supabase
-  //             .from('clubs')
-  //             .stream(primaryKey: ['id'])
-  //             .inFilter(
-  //                 'id',
-  //                 [
-  //                   club.games.map((game) => game.idClubRight),
-  //                   club.games.map((game) => game.idClubLeft)
-  //                 ]
-  //                     .expand((x) => x)
-  //                     .where((id) => id != null)
-  //                     .map((id) => id!)
-  //                     .toSet()
-  //                     .toList())
-  //             .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
-  //             .map((clubs) {
-  //               for (var game in club.games) {
-  //                 game.rightClub =
-  //                     clubs.firstWhere((club) => club.id == game.idClubRight);
-  //                 game.leftClub =
-  //                     clubs.firstWhere((club) => club.id == game.idClubLeft);
-  //               }
-  //               return club;
-  //             });
-  //       })
-  //       .switchMap((Club club) {
-  //         return supabase
-  //             .from('games_teamcomp')
-  //             .stream(primaryKey: ['id'])
-  //             .eq('id_club', club.id)
-  //             .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
-  //             .map((List<TeamComp> teamComps) {
-  //               for (TeamComp teamcomp in teamComps.where(
-  //                   (teamcomp) => teamcomp.seasonNumber > club.seasonNumber)) {
-  //                 // If no game exists for the week of the teamcomp
-  //                 if (!club.games
-  //                     .any((game) => game.weekNumber == teamcomp.weekNumber)) {
-  //                   club.teamComps.add(teamcomp);
-  //                 }
-  //               }
-  //               return club;
-  //             });
-  //       });
-
-  //   return StreamBuilder<Club>(
-  //       stream: _clubStream,
-  //       builder: (context, snapshot) {
-  //         if (snapshot.connectionState == ConnectionState.waiting) {
-  //           return const Center(
-  //             child: CircularProgressIndicator(),
-  //           );
-  //         } else if (snapshot.hasError) {
-  //           return Center(
-  //             child: Text('Error: ${snapshot.error}'),
-  //           );
-  //         } else if (!snapshot.hasData) {
-  //           return const Center(
-  //             child: Text('No data found'),
-  //           );
-  //         } else {
-  //           Club club = snapshot.data!;
-  //           return DefaultTabController(
-  //             length: 2, // Number of tabs
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 TabBar(
-  //                   tabs: [
-  //                     Tab(
-  //                       child: Row(
-  //                         mainAxisAlignment: MainAxisAlignment.center,
-  //                         children: [
-  //                           Icon(Icons
-  //                               .calendar_month), // Add the desired icon here
-  //                           SizedBox(
-  //                               width:
-  //                                   5), // Add some spacing between the icon and text
-  //                           Text(
-  //                               // 'Current season ${club.seasonNumber}: (${gamesPlayed.length})'),
-  //                               'Organized games (${club.games.length})'),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                     Tab(
-  //                       child: Row(
-  //                         mainAxisAlignment: MainAxisAlignment.center,
-  //                         children: [
-  //                           Icon(Icons
-  //                               .edit_calendar), // Add the desired icon here
-  //                           SizedBox(
-  //                               width:
-  //                                   5), // Add some spacing between the icon and text
-  //                           Text(
-  //                               // 'Current season ${club.seasonNumber}: (${gamesPlayed.length})'),
-  //                               'Not yet organized games (${club.teamComps.length})'),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //                 Expanded(
-  //                   child: TabBarView(
-  //                     children: [
-  //                       _buildGameList(club.games),
-  //                       _buildTeamCompList(club),
-  //                     ],
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           );
-  //         }
-  //       });
-  // }
-
-  // Widget _buildHistoricGames() {
-  //   /// Get the club
-  //   Stream<Club> _clubStream = supabase
-  //       .from('clubs')
-  //       .stream(primaryKey: ['id'])
-  //       .eq('id', widget.idClub)
-  //       .map((maps) => Club.fromMap(maps.first))
-
-  //       /// Fetch the games where the club is left
-  //       .switchMap((Club club) {
-  //         return supabase
-  //             .from('games')
-  //             .stream(primaryKey: ['id'])
-  //             .eq('id_club_left', club.id)
-  //             .map((maps) =>
-  //                 maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
-  //             .map((games) {
-  //               games
-  //                   .where((game) => game.seasonNumber < club.seasonNumber)
-  //                   .forEach((game) {
-  //                 club.games.add(game);
-  //               });
-  //               return club;
-  //             });
-  //       })
-
-  //       /// Fetch the games where the club is right
-  //       .switchMap((Club club) {
-  //         return supabase
-  //             .from('games')
-  //             .stream(primaryKey: ['id'])
-  //             .eq('id_club_right', club.id)
-  //             .map((maps) =>
-  //                 maps.map((map) => Game.fromMap(map, widget.idClub)).toList())
-  //             .map((games) {
-  //               games
-  //                   .where((game) => game.seasonNumber < club.seasonNumber)
-  //                   .forEach((game) {
-  //                 club.games.add(game);
-  //               });
-  //               // Order club.games by dateStart
-  //               club.games.sort((a, b) => a.dateStart.compareTo(b.dateStart));
-  //               return club;
-  //             });
-  //       })
-
-  //       /// Fetch the clubs for the games
-  //       .switchMap((Club club) {
-  //         return supabase
-  //             .from('clubs')
-  //             .stream(primaryKey: ['id'])
-  //             .inFilter(
-  //                 'id',
-  //                 [
-  //                   club.games.map((game) => game.idClubRight),
-  //                   club.games.map((game) => game.idClubLeft)
-  //                 ]
-  //                     .expand((x) => x)
-  //                     .where((id) => id != null)
-  //                     .map((id) => id!)
-  //                     .toSet()
-  //                     .toList())
-  //             .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
-  //             .map((clubs) {
-  //               for (var game in club.games) {
-  //                 game.rightClub =
-  //                     clubs.firstWhere((club) => club.id == game.idClubRight);
-  //                 game.leftClub =
-  //                     clubs.firstWhere((club) => club.id == game.idClubLeft);
-  //               }
-  //               return club;
-  //             });
-  //       });
-
-  //   return StreamBuilder<Club>(
-  //       stream: _clubStream,
-  //       builder: (context, snapshot) {
-  //         if (snapshot.connectionState == ConnectionState.waiting) {
-  //           return const Center(
-  //             child: CircularProgressIndicator(),
-  //           );
-  //         } else if (snapshot.hasError) {
-  //           return Center(
-  //             child: Text('Error: ${snapshot.error}'),
-  //           );
-  //         } else if (!snapshot.hasData) {
-  //           return const Center(
-  //             child: Text('No club found for fetching historic games'),
-  //           );
-  //         } else {
-  //           // List<Game> games = snapshot.data!.games;
-  //           Club club = snapshot.data!;
-  //           if (club.games.isEmpty) {
-  //             return const Center(
-  //               child: Text('No historic games found'),
-  //             );
-  //           }
-  //           return Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               Expanded(
-  //                 child: ListView.builder(
-  //                   itemCount: club.games.length,
-  //                   itemBuilder: (context, index) {
-  //                     final Game game = club.games[index];
-  //                     return InkWell(
-  //                         onTap: () {
-  //                           Navigator.of(context)
-  //                               .push(GamePage.route(game.id, widget.idClub));
-  //                         },
-  //                         child: getGameCardWidget(context, game));
-  //                   },
-  //                 ),
-  //               ),
-  //             ],
-  //           );
-  //         }
-  //       });
-  // }
 }
