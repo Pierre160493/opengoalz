@@ -123,12 +123,16 @@ BEGIN
     INSERT INTO players (
         id_multiverse, id_club, id_country,
         date_birth, experience,
+        date_bid_end,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         training_coef,
         shirt_number, notes, notes_small
     ) VALUES (
         inp_id_multiverse, inp_id_club, inp_id_country,
         players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age), 3.0 * (inp_age - 15.0),
+        CASE WHEN inp_id_club IS NULL THEN
+            (NOW() + (INTERVAL '6 day' / (SELECT speed FROM multiverses WHERE id = inp_id_multiverse)))
+            ELSE NULL END,
         inp_stats[1], inp_stats[2], inp_stats[3], inp_stats[4], inp_stats[5], inp_stats[6], inp_stats[7],
         loc_training_coef,
         inp_shirt_number,
@@ -168,7 +172,7 @@ BEGIN
                 WHEN inp_notes = 'Youngster 1' THEN 'YOUNG1'
                 WHEN inp_notes = 'Youngster 2' THEN 'YOUNG2'
                 WHEN inp_notes = 'Young Scouted' THEN 'SCOUT'
-                ELSE 'None ???' END
+                ELSE 'None1?' END
             WHEN inp_shirt_number IS NOT NULL THEN
             CASE
                 WHEN inp_shirt_number IN (1, 12) THEN 'GK'
@@ -177,20 +181,27 @@ BEGIN
                 WHEN inp_shirt_number IN (6, 10, 15) THEN 'MF'
                 WHEN inp_shirt_number IN (7, 8, 16) THEN 'WG'
                 WHEN inp_shirt_number IN (9, 11, 17) THEN 'ST'
-                ELSE 'None ??' END
-            ELSE 'None ?'
+                ELSE 'None2?' END
+            ELSE 'None3?'
         END)
     RETURNING id INTO loc_new_player_id;
 
     ------ Log player history
-    INSERT INTO players_history (id_player, id_club, description)
-    VALUES (loc_new_player_id, inp_id_club,
-    'Joined ' || string_parser(inp_id_club, 'idClub') ||
-    CASE
-        WHEN inp_notes = 'Young Scouted' THEN ' as a young scouted player'
-        WHEN inp_notes = 'Old Experienced player' THEN ' as an old experienced player'
-        ELSE ' as a free player'
-    END);
+    IF inp_id_club IS NULL THEN
+        INSERT INTO players_history (id_player, id_club, description)
+        VALUES (loc_new_player_id, NULL,
+        'New player from COUNTRY ' || string_parser(inp_id_country, 'idCountry'));
+
+    ELSE
+        INSERT INTO players_history (id_player, id_club, description)
+        VALUES (loc_new_player_id, inp_id_club,
+        'Joined ' || string_parser(inp_id_club, 'idClub') ||
+        CASE
+            WHEN inp_notes = 'Young Scouted' THEN ' as a young scouted player'
+            WHEN inp_notes = 'Old Experienced player' THEN ' as an old experienced player'
+            ELSE ' as a free player'
+        END);
+    END IF;
 
     ------ Send a message to the club for scouted players
     IF inp_notes = 'Young Scouted' THEN

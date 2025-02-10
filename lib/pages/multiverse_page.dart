@@ -401,6 +401,17 @@ class _MultiversePageState extends State<MultiversePage>
             );
           },
         ),
+        ListTile(
+          leading: Icon(
+            Icons.sync_problem,
+            size: iconSizeMedium,
+            color: Colors.green,
+          ),
+          title: Text(
+            'Next handling: ${DateFormat('E d MMM \'at\' HH\':\'mm').format(multiverse.dateNextHandling)}',
+          ),
+          shape: shapePersoRoundedBorder(),
+        ),
       ],
     );
   }

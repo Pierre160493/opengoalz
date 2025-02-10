@@ -23,6 +23,9 @@ BEGIN
         WHEN 'idTeamcomp' THEN
             SELECT id, 'S' || season_number || 'W'  || week_number || ' teamcomp' AS name INTO loc_record FROM teamcomps WHERE id = inp_id;
             loc_name := COALESCE(inp_text, loc_record.name);
+        WHEN 'idCountry' THEN
+            SELECT id, name INTO loc_record FROM countries WHERE id = inp_id;
+            loc_name := COALESCE(inp_text, loc_record.name);
         -- WHEN 'user' THEN
         --     SELECT id, 'league' || level || '.' || number AS name INTO loc_record FROM leagues WHERE id = inp_id;
         --     RETURN '{idUser:' || id || '}';

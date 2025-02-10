@@ -55,7 +55,8 @@ class Club {
   final ClubData clubData;
   final int idCountry;
   final List<int> lisLastResults;
-  final int seasonNumber;
+  final List<int> idGames;
+  // final int seasonNumber;
   final int numberPlayers;
   final int? idLeagueNextSeason;
   final int? posLeagueNextSeason;
@@ -82,7 +83,8 @@ class Club {
         clubData = ClubData.fromMap(map),
         idCountry = map['id_country'],
         lisLastResults = List<int>.from(map['lis_last_results']),
-        seasonNumber = map['season_number'],
+        idGames = List<int>.from(map['id_games']),
+        // seasonNumber = map['season_number'],
         numberPlayers = map['number_players'],
         idLeagueNextSeason = map['id_league_next_season'],
         posLeagueNextSeason = map['pos_league_next_season'],

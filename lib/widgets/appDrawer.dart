@@ -42,7 +42,7 @@ class _AppDrawerState extends State<AppDrawer> {
   Widget build(BuildContext context) {
     // Get the selected club
     Profile currentUser =
-        Provider.of<UserSessionProvider>(context, listen: true).user!;
+        Provider.of<UserSessionProvider>(context, listen: true).user;
     Club? selectedClub = currentUser.selectedClub;
 
     if (selectedClub == null) {
@@ -209,7 +209,8 @@ class _AppDrawerState extends State<AppDrawer> {
                 // shape: shapePersoRoundedBorder(),
                 page: TeamCompsPage(
                     idClub: selectedClub.id,
-                    seasonNumber: selectedClub.seasonNumber),
+                    // seasonNumber: selectedClub.seasonNumber),
+                    seasonNumber: 1),
               ),
 
               /// League Tile

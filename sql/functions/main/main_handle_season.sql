@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION public.main_handle_season(
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-    loc_record RECORD; -- Record for the game loop
+    loc_record RECORD; -- Record variable used multiple times in the function
     loc_id_player bigint; -- Variable to store the inserted player's ID
 BEGIN
 
@@ -208,9 +208,11 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                         ELSE 0
                     END
                 / 14,
-                pos_league = pos_league_next_season,
+                -- pos_league = pos_league_next_season,
+                pos_league = 1,
                 pos_league_next_season = NULL,
                 league_points = 0,
+                id_games = ARRAY[]::integer[], -- Reset the games of the club (for better performance in games page)
                 league_goals_for = 0,
                 league_goals_against = 0
             WHERE id_multiverse = inp_multiverse.id;
@@ -260,6 +262,28 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                 -- Reset the training points used
                 training_points_used = 0
             WHERE id_multiverse = inp_multiverse.id;
+
+            -- Randomly generate new players for the countries based on the clubs
+            FOR loc_record IN (
+SELECT 
+  id_country, 
+  count(id_country), 
+  FLOOR(1 + RANDOM() * 11) AS random_shirt_number 
+FROM clubs 
+WHERE id_multiverse = inp_multiverse.id 
+GROUP BY id_country
+            ) LOOP
+
+                loc_id_player := players_create_player(
+                    inp_id_multiverse := inp_multiverse.id,
+                    inp_id_club := NULL::bigint,
+                    inp_id_country := loc_record.id_country,
+                    inp_age := 15 + RANDOM() * 1,
+                    inp_shirt_number := 1,
+                    inp_notes := 'New player from ' || string_parser(loc_record.id_country, 'idCountry') || ' for the new season'
+                );
+
+            END LOOP;
 
             ------ Clean the old games
             ---- Delete the old games ==> And game_stats, game_events

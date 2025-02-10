@@ -12,6 +12,7 @@ class Multiverse {
   final int cashPrinted;
   final DateTime lastRun;
   final String? error;
+  final DateTime dateNextHandling; // New property
 
   Multiverse({
     required this.id,
@@ -25,6 +26,7 @@ class Multiverse {
     required this.cashPrinted,
     required this.lastRun,
     required this.error,
+    required this.dateNextHandling, // New property
   });
 
   factory Multiverse.fromMap(Map<String, dynamic> map) {
@@ -40,6 +42,7 @@ class Multiverse {
       cashPrinted: map['cash_printed'],
       lastRun: DateTime.parse(map['last_run']).toLocal(),
       error: map['error'],
+      dateNextHandling: DateTime.parse(map['date_next_handling']).toLocal(),
     );
   }
 

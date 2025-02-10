@@ -5,7 +5,8 @@ CREATE OR REPLACE FUNCTION public.main_populate_game(rec_game record)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-    loc_array_id_clubs bigint[2]; -- Array of the clubs ids
+    loc_id_clubs_before bigint[2]; -- Array of the clubs ids
+    loc_id_clubs_after bigint[2] := ARRAY[NULL, NULL]; -- Array of the clubs ids
     loc_array_id_leagues bigint[2]; -- Array of the leagues ids
     loc_array_id_games bigint[2]; -- Array of the games ids
     loc_array_pos_clubs bigint[2]; -- Array of the pos_number
@@ -13,7 +14,7 @@ DECLARE
     id_game_debug bigint[] := ARRAY[1831]; --Id of the game for debug
 BEGIN
 
-    loc_array_id_clubs = ARRAY[rec_game.id_club_left, rec_game.id_club_right];
+    loc_id_clubs_before = ARRAY[rec_game.id_club_left, rec_game.id_club_right];
     loc_array_id_leagues = ARRAY[rec_game.id_league_club_left, rec_game.id_league_club_right];
     loc_array_id_games = ARRAY[rec_game.id_game_club_left, rec_game.id_game_club_right];
     loc_array_pos_clubs = ARRAY[rec_game.pos_club_left, rec_game.pos_club_right];
@@ -21,7 +22,7 @@ BEGIN
 --RAISE NOTICE 'rec_game.id = % # rec_game.id_league = %', rec_game.id, rec_game.id_league;
 -- IF rec_game.id = ANY(id_game_debug) THEN
 -- RAISE NOTICE 'rec_game.id= %', rec_game.id;
--- RAISE NOTICE 'loc_array_id_clubs = %', loc_array_id_clubs;
+-- RAISE NOTICE 'loc_id_clubs_before = %', loc_id_clubs_before;
 -- RAISE NOTICE 'loc_array_id_leagues = %', loc_array_id_leagues;
 -- RAISE NOTICE 'loc_array_id_games = %', loc_array_id_games;
 -- RAISE NOTICE 'loc_array_pos_clubs = %', loc_array_pos_clubs;
@@ -30,7 +31,7 @@ BEGIN
     FOR I IN 1..2 LOOP
 
         -- If the club is not set yet, we try to set it
-        IF loc_array_id_clubs[I] IS NULL THEN
+        IF loc_id_clubs_before[I] IS NULL THEN
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -136,25 +137,19 @@ SELECT array_agg(id_club) INTO loc_array_selected_id_clubs FROM (
 
                 END IF; -- End of the league level check
 
-                -- Check that 6 clubs have been selected
-                IF ARRAY_LENGTH(loc_array_selected_id_clubs, 1) = 6 THEN
-                    
-                    -- Update the games table
-                    IF I = 1 THEN
-                        UPDATE games SET
-                            id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
-                            elo_left = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
-                            WHERE id = rec_game.id;
-                    ELSE
-                        UPDATE games SET
-                            id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
-                            elo_right = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
-                            WHERE id = rec_game.id;
-                    END IF;
---                -- Then there is an error
---                ELSE
---                    RAISE EXCEPTION 'The league with id: % does not have 6 clubs ==> Found %', rec_game.id_league_club_left, ARRAY_LENGTH(loc_array_selected_id_clubs, 1);
-                END IF;
+                -- Update the games table
+                loc_id_clubs_after[I] := loc_array_selected_id_clubs[loc_array_pos_clubs[I]];
+                -- IF I = 1 THEN
+                --     UPDATE games SET
+                --         id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
+                --         elo_left = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
+                --         WHERE id = rec_game.id;
+                -- ELSE
+                --     UPDATE games SET
+                --         id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
+                --         elo_right = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
+                --         WHERE id = rec_game.id;
+                -- END IF;
 
 IF rec_game.id = ANY(id_game_debug) THEN
 RAISE NOTICE 'SELECTED CLUBS IN THE LEAGUE ARE: loc_array_selected_id_clubs= %', loc_array_selected_id_clubs;
@@ -198,17 +193,18 @@ END IF;
                     END IF;
 
                     -- Update the games table
-                    IF I = 1 THEN
-                        UPDATE games SET
-                            id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
-                            elo_left = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
-                            WHERE id = rec_game.id;
-                    ELSE
-                        UPDATE games SET
-                            id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
-                            elo_right = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
-                            WHERE id = rec_game.id;
-                    END IF;
+                    loc_id_clubs_after[I] := loc_array_selected_id_clubs[loc_array_pos_clubs[I]];
+                    -- IF I = 1 THEN
+                    --     UPDATE games SET
+                    --         id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
+                    --         elo_left = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
+                    --         WHERE id = rec_game.id;
+                    -- ELSE
+                    --     UPDATE games SET
+                    --         id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
+                    --         elo_right = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
+                    --         WHERE id = rec_game.id;
+                    -- END IF;
                     
                 END IF; -- End of the game is_played check
 
@@ -221,6 +217,32 @@ END IF;
         END IF;
 
     END LOOP; -- End of the 2 clubs loop (left and right)
+
+    ------ If the clubs can be set, we update the game
+    IF loc_id_clubs_after[1] IS NOT NULL THEN
+        UPDATE games SET
+            id_club_left = loc_id_clubs_after[1],
+            elo_left = (SELECT elo_points FROM clubs WHERE id = loc_id_clubs_after[1])
+            WHERE id = rec_game.id;
+
+        UPDATE clubs SET
+            -- id_games = array_append(id_games, rec_game.id)
+            id_games = id_games || rec_game.id
+            WHERE id = loc_id_clubs_after[1];
+    END IF;
+
+    IF loc_id_clubs_after[2] IS NOT NULL THEN
+        UPDATE games SET
+            id_club_right = loc_id_clubs_after[2],
+            elo_right = (SELECT elo_points FROM clubs WHERE id = loc_id_clubs_after[2])
+            WHERE id = rec_game.id;
+
+        UPDATE clubs SET
+            -- id_games = array_append(id_games, rec_game.id)
+            id_games = id_games || rec_game.id
+            WHERE id = loc_id_clubs_after[2];
+    END IF;
+
 END;
 $function$
 ;

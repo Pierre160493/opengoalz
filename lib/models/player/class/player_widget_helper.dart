@@ -64,34 +64,6 @@ extension PlayerWidgetsHelper on Player {
     return Row(
       children: [
         if (dateBidEnd != null) ...[
-          // if (idClub == null)
-          //   Tooltip(
-          //     message: 'Free Player',
-          //     child: Stack(
-          //       children: [
-          //         Icon(
-          //           iconFreePlayer,
-          //           color: Colors.green,
-          //           size: iconSizeMedium,
-          //         ),
-          //         Positioned(
-          //           top: 0,
-          //           right: 0,
-          //           child: Text(
-          //             dateBidEnd!
-          //                 .difference(currentDate)
-          //                 .inDays
-          //                 .toString(), // Change the number as needed
-          //             style: TextStyle(
-          //               color: Colors.white70,
-          //               fontWeight: FontWeight.bold,
-          //             ),
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // if (idClub != null)
           Tooltip(
             message:
                 // 'Transfer List [${dateBidEnd!.difference(currentDate).inDays == 0 ? dateBidEnd!.difference(currentDate).inHours : dateBidEnd!.difference(currentDate).inDays} ${dateBidEnd!.difference(currentDate).inDays == 0 ? 'hours' : 'days'}]',
@@ -282,7 +254,7 @@ extension PlayerWidgetsHelper on Player {
               tooltip: 'Past expenses not payed ${expensesMissed.toString()}',
               onPressed: () {
                 if (Provider.of<UserSessionProvider>(context, listen: false)
-                        .user!
+                        .user
                         .selectedClub!
                         .id ==
                     idClub) {
@@ -314,7 +286,7 @@ extension PlayerWidgetsHelper on Player {
                                   children: [
                                     Icon(iconMoney, color: Colors.green),
                                     Text(
-                                      ' ${Provider.of<UserSessionProvider>(context, listen: false).user!.selectedClub!.clubData.cash.toString()}',
+                                      ' ${Provider.of<UserSessionProvider>(context, listen: false).user.selectedClub!.clubData.cash.toString()}',
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),

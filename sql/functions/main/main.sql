@@ -18,7 +18,10 @@ BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------ Loop through all multiverses
     FOR multiverse IN (
-        SELECT * FROM multiverses ORDER BY id)
+        SELECT * FROM multiverses
+        -- WHERE (is_cron IS FALSE OR error IS NULL) -- When cron, do not run multiverses on error
+        ORDER BY id
+    )
     LOOP
         -- Start a new transaction for each multiverse
         -- BEGIN
