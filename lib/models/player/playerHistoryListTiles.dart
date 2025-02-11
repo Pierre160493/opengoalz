@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/functions/descriptionParser.dart';
+import 'package:opengoalz/functions/stringParser.dart';
 
 class PlayerHistoryListTiles extends StatefulWidget {
   final Player player;
@@ -79,7 +79,7 @@ class _PlayerHistoryListTilesState extends State<PlayerHistoryListTiles> {
                       leading: Icon(iconHistory,
                           color: Colors.green, size: iconSizeMedium),
                       title: RichText(
-                        text: parseDescriptionTextSpan(context,
+                        text: stringParser(context,
                             history['description'] ?? 'No description'),
                       ),
                       subtitle: Row(

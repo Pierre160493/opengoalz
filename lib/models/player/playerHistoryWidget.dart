@@ -52,7 +52,7 @@
 //                   leading: Icon(iconHistory,
 //                       color: Colors.green, size: iconSizeMedium),
 //                   title: RichText(
-//                     text: parseDescriptionTextSpan(
+//                     text: stringParser(
 //                         context, history['description'] ?? 'No description'),
 //                   ),
 //                   subtitle: Row(

@@ -5,7 +5,6 @@ import 'package:opengoalz/models/country.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/multiverse/multiverseChoiceListTile.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';

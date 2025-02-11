@@ -3,13 +3,14 @@ import 'package:flutter/gestures.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/pages/country_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 
-TextSpan parseDescriptionTextSpan(BuildContext context, String description,
+TextSpan stringParser(BuildContext context, String description,
     {Color colorDefaultText = Colors.white}) {
   final RegExp regex =
       RegExp(r'\{id(Player|Club|League|Game|Teamcomp):(-?\d+),([^}]+)\}');
@@ -61,7 +62,7 @@ TextSpan parseDescriptionTextSpan(BuildContext context, String description,
               GamePage.route(
                   int.parse(id),
                   Provider.of<UserSessionProvider>(context, listen: false)
-                      .user!
+                      .user
                       .selectedClub!
                       .id),
             );
@@ -69,6 +70,11 @@ TextSpan parseDescriptionTextSpan(BuildContext context, String description,
             Navigator.push(
               context,
               TeamCompPage.routeWithId(int.parse(id)),
+            );
+          } else if (type == 'country') {
+            Navigator.push(
+              context,
+              CountryPage.route(int.parse(id), idMultiverse: null),
             );
           }
         },

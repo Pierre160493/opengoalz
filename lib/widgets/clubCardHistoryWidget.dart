@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/functions/descriptionParser.dart';
+import 'package:opengoalz/functions/stringParser.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 
 class ClubCardHistoryWidget extends StatefulWidget {
@@ -52,7 +52,7 @@ class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
                   leading: Icon(iconHistory,
                       color: Colors.green, size: iconSizeMedium),
                   title: RichText(
-                    text: parseDescriptionTextSpan(
+                    text: stringParser(
                         context, history['description'] ?? 'No description'),
                   ),
                   subtitle: Row(

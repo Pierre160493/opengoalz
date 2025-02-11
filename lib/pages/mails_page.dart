@@ -6,7 +6,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/functions/descriptionParser.dart';
+import 'package:opengoalz/functions/stringParser.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
@@ -381,7 +381,7 @@ class _MailsPageState extends State<MailsPage> {
                         //   maxLines: 1,
                         // ),
                         child: RichText(
-                          text: parseDescriptionTextSpan(context, mail.title),
+                          text: stringParser(context, mail.title),
                         ),
                       ),
                     ),
@@ -411,8 +411,7 @@ class _MailsPageState extends State<MailsPage> {
                       child: mail.message == null
                           ? Text('Empty message')
                           : RichText(
-                              text: parseDescriptionTextSpan(
-                                  context, mail.message!),
+                              text: stringParser(context, mail.message!),
                             ),
                     ),
                   ),
