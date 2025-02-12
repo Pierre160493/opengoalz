@@ -10,6 +10,10 @@ class Mail {
   bool isRead;
   bool isFavorite;
   DateTime? dateDelete;
+  bool isGameResult;
+  bool isTransferInfo;
+  bool isSeasonInfo;
+  bool isClubInfo;
 
   Mail({
     required this.id,
@@ -23,6 +27,10 @@ class Mail {
     required this.isRead,
     required this.isFavorite,
     this.dateDelete,
+    required this.isGameResult,
+    required this.isTransferInfo,
+    required this.isSeasonInfo,
+    required this.isClubInfo,
   });
 
   factory Mail.fromMap(Map<String, dynamic> map) {
@@ -40,6 +48,10 @@ class Mail {
       dateDelete: map['date_delete'] != null
           ? DateTime.parse(map['date_delete']).toLocal()
           : null,
+      isGameResult: map['is_game_result'],
+      isTransferInfo: map['is_transfer_info'],
+      isSeasonInfo: map['is_season_info'],
+      isClubInfo: map['is_club_info'],
     );
   }
 }

@@ -120,9 +120,9 @@ BEGIN
 
             -- Create a new mail warning saying that the player is leaving club
             INSERT INTO mails (
-                id_club_to, sender_role, title, message)
+                id_club_to, sender_role, is_transfer_info, title, message)
             VALUES
-                (rec_player.id_club, 'Treasurer',
+                (rec_player.id_club, 'Treasurer', TRUE,
                 string_parser(rec_player.id, 'idPlayer') || ' asked to leave the club !',
                 string_parser(rec_player.id, 'idPlayer') || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
 
@@ -152,18 +152,18 @@ BEGIN
                         TRUE);
 
                     -- Send message to the club
-                    INSERT INTO mails (id_club_to, sender_role, title, message)
+                    INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     VALUES (
-                        rec_poaching.id_club, 'Scouts',
+                        rec_poaching.id_club, 'Scouts', TRUE,
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
                          string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club (' || string_parser(rec_player.id_club, 'idClub') || ') and we made a bid to get him, his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || ' and the max price is ' || ROUND(rec_poaching.max_price::numeric, 1) || '.');
 
                 ELSE
 
                     -- Send message to interested clubs
-                    INSERT INTO mails (id_club_to, sender_role, title, message)
+                    INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     VALUES (
-                        rec_poaching.id_club, 'Scouts',
+                        rec_poaching.id_club, 'Scouts', TRUE,
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub') || ', it''s time to make a move, knowing that his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || '.');
 
@@ -174,10 +174,10 @@ BEGIN
 
             -- Send mails to clubs following the player
             INSERT INTO mails (
-                id_club_to, sender_role, title, message
+                id_club_to, sender_role, is_transfer_info, title, message
             )
             SELECT 
-                id_club, 'Scouts', 
+                id_club, 'Scouts', TRUE,
                 string_parser(rec_player.id, 'idPlayer') || ' (favorite) asked to leave his club',
                 string_parser(rec_player.id, 'idPlayer') || ' who is one of your favorite player has asked to leave ' || string_parser(rec_player.id_club, 'idClub') ||'. He will be leaving before next week because of low motivation: ' || rec_player.motivation || '. It''s time to make a move !'
             FROM players_favorite
@@ -189,9 +189,9 @@ BEGIN
 
             -- Create a new mail warning saying that the player is at risk leaving club
             INSERT INTO mails (
-                id_club_to, sender_role, title, message)
+                id_club_to, sender_role, is_transfer_info, title, message)
             VALUES
-                (rec_player.id_club, 'Coach',
+                (rec_player.id_club, 'Coach', TRUE,
                 string_parser(rec_player.id, 'idPlayer') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
                 string_parser(rec_player.id, 'idPlayer') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club');
 

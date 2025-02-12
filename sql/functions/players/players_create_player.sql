@@ -205,9 +205,9 @@ BEGIN
 
     ------ Send a message to the club for scouted players
     IF inp_notes = 'Young Scouted' THEN
-        INSERT INTO mails (id_club_to, sender_role, title, message)
+        INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
             VALUES
-                (inp_id_club, 'Scout',
+                (inp_id_club, 'Scout', TRUE,
                 'New Scouted Player: ' || string_parser(loc_new_player_id, 'idPlayer'),
                 string_parser(loc_new_player_id, 'idPlayer') || ' joined the squad, check him out, i''ve been keeping an eye on him for a while and given some good training he might be a future star !');
     END IF;

@@ -54,9 +54,9 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
                 ORDER BY overall_points DESC
             )
             -- Send mail to each club indicating their position in the league
-            INSERT INTO mails (id_club_to, sender_role, title, message)
+            INSERT INTO mails (id_club_to, sender_role, is_season_info, title, message)
             SELECT 
-                id AS id_club_to, 'Coach' AS sender_role,
+                id AS id_club_to, 'Coach' AS sender_role, TRUE AS is_season_info,
                 -- inp_multiverse.date_handling + INTERVAL '1 second' * EXTRACT(SECOND FROM CURRENT_TIMESTAMP) + INTERVAL '1 millisecond' * EXTRACT(MILLISECOND FROM CURRENT_TIMESTAMP),
                 'Finished ' || 
                 CASE 
@@ -238,9 +238,9 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                 GROUP BY id_club
             )
             -- Send mail to each club indicating their position in the league
-            INSERT INTO mails (id_club_to, sender_role, title, message)
+            INSERT INTO mails (id_club_to, sender_role, is_season_info, title, message)
                 SELECT 
-                    id AS id_club_to, 'Treasurer' AS sender_role,
+                    id AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_season_info,
                     -- inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
                     'New season ' || inp_multiverse.season_number + 1 || ' starts for league ' || string_parser(clubs.id_league, 'idLeague') AS title,
                     string_parser(clubs.id_league, 'idLeague') || ' season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(club_expenses.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_staff_target AS message
@@ -267,8 +267,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
             FOR loc_record IN (
 SELECT 
   id_country, 
-  count(id_country), 
-  FLOOR(1 + RANDOM() * 11) AS random_shirt_number 
+FLOOR(1 + RANDOM() * 11)::int AS random_shirt_number
 FROM clubs 
 WHERE id_multiverse = inp_multiverse.id 
 GROUP BY id_country
@@ -279,7 +278,7 @@ GROUP BY id_country
                     inp_id_club := NULL::bigint,
                     inp_id_country := loc_record.id_country,
                     inp_age := 15 + RANDOM() * 1,
-                    inp_shirt_number := 1,
+                    inp_shirt_number := loc_record.random_shirt_number,
                     inp_notes := 'New player from ' || string_parser(loc_record.id_country, 'idCountry') || ' for the new season'
                 );
 

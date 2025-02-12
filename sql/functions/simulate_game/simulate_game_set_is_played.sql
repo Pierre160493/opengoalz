@@ -200,9 +200,9 @@ BEGIN
         WHERE id = (SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6);
 
         -- Send message to the club going down
-        INSERT INTO mails (id_club_to, sender_role, title, message) 
+        INSERT INTO mails (id_club_to, sender_role, is_season_info, title, message) 
         VALUES
-            ((SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), 'Coach',
+            ((SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), 'Coach', TRUE,
             rec_game.game_presentation || ' of barrage 1 played ==> DEMOTED to ' ||
                 string_parser((SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner),'idLeague'),
             string_parser(rec_game.id_club_overall_winner, 'idClub') || ' won the barrage 1 ' || rec_game.game_presentation || ' against ' || string_parser(rec_game.id_club_overall_loser, 'idClub') ||
@@ -311,10 +311,10 @@ BEGIN
     END IF; -- End of the handling of the different games
 
     ------ Send messages
-    INSERT INTO mails (id_club_to, sender_role, title, message)
+    INSERT INTO mails (id_club_to, sender_role, is_game_result, title, message)
     VALUES
-        (rec_game.id_club_overall_winner, 'Coach', text_title_winner, text_message_winner),
-        (rec_game.id_club_overall_loser, 'Coach', text_title_loser, text_message_loser);
+        (rec_game.id_club_overall_winner, 'Coach', TRUE, text_title_winner, text_message_winner),
+        (rec_game.id_club_overall_loser, 'Coach', TRUE, text_title_loser, text_message_loser);
 
 
     ------ Set the game as played

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/mail.dart';
 import 'package:opengoalz/constants.dart';
@@ -26,33 +27,59 @@ class MailsPage extends StatefulWidget {
 }
 
 class _MailsPageState extends State<MailsPage> {
+  bool _filterGameResult = true;
+  bool _filterTransferInfo = true;
+  bool _filterSeasonInfo = true;
+  bool _filterClubInfo = true;
+
   @override
   void initState() {
     super.initState();
+  }
+
+  bool _areAllFiltersTrue() {
+    return _filterGameResult &&
+        _filterTransferInfo &&
+        _filterSeasonInfo &&
+        _filterClubInfo;
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<UserSessionProvider>(
       builder: (context, UserSessionProvider, child) {
-        final clubMails = UserSessionProvider.user!.selectedClub!.mails
-            .where((mail) => mail.dateDelete == null)
-            .toList();
-        final clubMailsThrash = UserSessionProvider.user!.selectedClub!.mails
+        Club club = UserSessionProvider.user.selectedClub!;
+        final List<Mail> mailsAll =
+            club.mails.where((mail) => mail.dateDelete == null).toList();
+
+        final mailsFiltered = _applyFilters(mailsAll);
+
+        final mailsThrashFiltered = _applyFilters(UserSessionProvider
+            .user.selectedClub!.mails
             .where((mail) => mail.dateDelete != null)
-            .toList();
-        final userMails = UserSessionProvider.user!.mails
-            .where((mail) => mail.dateDelete == null)
-            .toList();
-        final userMailsThrash = UserSessionProvider.user!.mails
-            .where((mail) => mail.dateDelete != null)
-            .toList();
+            .toList());
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(
-                'Mails (${userMails.where((mail) => mail.isRead == false).length}) (${clubMails.where((mail) => mail.isRead == false).length})'),
+            title: Row(
+              children: [
+                club.getClubNameClickable(context),
+                Text(' Mails (${mailsAll.length})'),
+              ],
+            ),
             leading: goBackIconButton(context),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.filter_list,
+                  color: _areAllFiltersTrue() ? Colors.green : Colors.orange,
+                ),
+                onPressed: () async {
+                  await _showFilterDialog(context, mailsAll);
+                  setState(() {});
+                },
+              ),
+            ],
           ),
           body: MaxWidthContainer(
             child: DefaultTabController(
@@ -62,71 +89,18 @@ class _MailsPageState extends State<MailsPage> {
                   TabBar(
                     tabs: [
                       buildTabWithIcon(
-                          icon: iconClub,
-                          text: 'Club Mails (${clubMails.length})'),
+                          icon: Icons.inbox,
+                          text: 'Inbox (${mailsFiltered.length})'),
                       buildTabWithIcon(
-                          icon: iconUser,
-                          text: 'User Mails (${userMails.length})'),
+                          icon: Icons.auto_delete,
+                          text: 'Thrash (${mailsThrashFiltered.length})'),
                     ],
                   ),
                   Expanded(
                     child: TabBarView(
                       children: [
-                        /// Club mails
-                        DefaultTabController(
-                          length: 2,
-                          child: Column(
-                            children: [
-                              TabBar(
-                                tabs: [
-                                  buildTabWithIcon(
-                                      icon: Icons.inbox,
-                                      text: 'Inbox (${clubMails.length})'),
-                                  buildTabWithIcon(
-                                      icon: Icons.auto_delete,
-                                      text:
-                                          'Thrash (${clubMailsThrash.length})'),
-                                ],
-                              ),
-                              Expanded(
-                                child: TabBarView(
-                                  children: [
-                                    _buildInbox(context, clubMails),
-                                    _buildThrash(context, clubMailsThrash),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        /// User mails
-                        DefaultTabController(
-                          length: 2,
-                          child: Column(
-                            children: [
-                              TabBar(
-                                tabs: [
-                                  buildTabWithIcon(
-                                      icon: Icons.inbox,
-                                      text: 'Inbox (${userMails.length})'),
-                                  buildTabWithIcon(
-                                      icon: Icons.auto_delete,
-                                      text:
-                                          'Thrash (${userMailsThrash.length})'),
-                                ],
-                              ),
-                              Expanded(
-                                child: TabBarView(
-                                  children: [
-                                    _buildInbox(context, userMails),
-                                    _buildThrash(context, userMailsThrash),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        _buildInbox(context, mailsFiltered),
+                        _buildThrash(context, mailsThrashFiltered),
                       ],
                     ),
                   ),
@@ -137,6 +111,146 @@ class _MailsPageState extends State<MailsPage> {
         );
       },
     );
+  }
+
+  Future<void> _showFilterDialog(BuildContext context, List<Mail> mails) async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Filter Mails'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CheckboxListTile(
+                    title: Row(
+                      children: [
+                        Icon(Icons.sports_soccer,
+                            color:
+                                _filterGameResult ? Colors.green : Colors.red),
+                        formSpacer3,
+                        Text(
+                            'Game Result (${mails.where((mail) => mail.isGameResult).length})'),
+                      ],
+                    ),
+                    value: _filterGameResult,
+                    onChanged: (value) {
+                      setState(() {
+                        _filterGameResult = value!;
+                      });
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: Row(
+                      children: [
+                        Icon(iconTransfers,
+                            color: _filterTransferInfo
+                                ? Colors.green
+                                : Colors.red),
+                        formSpacer3,
+                        Text(
+                            'Transfer Info (${mails.where((mail) => mail.isTransferInfo).length})'),
+                      ],
+                    ),
+                    value: _filterTransferInfo,
+                    onChanged: (value) {
+                      setState(() {
+                        _filterTransferInfo = value!;
+                      });
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: Row(
+                      children: [
+                        Icon(iconDetails,
+                            color:
+                                _filterSeasonInfo ? Colors.green : Colors.red),
+                        formSpacer3,
+                        Text(
+                            'Season Info (${mails.where((mail) => mail.isSeasonInfo).length})'),
+                      ],
+                    ),
+                    value: _filterSeasonInfo,
+                    onChanged: (value) {
+                      setState(() {
+                        _filterSeasonInfo = value!;
+                      });
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: Row(
+                      children: [
+                        Icon(iconClub,
+                            color: _filterClubInfo ? Colors.green : Colors.red),
+                        formSpacer3,
+                        Text(
+                            'Club Info (${mails.where((mail) => mail.isClubInfo).length})'),
+                      ],
+                    ),
+                    value: _filterClubInfo,
+                    onChanged: (value) {
+                      setState(() {
+                        _filterClubInfo = value!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _filterGameResult = true;
+                          _filterTransferInfo = true;
+                          _filterSeasonInfo = true;
+                          _filterClubInfo = true;
+                        });
+                        Navigator.of(context).pop();
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Icons.done_all, color: Colors.green),
+                          formSpacer3,
+                          Text('Set all filters'),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Row(
+                        children: [
+                          Icon(iconSuccessfulOperation, color: Colors.green),
+                          formSpacer3,
+                          Text('Apply'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<Mail> _applyFilters(List<Mail> mails) {
+    if (_areAllFiltersTrue()) return mails;
+    return mails.where((mail) {
+      if (_filterGameResult && mail.isGameResult) return true;
+      if (_filterTransferInfo && mail.isTransferInfo) return true;
+      if (_filterSeasonInfo && mail.isSeasonInfo) return true;
+      if (_filterClubInfo && mail.isClubInfo) return true;
+      return false;
+    }).toList();
   }
 
   Widget _buildInbox(BuildContext context, List<Mail> mails) {
@@ -366,7 +480,7 @@ class _MailsPageState extends State<MailsPage> {
                 ),
                 subtitle: Row(
                   children: [
-                    Icon(Icons.label_important),
+                    _getMailIcon(mail),
                     Expanded(
                       child: Tooltip(
                         message: mail.title,
@@ -517,5 +631,14 @@ class _MailsPageState extends State<MailsPage> {
         ),
       ),
     );
+  }
+
+  Icon _getMailIcon(Mail mail) {
+    if (mail.isTransferInfo) return Icon(iconTransfers, color: Colors.green);
+    if (mail.isGameResult)
+      return Icon(Icons.sports_soccer, color: Colors.green);
+    if (mail.isSeasonInfo) return Icon(iconDetails, color: Colors.green);
+    if (mail.isClubInfo) return Icon(iconClub, color: Colors.green);
+    return Icon(Icons.label_important, color: Colors.green);
   }
 }

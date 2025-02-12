@@ -125,9 +125,9 @@ BEGIN
             END IF;
             
             -- Send message to previous bidder
-            INSERT INTO mails (id_club_to, sender_role, title, message)
+            INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
             VALUES (
-                latest_bid.id_club, 'Treasurer',
+                latest_bid.id_club, 'Treasurer', TRUE,
                 'Outbided on ' || string_parser(rec_player.id, 'idPlayer'),
                 'A new bid of ' || inp_amount || ' was made on ' || string_parser(rec_player.id, 'idPlayer') || ' by ' || string_parser(rec_club_bidder.id, 'idClub') || '. We are not favourite anymore');
             

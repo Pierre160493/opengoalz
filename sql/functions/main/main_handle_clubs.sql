@@ -69,9 +69,9 @@ BEGIN
     WHERE players.id_club = clubs_finances.id_club),
     ------ Insert messages for clubs that paid missed expenses
     message_debt_payed AS (
-        INSERT INTO mails (id_club_to, sender_role, title, message)
+        INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
     SELECT 
-        id_club AS id_club_to, 'Treasurer' AS sender_role,
+        id_club AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_club_info,
         --inp_multiverse.date_handling + INTERVAL '1 second' * EXTRACT(SECOND FROM CURRENT_TIMESTAMP) + INTERVAL '1 millisecond' * EXTRACT(MILLISECOND FROM CURRENT_TIMESTAMP),
         clubs_finances.total_expenses_missed_to_pay || 'Missed Expenses Paid' AS title,
         'The previous missed expenses (' || clubs_finances.total_expenses_missed_to_pay || ') have been paid for week ' || inp_multiverse.week_number || '. The club now has available cash: ' || cash || '.' AS message
@@ -87,9 +87,9 @@ BEGIN
     WHERE clubs.id = clubs_finances.id_club;
 
     ------ Send mail for clubs that are in debt
-    INSERT INTO mails (id_club_to, sender_role, title, message)
+    INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
         SELECT 
-            id AS id_club_to, 'Treasurer' AS sender_role,
+            id AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_club_info,
             'Negative Cash: Staff, Souts and Players not paid' AS title,
             'The club is in debt (available cash: ' || cash || ') for week ' || inp_multiverse.week_number || ': The staff, scouts and players will not be paid this week because the club is in debt, rectify the situation quickly !' AS message
         FROM 
