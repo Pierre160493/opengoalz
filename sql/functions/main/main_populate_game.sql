@@ -123,33 +123,17 @@ SELECT array_agg(id_club) INTO loc_array_selected_id_clubs FROM (
                 -- If this a normal league
                 ELSE
 
-                    -- Check if the league is finished or not
-                    --IF (SELECT is_finished FROM leagues WHERE id = loc_array_id_leagues[I]) = TRUE THEN
-
-                        -- Select the club ids of the leagues in the right order
-                        SELECT ARRAY_AGG(id) INTO loc_array_selected_id_clubs FROM (
-                            SELECT id FROM clubs
-                                WHERE id_league = loc_array_id_leagues[I]
-                                ORDER BY pos_league
-                        ) AS clubs_ids;
-
-                    --END IF; -- End of the league is_finished check
+                    -- Select the club ids of the leagues in the right order
+                    SELECT ARRAY_AGG(id) INTO loc_array_selected_id_clubs FROM (
+                        SELECT id FROM clubs
+                            WHERE id_league = loc_array_id_leagues[I]
+                            ORDER BY pos_league
+                    ) AS clubs_ids;
 
                 END IF; -- End of the league level check
 
                 -- Update the games table
                 loc_id_clubs_after[I] := loc_array_selected_id_clubs[loc_array_pos_clubs[I]];
-                -- IF I = 1 THEN
-                --     UPDATE games SET
-                --         id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
-                --         elo_left = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
-                --         WHERE id = rec_game.id;
-                -- ELSE
-                --     UPDATE games SET
-                --         id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
-                --         elo_right = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
-                --         WHERE id = rec_game.id;
-                -- END IF;
 
 IF rec_game.id = ANY(id_game_debug) THEN
 RAISE NOTICE 'SELECTED CLUBS IN THE LEAGUE ARE: loc_array_selected_id_clubs= %', loc_array_selected_id_clubs;
@@ -194,17 +178,6 @@ END IF;
 
                     -- Update the games table
                     loc_id_clubs_after[I] := loc_array_selected_id_clubs[loc_array_pos_clubs[I]];
-                    -- IF I = 1 THEN
-                    --     UPDATE games SET
-                    --         id_club_left = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
-                    --         elo_left = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
-                    --         WHERE id = rec_game.id;
-                    -- ELSE
-                    --     UPDATE games SET
-                    --         id_club_right = loc_array_selected_id_clubs[loc_array_pos_clubs[I]],
-                    --         elo_right = (SELECT elo_points FROM clubs WHERE id = loc_array_selected_id_clubs[loc_array_pos_clubs[I]])
-                    --         WHERE id = rec_game.id;
-                    -- END IF;
                     
                 END IF; -- End of the game is_played check
 

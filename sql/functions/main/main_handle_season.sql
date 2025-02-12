@@ -206,10 +206,10 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                         WHEN pos_league = 5 THEN 0.15
                         WHEN pos_league = 6 THEN 0.14
                         ELSE 0
+                        -- ELSE RAISE EXCEPTION 'Invalid league position: %', pos_league
                     END
                 / 14,
-                -- pos_league = pos_league_next_season,
-                pos_league = 1,
+                pos_league = pos_league_next_season,
                 pos_league_next_season = NULL,
                 league_points = 0,
                 id_games = ARRAY[]::integer[], -- Reset the games of the club (for better performance in games page)

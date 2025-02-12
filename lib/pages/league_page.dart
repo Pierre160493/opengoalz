@@ -67,7 +67,7 @@ class _RankingPageState extends State<LeaguePage> {
         .eq('id_league', widget.idLeague)
         .eq('season_number', _selectedSeason!)
         .then((value) => value.map((e) => e['id'] as int).toList());
-
+    print('_gamesId: $_gamesId');
     _fetchLeagueData();
   }
 
@@ -80,13 +80,13 @@ class _RankingPageState extends State<LeaguePage> {
           if (maps.isEmpty) {
             throw StateError('No league found with id ${widget.idLeague}');
           }
+          print('maps: $maps');
           return maps
               .map((map) =>
                   League.fromMap(map, idSelectedClub: widget.idSelectedClub))
               .first;
         })
         .switchMap((League league) {
-
           return supabase
               .from('games')
               .stream(primaryKey: ['id'])
@@ -168,73 +168,71 @@ class _RankingPageState extends State<LeaguePage> {
               .stream(primaryKey: ['id'])
               .inFilter('id_game', league.games.map((game) => game.id).toList())
               .map((maps) => maps.map((map) => GameEvent.fromMap(map)).toList())
-              .map((events) {
-                for (Game game in league.games
-                    .where((Game game) => game.weekNumber <= 10)) {
+              .map((List<GameEvent> events) {
+                for (Game game in league.games) {
                   game.events = events
                       .where((GameEvent event) => event.idGame == game.id)
                       .toList();
-                  if (game.dateEnd != null) {
-                    league.clubsLeague
-                        .firstWhere((club) => club.id == game.idClubLeft)
-                        .goalsScored += game.scoreLeft!;
-                    league.clubsLeague
-                        .firstWhere((club) => club.id == game.idClubRight)
-                        .goalsTaken += game.scoreLeft!;
-                    league.clubsLeague
-                        .firstWhere((club) => club.id == game.idClubLeft)
-                        .goalsTaken += game.scoreRight!;
-                    league.clubsLeague
-                        .firstWhere((club) => club.id == game.idClubRight)
-                        .goalsScored += game.scoreRight!;
-                    if (game.scoreLeft! > game.scoreRight!) {
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubLeft)
-                          .points += 3;
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubLeft)
-                          .victories += 1;
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubRight)
-                          .defeats += 1;
-                    } else if (game.scoreLeft! < game.scoreRight!) {
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubLeft)
-                          .defeats += 1;
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubRight)
-                          .victories += 1;
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubRight)
-                          .points += 3;
-                    } else {
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubLeft)
-                          .draws += 1;
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubLeft)
-                          .points += 1;
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubRight)
-                          .draws += 1;
-                      league.clubsLeague
-                          .firstWhere((club) => club.id == game.idClubRight)
-                          .points += 1;
-                    }
-                  }
                 }
-                league.clubsLeague.sort((a, b) {
-                  int compare = b.points.compareTo(a.points);
-                  if (compare != 0) {
-                    return compare;
-                  } else {
-                    return (b.goalsScored - b.goalsTaken)
-                        .compareTo(a.goalsScored - a.goalsTaken);
-                  }
-                });
                 return league;
               });
+        })
+        .switchMap((League league) async* {
+          await _updateClubStatistics(league);
+          yield league;
         });
+  }
+
+  Future<void> _updateClubStatistics(League league) async {
+    for (Game game
+        in league.games.where((Game game) => game.weekNumber <= 10)) {
+      if (game.isPlaying == false) {
+        print(
+            'Club IDs: ${league.clubsLeague.map((club) => club.id).toList()}');
+        print(
+            'game: ${game.id}: ${game.idClubLeft} vs ${game.idClubRight} [${game.scoreLeft} - ${game.scoreRight}]');
+        Club leftClub = league.clubsLeague.firstWhere(
+          (Club club) => club.id == game.idClubLeft,
+          orElse: () => throw Exception(
+              'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'),
+        );
+        Club rightClub = league.clubsLeague.firstWhere(
+          (Club club) => club.id == game.idClubRight,
+          orElse: () => throw Exception(
+              'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'),
+        );
+
+        leftClub.goalsScored += game.scoreLeft!;
+        rightClub.goalsTaken += game.scoreLeft!;
+        leftClub.goalsTaken += game.scoreRight!;
+        rightClub.goalsScored += game.scoreRight!;
+
+        if (game.scoreLeft! > game.scoreRight!) {
+          leftClub.points += 3;
+          leftClub.victories += 1;
+          rightClub.defeats += 1;
+        } else if (game.scoreLeft! < game.scoreRight!) {
+          leftClub.defeats += 1;
+          rightClub.victories += 1;
+          rightClub.points += 3;
+        } else {
+          leftClub.draws += 1;
+          leftClub.points += 1;
+          rightClub.draws += 1;
+          rightClub.points += 1;
+        }
+      }
+    }
+
+    league.clubsLeague.sort((a, b) {
+      int compare = b.points.compareTo(a.points);
+      if (compare != 0) {
+        return compare;
+      } else {
+        return (b.goalsScored - b.goalsTaken)
+            .compareTo(a.goalsScored - a.goalsTaken);
+      }
+    });
   }
 
   @override

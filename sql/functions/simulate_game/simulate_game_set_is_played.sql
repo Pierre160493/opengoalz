@@ -195,7 +195,7 @@ BEGIN
 
         -- 6th of the upper league is automatically droped down to the league of the winner of barrage 1
         UPDATE clubs SET
-            pos_league_next_season = 3,
+            pos_league_next_season = 1,
             id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner)
         WHERE id = (SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6);
 
@@ -246,14 +246,13 @@ BEGIN
 -- RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will be promoted to league %', rec_game.id_club_right, rec_game.id_league_club_right2, rec_game.id, rec_game.id_league_club_left2;
             -- 5th of upper league lost, 5th of upper league will be demoted to the league of the winner of the game (loser of barrage 1)
             UPDATE clubs SET
-                -- pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_right),
-                pos_league_next_season = 1,
+                pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_right),
                 id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_right)
             WHERE id = rec_game.id_club_left;
 
             -- Loser of barrage 1 won, he will be promoted to the league of the 5th of the upper league
             UPDATE clubs SET
-                pos_league_next_season = 5,
+                pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_left),
                 id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_left)
             WHERE id = rec_game.id_club_right;
 
@@ -293,16 +292,12 @@ BEGIN
 -- RAISE NOTICE 'Right Club % (from league= %) won the game % (type= 214) and will be promoted to league %', rec_game.id_club_right, rec_game.id_league_club_right2, rec_game.id, rec_game.id_league_club_left2;
 
             UPDATE clubs SET
-                -- pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_right),
-                pos_league_next_season = 4,
-                -- id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_right)
+                pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_right),
                 id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_right)
             WHERE id = rec_game.id_club_left;
 
             UPDATE clubs SET
-                -- pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_left),
-                pos_league_next_season = 1,
-                -- id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_left)
+                pos_league_next_season = (SELECT pos_league FROM clubs WHERE id = rec_game.id_club_left),
                 id_league_next_season = (SELECT id_league FROM clubs WHERE id = rec_game.id_club_left)
             WHERE id = rec_game.id_club_right;
 
