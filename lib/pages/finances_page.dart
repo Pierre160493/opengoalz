@@ -6,7 +6,6 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
-import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -52,9 +51,10 @@ class _FinancesPageState extends State<FinancesPage> {
     _clubHistoryStream =
         ClubData.streamClubDataHistory(widget.club.id).map((data) {
       _clubDataHistory = [
-        widget.club.clubData,
-        ...data
+        ...data,
+        widget.club.clubData
       ]; // Prepend current club data
+
       _selectedWeekMax = _clubDataHistory.length - 1;
       return _clubDataHistory;
     });
@@ -136,7 +136,7 @@ class _FinancesPageState extends State<FinancesPage> {
               title: Row(
                 children: [
                   widget.club.getClubNameClickable(context),
-                  Text(' finances'),
+                  Text(' Finances'),
                 ],
               ),
               leading: goBackIconButton(context),

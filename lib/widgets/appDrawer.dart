@@ -19,7 +19,7 @@ import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/widgets/customListTile.dart';
-import 'package:opengoalz/widgets/mailsWidget.dart';
+import 'package:opengoalz/models/mails/mailsWidget.dart';
 import 'package:provider/provider.dart';
 
 class AppDrawer extends StatefulWidget {

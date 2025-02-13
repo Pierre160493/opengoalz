@@ -4,7 +4,7 @@ import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
-import 'package:opengoalz/models/mail.dart';
+import 'package:opengoalz/models/mails/mail.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';

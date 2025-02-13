@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/models/mail.dart';
+import 'package:opengoalz/models/mails/mail.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/profile.dart';
