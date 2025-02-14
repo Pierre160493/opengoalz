@@ -31,19 +31,18 @@ BEGIN
         RAISE EXCEPTION 'Position must be between 1 and 14';
     END IF;
 
-    -- Calculate the coefficient of the player stats (motiation, form, experiennce, energy)
-    -- player_coef := 1 + ((inp_player_stats[8] + inp_player_stats[9] + inp_player_stats[10] + inp_player_stats[12]) / 400.0);
+    -- Calculate the coefficient of the player stats (motiation, form, experiennce)
     player_coef := 1 + ((inp_player_stats[8] + inp_player_stats[9] + inp_player_stats[10]) / 300.0);
 
     -- Loop through the 7 team stats (LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
-    FOR i IN 1..7 LOOP
-        -- Loop through the 6 player stats (keeper, defense, passes, playmaking, winger, scoring, NO FREEKINK !)
-        FOR j IN 1..6 LOOP
-            player_weight[i] := player_weight[i] + inp_player_stats[j] * CoefMatrix[inp_position][i][j];
+    FOR I IN 1..7 LOOP
+        -- Loop through the 6 player stats (keeper, defense, passes, playmaking, winger, scoring, NO FREEKICK !)
+        FOR J IN 1..6 LOOP
+            player_weight[I] := player_weight[I] + inp_player_stats[J] * CoefMatrix[inp_position][I][J];
         END LOOP;
 
         -- Add the coefficients of the player stats
-        player_weight[i] := player_weight[i] * player_coef;
+        player_weight[I] := player_weight[I] * player_coef;
     END LOOP;
 
     RETURN player_weight;

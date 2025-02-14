@@ -12,10 +12,11 @@ DECLARE
     loc_array_substitutes_right int4[21] := ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; -- Array for storing substitutions
     loc_matrix_player_stats_left float4[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
     loc_matrix_player_stats_right float4[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
-    loc_matrix_player_weights_left float4[14][7]; -- Matrix to hold player weights [14 players x {left defense, central defense, right defense, midfield, left attack, central attack, right attack}]
-    loc_matrix_player_weights_right float4[14][7]; -- Matrix to hold player weights [14 players x {left defense, central defense, right defense, midfield, left attack, central attack, right attack}]
     loc_array_team_weights_left float4[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
     loc_array_team_weights_right float4[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
+    array_player_stats float4[12]; -- Array for player stats {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}
+    array_player_weights float4[7]; -- Array for player weights {left defense, central defense, right defense, midfield, left attack, central attack, right attack}
+    energy_coef float4; -- Array for player weights {left defense, central defense, right defense, midfield, left attack, central attack, right attack}
     loc_period_game int; -- The period of the game (e.g., first half, second half, extra time)
     loc_minute_period_start int; -- The minute where the period starts
     loc_minute_period_end int := 0; -- The minute where the period ends
@@ -170,7 +171,7 @@ BEGIN
         WHERE id = ANY(loc_array_players_id_left)
            OR id = ANY(loc_array_players_id_right);
         
-        ------ Fetch constant player stats matrix
+        ------ Fetch constant player stats matrix [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
         loc_matrix_player_stats_left := simulate_game_fetch_player_stats(loc_array_players_id_left);
         loc_matrix_player_stats_right := simulate_game_fetch_player_stats(loc_array_players_id_right);
 
@@ -266,9 +267,95 @@ BEGIN
                 --     score := loc_score_right - loc_score_left,
                 --     game := rec_game);
 
+
+
+
+                ------ Calculate the weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+                ---- Initialize the team weights
+                loc_array_team_weights_left := '{100,100,100,100,100,100,100}';
+                loc_array_team_weights_right := '{100,100,100,100,100,100,100}';
+                ---- Loop through the 14 available positions of a game
+                FOR I IN 1..14 LOOP
+
+                    ---- Get the index of the player playing at the position I
+                    index_player := loc_array_substitutes_left[I];
+
+                    ---- If there is a player playing at the position I
+                    IF loc_array_players_id_left[index_player] IS NOT NULL THEN
+                        
+                        -- Fetch the stats of the player {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}
+                        FOR J IN 1..12 LOOP
+                            array_player_stats[J] := loc_matrix_player_stats_left[index_player][J];
+                        END LOOP;
+
+                        -- Fetch the weights of the player playing at the position I {LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack}
+                        array_player_weights := players_calculate_player_weight(array_player_stats, I);
+
+                        -- Calculate the energy coefficient of the player
+                        energy_coef := array_player_stats[12] / 100.0;
+
+                        -- Add the player weights to the team weights
+                        FOR J IN 1..7 LOOP
+                            array_player_weights[J] := array_player_weights[J] * energy_coef;
+                            loc_array_team_weights_left[J] := loc_array_team_weights_left[J] + array_player_weights[J];
+                        END LOOP;
+
+                        --Store the player weights in the game_player_stats table
+                        INSERT INTO game_player_stats (id_game, id_player, minute, weights)
+                        VALUES (rec_game.id, loc_array_players_id_left[index_player], loc_minute_game, array_player_weights);
+
+                        ---- Increase stats based on the player's position
+                        ---- Reduce energy
+                        loc_matrix_player_stats_left[index_player][12] := GREATEST(0,
+                            loc_matrix_player_stats_left[index_player][12] - 1 + loc_matrix_player_stats_left[index_player][11] / 200.0);
+                        ---- Increase experience
+                        loc_matrix_player_stats_left[index_player][10] := LEAST(100,
+                            loc_matrix_player_stats_left[index_player][10] + 0.015);
+
+                    END IF;
+
+                    ---- Get the index of the player playing at the position I
+                    index_player := loc_array_substitutes_right[I];
+
+                    ---- If there is a player playing at the position I
+                    IF loc_array_players_id_right[index_player] IS NOT NULL THEN
+                        
+                        -- Fetch the stats of the player {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}
+                        FOR J IN 1..12 LOOP
+                            array_player_stats[J] := loc_matrix_player_stats_right[index_player][J];
+                        END LOOP;
+
+                        -- Fetch the weights of the player playing at the position I {LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack}
+                        array_player_weights := players_calculate_player_weight(array_player_stats, I);
+
+                        -- Calculate the energy coefficient of the player
+                        energy_coef := array_player_stats[12] / 100.0;
+
+                        -- Add the player weights to the team weights
+                        FOR J IN 1..7 LOOP
+                            array_player_weights[J] := array_player_weights[J] * energy_coef;
+                            loc_array_team_weights_right[J] := loc_array_team_weights_right[J] + array_player_weights[J];
+                        END LOOP;
+
+                        --Store the player weights in the game_player_stats table
+                        INSERT INTO game_player_stats (id_game, id_player, minute, weights)
+                        VALUES (rec_game.id, loc_array_players_id_right[index_player], loc_minute_game, array_player_weights);
+
+                        ---- Increase stats based on the player's position
+                        ---- Reduce energy
+                        loc_matrix_player_stats_right[index_player][12] := GREATEST(0,
+                            loc_matrix_player_stats_right[index_player][12] - 1 + loc_matrix_player_stats_right[index_player][11] / 200.0);
+                        ---- Increase experience
+                        loc_matrix_player_stats_right[index_player][10] := LEAST(100,
+                            loc_matrix_player_stats_right[index_player][10] + 0.015);
+
+                    END IF;
+
+                END LOOP;
+
                 ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
-                loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
-                loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
+                -- loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
+                -- loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
 
                 ------ Set the game context
                 context := ROW(
@@ -295,31 +382,30 @@ BEGIN
                     inp_score_right := loc_score_right
                 );
 
-                ------ Insert a new row in the game_stats table
-                INSERT INTO game_stats (id_game, period, minute, weights_left, weights_right)
-                VALUES (rec_game.id, loc_period_game, loc_minute_game, loc_array_team_weights_left, loc_array_team_weights_right);
-                
-                ------ Update players stats (energy, experience)
-                FOR I IN 1..14 LOOP
-                    index_player := loc_array_substitutes_left[I];
-                    IF loc_array_players_id_left[index_player] IS NOT NULL THEN
-                        ---- Reduce energy
-                        loc_matrix_player_stats_left[index_player][12] := GREATEST(0,
-                            loc_matrix_player_stats_left[index_player][12] - 1 + loc_matrix_player_stats_left[index_player][11] / 200.0);
-                        ---- Increase experience
-                        loc_matrix_player_stats_left[index_player][10] := LEAST(100,
-                            loc_matrix_player_stats_left[index_player][10] + 0.015);
-                    END IF;
-                    index_player := loc_array_substitutes_right[I];
-                    IF loc_array_players_id_right[index_player] IS NOT NULL THEN
-                        ---- Reduce energy
-                        loc_matrix_player_stats_right[index_player][12] := GREATEST(0,
-                            loc_matrix_player_stats_right[index_player][12] - 1 + loc_matrix_player_stats_right[index_player][11] / 200.0);
-                        ---- Increase experience
-                        loc_matrix_player_stats_right[index_player][10] := LEAST(100,
-                            loc_matrix_player_stats_right[index_player][10] + 0.015);
-                    END IF;
-                END LOOP;
+                ------ Store and update players stats (energy, experience)
+                -- FOR I IN 1..14 LOOP
+                --     index_player := loc_array_substitutes_left[I];
+                --     IF loc_array_players_id_left[index_player] IS NOT NULL THEN
+                --         ---- Store the player stats
+                --         -- INSERT INTO game_player_stats (id_game, id_player, minute, weights)
+                --         -- VALUES (rec_game.id, loc_array_players_id_left[index_player], loc_minute_game, loc_array_team_weights_left);
+                --         ---- Reduce energy
+                --         loc_matrix_player_stats_left[index_player][12] := GREATEST(0,
+                --             loc_matrix_player_stats_left[index_player][12] - 1 + loc_matrix_player_stats_left[index_player][11] / 200.0);
+                --         ---- Increase experience
+                --         loc_matrix_player_stats_left[index_player][10] := LEAST(100,
+                --             loc_matrix_player_stats_left[index_player][10] + 0.015);
+                --     END IF;
+                --     index_player := loc_array_substitutes_right[I];
+                --     IF loc_array_players_id_right[index_player] IS NOT NULL THEN
+                --         ---- Reduce energy
+                --         loc_matrix_player_stats_right[index_player][12] := GREATEST(0,
+                --             loc_matrix_player_stats_right[index_player][12] - 1 + loc_matrix_player_stats_right[index_player][11] / 200.0);
+                --         ---- Increase experience
+                --         loc_matrix_player_stats_right[index_player][10] := LEAST(100,
+                --             loc_matrix_player_stats_right[index_player][10] + 0.015);
+                --     END IF;
+                -- END LOOP;
 
             END LOOP; -- End loop on the minutes of the game
 
