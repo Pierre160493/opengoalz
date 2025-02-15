@@ -7,7 +7,7 @@ DECLARE
     loc_time_of_next_handling INTERVAL; -- Variable to store the time of the next handling
 BEGIN
 
-    IF is_cron IS TRUE THEN
+    IF is_cron THEN
         -- RAISE EXCEPTION '************ KILL THE CRON !!!';
     END IF;
 
@@ -56,6 +56,8 @@ BEGIN
                 IF main_simulate_day(inp_multiverse := multiverse) = FALSE THEN
                     EXIT;
                 END IF;
+                -- Display the time it took to run
+                RAISE NOTICE 'Time taken to run: %', clock_timestamp() - statement_timestamp();
 
                 IF multiverse.day_number = 7 THEN
     

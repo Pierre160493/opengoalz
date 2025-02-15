@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/gameWeights.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 
 Widget gameStatsWidget(Game game) {
@@ -149,43 +150,14 @@ void _showChartDialog(
   );
 }
 
-class PositionWeights {
-  final double leftDefense;
-  final double centralDefense;
-  final double rightDefense;
-  final double midfield;
-  final double leftAttack;
-  final double centralAttack;
-  final double rightAttack;
-
-  PositionWeights({
-    required this.leftDefense,
-    required this.centralDefense,
-    required this.rightDefense,
-    required this.midfield,
-    required this.leftAttack,
-    required this.centralAttack,
-    required this.rightAttack,
-  });
-
-  PositionWeights.fromList(List<dynamic> listWeights)
-      : leftDefense = listWeights[0].toDouble(),
-        centralDefense = listWeights[1].toDouble(),
-        rightDefense = listWeights[2].toDouble(),
-        midfield = listWeights[3].toDouble(),
-        leftAttack = listWeights[4].toDouble(),
-        centralAttack = listWeights[5].toDouble(),
-        rightAttack = listWeights[6].toDouble();
-}
-
 class GameStat {
   final int id;
   final DateTime createdAt;
   final int? idGame;
   final int period;
   final int minute;
-  final PositionWeights weightsLeft;
-  final PositionWeights weightsRight;
+  final GameWeights weightsLeft;
+  final GameWeights weightsRight;
 
   GameStat({
     required this.id,
@@ -204,8 +176,8 @@ class GameStat {
       idGame: json['id_game'],
       period: json['period'],
       minute: json['minute'],
-      weightsLeft: PositionWeights.fromList(json['weights_left']),
-      weightsRight: PositionWeights.fromList(json['weights_right']),
+      weightsLeft: GameWeights.fromList(json['weights_left']),
+      weightsRight: GameWeights.fromList(json['weights_right']),
     );
   }
 

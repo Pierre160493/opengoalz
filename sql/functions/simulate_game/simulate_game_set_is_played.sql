@@ -328,6 +328,23 @@ BEGIN
         is_playing = FALSE
     WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
 
+    ------ Insert a new row in the table game_player_stats_best
+RAISE NOTICE 'Time Before: %', clock_timestamp();
+
+    -- WITH ranked_stats AS (
+    --     SELECT *,
+    --            ROW_NUMBER() OVER (PARTITION BY id_player ORDER BY sum_weights DESC) AS rn
+    --     FROM game_player_stats_all
+    --     WHERE id_game = inp_id_game
+    -- )
+    -- INSERT INTO game_player_stats_best (id_game, id_player, weights, position, sum_weights, stars)
+    -- SELECT id_game, id_player, weights, position, sum_weights, CEIL(sum_weights / 20)
+    -- FROM ranked_stats
+    -- WHERE rn = 1;
+
+RAISE NOTICE 'Time After: %', clock_timestamp();
+
+
     ------ Update left club
     UPDATE clubs SET
         lis_last_results = lis_last_results || 

@@ -300,9 +300,16 @@ BEGIN
                             loc_array_team_weights_left[J] := loc_array_team_weights_left[J] + array_player_weights[J];
                         END LOOP;
 
-                        --Store the player weights in the game_player_stats table
-                        INSERT INTO game_player_stats (id_game, id_player, minute, weights)
-                        VALUES (rec_game.id, loc_array_players_id_left[index_player], loc_minute_game, array_player_weights);
+                        --Store the player weights in the game_player_stats_all table
+                        -- INSERT INTO game_player_stats_all (id_game, id_player, position, period, minute, weights, sum_weights)
+                        -- VALUES (
+                        --     rec_game.id, 
+                        --     loc_array_players_id_left[index_player], 
+                        --     I,
+                        --     loc_period_game, loc_minute_game, -- Period and minute of the game
+                        --     array_player_weights,
+                        --     (SELECT SUM(val) FROM unnest(array_player_weights) AS val)
+                        -- );
 
                         ---- Increase stats based on the player's position
                         ---- Reduce energy
@@ -337,9 +344,16 @@ BEGIN
                             loc_array_team_weights_right[J] := loc_array_team_weights_right[J] + array_player_weights[J];
                         END LOOP;
 
-                        --Store the player weights in the game_player_stats table
-                        INSERT INTO game_player_stats (id_game, id_player, minute, weights)
-                        VALUES (rec_game.id, loc_array_players_id_right[index_player], loc_minute_game, array_player_weights);
+                        --Store the player weights in the game_player_stats_all table
+                        -- INSERT INTO game_player_stats_all (id_game, id_player, position, period, minute, weights, sum_weights)
+                        -- VALUES (
+                        --     rec_game.id, 
+                        --     loc_array_players_id_right[index_player], 
+                        --     I, 
+                        --     loc_period_game, loc_minute_game, -- Period and minute of the game
+                        --     array_player_weights,
+                        --     (SELECT SUM(val) FROM unnest(array_player_weights) AS val)
+                        -- );
 
                         ---- Increase stats based on the player's position
                         ---- Reduce energy
@@ -352,6 +366,10 @@ BEGIN
                     END IF;
 
                 END LOOP;
+
+                ------ Insert a new row in the game_stats table
+                INSERT INTO game_stats (id_game, period, minute, weights_left, weights_right)
+                VALUES (rec_game.id, loc_period_game, loc_minute_game, loc_array_team_weights_left, loc_array_team_weights_right);
 
                 ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
                 -- loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
@@ -381,31 +399,6 @@ BEGIN
                     inp_score_left := loc_score_left,
                     inp_score_right := loc_score_right
                 );
-
-                ------ Store and update players stats (energy, experience)
-                -- FOR I IN 1..14 LOOP
-                --     index_player := loc_array_substitutes_left[I];
-                --     IF loc_array_players_id_left[index_player] IS NOT NULL THEN
-                --         ---- Store the player stats
-                --         -- INSERT INTO game_player_stats (id_game, id_player, minute, weights)
-                --         -- VALUES (rec_game.id, loc_array_players_id_left[index_player], loc_minute_game, loc_array_team_weights_left);
-                --         ---- Reduce energy
-                --         loc_matrix_player_stats_left[index_player][12] := GREATEST(0,
-                --             loc_matrix_player_stats_left[index_player][12] - 1 + loc_matrix_player_stats_left[index_player][11] / 200.0);
-                --         ---- Increase experience
-                --         loc_matrix_player_stats_left[index_player][10] := LEAST(100,
-                --             loc_matrix_player_stats_left[index_player][10] + 0.015);
-                --     END IF;
-                --     index_player := loc_array_substitutes_right[I];
-                --     IF loc_array_players_id_right[index_player] IS NOT NULL THEN
-                --         ---- Reduce energy
-                --         loc_matrix_player_stats_right[index_player][12] := GREATEST(0,
-                --             loc_matrix_player_stats_right[index_player][12] - 1 + loc_matrix_player_stats_right[index_player][11] / 200.0);
-                --         ---- Increase experience
-                --         loc_matrix_player_stats_right[index_player][10] := LEAST(100,
-                --             loc_matrix_player_stats_right[index_player][10] + 0.015);
-                --     END IF;
-                -- END LOOP;
 
             END LOOP; -- End loop on the minutes of the game
 
@@ -457,6 +450,7 @@ BEGIN
     ------ Store the score
     UPDATE games SET
         -- date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
+        -- date_end = NOW() + INTERVAL '5 minutes',
         date_end = NOW(),
         ---- Score of the game
         score_left = CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END,
