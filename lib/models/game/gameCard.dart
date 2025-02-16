@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/scoreWidget.dart';
+import 'package:opengoalz/models/game/gameIconWidget.dart';
 import 'package:opengoalz/pages/game_page.dart';
 
 Widget getGameCardWidget(BuildContext context, Game game) {
@@ -20,7 +21,8 @@ Widget getGameCardWidget(BuildContext context, Game game) {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          game.getGameIcon(),
+          /// Icon of the game
+          getGameIcon(context, game),
           formSpacer12,
           Expanded(
               child: Column(

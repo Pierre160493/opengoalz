@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
-import 'package:opengoalz/models/gameWeights.dart';
+import 'package:opengoalz/models/game/gamePlayerStatsTab.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 
 class GamePlayerStatsDialog extends StatelessWidget {

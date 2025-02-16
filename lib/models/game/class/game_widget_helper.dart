@@ -1,45 +1,6 @@
 part of 'game.dart';
 
 extension GameClassWidgetHelper on Game {
-  /// Icon of the game: cup, league, friendly, relegation
-  Widget getGameIcon() {
-    // Icon of the game: cup, league, friendly, relegation
-    Icon Mainicon = Icon(
-      isRelegation
-          ? Icons.expand
-          : isFriendly
-              ? Icons.handshake
-              : Icons.emoji_events_outlined,
-      size: 60,
-      color: Colors.yellow,
-    );
-
-    // Text under the icon
-    Text text = Text(
-      weekNumber < 11 ? ' ${weekNumber}/10' : ' Inter ${weekNumber - 10}',
-      style: TextStyle(
-        color: Colors.blueGrey,
-      ),
-    );
-
-    Icon programIcon = Icon(
-      weekNumber < 11
-          ? Icons.calendar_month_outlined
-          : Icons.format_list_bulleted_add,
-      color: Colors.blueGrey,
-    );
-
-    return Column(children: [
-      Mainicon,
-      Row(
-        children: [
-          programIcon,
-          text,
-        ],
-      )
-    ]);
-  }
-
   // Widget getGameRow(BuildContext context, {bool isSpaceEvenly = false}) {
   //   return Column(
   //     children: [

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/clubHelper.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/scoreWidget.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/models/playerStatsBest.dart';
 
 part 'game_widget_helper.dart';
 
@@ -17,6 +16,7 @@ class Game {
   String description =
       'ERROR: Game description not found !'; //description of the game
   bool? isLeftClubSelected;
+  GamePlayerStatsBest? gamePlayerStatsBest; // Add GamePlayerStatsBest property
 
   Game({
     required this.id,
@@ -59,6 +59,7 @@ class Game {
     required this.eloLeft,
     required this.eloRight,
     required this.eloExchangedPoints,
+    this.gamePlayerStatsBest, // Initialize GamePlayerStatsBest property
   });
 
   final int id;
@@ -160,6 +161,9 @@ class Game {
       eloLeft: map['elo_left'],
       eloRight: map['elo_right'],
       eloExchangedPoints: map['elo_exchanged_points'],
+      gamePlayerStatsBest: map['game_player_stats_best'] != null
+          ? GamePlayerStatsBest.fromMap(map['game_player_stats_best'])
+          : null, // Add GamePlayerStatsBest property
     );
   }
 

@@ -301,12 +301,11 @@ BEGIN
                         END LOOP;
 
                         --Store the player weights in the game_player_stats_all table
-                        INSERT INTO game_player_stats_all (id_game, id_player, position, period, minute, weights, sum_weights)
+                        INSERT INTO game_player_stats_all (id_game, id_player, position, period, minute, is_left_club_player, weights, sum_weights)
                         VALUES (
                             rec_game.id, 
                             loc_array_players_id_left[index_player], 
-                            I,
-                            loc_period_game, loc_minute_game, -- Period and minute of the game
+                            I, loc_period_game, loc_minute_game, TRUE, -- Position, period, minute of the game and if the player is from the left club
                             array_player_weights,
                             (SELECT SUM(val) FROM unnest(array_player_weights) AS val)
                         );
@@ -345,12 +344,11 @@ BEGIN
                         END LOOP;
 
                         --Store the player weights in the game_player_stats_all table
-                        INSERT INTO game_player_stats_all (id_game, id_player, position, period, minute, weights, sum_weights)
+                        INSERT INTO game_player_stats_all (id_game, id_player, position, period, minute, is_left_club_player, weights, sum_weights)
                         VALUES (
                             rec_game.id, 
                             loc_array_players_id_right[index_player], 
-                            I, 
-                            loc_period_game, loc_minute_game, -- Period and minute of the game
+                            I, loc_period_game, loc_minute_game, FALSE, -- Position, period, minute of the game and if the player is from the left club
                             array_player_weights,
                             (SELECT SUM(val) FROM unnest(array_player_weights) AS val)
                         );
