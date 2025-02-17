@@ -1,3 +1,4 @@
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
@@ -76,7 +77,7 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return loadingCircularAndText('Loading countries...');
         } else {
           List<Country> countries = snapshot.data!;
           _filteredCountries = _filterCountries(countries);

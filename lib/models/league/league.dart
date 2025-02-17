@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';

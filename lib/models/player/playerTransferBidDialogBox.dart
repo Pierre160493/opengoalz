@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
@@ -42,7 +43,7 @@ class _PlayerTransferBidDialogBoxState
         .eq('id', widget.idPlayer)
         .map((maps) => maps
             .map((map) => Player.fromMap(map,
-                Provider.of<UserSessionProvider>(context, listen: false).user!))
+                Provider.of<UserSessionProvider>(context, listen: false).user))
             .first)
 
         /// Fetch its transfers bids
@@ -130,7 +131,7 @@ class _PlayerTransferBidDialogBoxState
 
     if (_bidAmount! >
         Provider.of<UserSessionProvider>(context, listen: false)
-            .user!
+            .user
             .selectedClub!
             .clubData
             .cash) {
@@ -147,7 +148,7 @@ class _PlayerTransferBidDialogBoxState
       stream: _playerStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return loadingCircularAndText('Loading player data...');
         } else if (snapshot.hasError) {
           return Center(child: Text('ERROR: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
@@ -178,7 +179,7 @@ class _PlayerTransferBidDialogBoxState
                           context,
                           Provider.of<UserSessionProvider>(context,
                                   listen: false)
-                              .user!
+                              .user
                               .selectedClub!),
                       PlayerCardTransferWidget(player: player),
                       ListTile(
@@ -267,7 +268,7 @@ class _PlayerTransferBidDialogBoxState
                             'inp_id_club_bidder':
                                 Provider.of<UserSessionProvider>(context,
                                         listen: false)
-                                    .user!
+                                    .user
                                     .selectedClub!
                                     .id,
                             'inp_amount': int.parse(_bidController.text)
@@ -279,7 +280,7 @@ class _PlayerTransferBidDialogBoxState
                                 'inp_id_club_bidder':
                                     Provider.of<UserSessionProvider>(context,
                                             listen: false)
-                                        .user!
+                                        .user
                                         .selectedClub!
                                         .id,
                                 'inp_amount': int.parse(_bidController.text)

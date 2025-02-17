@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
@@ -42,7 +43,7 @@ class _UserPageState extends State<UserPage> {
     if (widget.userName != null) {
       final connectedUser =
           Provider.of<UserSessionProvider>(context, listen: false).user;
-      if (connectedUser != null && widget.userName == connectedUser.username) {
+      if (widget.userName == connectedUser.username) {
         // Use the data from the provider if the username matches the connected user
         _userStream = Stream.value(connectedUser);
       } else {
@@ -87,7 +88,7 @@ class _UserPageState extends State<UserPage> {
         stream: _userStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return loadingCircularAndText('Loading user...');
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData) {
@@ -175,7 +176,7 @@ class _UserPageState extends State<UserPage> {
                   ),
                 )
               : Provider.of<UserSessionProvider>(context, listen: false)
-                  .user!
+                  .user
                   .returnToConnectedUserIconButton(context),
         ],
       ),

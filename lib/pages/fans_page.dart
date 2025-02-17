@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -82,7 +83,7 @@ class _FansPageState extends State<FansPage> {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   } else {
-                    return const Center(child: CircularProgressIndicator());
+                    return loadingCircularAndText('Loading fans...');
                   }
                 },
               ),

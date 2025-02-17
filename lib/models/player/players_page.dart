@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/players_sorting_function.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
@@ -170,7 +171,7 @@ class _PlayersPageState extends State<PlayersPage> {
           future: _initializeStreams(user),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return loadingCircularAndText('Loading players...');
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else {
@@ -179,7 +180,7 @@ class _PlayersPageState extends State<PlayersPage> {
                 builder: (context, streamSnapshot) {
                   if (streamSnapshot.connectionState ==
                       ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return loadingCircularAndText('Loading players...');
                   } else if (streamSnapshot.hasError) {
                     return Center(
                         child: Text('Error: ${streamSnapshot.error}'));

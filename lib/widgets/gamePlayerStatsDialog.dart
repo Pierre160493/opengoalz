@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsTab.dart';
@@ -18,7 +19,7 @@ class GamePlayerStatsDialog extends StatelessWidget {
         future: fetchGamePlayerStats(game.id, idPlayer),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return loadingCircularAndText('Loading game player stats...');
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData) {

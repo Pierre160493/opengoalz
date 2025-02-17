@@ -1,4 +1,5 @@
 import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/clubHelper.dart';
 import 'package:opengoalz/models/country.dart';
@@ -88,7 +89,7 @@ class _CountryPageState extends State<CountryPage>
                   .map((map) => Player.fromMap(
                       map,
                       Provider.of<UserSessionProvider>(context, listen: false)
-                          .user!))
+                          .user))
                   .toList())
               .map((players) {
                 country.playersAll = players;
@@ -120,7 +121,7 @@ class _CountryPageState extends State<CountryPage>
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return loadingCircularAndText('Loading country...');
         } else {
           Country country = snapshot.data!;
           // Set the clubs and players of the country

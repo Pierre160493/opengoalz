@@ -1,4 +1,5 @@
 import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/clubHelper.dart';
 import 'package:opengoalz/models/country.dart';
@@ -124,7 +125,7 @@ class _ContinentPageState extends State<ContinentPage>
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return loadingCircularAndText('Loading countries...');
         } else {
           List<Country> countries = snapshot.data!;
           countries

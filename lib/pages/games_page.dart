@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/gameCard.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
@@ -10,7 +11,6 @@ import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
-import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
 import '../constants.dart';
@@ -200,9 +200,7 @@ class _HomePageState extends State<GamesPage> {
         stream: _clubStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return loadingCircularAndText('Loading games...');
           } else if (snapshot.hasError) {
             return Center(
               child: Text('Error: ${snapshot.error}'),

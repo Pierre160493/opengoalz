@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -126,7 +127,7 @@ class _MultiversePageState extends State<MultiversePage>
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return loadingCircularAndText('Loading multiverses...');
         } else {
           List<Multiverse> multiverses = snapshot.data!;
 
@@ -315,7 +316,7 @@ class _MultiversePageState extends State<MultiversePage>
   Widget _getMultiversePresentation(
       BuildContext context, Multiverse? multiverse) {
     if (multiverse == null) {
-      return const Center(child: CircularProgressIndicator());
+      return loadingCircularAndText('Loading multiverse...');
     }
 
     return ListView(

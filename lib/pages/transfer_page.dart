@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/models/profile.dart';
@@ -45,8 +46,7 @@ class _TransferPageState extends State<TransferPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    currentUser =
-        Provider.of<UserSessionProvider>(context, listen: false).user!;
+    currentUser = Provider.of<UserSessionProvider>(context, listen: false).user;
 
     // Stream to fetch the list of player IDs that the club has shown interest in
     _IdPlayersTransferStream = supabase
@@ -141,9 +141,7 @@ class _TransferPageState extends State<TransferPage>
         stream: _playersStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return loadingCircularAndText('Loading transfers...');
           } else if (snapshot.hasError) {
             return Center(
               child: Text('ERROR: ${snapshot.error}'),

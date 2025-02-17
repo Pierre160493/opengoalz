@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
@@ -44,8 +45,7 @@ class _ClubPageState extends State<ClubPage> {
   @override
   void initState() {
     super.initState();
-    currentUser =
-        Provider.of<UserSessionProvider>(context, listen: false).user!;
+    currentUser = Provider.of<UserSessionProvider>(context, listen: false).user;
 
     _clubStream = supabase
 
@@ -91,7 +91,7 @@ class _ClubPageState extends State<ClubPage> {
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return loadingCircularAndText('Loading club');
         } else {
           Club club = snapshot.data!;
           bool isSelectedClub = currentUser.selectedClub!.id == club.id;
@@ -250,7 +250,7 @@ class _ClubPageState extends State<ClubPage> {
                                                     context,
                                                     listen: false)
                                                 .user
-                                                ?.isConnectedUser ??
+                                                .isConnectedUser ??
                                             false),
 
                                 /// Go to the User's Page

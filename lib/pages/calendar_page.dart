@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
@@ -104,7 +105,7 @@ class _CalendarPageState extends State<CalendarPage> {
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return loadingCircularAndText('Loading club...');
         } else {
           // Club club = snapshot.data!;
           Club club = snapshot.data!;
@@ -151,7 +152,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Widget _getCalendar(BuildContext context, Multiverse? multiverse) {
     if (multiverse == null) {
-      return const Center(child: CircularProgressIndicator());
+      return loadingCircularAndText('Loading calendar...');
     }
 
     return Column(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/class/game.dart';
@@ -42,8 +43,7 @@ class _HomePageState extends State<GamePage> {
   @override
   void initState() {
     super.initState();
-    currentUser =
-        Provider.of<UserSessionProvider>(context, listen: false).user!;
+    currentUser = Provider.of<UserSessionProvider>(context, listen: false).user;
 
     _gameStream = supabase
         .from('games')
@@ -202,9 +202,7 @@ class _HomePageState extends State<GamePage> {
         stream: _gameStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return loadingCircularAndText('Loading game...');
           } else if (snapshot.hasError) {
             return Center(
               child: Text('ERROR: ${snapshot.error}'),

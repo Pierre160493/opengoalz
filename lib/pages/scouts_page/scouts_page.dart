@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
@@ -61,7 +62,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                   maps.map((map) => Player.fromMap(map, _user)).toList()),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return loadingCircularAndText('Loading players...');
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else {

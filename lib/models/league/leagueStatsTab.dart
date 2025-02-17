@@ -40,7 +40,7 @@ extension LeagueStatsTab on League {
             ].expand((x) => x).toSet().toList())
         .map((maps) => maps
             .map((map) => Player.fromMap(map,
-                Provider.of<UserSessionProvider>(context, listen: false).user!))
+                Provider.of<UserSessionProvider>(context, listen: false).user))
             .toList())
         .switchMap((List<Player> players) {
           return supabase
@@ -67,7 +67,7 @@ extension LeagueStatsTab on League {
         stream: _playersStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return loadingCircularAndText('Loading top scorers and assists');
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData) {

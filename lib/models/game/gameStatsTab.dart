@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/gameWeights.dart';
@@ -10,7 +11,7 @@ Widget gameStatsWidget(Game game) {
     future: fetchGameStats(game.id),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(child: CircularProgressIndicator());
+        return loadingCircularAndText('Loading game stats');
       } else if (snapshot.hasError) {
         return Center(child: Text('Error: ${snapshot.error}'));
       } else if (!snapshot.hasData) {

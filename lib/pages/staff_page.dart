@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
@@ -51,7 +52,7 @@ class _StaffPageState extends State<StaffPage> {
         if (snapshot.hasError) {
           return Center(child: Text('Error occurred: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return loadingCircularAndText('Loading club...');
         } else {
           Club club = snapshot.data!;
           return Scaffold(

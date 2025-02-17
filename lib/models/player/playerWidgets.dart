@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
 import 'package:opengoalz/models/player/playerNotesDialogBox.dart';
@@ -105,7 +106,7 @@ Widget getPlayerHistoryStreamGraph(
       if (snapshot.hasError) {
         return Text('Error: ${snapshot.error}');
       } else if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(child: CircularProgressIndicator());
+        return loadingCircularAndText('Loading player history...');
       } else if (!snapshot.hasData) {
         return Text('Error: No data');
       }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsAll.dart';
 import 'dart:math';
@@ -19,7 +20,7 @@ Widget getGameWeights(BuildContext context, Game game) {
             maps.map((map) => GamePlayerStatsAll.fromMap(map)).toList()),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return CircularProgressIndicator();
+        return loadingCircularAndText('Loading game player stats');
       }
       if (snapshot.hasError) {
         return Text('Error: ${snapshot.error}');

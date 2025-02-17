@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/subs.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
@@ -151,9 +152,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
         stream: _clubStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return loadingCircularAndText('Loading teamcomps...');
           } else if (snapshot.hasError) {
             return Center(
               child: Text('ERROR: ${snapshot.error}'),

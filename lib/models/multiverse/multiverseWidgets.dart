@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 
@@ -136,7 +137,7 @@ Widget getMultiverseListTileFromId(BuildContext context, int idMultiverse) {
     future: Multiverse.fromId(idMultiverse), // Remove the 3-second delay
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(child: CircularProgressIndicator());
+        return loadingCircularAndText('Loading Multiverse...');
       } else if (snapshot.hasError) {
         return Center(child: Text('Error: ${snapshot.error}'));
       } else if (snapshot.hasData && snapshot.data != null) {

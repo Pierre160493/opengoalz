@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
@@ -241,9 +242,7 @@ class _RankingPageState extends State<LeaguePage> {
       future: _fetchSeasonNumberAndGamesIds(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return loadingCircularAndText('Loading League...');
         } else if (snapshot.hasError) {
           return Center(
             child: Text('ERROR: ${snapshot.error}'),
@@ -253,9 +252,7 @@ class _RankingPageState extends State<LeaguePage> {
             stream: _leagueStream,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return loadingCircularAndText('Loading League...');
               } else if (snapshot.hasError) {
                 return Center(
                   child: Text('ERROR: ${snapshot.error}'),
