@@ -4,9 +4,10 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/scoreWidget.dart';
 import 'package:opengoalz/models/game/gameIconWidget.dart';
+import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/pages/game_page.dart';
 
-Widget getGameCardWidget(BuildContext context, Game game) {
+Widget getGameCardWidget(BuildContext context, Game game, {Player? player}) {
   return Card(
     elevation: 6,
     shape: RoundedRectangleBorder(

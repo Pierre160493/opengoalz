@@ -16,7 +16,7 @@ import 'package:provider/provider.dart';
 Widget playerShirtNumberIcon(BuildContext context, Player player) {
   bool isPlayerClubSelected =
       Provider.of<UserSessionProvider>(context, listen: false)
-              .user!
+              .user
               .selectedClub!
               .id ==
           player.idClub;

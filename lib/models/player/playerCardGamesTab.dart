@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/gameCard.dart';
@@ -45,12 +46,13 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                   (maps) => maps.map((map) => Game.fromMap(map, null)).toList())
               .map((List<Game> games) {
                 for (var game in games) {
-                  game.gamePlayerStatsBest = stats.firstWhere(
+                  game.playerGameBestStats = widget.player;
+                  game.playerGameBestStats!.gamePlayerStatsBest = stats.firstWhere(
                       (stat) => stat.idGame == game.id,
                       orElse: () => throw Exception(
                           'GamePlayerStatsBest not found for game with id: ${game.id}'));
-                  game.isLeftClubSelected =
-                      game.gamePlayerStatsBest!.isLeftClubPlayer;
+                  game.isLeftClubSelected = game.playerGameBestStats!
+                      .gamePlayerStatsBest!.isLeftClubPlayer;
                 }
                 return games;
               })
@@ -137,7 +139,7 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
       stream: _gamesStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return loadingCircularAndText('Loading Games Played...');
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
@@ -149,8 +151,8 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
               .toList();
           Game? bestSeasonGame = filteredGames.isNotEmpty
               ? filteredGames.reduce((a, b) =>
-                  a.gamePlayerStatsBest!.sumWeights >
-                          b.gamePlayerStatsBest!.sumWeights
+                  a.playerGameBestStats!.gamePlayerStatsBest!.sumWeights >
+                          b.playerGameBestStats!.gamePlayerStatsBest!.sumWeights
                       ? a
                       : b)
               : null;
@@ -226,7 +228,7 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                               InkWell(
                                 child: Text(
                                   'Weight: ' +
-                                      bestSeasonGame
+                                      bestSeasonGame.playerGameBestStats!
                                           .gamePlayerStatsBest!.sumWeights
                                           .toString(),
                                   style: TextStyle(
@@ -242,6 +244,7 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                                         yValues: [
                                           games
                                               .map((game) => game
+                                                  .playerGameBestStats!
                                                   .gamePlayerStatsBest!
                                                   .sumWeights)
                                               .toList(),
@@ -262,7 +265,8 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                                         color: Colors.yellow,
                                         size: iconSizeSmall),
                                     Text(
-                                      bestSeasonGame.gamePlayerStatsBest!.stars
+                                      bestSeasonGame.playerGameBestStats!
+                                          .gamePlayerStatsBest!.stars
                                           .toString(),
                                       style: TextStyle(
                                           color: Colors.yellow,
@@ -279,7 +283,9 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                                         yValues: [
                                           games
                                               .map((game) => game
-                                                  .gamePlayerStatsBest!.stars)
+                                                  .playerGameBestStats!
+                                                  .gamePlayerStatsBest!
+                                                  .stars)
                                               .toList(),
                                         ],
                                         typeXAxis: XAxisType.weekHistory,

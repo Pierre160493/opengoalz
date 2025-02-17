@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/game/gameWeights/gameWeights.dart';
 
 class GamePlayerStatsBest {
   final int id;
   final DateTime createdAt;
   final int idGame;
   final int idPlayer;
-  final List<double> weights;
+  final GameWeights weights; // Use GameWeights class
   final int position;
   final double sumWeights;
   final int stars;
@@ -30,8 +29,7 @@ class GamePlayerStatsBest {
       createdAt: DateTime.parse(map['created_at']).toLocal(),
       idGame: map['id_game'],
       idPlayer: map['id_player'],
-      weights:
-          List<double>.from(map['weights'].map((weight) => weight.toDouble())),
+      weights: GameWeights.fromList(map['weights']),
       position: map['position'],
       sumWeights: map['sum_weights'].toDouble(),
       stars: map['stars'],
@@ -39,5 +37,3 @@ class GamePlayerStatsBest {
     );
   }
 }
-
-

@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/game/gamePlayerStatsAll.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
+import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
@@ -31,6 +33,8 @@ class Player {
   Club? club;
   List<TransferBid> transferBids = [];
   Multiverse? multiverse;
+  GamePlayerStatsBest? gamePlayerStatsBest;
+  List<GamePlayerStatsAll>? gamePlayerStatsAll;
 
   PlayerFavorite? favorite;
   PlayerPoaching? poaching;

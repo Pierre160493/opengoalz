@@ -1,39 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/functions/positionString.dart';
+import 'package:opengoalz/models/game/gamePlayerStatsDialog.dart';
 
 Widget getGameIcon(BuildContext context, Game game) {
-  // Icon of the game: cup, league, friendly, relegation or stars of the selected player
-
-  if (game.gamePlayerStatsBest != null) {
+  /// If this is the game for a given player, display his best stars obtained in the game
+  if (game.playerGameBestStats != null &&
+      game.playerGameBestStats!.gamePlayerStatsBest != null) {
     return Column(
       children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(
-              Icons.star,
-              size: 60,
-              color: Colors.yellow,
-            ),
-            Positioned(
-              top: 10,
-              child: Text(
-                game.gamePlayerStatsBest!.stars.toString(),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+        InkWell(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => buildPlayerStatsDialog(context, game),
+            );
+          },
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                Icons.star,
+                size: 60,
+                color: Colors.yellow,
+              ),
+              Positioned(
+                top: 10,
+                child: Text(
+                  game.playerGameBestStats!.gamePlayerStatsBest!.stars
+                      .toString(),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         Tooltip(
-          message: getPositionText(game.gamePlayerStatsBest!.position,
+          message: getPositionText(
+              game.playerGameBestStats!.gamePlayerStatsBest!.position,
               shortText: false),
           child: Text(
-            getPositionText(game.gamePlayerStatsBest!.position),
+            getPositionText(
+                game.playerGameBestStats!.gamePlayerStatsBest!.position),
             style: TextStyle(
               color: Colors.blueGrey,
             ),
