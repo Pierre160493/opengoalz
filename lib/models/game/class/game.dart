@@ -6,7 +6,6 @@ import 'package:opengoalz/models/game/scoreWidget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
-import 'package:opengoalz/models/playerStatsBest.dart';
 
 part 'game_widget_helper.dart';
 

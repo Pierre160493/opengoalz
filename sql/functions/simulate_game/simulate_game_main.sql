@@ -39,12 +39,14 @@ BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------ Step 1: Get game details and initial checks
     SELECT games.*,
+        games_description.elo_weight,
         gtl.id AS id_teamcomp_club_left, 
         gtr.id AS id_teamcomp_club_right,
         cl.name AS name_club_left, cl.username AS username_club_left,
         cr.name AS name_club_right, cr.username AS username_club_right
     INTO rec_game 
     FROM games
+    JOIN games_description ON games.id_games_description = games_description.id
     JOIN games_teamcomp gtl ON games.id_club_left = gtl.id_club AND games.season_number = gtl.season_number AND games.week_number = gtl.week_number
     JOIN games_teamcomp gtr ON games.id_club_right = gtr.id_club AND games.season_number = gtr.season_number AND games.week_number = gtr.week_number
     JOIN clubs cl ON games.id_club_left = cl.id
@@ -315,8 +317,8 @@ BEGIN
                         loc_matrix_player_stats_left[index_player][12] := GREATEST(0,
                             loc_matrix_player_stats_left[index_player][12] - 1 + loc_matrix_player_stats_left[index_player][11] / 200.0);
                         ---- Increase experience
-                        loc_matrix_player_stats_left[index_player][10] := LEAST(100,
-                            loc_matrix_player_stats_left[index_player][10] + 0.015);
+                        -- loc_matrix_player_stats_left[index_player][10] := LEAST(100,
+                        --     loc_matrix_player_stats_left[index_player][10] + 0.015);
 
                     END IF;
 
@@ -358,8 +360,8 @@ BEGIN
                         loc_matrix_player_stats_right[index_player][12] := GREATEST(0,
                             loc_matrix_player_stats_right[index_player][12] - 1 + loc_matrix_player_stats_right[index_player][11] / 200.0);
                         ---- Increase experience
-                        loc_matrix_player_stats_right[index_player][10] := LEAST(100,
-                            loc_matrix_player_stats_right[index_player][10] + 0.015);
+                        -- loc_matrix_player_stats_right[index_player][10] := LEAST(100,
+                        --     loc_matrix_player_stats_right[index_player][10] + 0.015);
 
                     END IF;
 

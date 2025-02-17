@@ -265,12 +265,12 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
 
             -- Randomly generate new players for the countries based on the clubs
             FOR loc_record IN (
-SELECT 
-  id_country, 
-FLOOR(1 + RANDOM() * 11)::int AS random_shirt_number
-FROM clubs 
-WHERE id_multiverse = inp_multiverse.id 
-GROUP BY id_country
+                SELECT 
+                  id_country, 
+                FLOOR(1 + RANDOM() * 11)::int AS random_shirt_number
+                FROM clubs 
+                WHERE id_multiverse = inp_multiverse.id 
+                GROUP BY id_country
             ) LOOP
 
                 loc_id_player := players_create_player(
@@ -286,7 +286,7 @@ GROUP BY id_country
 
             ------ Clean the old games
             ---- Delete the old games ==> And game_stats, game_events
-            DELETE FROM games WHERE id_multiverse = inp_multiverse.id AND season_number < inp_multiverse.season_number - 50;
+            DELETE FROM games WHERE id_multiverse = inp_multiverse.id AND season_number < inp_multiverse.season_number - 30;
             
             ---- Delete the game_player_stats_all because it takes too much space
             DELETE FROM game_player_stats_all WHERE id_game IN (
@@ -299,7 +299,7 @@ GROUP BY id_country
             USING clubs
                 WHERE games_teamcomp.id_club = clubs.id
                 AND clubs.id_multiverse = inp_multiverse.id
-                AND games_teamcomp.season_number < inp_multiverse.season_number - 50
+                AND games_teamcomp.season_number < inp_multiverse.season_number - 30
                 AND games_teamcomp.season_number > 0;
 
         ELSE
