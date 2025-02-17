@@ -287,6 +287,14 @@ GROUP BY id_country
             ------ Clean the old games
             ---- Delete the old games ==> And game_stats, game_events
             DELETE FROM games WHERE id_multiverse = inp_multiverse.id AND season_number < inp_multiverse.season_number - 50;
+            
+            ---- Delete the player_game_stats_all because it takes too much space (store only the last 5 seasons)
+            DELETE FROM player_game_stats_all
+            USING games
+            WHERE player_game_stats_all.id_game = games.id
+            AND games.id_multiverse = inp_multiverse.id
+            AND games.season_number < inp_multiverse.season_number - 5;
+            
             ---- Delete the old games_teamcomp ==> games_orders
             DELETE FROM games_teamcomp
             USING clubs
