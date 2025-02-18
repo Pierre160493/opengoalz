@@ -1,7 +1,23 @@
-part of 'teamComp.dart';
+import 'dart:math';
 
-extension TeamCompTab on TeamComp {
-  Widget getTeamCompWidget(BuildContext context) {
+import 'package:flutter/material.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/postgresql_requests.dart';
+
+class TeamCompTab extends StatefulWidget {
+  final Club club;
+
+  const TeamCompTab({Key? key, required this.club}) : super(key: key);
+
+  @override
+  _TeamCompTabState createState() => _TeamCompTabState();
+}
+
+class _TeamCompTabState extends State<TeamCompTab> {
+  @override
+  Widget build(BuildContext context) {
     double width =
         (min(MediaQuery.of(context).size.width, maxWidth) ~/ 6).toDouble();
 
@@ -18,13 +34,14 @@ extension TeamCompTab on TeamComp {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             /// Display errors if any
-            if (errors != null && errors!.isNotEmpty)
+            if (widget.club.teamComps.first.errors != null &&
+                widget.club.teamComps.first.errors!.isNotEmpty)
               ListTile(
                 shape: shapePersoRoundedBorder(Colors.red),
                 // leading: Icon(iconBug, color: Colors.red, size: iconSizeMedium),
                 title: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  children: errors!.map((error) {
+                  children: widget.club.teamComps.first.errors!.map((error) {
                     return ListTile(
                       leading: Icon(iconBug, color: Colors.red),
                       title: Text(error),
@@ -36,14 +53,15 @@ extension TeamCompTab on TeamComp {
             /// If the game is not played yet, the user can clean the teamcomp or apply a default teamcomp
             ListTile(
               shape: shapePersoRoundedBorder(),
-              title: Text(name),
+              title: Text(widget.club.teamComps.first.name),
               leading: Icon(
                 iconTeamComp,
                 color: Colors.green,
                 size: iconSizeMedium,
               ),
-              subtitle: Text(description, style: styleItalicBlueGrey),
-              trailing: isPlayed
+              subtitle: Text(widget.club.teamComps.first.description,
+                  style: styleItalicBlueGrey),
+              trailing: widget.club.teamComps.first.isPlayed
                   ? null
                   : Tooltip(
                       message: 'More teamcomps options',
@@ -71,19 +89,21 @@ extension TeamCompTab on TeamComp {
                                             'Edit notes for players based on their position',
                                             style: styleItalicBlueGrey),
                                         onTap: () async {
-                                          await updatePlayerNotesToDefaultBasedOnPos(
-                                              context,
-                                              updateSmallNotes: true);
+                                          await widget.club.teamComps.first
+                                              .updatePlayerNotesToDefaultBasedOnPos(
+                                                  context,
+                                                  updateSmallNotes: true);
                                         },
                                         trailing: IconButton(
                                           tooltip: 'Update shirts numbers too',
                                           icon: Icon(iconShirt,
                                               color: Colors.orange),
                                           onPressed: () async {
-                                            await updatePlayerNotesToDefaultBasedOnPos(
-                                                context,
-                                                updateSmallNotes: true,
-                                                updateShirtNumber: true);
+                                            await widget.club.teamComps.first
+                                                .updatePlayerNotesToDefaultBasedOnPos(
+                                                    context,
+                                                    updateSmallNotes: true,
+                                                    updateShirtNumber: true);
                                           },
                                         ),
                                       ),
@@ -102,19 +122,21 @@ extension TeamCompTab on TeamComp {
                                             'Update shirt number for players based on their position',
                                             style: styleItalicBlueGrey),
                                         onTap: () async {
-                                          await updatePlayerNotesToDefaultBasedOnPos(
-                                              context,
-                                              updateShirtNumber: true);
+                                          await widget.club.teamComps.first
+                                              .updatePlayerNotesToDefaultBasedOnPos(
+                                                  context,
+                                                  updateShirtNumber: true);
                                         },
                                         trailing: IconButton(
                                           tooltip: 'Update small notes too',
                                           icon: Icon(Icons.edit_note,
                                               color: Colors.orange),
                                           onPressed: () async {
-                                            await updatePlayerNotesToDefaultBasedOnPos(
-                                                context,
-                                                updateSmallNotes: true,
-                                                updateShirtNumber: true);
+                                            await widget.club.teamComps.first
+                                                .updatePlayerNotesToDefaultBasedOnPos(
+                                                    context,
+                                                    updateSmallNotes: true,
+                                                    updateShirtNumber: true);
                                           },
                                         ),
                                       ),
@@ -142,7 +164,8 @@ extension TeamCompTab on TeamComp {
                                               'FUNCTION',
                                               'teamcomp_copy_previous',
                                               data: {
-                                                'inp_id_teamcomp': id,
+                                                'inp_id_teamcomp': widget
+                                                    .club.teamComps.first.id,
                                                 'inp_season_number': -999
                                               }); // Use index to modify id
                                           if (isOK) {
@@ -176,7 +199,8 @@ extension TeamCompTab on TeamComp {
                                                 'FUNCTION',
                                                 'teamcomp_copy_previous',
                                                 data: {
-                                                  'inp_id_teamcomp': id,
+                                                  'inp_id_teamcomp': widget
+                                                      .club.teamComps.first.id,
                                                   'inp_week_number': index + 1
                                                 }); // Use index to modify id
                                             if (isOK) {
@@ -250,7 +274,7 @@ extension TeamCompTab on TeamComp {
                                   'name': inputName,
                                   'description': inputDescription
                                 }, matchCriteria: {
-                                  'id': id
+                                  'id': widget.club.teamComps.first.id
                                 });
 
                                 if (isOK) {
@@ -272,112 +296,162 @@ extension TeamCompTab on TeamComp {
               // trailing: IconButton(iconDetails),
             ),
             formSpacer12, // Add spacing between rows
-            _getStartingTeam(context, width),
+            // _getStartingTeam(context, width),
+            Text('_getStartingTeam(context, width)'),
             formSpacer12, // Add spacing between rows
-            _getSubstitutes(context, width)
+            // _getSubstitutes(context, width)
+            Text('getSubstitutes(context, width)')
           ],
         ),
       ),
     );
   }
 
-  Widget _getStartingTeam(BuildContext context, double width) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Left Striker')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Central Striker')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Right Striker')),
-          ],
-        ),
-        const SizedBox(height: 6.0), // Add spacing between rows
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Left Winger')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Left Midfielder')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Central Midfielder')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Right Midfielder')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Right Winger')),
-          ],
-        ),
-        const SizedBox(height: 6.0), // Add spacing between rows
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Left Back Winger')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Left Central Back')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Central Back')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Right Central Back')),
-            SizedBox(width: width / 6),
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Right Back Winger')),
-          ],
-        ),
-        const SizedBox(height: 6.0), // Add spacing between rows
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _playerTeamCompCard(
-                context, width, getPlayerMapByName('Goal Keeper')),
-          ],
-        ),
-      ],
-    );
-  }
+  // Widget _getStartingTeam(BuildContext context, double width) {
+  //   return Column(
+  //     children: [
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Left Striker')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(
+  //               context,
+  //               width,
+  //               widget.club.teamComps.first
+  //                   .getPlayerMapByName('Central Striker')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(
+  //               context,
+  //               width,
+  //               widget.club.teamComps.first
+  //                   .getPlayerMapByName('Right Striker')),
+  //         ],
+  //       ),
+  //       const SizedBox(height: 6.0), // Add spacing between rows
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Left Winger')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(
+  //               context,
+  //               width,
+  //               widget.club.teamComps.first
+  //                   .getPlayerMapByName('Left Midfielder')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(
+  //               context,
+  //               width,
+  //               widget.club.teamComps.first
+  //                   .getPlayerMapByName('Central Midfielder')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(
+  //               context,
+  //               width,
+  //               widget.club.teamComps.first
+  //                   .getPlayerMapByName('Right Midfielder')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Right Winger')),
+  //         ],
+  //       ),
+  //       const SizedBox(height: 6.0), // Add spacing between rows
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           _playerTeamCompCard(
+  //               context,
+  //               width,
+  //               widget.club.teamComps.first
+  //                   .getPlayerMapByName('Left Back Winger')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(
+  //               context,
+  //               width,
+  //               widget.club.teamComps.first
+  //                   .getPlayerMapByName('Left Central Back')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Central Back')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(
+  //               context,
+  //               width,
+  //               widget.club.teamComps.first
+  //                   .getPlayerMapByName('Right Central Back')),
+  //           SizedBox(width: width / 6),
+  //           _playerTeamCompCard(
+  //               context,
+  //               width,
+  //               widget.club.teamComps.first
+  //                   .getPlayerMapByName('Right Back Winger')),
+  //         ],
+  //       ),
+  //       const SizedBox(height: 6.0), // Add spacing between rows
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Goal Keeper')),
+  //         ],
+  //       ),
+  //     ],
+  //   );
+  // }
 
-  Widget _getSubstitutes(BuildContext context, double width) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Column(
-              children: [
-                Text('Substitutes'),
-                Icon(Icons.weekend, size: iconSizeLarge),
-              ],
-            ),
-            SizedBox(width: 6.0),
-            _playerTeamCompCard(context, width, getPlayerMapByName('Sub 1')),
-            _playerTeamCompCard(context, width, getPlayerMapByName('Sub 2')),
-            _playerTeamCompCard(context, width, getPlayerMapByName('Sub 3')),
-          ],
-        ),
-        const SizedBox(height: 16.0), // Add spacing between rows
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _playerTeamCompCard(context, width, getPlayerMapByName('Sub 4')),
-            _playerTeamCompCard(context, width, getPlayerMapByName('Sub 5')),
-            _playerTeamCompCard(context, width, getPlayerMapByName('Sub 6')),
-            _playerTeamCompCard(context, width, getPlayerMapByName('Sub 7')),
-          ],
-        ),
-      ],
-    );
-  }
+  // Widget _getSubstitutes(BuildContext context, double width) {
+  //   return Column(
+  //     children: [
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           Column(
+  //             children: [
+  //               Text('Substitutes'),
+  //               Icon(Icons.weekend, size: iconSizeLarge),
+  //             ],
+  //           ),
+  //           SizedBox(width: 6.0),
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Sub 1')),
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Sub 2')),
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Sub 3')),
+  //         ],
+  //       ),
+  //       const SizedBox(height: 16.0), // Add spacing between rows
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Sub 4')),
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Sub 5')),
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Sub 6')),
+  //           _playerTeamCompCard(context, width,
+  //               widget.club.teamComps.first.getPlayerMapByName('Sub 7')),
+  //         ],
+  //       ),
+  //     ],
+  //   );
+  // }
+
+  // Widget _playerTeamCompCard(
+  //     BuildContext context, double width, Map<String, dynamic> playerMap) {
+  //   // Implement the player card widget based on the playerMap
+  //   return Container(
+  //     width: width,
+  //     child: Card(
+  //       child: ListTile(
+  //         title: Text(playerMap['name']),
+  //         subtitle: Text(playerMap['position']),
+  //       ),
+  //     ),
+  //   );
+  // }
 }

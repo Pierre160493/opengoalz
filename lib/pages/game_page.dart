@@ -8,13 +8,14 @@ import 'package:opengoalz/models/game/gameDetailsTab.dart';
 import 'package:opengoalz/models/game/gameStatsTab.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
-import 'package:opengoalz/models/teamcomp/teamComp_main_widget.dart';
+import 'package:opengoalz/models/teamcomp/teamCompTab.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
 class GamePage extends StatefulWidget {
   final int idGame;
@@ -36,7 +37,7 @@ class GamePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<GamePage> {
-  late Future<Game> _gameFuture;
+  late Stream<Game> _gameStream;
   late final Profile currentUser;
 
   @override
@@ -44,124 +45,208 @@ class _HomePageState extends State<GamePage> {
     super.initState();
     currentUser = Provider.of<UserSessionProvider>(context, listen: false).user;
 
-    _gameFuture = _fetchGameData();
-  }
+    _gameStream = supabase
 
-  Future<Game> _fetchGameData() async {
-    final gameData =
-        await supabase.from('games').select().eq('id', widget.idGame).single();
-    final game = Game.fromMap(gameData, widget.idSelectedClub);
+        /// Fetch the game
+        .from('games')
+        .stream(primaryKey: ['id'])
+        .eq('id', widget.idGame)
+        .map((maps) =>
+            maps.map((map) => Game.fromMap(map, widget.idSelectedClub)).first)
 
-    final descriptionData = await supabase
-        .from('games_description')
-        .select()
-        .eq('id', game.idDescription)
-        .single();
-    game.description = descriptionData['description'];
+        /// Fetch the description of the game
+        .switchMap((Game game) {
+          print('GameId: ${game.id}');
+          return supabase
+              .from('games_description')
+              .stream(primaryKey: ['id'])
+              .eq('id', game.idDescription)
+              .map((maps) => maps.first)
+              .map((map) {
+                game.description = map['description'];
+                return game;
+              });
+        })
 
-    if (game.idClubLeft != null) {
-      final leftClubData = await supabase
-          .from('clubs')
-          .select()
-          .eq('id', game.idClubLeft!)
-          .single();
-      game.leftClub = Club.fromMap(leftClubData);
+        /// Fetch the left and right clubs
+        .switchMap((Game game) {
+          print('GameId1: ${game.id}');
+          List<int?> clubIds = [game.idClubLeft, game.idClubRight];
+          clubIds.removeWhere((id) => id == null);
+          if (clubIds.isEmpty) {
+            return Stream.value(game);
+          }
+          return supabase
+              .from('clubs')
+              .stream(primaryKey: ['id'])
+              .inFilter('id', clubIds.cast<int>())
+              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+              .map((List<Club> clubs) {
+                for (Club club in clubs) {
+                  if (club.id == game.idClubLeft) {
+                    game.leftClub = club;
+                  } else if (club.id == game.idClubRight) {
+                    game.rightClub = club;
+                  }
+                }
+                return game;
+              });
+        })
 
-      final teamcompData = await supabase
-          .from('games_teamcomp')
-          .select()
-          .eq('id_club', game.idClubLeft!)
-          .eq('season_number', game.seasonNumber)
-          .eq('week_number', game.weekNumber)
-          .single();
+        /// Fetch the teamcomps of the clubs
+        // .switchMap((game) {
+        //   print('GameId3: ${game.id}');
+        //   List<Object> clubIds = [];
+        //   if (game.idClubLeft != null) {
+        //     clubIds.add(game.idClubLeft!);
+        //   }
+        //   if (game.idClubRight != null) {
+        //     clubIds.add(game.idClubRight!);
+        //   }
+        //   if (clubIds.isEmpty) {
+        //     return Stream.value(game);
+        //   }
+        //   return supabase
+        //       .from('games_teamcomp')
+        //       .stream(primaryKey: ['id'])
+        //       .inFilter('id_club', clubIds)
+        //       .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
+        //       .map((List<TeamComp> teamComps) {
+        //         print('teamcomps.length: ${teamComps.length}');
+        //         for (TeamComp teamComp in teamComps.where((TeamComp teamcomp) =>
+        //             teamcomp.seasonNumber == game.seasonNumber &&
+        //             teamcomp.weekNumber == game.weekNumber)) {
+        //           if (teamComp.idClub == game.idClubLeft) {
+        //             game.leftClub.teamComps.add(teamComp);
+        //           } else if (teamComp.idClub == game.idClubRight) {
+        //             game.rightClub.teamComps.add(teamComp);
+        //           }
+        //         }
+        //         return game;
+        //       });
+        // })
+        .switchMap((game) {
+          print('GameId3: ${game.id}');
+          return supabase
+              .from('games_teamcomp')
+              .stream(primaryKey: ['id'])
+              .eq('id_game', widget.idGame)
+              .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
+              .map((List<TeamComp> teamComps) {
+                print('teamcomps.length: ${teamComps.length}');
+                for (TeamComp teamComp in teamComps) {
+                  if (teamComp.idClub == game.idClubLeft) {
+                    game.leftClub.teamComps.add(teamComp);
+                  } else if (teamComp.idClub == game.idClubRight) {
+                    game.rightClub.teamComps.add(teamComp);
+                  }
+                }
+                return game;
+              });
+        })
 
-      game.leftClub.teamComps.add(TeamComp.fromMap(teamcompData));
-    }
+        /// Fetch the events of the game
+        .switchMap((game) {
+          print('GameId4: ${game.id}');
+          return supabase
+              .from('game_events')
+              .stream(primaryKey: ['id'])
+              .eq('id_game', widget.idGame)
+              .map((maps) => maps.map((map) => GameEvent.fromMap(map)).toList())
+              .map((events) {
+                game.events = events;
+                return game;
+              });
+        })
 
-    if (game.idClubRight != null) {
-      final rightClubData = await supabase
-          .from('clubs')
-          .select()
-          .eq('id', game.idClubRight!)
-          .single();
-      game.rightClub = Club.fromMap(rightClubData);
+        /// Fetch the players of the teamcomps
+        .switchMap((game) {
+          print('GameId5: ${game.id}');
+          print([
+            ...game.leftClub.teamComps.first
+                .playersIdToListOfInt()
+                .where((id) => id != null)
+                .cast<int>(),
+            ...game.rightClub.teamComps.first
+                .playersIdToListOfInt()
+                .where((id) => id != null)
+                .cast<int>()
+          ]);
+          print('GameId52: ${game.id}');
+          return supabase
+              .from('players')
+              .stream(primaryKey: ['id'])
+              .inFilter('id', [
+                ...game.leftClub.teamComps.first
+                    .playersIdToListOfInt()
+                    .where((id) => id != null)
+                    .cast<int>(),
+                ...game.rightClub.teamComps.first
+                    .playersIdToListOfInt()
+                    .where((id) => id != null)
+                    .cast<int>()
+              ])
+              .map((maps) =>
+                  maps.map((map) => Player.fromMap(map, currentUser)).toList())
+              .map((players) {
+                print('GameId6: ${game.id}');
+                game.leftClub.teamComps.first.initPlayers(players
+                    .where((player) => player.idClub == game.idClubLeft)
+                    .toList());
+                game.rightClub.teamComps.first.initPlayers(players
+                    .where((player) => player.idClub == game.idClubRight)
+                    .toList());
 
-      final teamcompData = await supabase
-          .from('games_teamcomp')
-          .select()
-          .eq('id_club', game.idClubRight!)
-          .eq('season_number', game.seasonNumber)
-          .eq('week_number', game.weekNumber)
-          .single();
+                for (GameEvent event in game.events) {
+                  if (event.idPlayer != null) {
+                    event.player = players
+                        .firstWhere((player) => player.id == event.idPlayer);
+                  }
+                  if (event.idPlayer2 != null) {
+                    event.player2 = players
+                        .firstWhere((player) => player.id == event.idPlayer2);
+                  }
+                  if (event.idPlayer3 != null) {
+                    event.player3 = players
+                        .firstWhere((player) => player.id == event.idPlayer3);
+                  }
+                  print('GameId7: ${game.id}');
+                }
+                return game;
+              });
+        })
 
-      game.rightClub.teamComps.add(TeamComp.fromMap(teamcompData));
-    }
-
-    final eventsData = await supabase
-        .from('game_events')
-        .select()
-        .eq('id_game', widget.idGame);
-    game.events =
-        eventsData.map<GameEvent>((map) => GameEvent.fromMap(map)).toList();
-
-    final playerIds = [
-      ...game.leftClub.teamComps.first
-          .playersIdToListOfInt()
-          .where((id) => id != null)
-          .cast<int>(),
-      ...game.rightClub.teamComps.first
-          .playersIdToListOfInt()
-          .where((id) => id != null)
-          .cast<int>()
-    ];
-
-    final playersData =
-        await supabase.from('players').select().inFilter('id', playerIds);
-    final players = playersData
-        .map<Player>((map) => Player.fromMap(map, currentUser))
-        .toList();
-
-    game.leftClub.teamComps.first.initPlayers(
-        players.where((player) => player.idClub == game.idClubLeft).toList());
-    game.rightClub.teamComps.first.initPlayers(
-        players.where((player) => player.idClub == game.idClubRight).toList());
-
-    for (GameEvent event in game.events) {
-      if (event.idPlayer != null) {
-        event.player =
-            players.firstWhere((player) => player.id == event.idPlayer);
-      }
-      if (event.idPlayer2 != null) {
-        event.player2 =
-            players.firstWhere((player) => player.id == event.idPlayer2);
-      }
-      if (event.idPlayer3 != null) {
-        event.player3 =
-            players.firstWhere((player) => player.id == event.idPlayer3);
-      }
-    }
-
-    final eventTypeIds = game.events.map((event) => event.idEventType).toList();
-    final eventTypeData = await supabase
-        .from('game_events_type')
-        .select()
-        .inFilter('id', eventTypeIds);
-    final eventTypeMap = {
-      for (var map in eventTypeData) map['id']: map['description']
-    };
-
-    for (GameEvent event in game.events) {
-      event.description =
-          eventTypeMap[event.idEventType] ?? 'ERROR: Description not found';
-    }
-
-    return game;
+        /// Fetch the playerGameBestStats if the game is displayed for a player
+        .switchMap((Game game) {
+          print('GameId9: ${game.id}');
+          return supabase
+              .from('game_events_type')
+              .stream(primaryKey: ['id'])
+              .inFilter(
+                  'id',
+                  game.events
+                      .map((GameEvent event) => event.idEventType)
+                      .toList())
+              .map((maps) {
+                final eventTypeMap = {
+                  for (var map in maps) map['id']: map['description']
+                };
+                return eventTypeMap;
+              })
+              .map((eventTypeMap) {
+                for (GameEvent event in game.events) {
+                  event.description = eventTypeMap[event.idEventType] ??
+                      'ERROR: Description not found';
+                }
+                return game;
+              });
+        });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Game>(
-        future: _gameFuture,
+    return StreamBuilder<Game>(
+        stream: _gameStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return loadingCircularAndText('Loading game...');
@@ -175,6 +260,7 @@ class _HomePageState extends State<GamePage> {
             );
           } else {
             final Game game = snapshot.data!;
+            print('test ici');
 
             return Scaffold(
               appBar: AppBar(
@@ -184,7 +270,7 @@ class _HomePageState extends State<GamePage> {
               body: Center(
                 child: Container(
                   constraints: BoxConstraints(
-                      maxWidth: 600), // Set your desired maximum width
+                      maxWidth: maxWidth), // Set your desired maximum width
                   child: DefaultTabController(
                       length: 3, // Number of tabs
                       child: Column(
@@ -203,7 +289,8 @@ class _HomePageState extends State<GamePage> {
                             child: TabBarView(
                               children: [
                                 _getGameDetails(context, game),
-                                _getTeamCompsTab(context, game),
+                                // _getTeamCompsTab(context, game),
+                                Text('Teamcomp'),
                                 _getGameStats(context, game),
                               ],
                             ),
@@ -279,27 +366,58 @@ class _HomePageState extends State<GamePage> {
           Expanded(
             child: TabBarView(
               children: [
-                /// Left Club TeamComp
-                if (game.dateEnd == null &&
-                    game.leftClub.id != currentUser.selectedClub!.id)
-                  Center(
-                    child: Text(
-                        'Only the team manager can see the teamcomp before the game is played'),
-                  )
-                else
-                  // game.leftClub.teamComps.first.getTeamCompWidget(context),
-                  TeamCompWidget(teamComp: game.leftClub.teamComps.first),
+                /// Teamcomps tab
+                for (Club club in [game.leftClub, game.rightClub])
+                  if (game.dateEnd == null &&
+                      club.id != currentUser.selectedClub!.id)
+                    Center(
+                      child: Column(
+                        children: [
+                          Icon(Icons.lock, size: 50, color: Colors.grey),
+                          Text(
+                              'Only the team manager can see the teamcomp before the game is played'),
+                        ],
+                      ),
+                    )
+                  else
+                    // TeamCompWidget(club),
+                    DefaultTabController(
+                      length: 2, // Number of tabs for the inner TabController
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TabBar(
+                            tabs: [
+                              /// Teamcomp tab
+                              buildTabWithIcon(
+                                icon: iconTeamComp,
+                                iconColor: club.selectedTeamComp!.errors == null
+                                    ? Colors.green
+                                    : Colors.red,
+                                text: 'TeamComp',
+                              ),
 
-                /// Right Club TeamComp
-                if (game.dateEnd == null &&
-                    game.rightClub.id != currentUser.selectedClub!.id)
-                  Center(
-                    child: Text(
-                        'Only the team manager can see the teamcomp before the game is played'),
-                  )
-                else
-                  // game.rightClub.teamComps.first.getTeamCompWidget(context),
-                  TeamCompWidget(teamComp: game.rightClub.teamComps.first),
+                              /// Orders tab
+                              buildTabWithIcon(
+                                  icon: Icons.multiple_stop,
+                                  text:
+                                      'Orders (${club.selectedTeamComp!.subs.length})'),
+                            ],
+                          ),
+                          Expanded(
+                            child: TabBarView(
+                              children: [
+                                /// Teamcomp tab
+                                TeamCompTab(club: club),
+
+                                /// Orders tab
+                                club.selectedTeamComp!.getOrdersWidget(context),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
               ],
             ),
           ),

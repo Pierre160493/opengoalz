@@ -3,7 +3,6 @@ import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/subs.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
-import 'package:opengoalz/models/teamcomp/teamComp_main_widget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -108,7 +107,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                   .map((map) => Player.fromMap(
                       map,
                       Provider.of<UserSessionProvider>(context, listen: false)
-                          .user!))
+                          .user))
                   .toList())
               .map((players) {
                 print('Number players: ${players.length}');
@@ -238,19 +237,20 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                             ),
                                           ],
                                         ),
-                                        Expanded(
-                                          child: TabBarView(
-                                            children: List<Widget>.generate(
-                                                club.defaultTeamComps.length,
-                                                (index) =>
-                                                    // club.defaultTeamComps[index]
-                                                    //     .getMainTeamCompWidget(context),
-                                                    TeamCompWidget(
-                                                        teamComp:
-                                                            club.defaultTeamComps[
-                                                                index])),
-                                          ),
-                                        ),
+                                        // Expanded(
+                                        //   child: TabBarView(
+                                        //     children: List<Widget>.generate(
+                                        //         club.defaultTeamComps.length,
+                                        //         (index) =>
+                                        //             // club.defaultTeamComps[index]
+                                        //             //     .getMainTeamCompWidget(context),
+                                        //             TeamCompWidget(
+                                        //                 teamComp:
+                                        //                     club.defaultTeamComps[
+                                        //                         index])),
+                                        //   ),
+                                        // ),
+                                        Text('testTeamcomp')
                                       ],
                                     ),
                                   ),
@@ -289,15 +289,16 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                             ),
                                           ),
                                         ),
-                                        Expanded(
-                                          child: TabBarView(
-                                            children: List<Widget>.generate(
-                                                14,
-                                                (index) => TeamCompWidget(
-                                                    teamComp:
-                                                        club.teamComps[index])),
-                                          ),
-                                        ),
+                                        // Expanded(
+                                        //   child: TabBarView(
+                                        //     children: List<Widget>.generate(
+                                        //         14,
+                                        //         (index) => TeamCompWidget(
+                                        //             teamComp:
+                                        //                 club.teamComps[index])),
+                                        //   ),
+                                        // ),
+                                        Text('testTeamcomp')
                                       ],
                                     ),
                                   ),

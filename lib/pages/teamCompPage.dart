@@ -4,6 +4,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/teamcomp/teamCompTab.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -166,7 +167,10 @@ class _TeamCompPageState extends State<TeamCompPage> {
                         Expanded(
                           child: TabBarView(
                             children: [
-                              club.teamComps.first.getTeamCompWidget(context),
+                              // club.teamComps.first.getTeamCompWidget(context),
+                              TeamCompTab(
+                                club: club,
+                              ),
                               Center(child: Text('test')),
                               Center(child: Text('test')),
                             ],

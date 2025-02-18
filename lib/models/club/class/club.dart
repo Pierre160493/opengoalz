@@ -27,6 +27,7 @@ part 'clubWidgetHelper.dart';
 class Club {
   List<TeamComp> teamComps = []; // List of the teamcomps of the club
   List<TeamComp> defaultTeamComps = []; // List of the teamcomps of the club
+  TeamComp? selectedTeamComp; // List of the teamcomps of the club
   List<Game> games = []; // Games of this club
   List<Player> players = []; // List of players of the club
   List<PlayerFavorite> playersFavorite = []; // List of players of the club

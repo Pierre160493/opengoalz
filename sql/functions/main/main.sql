@@ -19,7 +19,7 @@ BEGIN
     ------ Loop through all multiverses
     FOR multiverse IN (
         SELECT * FROM multiverses
-        -- WHERE (is_cron IS FALSE OR error IS NULL) -- When cron, do not run multiverses on error
+        WHERE (is_cron IS FALSE OR error IS NULL) -- When cron, do not run multiverses on error
         ORDER BY id
     )
     LOOP
@@ -102,13 +102,7 @@ BEGIN
                 error = NULL
             WHERE id = multiverse.id;
 
-            -- IF multiverse.id = 2 THEN
-            --     RAISE NOTICE 'STOP THE SECOND MULTIVERSE';
-            --     RAISE EXCEPTION 'STOP THE SECOND MULTIVERSE';
-            -- END IF;
-
         -- EXCEPTION
-
         --     WHEN OTHERS THEN
         --         -- Rollback the transaction in case of an error
         --         ROLLBACK;
@@ -124,6 +118,7 @@ BEGIN
         --             error = SQLERRM
         --         WHERE id = multiverse.id;
         -- END;
+        
         ------ Commit the transaction for the current multiverse
         COMMIT;
     END LOOP; -- End of the loop through the multiverses

@@ -197,9 +197,14 @@ END IF;
             id_club_left = loc_id_clubs_after[1],
             elo_left = (SELECT elo_points FROM clubs WHERE id = loc_id_clubs_after[1])
             WHERE id = rec_game.id;
+        
+        UPDATE games_teamcomp
+            SET id_game = rec_game.id
+        WHERE id_club = loc_id_clubs_after[1]
+        AND season_number = rec_game.season_number
+        AND week_number = rec_game.week_number;
 
         UPDATE clubs SET
-            -- id_games = array_append(id_games, rec_game.id)
             id_games = id_games || rec_game.id
             WHERE id = loc_id_clubs_after[1];
     END IF;
@@ -210,8 +215,13 @@ END IF;
             elo_right = (SELECT elo_points FROM clubs WHERE id = loc_id_clubs_after[2])
             WHERE id = rec_game.id;
 
+        UPDATE games_teamcomp
+            SET id_game = rec_game.id
+        WHERE id_club = loc_id_clubs_after[2]
+        AND season_number = rec_game.season_number
+        AND week_number = rec_game.week_number;
+
         UPDATE clubs SET
-            -- id_games = array_append(id_games, rec_game.id)
             id_games = id_games || rec_game.id
             WHERE id = loc_id_clubs_after[2];
     END IF;
