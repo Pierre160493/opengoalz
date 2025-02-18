@@ -6,6 +6,8 @@ import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/gameCard.dart';
 import 'package:opengoalz/models/game/gameDetailsTab.dart';
 import 'package:opengoalz/models/game/gameStatsTab.dart';
+import 'package:opengoalz/models/playerPosition.dart';
+import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/models/teamcomp/teamCompTab.dart';
@@ -94,37 +96,6 @@ class _HomePageState extends State<GamePage> {
         })
 
         /// Fetch the teamcomps of the clubs
-        // .switchMap((game) {
-        //   print('GameId3: ${game.id}');
-        //   List<Object> clubIds = [];
-        //   if (game.idClubLeft != null) {
-        //     clubIds.add(game.idClubLeft!);
-        //   }
-        //   if (game.idClubRight != null) {
-        //     clubIds.add(game.idClubRight!);
-        //   }
-        //   if (clubIds.isEmpty) {
-        //     return Stream.value(game);
-        //   }
-        //   return supabase
-        //       .from('games_teamcomp')
-        //       .stream(primaryKey: ['id'])
-        //       .inFilter('id_club', clubIds)
-        //       .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
-        //       .map((List<TeamComp> teamComps) {
-        //         print('teamcomps.length: ${teamComps.length}');
-        //         for (TeamComp teamComp in teamComps.where((TeamComp teamcomp) =>
-        //             teamcomp.seasonNumber == game.seasonNumber &&
-        //             teamcomp.weekNumber == game.weekNumber)) {
-        //           if (teamComp.idClub == game.idClubLeft) {
-        //             game.leftClub.teamComps.add(teamComp);
-        //           } else if (teamComp.idClub == game.idClubRight) {
-        //             game.rightClub.teamComps.add(teamComp);
-        //           }
-        //         }
-        //         return game;
-        //       });
-        // })
         .switchMap((game) {
           print('GameId3: ${game.id}');
           return supabase
@@ -133,12 +104,13 @@ class _HomePageState extends State<GamePage> {
               .eq('id_game', widget.idGame)
               .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
               .map((List<TeamComp> teamComps) {
-                print('teamcomps.length: ${teamComps.length}');
                 for (TeamComp teamComp in teamComps) {
                   if (teamComp.idClub == game.idClubLeft) {
-                    game.leftClub.teamComps.add(teamComp);
+                    // game.leftClub.teamComps.add(teamComp);
+                    game.leftClub.selectedTeamComp = teamComp;
                   } else if (teamComp.idClub == game.idClubRight) {
-                    game.rightClub.teamComps.add(teamComp);
+                    // game.rightClub.teamComps.add(teamComp);
+                    game.rightClub.selectedTeamComp = teamComp;
                   }
                 }
                 return game;
@@ -161,27 +133,26 @@ class _HomePageState extends State<GamePage> {
 
         /// Fetch the players of the teamcomps
         .switchMap((game) {
-          print('GameId5: ${game.id}');
+          print('GameId52: ${game.id}');
           print([
-            ...game.leftClub.teamComps.first
+            ...game.leftClub.selectedTeamComp!
                 .playersIdToListOfInt()
                 .where((id) => id != null)
                 .cast<int>(),
-            ...game.rightClub.teamComps.first
+            ...game.rightClub.selectedTeamComp!
                 .playersIdToListOfInt()
                 .where((id) => id != null)
                 .cast<int>()
           ]);
-          print('GameId52: ${game.id}');
           return supabase
               .from('players')
               .stream(primaryKey: ['id'])
               .inFilter('id', [
-                ...game.leftClub.teamComps.first
+                ...game.leftClub.selectedTeamComp!
                     .playersIdToListOfInt()
                     .where((id) => id != null)
                     .cast<int>(),
-                ...game.rightClub.teamComps.first
+                ...game.rightClub.selectedTeamComp!
                     .playersIdToListOfInt()
                     .where((id) => id != null)
                     .cast<int>()
@@ -189,11 +160,10 @@ class _HomePageState extends State<GamePage> {
               .map((maps) =>
                   maps.map((map) => Player.fromMap(map, currentUser)).toList())
               .map((players) {
-                print('GameId6: ${game.id}');
-                game.leftClub.teamComps.first.initPlayers(players
+                game.leftClub.selectedTeamComp!.initPlayers(players
                     .where((player) => player.idClub == game.idClubLeft)
                     .toList());
-                game.rightClub.teamComps.first.initPlayers(players
+                game.rightClub.selectedTeamComp!.initPlayers(players
                     .where((player) => player.idClub == game.idClubRight)
                     .toList());
 
@@ -216,7 +186,7 @@ class _HomePageState extends State<GamePage> {
               });
         })
 
-        /// Fetch the playerGameBestStats if the game is displayed for a player
+        /// Fetch the type of events with the description
         .switchMap((Game game) {
           print('GameId9: ${game.id}');
           return supabase
@@ -237,6 +207,39 @@ class _HomePageState extends State<GamePage> {
                 for (GameEvent event in game.events) {
                   event.description = eventTypeMap[event.idEventType] ??
                       'ERROR: Description not found';
+                }
+                return game;
+              });
+        })
+
+        /// If the game is played, fetch the players stats
+        .switchMap((Game game) {
+          print('GameId10: ${game.id}');
+          return supabase
+              .from('game_player_stats_best')
+              .stream(primaryKey: ['id'])
+              .eq('id_game', game.id)
+              .map((maps) =>
+                  maps.map((map) => GamePlayerStatsBest.fromMap(map)).toList())
+              .map((List<GamePlayerStatsBest> gamePlayerStatsBest) {
+                for (GamePlayerStatsBest gamePlayerStat
+                    in gamePlayerStatsBest) {
+                  try {
+                    game.leftClub.selectedTeamComp!.playersWithPosition
+                        .firstWhere((PlayerWithPosition playerWithPosition) =>
+                            playerWithPosition.player!.id ==
+                            gamePlayerStat.idPlayer);
+                  } catch (e) {
+                    // Do nothing if not found
+                  }
+                  try {
+                    game.rightClub.selectedTeamComp!.playersWithPosition
+                        .firstWhere((PlayerWithPosition playerWithPosition) =>
+                            playerWithPosition.player!.id ==
+                            gamePlayerStat.idPlayer);
+                  } catch (e) {
+                    // Do nothing if not found
+                  }
                 }
                 return game;
               });
@@ -289,8 +292,8 @@ class _HomePageState extends State<GamePage> {
                             child: TabBarView(
                               children: [
                                 _getGameDetails(context, game),
-                                // _getTeamCompsTab(context, game),
-                                Text('Teamcomp'),
+                                _getTeamCompsTab(context, game),
+                                // Text('Teamcomp'),
                                 _getGameStats(context, game),
                               ],
                             ),
@@ -409,6 +412,7 @@ class _HomePageState extends State<GamePage> {
                               children: [
                                 /// Teamcomp tab
                                 TeamCompTab(club: club),
+                                // Text('TeamComp'),
 
                                 /// Orders tab
                                 club.selectedTeamComp!.getOrdersWidget(context),

@@ -10,6 +10,7 @@ import 'package:opengoalz/models/subs.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/models/playerPosition.dart';
 
 part 'teamComp_tab_orders.dart';
 part 'teamComp_player_card.dart';
@@ -20,10 +21,11 @@ class TeamComp {
 
   TeamComp({
     required this.id,
+    required this.idGame,
     required this.idClub,
     required this.seasonNumber,
     required this.weekNumber,
-    required this.players,
+    required this.playersWithPosition,
     required this.name,
     required this.description,
     required this.isPlayed,
@@ -31,6 +33,7 @@ class TeamComp {
   });
 
   final int id;
+  final int idGame;
   final int idClub;
   final int seasonNumber;
   final int weekNumber;
@@ -38,208 +41,217 @@ class TeamComp {
   final String description;
   final bool isPlayed;
   final List<String>? errors;
-  final List<Map<String, dynamic>> players;
+  final List<PlayerWithPosition> playersWithPosition;
 
-  static List<Map<String, dynamic>> defaultPlayers = [
-    {
-      'name': 'Goal Keeper',
-      'type': 'Keeper',
-      'notes_small_default': 'GK',
-      'shirt_number_default': '1',
-      'database': 'idgoalkeeper',
-      'id': null,
-      'player': null,
-    },
-    {
-      'name': 'Left Back Winger',
-      'type': 'Defense',
-      'notes_small_default': 'BW_L',
-      'shirt_number_default': '2',
-      'database': 'idleftbackwinger',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Left Central Back',
-      'type': 'Defense',
-      'notes_small_default': 'CB_L',
-      'shirt_number_default': '4',
-      'database': 'idleftcentralback',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Central Back',
-      'type': 'Defense',
-      'notes_small_default': 'CB_C',
-      'shirt_number_default': '95',
-      'database': 'idcentralback',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Right Central Back',
-      'type': 'Defense',
-      'notes_small_default': 'CB_R',
-      'shirt_number_default': '5',
-      'database': 'idrightcentralback',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Right Back Winger',
-      'type': 'Defense',
-      'notes_small_default': 'BW_R',
-      'shirt_number_default': '3',
-      'database': 'idrightbackwinger',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Left Winger',
-      'type': 'Midfield',
-      'notes_small_default': 'WI_L',
-      'shirt_number_default': '7',
-      'database': 'idleftwinger',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Left Midfielder',
-      'type': 'Midfield',
-      'notes_small_default': 'MD_L',
-      'shirt_number_default': '6',
-      'database': 'idleftmidfielder',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Central Midfielder',
-      'type': 'Midfield',
-      'notes_small_default': 'MD_C',
-      'shirt_number_default': '96',
-      'database': 'idcentralmidfielder',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Right Midfielder',
-      'type': 'Midfield',
-      'notes_small_default': 'MD_R',
-      'shirt_number_default': '10',
-      'database': 'idrightmidfielder',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Right Winger',
-      'type': 'Midfield',
-      'notes_small_default': 'WI_R',
-      'shirt_number_default': '8',
-      'database': 'idrightwinger',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Left Striker',
-      'type': 'Attack',
-      'notes_small_default': 'ST_L',
-      'shirt_number_default': '9',
-      'database': 'idleftstriker',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Central Striker',
-      'type': 'Attack',
-      'notes_small_default': 'ST_C',
-      'shirt_number_default': '99',
-      'database': 'idcentralstriker',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Right Striker',
-      'type': 'Attack',
-      'notes_small_default': 'ST_R',
-      'shirt_number_default': '11',
-      'database': 'idrightstriker',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Sub 1',
-      'type': 'Sub',
-      'notes_small_default': 'Sub1',
-      'shirt_number_default': '12',
-      'database': 'idsub1',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Sub 2',
-      'type': 'Sub',
-      'notes_small_default': 'Sub2',
-      'shirt_number_default': '13',
-      'database': 'idsub2',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Sub 3',
-      'type': 'Sub',
-      'notes_small_default': 'Sub3',
-      'shirt_number_default': '14',
-      'database': 'idsub3',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Sub 4',
-      'type': 'Sub',
-      'notes_small_default': 'Sub4',
-      'shirt_number_default': '15',
-      'database': 'idsub4',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Sub 5',
-      'type': 'Sub',
-      'notes_small_default': 'Sub5',
-      'shirt_number_default': '16',
-      'database': 'idsub5',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Sub 6',
-      'type': 'Sub',
-      'notes_small_default': 'Sub6',
-      'shirt_number_default': '17',
-      'database': 'idsub6',
-      'id': null,
-      'player': null
-    },
-    {
-      'name': 'Sub 7',
-      'type': 'Sub',
-      'notes_small_default': 'Sub7',
-      'shirt_number_default': '18',
-      'database': 'idsub7',
-      'id': null,
-      'player': null
-    },
+  static List<PlayerWithPosition> defaultPlayers = [
+    PlayerWithPosition(
+      name: 'Goal Keeper',
+      type: 'Keeper',
+      notesSmallDefault: 'GK',
+      shirtNumberDefault: '1',
+      database: 'idgoalkeeper',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Left Back Winger',
+      type: 'Defense',
+      notesSmallDefault: 'BW_L',
+      shirtNumberDefault: '2',
+      database: 'idleftbackwinger',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Left Central Back',
+      type: 'Defense',
+      notesSmallDefault: 'CB_L',
+      shirtNumberDefault: '4',
+      database: 'idleftcentralback',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Central Back',
+      type: 'Defense',
+      notesSmallDefault: 'CB_C',
+      shirtNumberDefault: '95',
+      database: 'idcentralback',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Right Central Back',
+      type: 'Defense',
+      notesSmallDefault: 'CB_R',
+      shirtNumberDefault: '5',
+      database: 'idrightcentralback',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Right Back Winger',
+      type: 'Defense',
+      notesSmallDefault: 'BW_R',
+      shirtNumberDefault: '3',
+      database: 'idrightbackwinger',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Left Winger',
+      type: 'Midfield',
+      notesSmallDefault: 'WI_L',
+      shirtNumberDefault: '7',
+      database: 'idleftwinger',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Left Midfielder',
+      type: 'Midfield',
+      notesSmallDefault: 'MD_L',
+      shirtNumberDefault: '6',
+      database: 'idleftmidfielder',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Central Midfielder',
+      type: 'Midfield',
+      notesSmallDefault: 'MD_C',
+      shirtNumberDefault: '96',
+      database: 'idcentralmidfielder',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Right Midfielder',
+      type: 'Midfield',
+      notesSmallDefault: 'MD_R',
+      shirtNumberDefault: '10',
+      database: 'idrightmidfielder',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Right Winger',
+      type: 'Midfield',
+      notesSmallDefault: 'WI_R',
+      shirtNumberDefault: '8',
+      database: 'idrightwinger',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Left Striker',
+      type: 'Attack',
+      notesSmallDefault: 'ST_L',
+      shirtNumberDefault: '9',
+      database: 'idleftstriker',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Central Striker',
+      type: 'Attack',
+      notesSmallDefault: 'ST_C',
+      shirtNumberDefault: '99',
+      database: 'idcentralstriker',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Right Striker',
+      type: 'Attack',
+      notesSmallDefault: 'ST_R',
+      shirtNumberDefault: '11',
+      database: 'idrightstriker',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Sub 1',
+      type: 'Sub',
+      notesSmallDefault: 'Sub1',
+      shirtNumberDefault: '12',
+      database: 'idsub1',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Sub 2',
+      type: 'Sub',
+      notesSmallDefault: 'Sub2',
+      shirtNumberDefault: '13',
+      database: 'idsub2',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Sub 3',
+      type: 'Sub',
+      notesSmallDefault: 'Sub3',
+      shirtNumberDefault: '14',
+      database: 'idsub3',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Sub 4',
+      type: 'Sub',
+      notesSmallDefault: 'Sub4',
+      shirtNumberDefault: '15',
+      database: 'idsub4',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Sub 5',
+      type: 'Sub',
+      notesSmallDefault: 'Sub5',
+      shirtNumberDefault: '16',
+      database: 'idsub5',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Sub 6',
+      type: 'Sub',
+      notesSmallDefault: 'Sub6',
+      shirtNumberDefault: '17',
+      database: 'idsub6',
+      id: null,
+      player: null,
+    ),
+    PlayerWithPosition(
+      name: 'Sub 7',
+      type: 'Sub',
+      notesSmallDefault: 'Sub7',
+      shirtNumberDefault: '18',
+      database: 'idsub7',
+      id: null,
+      player: null,
+    ),
   ];
 
   factory TeamComp.fromMap(Map<String, dynamic> map) {
-    List<Map<String, dynamic>> players = TeamComp.defaultPlayers.map((player) {
-      return {...player, 'id': map[player['database']]};
+    List<PlayerWithPosition> playersWithPosition =
+        TeamComp.defaultPlayers.map((PlayerWithPosition playerWithPosition) {
+      return PlayerWithPosition(
+        name: playerWithPosition.name,
+        type: playerWithPosition.type,
+        notesSmallDefault: playerWithPosition.notesSmallDefault,
+        shirtNumberDefault: playerWithPosition.shirtNumberDefault,
+        database: playerWithPosition.database,
+        id: map[playerWithPosition.database],
+        player: null,
+      );
     }).toList();
 
     return TeamComp(
       id: map['id'],
-      // idGame: map['id_game'],
+      idGame: map['id_game'],
       idClub: map['id_club'],
       seasonNumber: map['season_number'],
       weekNumber: map['week_number'],
@@ -247,36 +259,30 @@ class TeamComp {
       description: map['description'],
       isPlayed: map['is_played'],
       errors: map['error'] != null ? List<String>.from(map['error']) : null,
-      players: players,
+      playersWithPosition: playersWithPosition,
     );
   }
 
   List<int?> playersIdToListOfInt() {
-    List<int?> ids = [];
-    for (Map<String, dynamic> player in players) {
-      ids.add(player['id']);
-    }
-    // print(ids);
-    return ids;
+    return playersWithPosition.map((player) => player.id).toList();
   }
 
   void initPlayers(List<Player?> list_players) {
-    for (Map<String, dynamic> player
-        in players.where((player) => player['id'] != null).toList()) {
-      player['player'] =
-          list_players.firstWhere((lp) => lp!.id == player['id']);
-      print(player['player']);
-      if (player['player'] == null) {
+    for (PlayerWithPosition playerWithPosition
+        in playersWithPosition.where((player) => player.id != null).toList()) {
+      playerWithPosition.player =
+          list_players.firstWhere((lp) => lp!.id == playerWithPosition.id);
+      if (playerWithPosition.player == null) {
         throw Exception(
-            'No player found with id {${player['id']}} for the club with id {{$idClub}} for the game {{}}');
+            'No player found with id {${playerWithPosition.id}} for the club with id {{$idClub}} for the game {{}}');
       }
     }
   }
 
-  Map<String, dynamic>? getPlayerMapByName(String name) {
-    return players.firstWhere(
-      (player) => player['name'] == name,
-      orElse: () => {},
+  PlayerWithPosition getPlayerMapByName(String name) {
+    return playersWithPosition.firstWhere(
+      (PlayerWithPosition playerWithPosition) =>
+          playerWithPosition.name == name,
     );
   }
 
@@ -301,25 +307,25 @@ class TeamComp {
 
     if (!confirm) return;
 
-    for (Map<String, dynamic> player in players) {
-      if (player['id'] != null) {
+    for (PlayerWithPosition playerWithPosition in playersWithPosition) {
+      if (playerWithPosition.id != null) {
         Map<String, dynamic> data = {};
         if (updateSmallNotes) {
-          data['notes_small'] = player['notes_small_default'];
+          data['notes_small'] = playerWithPosition.notesSmallDefault;
         }
         if (updateShirtNumber) {
-          data['shirt_number'] = player['shirt_number_default'];
+          data['shirt_number'] = playerWithPosition.shirtNumberDefault;
         }
         bool isOK = await operationInDB(
           context,
           'UPDATE',
           'players',
           data: data,
-          matchCriteria: {'id': player['id']},
+          matchCriteria: {'id': playerWithPosition.id!},
         );
         if (!isOK) {
           context.showSnackBar(
-            'Couldn\'t update the notes for ${player['name']}',
+            'Couldn\'t update the notes for ${playerWithPosition.name}',
             icon: Icon(iconSuccessfulOperation, color: Colors.green),
           );
         }

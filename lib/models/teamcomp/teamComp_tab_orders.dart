@@ -11,15 +11,18 @@ extension TabOrders on TeamComp {
               final sub = subs[index];
 
               Color? colorBackground;
-              Map<String, dynamic>? playerOutMap;
-              Player? playerOut;
+              PlayerWithPosition playerOutMap;
+              Player playerOut;
               Widget playerOutWidget;
 
-              if (players.any((player) => player['id'] == sub.idPlayerOut)) {
-                playerOutMap = players
-                    .firstWhere((player) => player['id'] == sub.idPlayerOut);
+              if (playersWithPosition.any(
+                  (PlayerWithPosition playerWithPosition) =>
+                      playerWithPosition.id == sub.idPlayerOut)) {
+                playerOutMap = playersWithPosition.firstWhere(
+                    (PlayerWithPosition playerWithPosition) =>
+                        playerWithPosition.id == sub.idPlayerOut);
                 // playerOut = Player.fromMap(playerOutMap);
-                playerOut = playerOutMap['player'];
+                playerOut = playerOutMap.player!;
                 playerOutWidget = Row(
                   children: [
                     Transform.rotate(
@@ -29,22 +32,24 @@ extension TabOrders on TeamComp {
                         color: Colors.red,
                       ),
                     ),
-                    playerOut!.getPlayerNameToolTip(context),
+                    playerOut.getPlayerNameToolTip(context),
                   ],
                 );
               } else {
                 playerOutWidget = Text('Out: Player not found');
               }
 
-              Map<String, dynamic>? playerInMap;
+              PlayerWithPosition playerInMap;
               Player? playerIn;
               Widget playerInWidget;
 
-              if (players.any((player) => player['id'] == sub.idPlayerIn)) {
-                playerInMap = players
-                    .firstWhere((player) => player['id'] == sub.idPlayerIn);
+              if (playersWithPosition
+                  .any((player) => player.id == sub.idPlayerIn)) {
+                playerInMap = playersWithPosition.firstWhere(
+                    (playerWithPosition) =>
+                        playerWithPosition.id == sub.idPlayerIn);
                 // playerIn = Player.fromMap(playerInMap);
-                playerIn = playerInMap['player'];
+                playerIn = playerInMap.player;
                 playerInWidget = Row(
                   children: [
                     Icon(
@@ -106,12 +111,12 @@ extension TabOrders on TeamComp {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          playerOutMap!['name'],
-                          style: TextStyle(
-                              fontStyle: FontStyle.italic,
-                              color: Colors.blueGrey),
-                        ),
+                        // Text(
+                        //   playerOutMap.name,
+                        //   style: TextStyle(
+                        //       fontStyle: FontStyle.italic,
+                        //       color: Colors.blueGrey),
+                        // ),
                         Row(
                           children: [
                             Icon(Icons.filter_alt),
@@ -167,7 +172,7 @@ extension TabOrders on TeamComp {
                             child: Text('${sub.minuteReal}\''),
                           )
                         : Icon(
-                              Icons.cancel,
+                            Icons.cancel,
                             color: Colors.red,
                           )
                     : IconButton(

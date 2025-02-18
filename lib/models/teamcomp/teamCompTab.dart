@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 
 class TeamCompTab extends StatefulWidget {
@@ -21,6 +22,13 @@ class _TeamCompTabState extends State<TeamCompTab> {
     double width =
         (min(MediaQuery.of(context).size.width, maxWidth) ~/ 6).toDouble();
 
+    if (widget.club.selectedTeamComp == null) {
+      return Center(
+        child: Text('No teamcomp selected'),
+      );
+    }
+    TeamComp selectedTeamcomp = widget.club.selectedTeamComp!;
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
@@ -34,14 +42,14 @@ class _TeamCompTabState extends State<TeamCompTab> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             /// Display errors if any
-            if (widget.club.teamComps.first.errors != null &&
-                widget.club.teamComps.first.errors!.isNotEmpty)
+            if (selectedTeamcomp.errors != null &&
+                selectedTeamcomp.errors!.isNotEmpty)
               ListTile(
                 shape: shapePersoRoundedBorder(Colors.red),
                 // leading: Icon(iconBug, color: Colors.red, size: iconSizeMedium),
                 title: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  children: widget.club.teamComps.first.errors!.map((error) {
+                  children: selectedTeamcomp.errors!.map((error) {
                     return ListTile(
                       leading: Icon(iconBug, color: Colors.red),
                       title: Text(error),
@@ -53,15 +61,15 @@ class _TeamCompTabState extends State<TeamCompTab> {
             /// If the game is not played yet, the user can clean the teamcomp or apply a default teamcomp
             ListTile(
               shape: shapePersoRoundedBorder(),
-              title: Text(widget.club.teamComps.first.name),
+              title: Text(selectedTeamcomp.name),
               leading: Icon(
                 iconTeamComp,
                 color: Colors.green,
                 size: iconSizeMedium,
               ),
-              subtitle: Text(widget.club.teamComps.first.description,
+              subtitle: Text(selectedTeamcomp.description,
                   style: styleItalicBlueGrey),
-              trailing: widget.club.teamComps.first.isPlayed
+              trailing: selectedTeamcomp.isPlayed
                   ? null
                   : Tooltip(
                       message: 'More teamcomps options',
@@ -165,7 +173,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                               'teamcomp_copy_previous',
                                               data: {
                                                 'inp_id_teamcomp': widget
-                                                    .club.teamComps.first.id,
+                                                    .club.selectedTeamComp!.id,
                                                 'inp_season_number': -999
                                               }); // Use index to modify id
                                           if (isOK) {
@@ -199,8 +207,8 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                                 'FUNCTION',
                                                 'teamcomp_copy_previous',
                                                 data: {
-                                                  'inp_id_teamcomp': widget
-                                                      .club.teamComps.first.id,
+                                                  'inp_id_teamcomp': widget.club
+                                                      .selectedTeamComp!.id,
                                                   'inp_week_number': index + 1
                                                 }); // Use index to modify id
                                             if (isOK) {
@@ -274,7 +282,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                   'name': inputName,
                                   'description': inputDescription
                                 }, matchCriteria: {
-                                  'id': widget.club.teamComps.first.id
+                                  'id': selectedTeamcomp.id
                                 });
 
                                 if (isOK) {
@@ -314,7 +322,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
   //         mainAxisAlignment: MainAxisAlignment.center,
   //         children: [
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Left Striker')),
+  //               selectedTeamcomp.getPlayerMapByName('Left Striker')),
   //           SizedBox(width: width / 6),
   //           _playerTeamCompCard(
   //               context,
@@ -334,7 +342,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
   //         mainAxisAlignment: MainAxisAlignment.center,
   //         children: [
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Left Winger')),
+  //               selectedTeamcomp.getPlayerMapByName('Left Winger')),
   //           SizedBox(width: width / 6),
   //           _playerTeamCompCard(
   //               context,
@@ -355,7 +363,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
   //                   .getPlayerMapByName('Right Midfielder')),
   //           SizedBox(width: width / 6),
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Right Winger')),
+  //               selectedTeamcomp.getPlayerMapByName('Right Winger')),
   //         ],
   //       ),
   //       const SizedBox(height: 6.0), // Add spacing between rows
@@ -375,7 +383,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
   //                   .getPlayerMapByName('Left Central Back')),
   //           SizedBox(width: width / 6),
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Central Back')),
+  //               selectedTeamcomp.getPlayerMapByName('Central Back')),
   //           SizedBox(width: width / 6),
   //           _playerTeamCompCard(
   //               context,
@@ -395,7 +403,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
   //         mainAxisAlignment: MainAxisAlignment.center,
   //         children: [
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Goal Keeper')),
+  //               selectedTeamcomp.getPlayerMapByName('Goal Keeper')),
   //         ],
   //       ),
   //     ],
@@ -416,11 +424,11 @@ class _TeamCompTabState extends State<TeamCompTab> {
   //           ),
   //           SizedBox(width: 6.0),
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Sub 1')),
+  //               selectedTeamcomp.getPlayerMapByName('Sub 1')),
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Sub 2')),
+  //               selectedTeamcomp.getPlayerMapByName('Sub 2')),
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Sub 3')),
+  //               selectedTeamcomp.getPlayerMapByName('Sub 3')),
   //         ],
   //       ),
   //       const SizedBox(height: 16.0), // Add spacing between rows
@@ -428,13 +436,13 @@ class _TeamCompTabState extends State<TeamCompTab> {
   //         mainAxisAlignment: MainAxisAlignment.center,
   //         children: [
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Sub 4')),
+  //               selectedTeamcomp.getPlayerMapByName('Sub 4')),
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Sub 5')),
+  //               selectedTeamcomp.getPlayerMapByName('Sub 5')),
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Sub 6')),
+  //               selectedTeamcomp.getPlayerMapByName('Sub 6')),
   //           _playerTeamCompCard(context, width,
-  //               widget.club.teamComps.first.getPlayerMapByName('Sub 7')),
+  //               selectedTeamcomp.getPlayerMapByName('Sub 7')),
   //         ],
   //       ),
   //     ],

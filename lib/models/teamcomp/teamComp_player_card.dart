@@ -290,45 +290,44 @@ extension TeamCompPlayerCard on TeamComp {
         message: 'Add a player',
         child: InkWell(
           onTap: () async {
-            print(players);
-            Player? returnedPlayer = await Navigator.push(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) {
-                  return PlayersPage(
-                    playerSearchCriterias: PlayerSearchCriterias(
-                        idClub: [idClub],
-                        idPlayerRemove: players
-                            .where((e) => e['id'] != null)
-                            .map<int>((e) => e['id'] as int)
-                            .toList()),
-                    isReturningPlayer: true,
-                  );
-                },
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(1.0, 0.0),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  );
-                },
-              ),
-            );
+            // Player? returnedPlayer = await Navigator.push(
+            //   context,
+            //   PageRouteBuilder(
+            //     pageBuilder: (context, animation, secondaryAnimation) {
+            //       return PlayersPage(
+            //         playerSearchCriterias: PlayerSearchCriterias(
+            //             idClub: [idClub],
+            //             idPlayerRemove: players
+            //                 .where((e) => e['id'] != null)
+            //                 .map<int>((e) => e['id'] as int)
+            //                 .toList()),
+            //         isReturningPlayer: true,
+            //       );
+            //     },
+            //     transitionsBuilder:
+            //         (context, animation, secondaryAnimation, child) {
+            //       return SlideTransition(
+            //         position: Tween<Offset>(
+            //           begin: const Offset(1.0, 0.0),
+            //           end: Offset.zero,
+            //         ).animate(animation),
+            //         child: child,
+            //       );
+            //     },
+            //   ),
+            // );
 
-            /// Then we update the games_teamcomp table with the new player
-            if (returnedPlayer != null) {
-              bool isOK = await operationInDB(
-                  context, 'UPDATE', 'games_teamcomp',
-                  data: {playerMap['database']: returnedPlayer.id},
-                  matchCriteria: {'id': id});
-              if (isOK) {
-                context.showSnackBarSuccess(
-                    'Successfully set ${returnedPlayer.getFullName()} as ${playerMap['name']}');
-              }
-            }
+            // /// Then we update the games_teamcomp table with the new player
+            // if (returnedPlayer != null) {
+            //   bool isOK = await operationInDB(
+            //       context, 'UPDATE', 'games_teamcomp',
+            //       data: {playerMap['database']: returnedPlayer.id},
+            //       matchCriteria: {'id': id});
+            //   if (isOK) {
+            //     context.showSnackBarSuccess(
+            //         'Successfully set ${returnedPlayer.getFullName()} as ${playerMap['name']}');
+            //   }
+            // }
           },
           child: Container(
             decoration: BoxDecoration(

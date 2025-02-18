@@ -4,10 +4,15 @@ Widget loadingCircularAndText(String text) => Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey),
+          ),
           // PlayerJugglingAnimation(),
           SizedBox(height: 16),
-          Text(text),
+          Text(
+            text,
+            style: TextStyle(color: Colors.blueGrey),
+          ),
         ],
       ),
     );
