@@ -31,9 +31,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_svg: ^1.0.0
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   supabase_flutter: ^2.3.4
   flutter_dotenv: ^5.1.0
@@ -93,3 +90,4 @@ flutter:
     - assets/icon/opengoalz.png
     - version.txt
     - assets/images/Football_field.svg
+    - assets/images/Football_field_half.svg

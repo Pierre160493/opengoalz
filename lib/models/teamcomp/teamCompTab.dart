@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/playerPosition.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
+import 'package:opengoalz/models/teamcomp/teamCompPlayerCard.dart';
 import 'package:opengoalz/postgresql_requests.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class TeamCompTab extends StatefulWidget {
   final Club club;
@@ -19,9 +22,13 @@ class TeamCompTab extends StatefulWidget {
 class _TeamCompTabState extends State<TeamCompTab> {
   @override
   Widget build(BuildContext context) {
+    print('Size: ' + MediaQuery.of(context).size.width.toString());
+    print('Size: ' + maxWidth.toString());
     double width =
         (min(MediaQuery.of(context).size.width, maxWidth) ~/ 6).toDouble();
+    print('width: ' + width.toString());
 
+    /// Check if a teamcomp is selected
     if (widget.club.selectedTeamComp == null) {
       return Center(
         child: Text('No teamcomp selected'),
@@ -304,10 +311,10 @@ class _TeamCompTabState extends State<TeamCompTab> {
               // trailing: IconButton(iconDetails),
             ),
             formSpacer12, // Add spacing between rows
-            // _getStartingTeam(context, width),
-            Text('_getStartingTeam(context, width)'),
+            _getStartingTeam(context, selectedTeamcomp, width),
+            // Text('_getStartingTeam(context, width)'),
             formSpacer12, // Add spacing between rows
-            // _getSubstitutes(context, width)
+            // _getSubstitutes(context, selectedTeamcomp, width)
             Text('getSubstitutes(context, width)')
           ],
         ),
@@ -315,102 +322,106 @@ class _TeamCompTabState extends State<TeamCompTab> {
     );
   }
 
-  // Widget _getStartingTeam(BuildContext context, double width) {
-  //   return Column(
-  //     children: [
-  //       Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Left Striker')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(
-  //               context,
-  //               width,
-  //               widget.club.teamComps.first
-  //                   .getPlayerMapByName('Central Striker')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(
-  //               context,
-  //               width,
-  //               widget.club.teamComps.first
-  //                   .getPlayerMapByName('Right Striker')),
-  //         ],
-  //       ),
-  //       const SizedBox(height: 6.0), // Add spacing between rows
-  //       Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Left Winger')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(
-  //               context,
-  //               width,
-  //               widget.club.teamComps.first
-  //                   .getPlayerMapByName('Left Midfielder')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(
-  //               context,
-  //               width,
-  //               widget.club.teamComps.first
-  //                   .getPlayerMapByName('Central Midfielder')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(
-  //               context,
-  //               width,
-  //               widget.club.teamComps.first
-  //                   .getPlayerMapByName('Right Midfielder')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Right Winger')),
-  //         ],
-  //       ),
-  //       const SizedBox(height: 6.0), // Add spacing between rows
-  //       Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           _playerTeamCompCard(
-  //               context,
-  //               width,
-  //               widget.club.teamComps.first
-  //                   .getPlayerMapByName('Left Back Winger')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(
-  //               context,
-  //               width,
-  //               widget.club.teamComps.first
-  //                   .getPlayerMapByName('Left Central Back')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Central Back')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(
-  //               context,
-  //               width,
-  //               widget.club.teamComps.first
-  //                   .getPlayerMapByName('Right Central Back')),
-  //           SizedBox(width: width / 6),
-  //           _playerTeamCompCard(
-  //               context,
-  //               width,
-  //               widget.club.teamComps.first
-  //                   .getPlayerMapByName('Right Back Winger')),
-  //         ],
-  //       ),
-  //       const SizedBox(height: 6.0), // Add spacing between rows
-  //       Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Goal Keeper')),
-  //         ],
-  //       ),
-  //     ],
-  //   );
-  // }
+  Widget _getStartingTeam(
+      BuildContext context, TeamComp selectedTeamcomp, double width) {
+    return Stack(
+      children: [
+        Center(
+          child: SvgPicture.asset(
+            'assets/images/Football_field_half.svg',
+            width: 6 * width,
+          ),
+        ),
+        Positioned(
+          top: width * 0.5,
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: selectedTeamcomp.playersWithPosition
+                .where((PlayerWithPosition playerWithPosition) =>
+                    playerWithPosition.type == 'Attack')
+                .map((PlayerWithPosition playerWithPosition) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width / 12),
+                      child: TeamCompPlayerCard(
+                        context: context,
+                        width: width,
+                        playerWithPosition: playerWithPosition,
+                        teamComp: selectedTeamcomp,
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+        Positioned(
+          top: width * 1.5,
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: selectedTeamcomp.playersWithPosition
+                .where((PlayerWithPosition playerWithPosition) =>
+                    playerWithPosition.type == 'Midfield')
+                .map((PlayerWithPosition playerWithPosition) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width / 12),
+                      child: TeamCompPlayerCard(
+                        context: context,
+                        width: width,
+                        playerWithPosition: playerWithPosition,
+                        teamComp: selectedTeamcomp,
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+        Positioned(
+          top: width * 2.5,
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: selectedTeamcomp.playersWithPosition
+                .where((PlayerWithPosition playerWithPosition) =>
+                    playerWithPosition.type == 'Defense')
+                .map((PlayerWithPosition playerWithPosition) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width / 12),
+                      child: TeamCompPlayerCard(
+                        context: context,
+                        width: width,
+                        playerWithPosition: playerWithPosition,
+                        teamComp: selectedTeamcomp,
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+        Positioned(
+          top: width * 3.5,
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: selectedTeamcomp.playersWithPosition
+                .where((PlayerWithPosition playerWithPosition) =>
+                    playerWithPosition.type == 'Keeper')
+                .map((PlayerWithPosition playerWithPosition) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width / 12),
+                      child: TeamCompPlayerCard(
+                        context: context,
+                        width: width,
+                        playerWithPosition: playerWithPosition,
+                        teamComp: selectedTeamcomp,
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+      ],
+    );
+  }
 
-  // Widget _getSubstitutes(BuildContext context, double width) {
+  // Widget _getSubstitutes(
+  //     BuildContext context, TeamComp selectedTeamcomp, double width) {
   //   return Column(
   //     children: [
   //       Row(
@@ -423,43 +434,29 @@ class _TeamCompTabState extends State<TeamCompTab> {
   //             ],
   //           ),
   //           SizedBox(width: 6.0),
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Sub 1')),
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Sub 2')),
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Sub 3')),
+  //           _playerTeamCompCard(
+  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 1')),
+  //           _playerTeamCompCard(
+  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 2')),
+  //           _playerTeamCompCard(
+  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 3')),
   //         ],
   //       ),
   //       const SizedBox(height: 16.0), // Add spacing between rows
   //       Row(
   //         mainAxisAlignment: MainAxisAlignment.center,
   //         children: [
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Sub 4')),
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Sub 5')),
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Sub 6')),
-  //           _playerTeamCompCard(context, width,
-  //               selectedTeamcomp.getPlayerMapByName('Sub 7')),
+  //           _playerTeamCompCard(
+  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 4')),
+  //           _playerTeamCompCard(
+  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 5')),
+  //           _playerTeamCompCard(
+  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 6')),
+  //           _playerTeamCompCard(
+  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 7')),
   //         ],
   //       ),
   //     ],
-  //   );
-  // }
-
-  // Widget _playerTeamCompCard(
-  //     BuildContext context, double width, Map<String, dynamic> playerMap) {
-  //   // Implement the player card widget based on the playerMap
-  //   return Container(
-  //     width: width,
-  //     child: Card(
-  //       child: ListTile(
-  //         title: Text(playerMap['name']),
-  //         subtitle: Text(playerMap['position']),
-  //       ),
-  //     ),
   //   );
   // }
 }
