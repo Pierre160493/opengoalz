@@ -10,6 +10,7 @@ import 'package:opengoalz/models/playerPosition.dart';
 import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
+import 'package:opengoalz/models/teamcomp/teamCompMainTab.dart';
 import 'package:opengoalz/models/teamcomp/teamCompTab.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
@@ -392,45 +393,8 @@ class _HomePageState extends State<GamePage> {
                       ),
                     )
                   else
-                    // TeamCompWidget(club),
-                    DefaultTabController(
-                      length: 2, // Number of tabs for the inner TabController
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TabBar(
-                            tabs: [
-                              /// Teamcomp tab
-                              buildTabWithIcon(
-                                icon: iconTeamComp,
-                                iconColor: club.selectedTeamComp!.errors == null
-                                    ? Colors.green
-                                    : Colors.red,
-                                text: 'TeamComp',
-                              ),
-
-                              /// Orders tab
-                              buildTabWithIcon(
-                                  icon: Icons.multiple_stop,
-                                  text:
-                                      'Orders (${club.selectedTeamComp!.subs.length})'),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              children: [
-                                /// Teamcomp tab
-                                TeamCompTab(club: club),
-                                // Text('TeamComp'),
-
-                                /// Orders tab
-                                club.selectedTeamComp!.getOrdersWidget(context),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    TeamCompMainTab(
+                        context, currentUser, club.selectedTeamComp),
               ],
             ),
           ),

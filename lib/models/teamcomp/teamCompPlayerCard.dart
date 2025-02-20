@@ -5,7 +5,9 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
+import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerPosition.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/postgresql_requests.dart';
@@ -33,13 +35,50 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
   Widget build(BuildContext context) {
     /// If there is no player defined at this position, show an add icon
     if (widget.playerWithPosition.player == null) {
-      return Card(
-        elevation: 5.0,
-        color: Colors.black,
-        child: Icon(
-          Icons.add,
-          color: Colors.green,
-          size: iconSizeLarge,
+      return InkWell(
+        onTap: () async {
+          final Player? player = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PlayersPage(
+                playerSearchCriterias: PlayerSearchCriterias(
+                  idClub: [widget.teamComp.idClub],
+                  idPlayerRemove: widget.teamComp.playersWithPosition
+                      .map((e) => e.player?.id)
+                      .whereType<int>()
+                      .toList(),
+                ),
+                isReturningPlayer: true,
+              ),
+            ),
+          );
+          if (player != null) {
+            bool isOK = await operationInDB(
+              context,
+              'UPDATE',
+              'games_teamcomp',
+              data: {widget.playerWithPosition.database: player.id},
+              matchCriteria: {'id': widget.teamComp.id},
+            );
+            if (isOK) {
+              context.showSnackBar(
+                'Successfully added ${player.firstName} ${player.lastName} to the teamcomp',
+                icon: Icon(iconSuccessfulOperation, color: Colors.green),
+              );
+            }
+            setState(() {
+              widget.playerWithPosition.player = player;
+            });
+          }
+        },
+        child: Card(
+          elevation: 5.0,
+          color: Colors.black,
+          child: Icon(
+            Icons.add,
+            color: Colors.green,
+            size: iconSizeLarge,
+          ),
         ),
       );
     }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/subs.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/teamcomp/teamCompMainTab.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -147,6 +149,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
 
   @override
   Widget build(BuildContext context) {
+    Profile currentUser = Provider.of<UserSessionProvider>(context).user;
     return StreamBuilder<Club>(
         stream: _clubStream,
         builder: (context, snapshot) {
@@ -198,8 +201,7 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                         tabs: [
                           buildTabWithIcon(icon: Icons.save, text: 'Defaults'),
                           buildTabWithIcon(
-                              icon: Icons.save,
-                              text: 'Season ${_seasonNumber}'),
+                              icon: iconGames, text: 'Season ${_seasonNumber}'),
                         ],
                       ),
                       Expanded(
@@ -237,20 +239,16 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                             ),
                                           ],
                                         ),
-                                        // Expanded(
-                                        //   child: TabBarView(
-                                        //     children: List<Widget>.generate(
-                                        //         club.defaultTeamComps.length,
-                                        //         (index) =>
-                                        //             // club.defaultTeamComps[index]
-                                        //             //     .getMainTeamCompWidget(context),
-                                        //             TeamCompWidget(
-                                        //                 teamComp:
-                                        //                     club.defaultTeamComps[
-                                        //                         index])),
-                                        //   ),
-                                        // ),
-                                        Text('testTeamcomp')
+                                        Expanded(
+                                          child: TabBarView(
+                                            children: List<Widget>.generate(
+                                                club.defaultTeamComps.length,
+                                                (index) => TeamCompMainTab(
+                                                    context,
+                                                    currentUser,
+                                                    club.teamComps[index])),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),

@@ -148,7 +148,7 @@ class _TeamCompPageState extends State<TeamCompPage> {
             return Scaffold(
               appBar: AppBar(
                 title: Text(
-                    'TeamComp for ${club.name} for week ${club.teamComps.first.weekNumber} of season ${club.teamComps.first.seasonNumber}'),
+                    'TeamComp for ${club.name} (Week ${club.teamComps.first.weekNumber} of season ${club.teamComps.first.seasonNumber})'),
                 leading: goBackIconButton(context),
               ), //Row presentation of the game
               body: MaxWidthContainer(
@@ -169,7 +169,7 @@ class _TeamCompPageState extends State<TeamCompPage> {
                             children: [
                               // club.teamComps.first.getTeamCompWidget(context),
                               TeamCompTab(
-                                club: club,
+                                teamcomp: club.selectedTeamComp,
                               ),
                               Center(child: Text('test')),
                               Center(child: Text('test')),

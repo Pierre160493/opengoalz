@@ -32,7 +32,7 @@ class TeamComp {
   });
 
   final int id;
-  final int idGame;
+  final int? idGame;
   final int idClub;
   final int seasonNumber;
   final int weekNumber;

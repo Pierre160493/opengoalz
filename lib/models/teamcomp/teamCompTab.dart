@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/playerPosition.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
@@ -11,9 +10,9 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class TeamCompTab extends StatefulWidget {
-  final Club club;
+  final TeamComp? teamcomp;
 
-  const TeamCompTab({Key? key, required this.club}) : super(key: key);
+  const TeamCompTab({Key? key, required this.teamcomp}) : super(key: key);
 
   @override
   _TeamCompTabState createState() => _TeamCompTabState();
@@ -28,13 +27,26 @@ class _TeamCompTabState extends State<TeamCompTab> {
         (min(MediaQuery.of(context).size.width, maxWidth) ~/ 6).toDouble();
     print('width: ' + width.toString());
 
-    /// Check if a teamcomp is selected
-    if (widget.club.selectedTeamComp == null) {
+    if (widget.teamcomp == null) {
       return Center(
-        child: Text('No teamcomp selected'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(iconBug, color: Colors.red, size: iconSizeLarge),
+            formSpacer12,
+            Text(
+              'No teamcomp selected',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 24,
+                decoration: TextDecoration.none,
+              ),
+            ),
+          ],
+        ),
       );
     }
-    TeamComp selectedTeamcomp = widget.club.selectedTeamComp!;
+    TeamComp selectedTeamcomp = widget.teamcomp!;
 
     return Container(
       decoration: BoxDecoration(
@@ -104,7 +116,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                             'Edit notes for players based on their position',
                                             style: styleItalicBlueGrey),
                                         onTap: () async {
-                                          await widget.club.teamComps.first
+                                          await selectedTeamcomp
                                               .updatePlayerNotesToDefaultBasedOnPos(
                                                   context,
                                                   updateSmallNotes: true);
@@ -114,7 +126,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                           icon: Icon(iconShirt,
                                               color: Colors.orange),
                                           onPressed: () async {
-                                            await widget.club.teamComps.first
+                                            await selectedTeamcomp
                                                 .updatePlayerNotesToDefaultBasedOnPos(
                                                     context,
                                                     updateSmallNotes: true,
@@ -137,7 +149,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                             'Update shirt number for players based on their position',
                                             style: styleItalicBlueGrey),
                                         onTap: () async {
-                                          await widget.club.teamComps.first
+                                          await selectedTeamcomp
                                               .updatePlayerNotesToDefaultBasedOnPos(
                                                   context,
                                                   updateShirtNumber: true);
@@ -147,7 +159,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                           icon: Icon(Icons.edit_note,
                                               color: Colors.orange),
                                           onPressed: () async {
-                                            await widget.club.teamComps.first
+                                            await selectedTeamcomp
                                                 .updatePlayerNotesToDefaultBasedOnPos(
                                                     context,
                                                     updateSmallNotes: true,
@@ -179,8 +191,8 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                               'FUNCTION',
                                               'teamcomp_copy_previous',
                                               data: {
-                                                'inp_id_teamcomp': widget
-                                                    .club.selectedTeamComp!.id,
+                                                'inp_id_teamcomp':
+                                                    selectedTeamcomp.id,
                                                 'inp_season_number': -999
                                               }); // Use index to modify id
                                           if (isOK) {
@@ -214,8 +226,8 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                                 'FUNCTION',
                                                 'teamcomp_copy_previous',
                                                 data: {
-                                                  'inp_id_teamcomp': widget.club
-                                                      .selectedTeamComp!.id,
+                                                  'inp_id_teamcomp':
+                                                      selectedTeamcomp.id,
                                                   'inp_week_number': index + 1
                                                 }); // Use index to modify id
                                             if (isOK) {
@@ -329,79 +341,92 @@ class _TeamCompTabState extends State<TeamCompTab> {
         Center(
           child: SvgPicture.asset(
             'assets/images/Football_field_half++.svg',
-            // 'assets/images/Football_field.svg',
             width: 6 * width,
           ),
         ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            formSpacer12, // Add spacing between rows
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: selectedTeamcomp.playersWithPosition
-                  .where((PlayerWithPosition playerWithPosition) =>
-                      playerWithPosition.type == 'Attack')
-                  .map((PlayerWithPosition playerWithPosition) => Padding(
-                        padding: EdgeInsets.symmetric(horizontal: width / 12),
-                        child: TeamCompPlayerCard(
-                          context: context,
-                          width: width,
-                          playerWithPosition: playerWithPosition,
-                          teamComp: selectedTeamcomp,
-                        ),
-                      ))
-                  .toList(),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: selectedTeamcomp.playersWithPosition
-                  .where((PlayerWithPosition playerWithPosition) =>
-                      playerWithPosition.type == 'Midfield')
-                  .map((PlayerWithPosition playerWithPosition) => Padding(
-                        padding: EdgeInsets.symmetric(horizontal: width / 12),
-                        child: TeamCompPlayerCard(
-                          context: context,
-                          width: width,
-                          playerWithPosition: playerWithPosition,
-                          teamComp: selectedTeamcomp,
-                        ),
-                      ))
-                  .toList(),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: selectedTeamcomp.playersWithPosition
-                  .where((PlayerWithPosition playerWithPosition) =>
-                      playerWithPosition.type == 'Defense')
-                  .map((PlayerWithPosition playerWithPosition) => Padding(
-                        padding: EdgeInsets.symmetric(horizontal: width / 12),
-                        child: TeamCompPlayerCard(
-                          context: context,
-                          width: width,
-                          playerWithPosition: playerWithPosition,
-                          teamComp: selectedTeamcomp,
-                        ),
-                      ))
-                  .toList(),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: selectedTeamcomp.playersWithPosition
-                  .where((PlayerWithPosition playerWithPosition) =>
-                      playerWithPosition.type == 'Keeper')
-                  .map((PlayerWithPosition playerWithPosition) => Padding(
-                        padding: EdgeInsets.symmetric(horizontal: width / 12),
-                        child: TeamCompPlayerCard(
-                          context: context,
-                          width: width,
-                          playerWithPosition: playerWithPosition,
-                          teamComp: selectedTeamcomp,
-                        ),
-                      ))
-                  .toList(),
-            ),
-          ],
+        Positioned(
+          top: 0 * width, // 1/8th from the top
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: selectedTeamcomp.playersWithPosition
+                .where((PlayerWithPosition playerWithPosition) =>
+                    playerWithPosition.type == 'Attack')
+                .map((PlayerWithPosition playerWithPosition) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width / 12),
+                      child: TeamCompPlayerCard(
+                        context: context,
+                        width: width,
+                        playerWithPosition: playerWithPosition,
+                        teamComp: selectedTeamcomp,
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+        Positioned(
+          top: 1.5 * width, // 1/4th from the top
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: selectedTeamcomp.playersWithPosition
+                .where((PlayerWithPosition playerWithPosition) =>
+                    playerWithPosition.type == 'Midfield')
+                .map((PlayerWithPosition playerWithPosition) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width / 12),
+                      child: TeamCompPlayerCard(
+                        context: context,
+                        width: width,
+                        playerWithPosition: playerWithPosition,
+                        teamComp: selectedTeamcomp,
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+        Positioned(
+          top: 3 * width, // 2.5th from the top
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: selectedTeamcomp.playersWithPosition
+                .where((PlayerWithPosition playerWithPosition) =>
+                    playerWithPosition.type == 'Defense')
+                .map((PlayerWithPosition playerWithPosition) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width / 12),
+                      child: TeamCompPlayerCard(
+                        context: context,
+                        width: width,
+                        playerWithPosition: playerWithPosition,
+                        teamComp: selectedTeamcomp,
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+        Positioned(
+          top: 4.25 * width, // 1.5th from the top
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: selectedTeamcomp.playersWithPosition
+                .where((PlayerWithPosition playerWithPosition) =>
+                    playerWithPosition.type == 'Keeper')
+                .map((PlayerWithPosition playerWithPosition) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width / 12),
+                      child: TeamCompPlayerCard(
+                        context: context,
+                        width: width,
+                        playerWithPosition: playerWithPosition,
+                        teamComp: selectedTeamcomp,
+                      ),
+                    ))
+                .toList(),
+          ),
         ),
       ],
     );
