@@ -328,93 +328,80 @@ class _TeamCompTabState extends State<TeamCompTab> {
       children: [
         Center(
           child: SvgPicture.asset(
-            'assets/images/Football_field_half.svg',
+            'assets/images/Football_field_half++.svg',
+            // 'assets/images/Football_field.svg',
             width: 6 * width,
           ),
         ),
-        Positioned(
-          top: width * 0.5,
-          left: 0,
-          right: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: selectedTeamcomp.playersWithPosition
-                .where((PlayerWithPosition playerWithPosition) =>
-                    playerWithPosition.type == 'Attack')
-                .map((PlayerWithPosition playerWithPosition) => Padding(
-                      padding: EdgeInsets.symmetric(horizontal: width / 12),
-                      child: TeamCompPlayerCard(
-                        context: context,
-                        width: width,
-                        playerWithPosition: playerWithPosition,
-                        teamComp: selectedTeamcomp,
-                      ),
-                    ))
-                .toList(),
-          ),
-        ),
-        Positioned(
-          top: width * 1.5,
-          left: 0,
-          right: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: selectedTeamcomp.playersWithPosition
-                .where((PlayerWithPosition playerWithPosition) =>
-                    playerWithPosition.type == 'Midfield')
-                .map((PlayerWithPosition playerWithPosition) => Padding(
-                      padding: EdgeInsets.symmetric(horizontal: width / 12),
-                      child: TeamCompPlayerCard(
-                        context: context,
-                        width: width,
-                        playerWithPosition: playerWithPosition,
-                        teamComp: selectedTeamcomp,
-                      ),
-                    ))
-                .toList(),
-          ),
-        ),
-        Positioned(
-          top: width * 2.5,
-          left: 0,
-          right: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: selectedTeamcomp.playersWithPosition
-                .where((PlayerWithPosition playerWithPosition) =>
-                    playerWithPosition.type == 'Defense')
-                .map((PlayerWithPosition playerWithPosition) => Padding(
-                      padding: EdgeInsets.symmetric(horizontal: width / 12),
-                      child: TeamCompPlayerCard(
-                        context: context,
-                        width: width,
-                        playerWithPosition: playerWithPosition,
-                        teamComp: selectedTeamcomp,
-                      ),
-                    ))
-                .toList(),
-          ),
-        ),
-        Positioned(
-          top: width * 3.5,
-          left: 0,
-          right: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: selectedTeamcomp.playersWithPosition
-                .where((PlayerWithPosition playerWithPosition) =>
-                    playerWithPosition.type == 'Keeper')
-                .map((PlayerWithPosition playerWithPosition) => Padding(
-                      padding: EdgeInsets.symmetric(horizontal: width / 12),
-                      child: TeamCompPlayerCard(
-                        context: context,
-                        width: width,
-                        playerWithPosition: playerWithPosition,
-                        teamComp: selectedTeamcomp,
-                      ),
-                    ))
-                .toList(),
-          ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            formSpacer12, // Add spacing between rows
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: selectedTeamcomp.playersWithPosition
+                  .where((PlayerWithPosition playerWithPosition) =>
+                      playerWithPosition.type == 'Attack')
+                  .map((PlayerWithPosition playerWithPosition) => Padding(
+                        padding: EdgeInsets.symmetric(horizontal: width / 12),
+                        child: TeamCompPlayerCard(
+                          context: context,
+                          width: width,
+                          playerWithPosition: playerWithPosition,
+                          teamComp: selectedTeamcomp,
+                        ),
+                      ))
+                  .toList(),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: selectedTeamcomp.playersWithPosition
+                  .where((PlayerWithPosition playerWithPosition) =>
+                      playerWithPosition.type == 'Midfield')
+                  .map((PlayerWithPosition playerWithPosition) => Padding(
+                        padding: EdgeInsets.symmetric(horizontal: width / 12),
+                        child: TeamCompPlayerCard(
+                          context: context,
+                          width: width,
+                          playerWithPosition: playerWithPosition,
+                          teamComp: selectedTeamcomp,
+                        ),
+                      ))
+                  .toList(),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: selectedTeamcomp.playersWithPosition
+                  .where((PlayerWithPosition playerWithPosition) =>
+                      playerWithPosition.type == 'Defense')
+                  .map((PlayerWithPosition playerWithPosition) => Padding(
+                        padding: EdgeInsets.symmetric(horizontal: width / 12),
+                        child: TeamCompPlayerCard(
+                          context: context,
+                          width: width,
+                          playerWithPosition: playerWithPosition,
+                          teamComp: selectedTeamcomp,
+                        ),
+                      ))
+                  .toList(),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: selectedTeamcomp.playersWithPosition
+                  .where((PlayerWithPosition playerWithPosition) =>
+                      playerWithPosition.type == 'Keeper')
+                  .map((PlayerWithPosition playerWithPosition) => Padding(
+                        padding: EdgeInsets.symmetric(horizontal: width / 12),
+                        child: TeamCompPlayerCard(
+                          context: context,
+                          width: width,
+                          playerWithPosition: playerWithPosition,
+                          teamComp: selectedTeamcomp,
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
         ),
       ],
     );

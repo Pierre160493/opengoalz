@@ -6,6 +6,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/playerPosition.dart';
+import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 
@@ -30,22 +31,23 @@ class TeamCompPlayerCard extends StatefulWidget {
 class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
   @override
   Widget build(BuildContext context) {
+    /// If there is no player defined at this position, show an add icon
     if (widget.playerWithPosition.player == null) {
-      return Icon(
-        Icons.add,
-        color: Colors.red,
-        size: iconSizeLarge,
+      return Card(
+        elevation: 5.0,
+        color: Colors.black,
+        child: Icon(
+          Icons.add,
+          color: Colors.green,
+          size: iconSizeLarge,
+        ),
       );
     }
     Player player = widget.playerWithPosition.player!;
     Player? selectedPlayerForSubstitution =
         widget.teamComp.selectedPlayerForSubstitution;
-
-    return Icon(
-      Icons.error,
-      color: Colors.red,
-      size: iconSizeLarge,
-    );
+    int? idSelectedPlayerForSubstitution =
+        widget.teamComp.selectedPlayerForSubstitution?.id;
 
     return InkWell(
       onTap: () async {
@@ -70,7 +72,7 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
                       ? 'Select ${player.firstName} ${player.lastName} for substitution'
                       : 'Substitute with ${selectedPlayerForSubstitution.firstName} ${selectedPlayerForSubstitution.lastName}'),
                   onPressed: () async {
-                    if (selectedPlayerForSubstitution.id == player.id) {
+                    if (idSelectedPlayerForSubstitution == player.id) {
                       context.showSnackBarError(
                         'You cannot substitute a player with himself !',
                       );
@@ -194,7 +196,7 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
                             context, 'INSERT', 'game_orders',
                             data: {
                               'id_teamcomp': widget.teamComp.id,
-                              'id_player_out': selectedPlayerForSubstitution.id,
+                              'id_player_out': idSelectedPlayerForSubstitution,
                               'id_player_in': player.id,
                               'minute': minuteController.text.isEmpty
                                   ? null
@@ -205,7 +207,7 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
                             });
                         if (isOK) {
                           context.showSnackBar(
-                              'Successfully set substitution of ${selectedPlayerForSubstitution.firstName} ${selectedPlayerForSubstitution.lastName} with ${player.firstName} ${player.lastName}',
+                              'Successfully set substitution of ${selectedPlayerForSubstitution!.firstName} ${selectedPlayerForSubstitution.lastName} with ${player.firstName} ${player.lastName}',
                               icon: Icon(iconSuccessfulOperation,
                                   color: Colors.green));
                         }
@@ -248,9 +250,9 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
         width: widget.width,
         height: widget.width * 1.2,
         child: Card(
-          color: selectedPlayerForSubstitution!.id == player.id
+          color: idSelectedPlayerForSubstitution == player.id
               ? Colors.amber
-              : Colors.green,
+              : Colors.black54,
           elevation: 3.0,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -265,10 +267,13 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    player.getPlayerIcon(),
-                    size: iconSizeLarge,
-                  ),
+                  player.gamePlayerStatsBest != null
+                      ? buildStarIcon(
+                          player.gamePlayerStatsBest!.stars, iconSizeLarge)
+                      : Icon(
+                          player.getPlayerIcon(),
+                          size: iconSizeLarge,
+                        ),
                   player.getPlayerNameToolTip(context),
                 ],
               ),

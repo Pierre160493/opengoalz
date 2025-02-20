@@ -206,13 +206,14 @@ extension PlayerWidgetsHelper on Player {
 
   Widget getAgeWidgetSmall() {
     return Tooltip(
-      message:
-          // '${age.truncate().toString()} & ${((age - age.truncate()) * (7 * 14 / multiverseSpeed)).floor().toString()} days',
-          '${age.truncate().toString()} & ${(age - age.truncate()).floor().toString()} days',
+      message: getAgeString(age),
       child: Row(
         children: [
-          Icon(iconAge, size: iconSizeSmall),
-          Text(age.toStringAsFixed(1)),
+          Icon(iconAge, size: iconSizeSmall, color: Colors.green),
+          Text(
+            age.toStringAsFixed(0),
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );

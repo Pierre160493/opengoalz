@@ -215,34 +215,43 @@ class _HomePageState extends State<GamePage> {
         /// If the game is played, fetch the players stats
         .switchMap((Game game) {
           print('GameId10: ${game.id}');
-          return supabase
-              .from('game_player_stats_best')
-              .stream(primaryKey: ['id'])
-              .eq('id_game', game.id)
-              .map((maps) =>
-                  maps.map((map) => GamePlayerStatsBest.fromMap(map)).toList())
-              .map((List<GamePlayerStatsBest> gamePlayerStatsBest) {
-                for (GamePlayerStatsBest gamePlayerStat
-                    in gamePlayerStatsBest) {
-                  try {
-                    game.leftClub.selectedTeamComp!.playersWithPosition
-                        .firstWhere((PlayerWithPosition playerWithPosition) =>
-                            playerWithPosition.player!.id ==
-                            gamePlayerStat.idPlayer);
-                  } catch (e) {
-                    // Do nothing if not found
+          if (game.isPlaying == false) {
+            return supabase
+                .from('game_player_stats_best')
+                .stream(primaryKey: ['id'])
+                .eq('id_game', game.id)
+                .map((maps) => maps
+                    .map((map) => GamePlayerStatsBest.fromMap(map))
+                    .toList())
+                .map((List<GamePlayerStatsBest> gamePlayerStatsBest) {
+                  print(
+                      "Number of players found for: gamePlayerStatsBest: ${gamePlayerStatsBest.length}");
+
+                  // Create a map of player IDs to PlayerWithPosition objects for faster lookup
+                  final playerMap = {
+                    for (var playerWithPosition in [
+                      ...game.leftClub.selectedTeamComp!.playersWithPosition,
+                      ...game.rightClub.selectedTeamComp!.playersWithPosition
+                    ])
+                      playerWithPosition.id: playerWithPosition
+                  };
+
+                  // Loop through the players and check if they are in the teamcomp
+                  for (GamePlayerStatsBest gamePlayerStat
+                      in gamePlayerStatsBest) {
+                    // Find the player in the teamcomp and add the stats
+                    final playerWithPosition =
+                        playerMap[gamePlayerStat.idPlayer];
+                    if (playerWithPosition != null) {
+                      playerWithPosition.player!.gamePlayerStatsBest =
+                          gamePlayerStat;
+                    }
                   }
-                  try {
-                    game.rightClub.selectedTeamComp!.playersWithPosition
-                        .firstWhere((PlayerWithPosition playerWithPosition) =>
-                            playerWithPosition.player!.id ==
-                            gamePlayerStat.idPlayer);
-                  } catch (e) {
-                    // Do nothing if not found
-                  }
-                }
-                return game;
-              });
+                  return game;
+                });
+          } else {
+            return Stream.value(game);
+          }
         });
   }
 

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="740" height="1110" viewBox="0 0 74 111">
+<!-- <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="740" height="1110" viewBox="0 0 74 111"> -->
+<!-- <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="740" height="555" viewBox="0 55.5 74 55.5"> -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="740" height="670" viewBox="0 44.4 74 67">
   <!-- Green background representing the field -->
   <rect id="" width="74" height="111" fill="#00a000"/>
   <!-- Darker green stripes to represent cut grass -->
-  <rect width="74" height="11.1" y="0" fill="#008000" opacity="0.5"/>
-  <rect width="74" height="11.1" y="22.2" fill="#008000" opacity="0.5"/>
   <rect width="74" height="11.1" y="44.4" fill="#008000" opacity="0.5"/>
   <rect width="74" height="11.1" y="66.6" fill="#008000" opacity="0.5"/>
   <rect width="74" height="11.1" y="88.8" fill="#008000" opacity="0.5"/>
@@ -26,7 +26,10 @@
       <circle id="Penalty mark" r="0.75" cx="34" cy="10.94" fill="#fff" stroke="none"/>
       <!-- Penalty arc at the edge of the penalty area -->
       <path id="Penalty arc" d="M 26.733027 16.5 a 9.15 9.15 0 0 0 14.533946 0"/>
+      <!-- Mirror the penalty area for the other half of the field -->
+      <use xlink:href="#Penalty area" transform="rotate(180,34,52.5)" />
     </g>
+    <!-- Corner arcs at each corner of the field -->
     <!-- Mirror the penalty area for the other half of the field -->
     <use xlink:href="#Penalty area" transform="rotate(180,34,52.5)" />
     <!-- Corner arcs at each corner of the field -->

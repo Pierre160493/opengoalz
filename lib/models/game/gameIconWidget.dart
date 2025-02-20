@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/functions/positionString.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsDialog.dart';
+import 'package:opengoalz/models/playerStatsBest.dart';
 
 Widget getGameIcon(BuildContext context, Game game) {
   /// If this is the game for a given player, display his best stars obtained in the game
@@ -16,28 +17,8 @@ Widget getGameIcon(BuildContext context, Game game) {
               builder: (context) => buildPlayerStatsDialog(context, game),
             );
           },
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Icon(
-                Icons.star,
-                size: 60,
-                color: Colors.yellow,
-              ),
-              Positioned(
-                top: 10,
-                child: Text(
-                  game.playerGameBestStats!.gamePlayerStatsBest!.stars
-                      .toString(),
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
+          child: buildStarIcon(
+              game.playerGameBestStats!.gamePlayerStatsBest!.stars, 60),
         ),
         Tooltip(
           message: getPositionText(

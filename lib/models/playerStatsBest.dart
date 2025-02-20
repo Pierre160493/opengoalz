@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:opengoalz/models/game/gameWeights/gameWeights.dart';
 
 class GamePlayerStatsBest {
@@ -36,4 +37,28 @@ class GamePlayerStatsBest {
       isLeftClubPlayer: map['is_left_club_player'],
     );
   }
+}
+
+Widget buildStarIcon(int stars, double iconSize) {
+  return Stack(
+    alignment: Alignment.center,
+    children: [
+      Icon(
+        Icons.star,
+        size: iconSize,
+        color: Colors.yellow,
+      ),
+      Positioned(
+        top: 10,
+        child: Text(
+          stars.toString(),
+          style: TextStyle(
+            fontSize: iconSize / 3,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    ],
+  );
 }
