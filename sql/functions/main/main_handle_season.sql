@@ -292,7 +292,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
             DELETE FROM game_player_stats_all WHERE id_game IN (
                 SELECT id FROM games 
                 WHERE id_multiverse = inp_multiverse.id
-                AND season_number < inp_multiverse.season_number - 2);
+                AND season_number < inp_multiverse.season_number); -- Keep only last season stats
 
             ---- Delete the old games_teamcomp ==> games_orders
             DELETE FROM games_teamcomp
