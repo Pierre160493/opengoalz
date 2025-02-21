@@ -283,25 +283,6 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                 );
 
             END LOOP;
-
-            ------ Clean the old games
-            ---- Delete the old games ==> And game_stats, game_events
-            DELETE FROM games WHERE id_multiverse = inp_multiverse.id AND season_number < inp_multiverse.season_number - 30;
-            
-            ---- Delete the game_player_stats_all because it takes too much space
-            DELETE FROM game_player_stats_all WHERE id_game IN (
-                SELECT id FROM games 
-                WHERE id_multiverse = inp_multiverse.id
-                AND season_number < inp_multiverse.season_number); -- Keep only last season stats
-
-            ---- Delete the old games_teamcomp ==> games_orders
-            DELETE FROM games_teamcomp
-            USING clubs
-                WHERE games_teamcomp.id_club = clubs.id
-                AND clubs.id_multiverse = inp_multiverse.id
-                AND games_teamcomp.season_number < inp_multiverse.season_number - 30
-                AND games_teamcomp.season_number > 0;
-
         ELSE
     END CASE;
 

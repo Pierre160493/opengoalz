@@ -123,30 +123,6 @@ BEGIN
         COMMIT;
     END LOOP; -- End of the loop through the multiverses
 
-    ------ Cleanup
-    ---- Delete mails that must be deleted
-    DELETE FROM mails WHERE now() > date_delete;
-
-    ---- Delete mails if more than 900 mails per club
-    WITH ranked_mails AS (
-        SELECT
-            id,
-            ROW_NUMBER() OVER (PARTITION BY id_club_to ORDER BY created_at DESC) AS rn
-        FROM mails
-        WHERE is_favorite = FALSE
-    )
-    DELETE FROM mails
-    WHERE id IN (
-        SELECT id
-        FROM ranked_mails
-        WHERE rn > 900
-    );    
-
-    ------ Delete the players poaching
-    DELETE FROM players_poaching
-    WHERE to_delete = TRUE
-    AND affinity < 0;
-
     RAISE NOTICE '************ END MAIN !!!';
     -- RAISE EXCEPTION '************ END MAIN !!!';
 END;
