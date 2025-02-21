@@ -398,14 +398,9 @@ class _HomePageState extends State<GamesPage> {
             itemBuilder: (context, index) {
               return InkWell(
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => TeamCompPage(
-                        idClub: club.id,
-                        seasonNumber: club.teamComps[index].seasonNumber,
-                        weekNumber: club.teamComps[index].weekNumber,
-                      ),
-                    ),
+                  Navigator.push(
+                    context,
+                    TeamCompPage.routeWithId(club.teamComps[index].id),
                   );
                 },
                 child: ListTile(
