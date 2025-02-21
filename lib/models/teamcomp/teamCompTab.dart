@@ -326,8 +326,8 @@ class _TeamCompTabState extends State<TeamCompTab> {
             _getStartingTeam(context, selectedTeamcomp, width),
             // Text('_getStartingTeam(context, width)'),
             formSpacer12, // Add spacing between rows
-            // _getSubstitutes(context, selectedTeamcomp, width)
-            Text('getSubstitutes(context, width)')
+            _getSubstitutes(context, selectedTeamcomp, width)
+            // Text('getSubstitutes(context, width)')
           ],
         ),
       ),
@@ -345,24 +345,28 @@ class _TeamCompTabState extends State<TeamCompTab> {
           ),
         ),
         Positioned(
-          top: 0 * width, // 1/8th from the top
+          top: 0.05 * width, // 1/8th from the top
           left: 0,
           right: 0,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: selectedTeamcomp.playersWithPosition
-                .where((PlayerWithPosition playerWithPosition) =>
-                    playerWithPosition.type == 'Attack')
-                .map((PlayerWithPosition playerWithPosition) => Padding(
-                      padding: EdgeInsets.symmetric(horizontal: width / 12),
-                      child: TeamCompPlayerCard(
-                        context: context,
-                        width: width,
-                        playerWithPosition: playerWithPosition,
-                        teamComp: selectedTeamcomp,
-                      ),
-                    ))
-                .toList(),
+            children: [
+              SizedBox(width: width),
+              ...selectedTeamcomp.playersWithPosition
+                  .where((PlayerWithPosition playerWithPosition) =>
+                      playerWithPosition.type == 'Attack')
+                  .map((PlayerWithPosition playerWithPosition) => Padding(
+                        padding: EdgeInsets.symmetric(horizontal: width / 12),
+                        child: TeamCompPlayerCard(
+                          context: context,
+                          width: width,
+                          playerWithPosition: playerWithPosition,
+                          teamComp: selectedTeamcomp,
+                        ),
+                      ))
+                  .toList(),
+              SizedBox(width: width),
+            ],
           ),
         ),
         Positioned(
@@ -408,7 +412,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
           ),
         ),
         Positioned(
-          top: 4.25 * width, // 1.5th from the top
+          top: 4.2 * width, // 1.5th from the top
           left: 0,
           right: 0,
           child: Row(
@@ -432,43 +436,71 @@ class _TeamCompTabState extends State<TeamCompTab> {
     );
   }
 
-  // Widget _getSubstitutes(
-  //     BuildContext context, TeamComp selectedTeamcomp, double width) {
-  //   return Column(
-  //     children: [
-  //       Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           Column(
-  //             children: [
-  //               Text('Substitutes'),
-  //               Icon(Icons.weekend, size: iconSizeLarge),
-  //             ],
-  //           ),
-  //           SizedBox(width: 6.0),
-  //           _playerTeamCompCard(
-  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 1')),
-  //           _playerTeamCompCard(
-  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 2')),
-  //           _playerTeamCompCard(
-  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 3')),
-  //         ],
-  //       ),
-  //       const SizedBox(height: 16.0), // Add spacing between rows
-  //       Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           _playerTeamCompCard(
-  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 4')),
-  //           _playerTeamCompCard(
-  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 5')),
-  //           _playerTeamCompCard(
-  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 6')),
-  //           _playerTeamCompCard(
-  //               context, width, selectedTeamcomp.getPlayerMapByName('Sub 7')),
-  //         ],
-  //       ),
-  //     ],
-  //   );
-  // }
+  Widget _getSubstitutes(
+      BuildContext context, TeamComp selectedTeamcomp, double width) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              children: [
+                Text('Substitutes'),
+                Icon(Icons.weekend, size: iconSizeLarge),
+              ],
+            ),
+            SizedBox(width: 6.0),
+            TeamCompPlayerCard(
+                context: context,
+                width: width,
+                playerWithPosition:
+                    selectedTeamcomp.getPlayerMapByName('Sub 1'),
+                teamComp: selectedTeamcomp),
+            TeamCompPlayerCard(
+                context: context,
+                width: width,
+                playerWithPosition:
+                    selectedTeamcomp.getPlayerMapByName('Sub 2'),
+                teamComp: selectedTeamcomp),
+            TeamCompPlayerCard(
+                context: context,
+                width: width,
+                playerWithPosition:
+                    selectedTeamcomp.getPlayerMapByName('Sub 3'),
+                teamComp: selectedTeamcomp),
+          ],
+        ),
+        const SizedBox(height: 16.0), // Add spacing between rows
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TeamCompPlayerCard(
+                context: context,
+                width: width,
+                playerWithPosition:
+                    selectedTeamcomp.getPlayerMapByName('Sub 4'),
+                teamComp: selectedTeamcomp),
+            TeamCompPlayerCard(
+                context: context,
+                width: width,
+                playerWithPosition:
+                    selectedTeamcomp.getPlayerMapByName('Sub 5'),
+                teamComp: selectedTeamcomp),
+            TeamCompPlayerCard(
+                context: context,
+                width: width,
+                playerWithPosition:
+                    selectedTeamcomp.getPlayerMapByName('Sub 6'),
+                teamComp: selectedTeamcomp),
+            TeamCompPlayerCard(
+                context: context,
+                width: width,
+                playerWithPosition:
+                    selectedTeamcomp.getPlayerMapByName('Sub 7'),
+                teamComp: selectedTeamcomp),
+          ],
+        ),
+      ],
+    );
+  }
 }

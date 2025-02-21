@@ -73,7 +73,7 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
         },
         child: Card(
           elevation: 5.0,
-          color: Colors.black,
+          color: Colors.grey[850],
           child: Icon(
             Icons.add,
             color: Colors.green,
@@ -291,7 +291,8 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
         child: Card(
           color: idSelectedPlayerForSubstitution == player.id
               ? Colors.amber
-              : Colors.black54,
+              // : Colors.black54,
+              : Colors.grey[850],
           elevation: 3.0,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
