@@ -424,7 +424,6 @@ class _HomePageState extends State<GamesPage> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 14,
                             color: Colors.blueGrey,
                             fontStyle: FontStyle.italic,
                           ),
