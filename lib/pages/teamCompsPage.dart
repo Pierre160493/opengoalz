@@ -51,104 +51,100 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
 
   void _loadClubStream() {
     _clubStream = supabase
-            .from('clubs')
-            .stream(primaryKey: ['id'])
-            .eq('id', widget.idClub)
-            .map((maps) => maps.map((map) => Club.fromMap(map)).first)
-            .switchMap((Club club) {
-              print('Club: ${club.name}');
-              return supabase
-                  .from('games_teamcomp')
-                  .stream(primaryKey: ['id'])
-                  .eq('id_club', club.id)
-                  .map((maps) =>
-                      maps.map((map) => TeamComp.fromMap(map)).toList())
-                  .map((List<TeamComp> teamComps) {
-                    /// Clear the lists otherwise when stream emits new data, the new teamcomps are appended
-                    club.defaultTeamComps.clear();
-                    club.teamComps.clear();
+        .from('clubs')
+        .stream(primaryKey: ['id'])
+        .eq('id', widget.idClub)
+        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+        .switchMap((Club club) {
+          print('Club: ${club.name}');
+          return supabase
+              .from('games_teamcomp')
+              .stream(primaryKey: ['id'])
+              .eq('id_club', club.id)
+              .map((maps) => maps.map((map) => TeamComp.fromMap(map)).toList())
+              .map((List<TeamComp> teamComps) {
+                /// Clear the lists otherwise when stream emits new data, the new teamcomps are appended
+                club.defaultTeamComps.clear();
+                club.teamComps.clear();
 
-                    /// Set all the teamComps
-                    for (TeamComp teamComp in teamComps.where(
-                        (TeamComp teamcomp) => teamcomp.seasonNumber == 0)) {
-                      club.defaultTeamComps.add(teamComp);
-                    }
+                /// Set all the teamComps
+                for (TeamComp teamComp in teamComps
+                    .where((TeamComp teamcomp) => teamcomp.seasonNumber == 0)) {
+                  club.defaultTeamComps.add(teamComp);
+                }
 
-                    /// Set the games teamcomps
-                    for (TeamComp teamComp in teamComps.where(
-                        (TeamComp teamcomp) =>
-                            teamcomp.seasonNumber == _seasonNumber)) {
-                      club.teamComps.add(teamComp);
-                    }
+                /// Set the games teamcomps
+                for (TeamComp teamComp in teamComps.where((TeamComp teamcomp) =>
+                    teamcomp.seasonNumber == _seasonNumber)) {
+                  club.teamComps.add(teamComp);
+                }
 
-                    /// Sort
-                    club.defaultTeamComps
-                        .sort((a, b) => a.weekNumber.compareTo(b.weekNumber));
-                    club.teamComps
-                        .sort((a, b) => a.weekNumber.compareTo(b.weekNumber));
-                    return club;
-                  });
-            })
-            .switchMap((Club club) {
-              return supabase
-                  .from('players')
-                  .stream(primaryKey: ['id'])
-                  .inFilter(
-                      'id',
-                      [
-                        ...club.teamComps
-                            .expand((TeamComp teamComp) =>
-                                teamComp.playersIdToListOfInt())
-                            .where((id) => id != null)
-                            .cast<Object>(),
-                        ...club.defaultTeamComps
-                            .expand((TeamComp teamComp) =>
-                                teamComp.playersIdToListOfInt())
-                            .where((id) => id != null)
-                            .cast<Object>()
-                      ].toSet().toList())
-                  .map((maps) => maps
-                      .map((map) => Player.fromMap(
-                          map,
-                          Provider.of<UserSessionProvider>(context,
-                                  listen: false)
-                              .user))
-                      .toList())
-                  .map((players) {
-                    print('Number players: ${players.length}');
-                    for (TeamComp teamComp
-                        in club.teamComps + club.defaultTeamComps) {
-                      teamComp.initPlayers(players);
-                    }
-                    return club;
-                  });
-            })
-        // .switchMap((Club club) {
-        //   return supabase
-        //       .from('game_orders')
-        //       .stream(primaryKey: ['id'])
-        //       .inFilter(
-        //           'id_teamcomp',
-        //           [
-        //             ...club.defaultTeamComps
-        //                 .map((teamComp) => teamComp.id)
-        //                 .toList(),
-        //             ...club.teamComps.map((teamComp) => teamComp.id).toList(),
-        //           ].toSet().toList())
-        //       .order('minute', ascending: true)
-        //       .map((maps) => maps.map((map) => GameSub.fromMap(map)).toList())
-        //       .map((subs) {
-        //         print('Number subs: ${subs.length}');
-        //         // for (TeamComp teamComp
-        //         //     in club.teamComps + club.defaultTeamComps) {
-        //         //   teamComp.subs = subs
-        //         //       .where((sub) => sub.idTeamComp == teamComp.id)
-        //         //       .toList();
-        //         // }
-        //         return club;
-        //       });
-        // }
-        ;
+                /// Sort
+                club.defaultTeamComps
+                    .sort((a, b) => a.weekNumber.compareTo(b.weekNumber));
+                club.teamComps
+                    .sort((a, b) => a.weekNumber.compareTo(b.weekNumber));
+                return club;
+              });
+        })
+        .switchMap((Club club) {
+          return supabase
+              .from('players')
+              .stream(primaryKey: ['id'])
+              .inFilter(
+                  'id',
+                  [
+                    ...club.teamComps
+                        .expand((TeamComp teamComp) =>
+                            teamComp.playersIdToListOfInt())
+                        .where((id) => id != null)
+                        .cast<Object>(),
+                    ...club.defaultTeamComps
+                        .expand((TeamComp teamComp) =>
+                            teamComp.playersIdToListOfInt())
+                        .where((id) => id != null)
+                        .cast<Object>()
+                  ].toSet().toList())
+              .map((maps) => maps
+                  .map((map) => Player.fromMap(
+                      map,
+                      Provider.of<UserSessionProvider>(context, listen: false)
+                          .user))
+                  .toList())
+              .map((players) {
+                print('Number players: ${players.length}');
+                for (TeamComp teamComp
+                    in club.teamComps + club.defaultTeamComps) {
+                  teamComp.initPlayers(players);
+                }
+                return club;
+              });
+        })
+        .switchMap((Club club) {
+          return supabase
+              .from('game_orders')
+              .stream(primaryKey: ['id'])
+              .inFilter(
+                  'id_teamcomp',
+                  [
+                    ...club.defaultTeamComps
+                        .map((teamComp) => teamComp.id)
+                        .toList(),
+                    ...club.teamComps.map((teamComp) => teamComp.id).toList(),
+                  ].toSet().toList())
+              .order('minute', ascending: true)
+              .map((maps) => maps.map((map) => GameSub.fromMap(map)).toList())
+              .map((subs) {
+                print('Number subs: ${subs.length}');
+                // for (TeamComp teamComp
+                //     in club.teamComps + club.defaultTeamComps) {
+                //   teamComp.subs = subs
+                //       .where((sub) => sub.idTeamComp == teamComp.id)
+                //       .toList();
+                // }
+                return club;
+              });
+        });
   }
 
   @override

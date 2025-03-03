@@ -92,7 +92,11 @@ BEGIN
                 loc_tmp + 10 * (1 + random()), -- Scoring
                 0]; -- Freekick
         ELSE
-            RAISE EXCEPTION 'Invalid shirt_number when creating a player with no stats given (must be between 1 and 17)';
+            IF inp_notes = 'Coach' THEN -- Coach
+                inp_stats := ARRAY[0, 0, 0, 0, 0, 0, 0];
+            ELSE
+                RAISE EXCEPTION 'Invalid shirt_number when creating a player with no stats given (must be between 1 and 17)';
+            END IF;
         END IF;
     END IF;
 
@@ -125,6 +129,7 @@ BEGIN
         date_birth, experience,
         date_bid_end,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
+        size, loyalty, leadership, discipline, communication, aggressivity, composure, teamWork,
         training_coef,
         shirt_number, notes, notes_small
     ) VALUES (
@@ -134,6 +139,14 @@ BEGIN
             (NOW() + (INTERVAL '6 day' / (SELECT speed FROM multiverses WHERE id = inp_id_multiverse)))
             ELSE NULL END,
         inp_stats[1], inp_stats[2], inp_stats[3], inp_stats[4], inp_stats[5], inp_stats[6], inp_stats[7],
+        ROUND(160 + 40 * (random() + random() + random() + random() + random()) / 5), -- Size
+        random() * 100, -- Loyalty
+        random() * 100, -- Leadership
+        random() * 100, -- Discipline
+        random() * 100, -- Communication
+        random() * 100, -- Aggressivity
+        random() * 100, -- Composure
+        random() * 100, -- Teamwork        
         loc_training_coef,
         inp_shirt_number,
         -- Notes (if not given use the shirt number to determine the player's position)
@@ -172,6 +185,7 @@ BEGIN
                 WHEN inp_notes = 'Youngster 1' THEN 'YOUNG1'
                 WHEN inp_notes = 'Youngster 2' THEN 'YOUNG2'
                 WHEN inp_notes = 'Young Scouted' THEN 'SCOUT'
+                WHEN inp_notes = 'Coach' THEN 'COACH'
                 ELSE 'None1?' END
             WHEN inp_shirt_number IS NOT NULL THEN
             CASE
@@ -199,6 +213,7 @@ BEGIN
         CASE
             WHEN inp_notes = 'Young Scouted' THEN ' as a young scouted player'
             WHEN inp_notes = 'Old Experienced player' THEN ' as an old experienced player'
+            WHEN inp_notes = 'Coach' THEN ' as the team coach'
             ELSE ' as a free player'
         END);
     END IF;

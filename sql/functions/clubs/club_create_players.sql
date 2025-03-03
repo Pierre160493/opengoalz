@@ -211,6 +211,26 @@ BEGIN
     -- Set in the array
     array_id_players[17] := loc_id_player;
 
+    -- Coach
+    loc_id_player := players_create_player(
+        inp_id_multiverse := loc_id_multiverse,
+        inp_id_club := inp_id_club,
+        inp_id_country := loc_id_country,
+        inp_age := 35,
+        inp_notes := 'Coach');
+    UPDATE players SET
+        id_club = NULL,
+        leadership = 75,
+        discipline = 75,
+        experience = 75,
+        communication = 75,
+        teamwork = 75,
+        date_retire = NOW()
+    WHERE id = loc_id_player;
+    UPDATE clubs SET
+        id_coach = loc_id_player
+    WHERE id = inp_id_club;
+
     ------ Store the array of players in the default teamcomp
     UPDATE games_teamcomp SET 
         description = 'Default Teamcomp',
