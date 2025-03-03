@@ -30,6 +30,8 @@ class Club {
   TeamComp? selectedTeamComp; // List of the teamcomps of the club
   List<Game> games = []; // Games of this club
   List<Player> players = []; // List of players of the club
+  Player? coach; // Coach of the club
+  Player? scout; // Scout of the club
   List<PlayerFavorite> playersFavorite = []; // List of players of the club
   List<PlayerPoaching> playersPoached = []; // List of players of the club
   List<Mail> mails = []; // List of mails for the club
@@ -67,6 +69,8 @@ class Club {
   final int expensesTransfersExpected;
   final bool canUpdateName;
   final String continent;
+  final int? idCoach;
+  final int? idScout;
 
   Club.fromMap(Map<String, dynamic> map,
       {List<int>? myClubsIds, int? idSelectedClub})
@@ -94,7 +98,9 @@ class Club {
         revenuesSponsorsLastSeason = map['revenues_sponsors_last_season'],
         revenuesTransfersExpected = map['revenues_transfers_expected'],
         expensesTransfersExpected = map['expenses_transfers_expected'],
-        continent = map['continent'] {
+        continent = map['continent'],
+        idCoach = map['id_coach'],
+        idScout = map['id_scout'] {
     // print(map);
   }
 

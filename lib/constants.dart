@@ -88,6 +88,9 @@ const iconFavorite = Icons.favorite;
 const iconPoaching = Icons.my_location;
 const iconMailDelete = Icons.auto_delete;
 
+const iconCoach = Icons.campaign;
+const iconScout = Icons.search;
+
 /// Color for players or clubs belonging to the currently connected user
 const Color colorDefault = Colors.blueGrey;
 const Color colorIsMine = Colors.pink;

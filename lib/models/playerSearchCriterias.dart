@@ -60,7 +60,7 @@ class PlayerSearchCriterias {
     final selectedClub =
         Provider.of<UserSessionProvider>(context, listen: false)
             .user
-            ?.selectedClub;
+            .selectedClub;
 
     if (selectedClub == null) {
       context.showSnackBarError(
