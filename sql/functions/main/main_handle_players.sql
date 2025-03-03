@@ -167,7 +167,6 @@ BEGIN
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub') || ', it''s time to make a move, knowing that his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || '.');
 
-
                 END IF;
 
             END LOOP;

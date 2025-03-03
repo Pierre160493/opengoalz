@@ -8,7 +8,7 @@ DECLARE
 BEGIN
 
     IF is_cron THEN
-        -- RAISE EXCEPTION '************ KILL THE CRON !!!';
+        RAISE EXCEPTION '************ KILL THE CRON !!!';
     END IF;
 
     -- Acquire a SHARE lock on the multiverses table to allow reads but prevent writes

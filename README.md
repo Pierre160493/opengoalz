@@ -109,50 +109,79 @@ Each week, the game updates the financial status of each club. Here are the key 
 Players have various attributes that affect their performance:
 
 - **Main Skills**
-  - **Keeper**
-  - **Defense**
-  - **Passes**
-  - **Playmaking**
-  - **Winger**
-  - **Scoring**
-  - **Freekick**
+  - **Keeper**: Goalkeeping ability.
+  - **Defense**: Defensive skills.
+  - **Passes**: Passing accuracy.
+  - **Playmaking**: Ability to create plays.
+  - **Winger**: Skills on the wing.
+  - **Scoring**: Goal-scoring ability.
+  - **Freekick**: Free kick accuracy.
+  
+  - **Technic**: Technical skills, including dribbling and ball control.
+  - **Header**: Ability to win aerial duels and score with headers.
+  - **Strength**: Physical power and ability to hold off opponents.
+  - **Tackling**: Ability to dispossess opponents cleanly.
+  - **Crossing**: Accuracy and effectiveness of delivering the ball from wide areas.
+  - **Positioning**: Ability to be in the right place at the right time, both offensively and defensively.
+  - **Vision**: Ability to see and execute passes that others might not see.
+  - **Dribbling**: Skill in maneuvering the ball past opponents.
+  - **Finishing**: Ability to convert goal-scoring opportunities.
+  - **Marking**: Ability to closely guard and track opponents.
+  - **Interceptions**: Ability to read the game and intercept passes.
+  - **Long Shots**: Ability to score from long distances.
+  - **Set Pieces**: Skill in taking corners, free kicks, and penalties.
 
 - **Other Skills**
-  - **Motivation**
-  - **Form**
-  - **Stamina**
-  - **Energy**
-  - **Experience**
+  - **Motivation**: Player's drive and determination.
+  - **Form**: Current performance level.
+  - **Stamina**: Ability to maintain energy during a game.
+  - **Energy**: Player's effort level during a game.
+  - **Experience**: Knowledge gained from playing games.
+  - **Loyalty**: Commitment to the club.
+  - **Leadership**: Ability to lead and inspire teammates.
+  - **Discipline**: Adherence to training and strategies.
+  - **Communication**: Coordination with teammates.
+  - **Aggressivity**: Assertiveness on the field.
+  - **Composure**: Performance under pressure.
+  - **TeamWork**: Ability to work within the team.
+
+### Size
+
+The **Size** attribute is not a skill per se, but it influences several other skills:
+
+- **Header**: Taller players generally have an advantage in aerial duels.
+- **Technic**: Smaller players may have better agility and ball control.
+- **Strength**: Larger players tend to have more physical power.
 
 ### Main Skills
 
-The **Main Skills** are the football related skills of the player.
+The **Main Skills** are the football-related skills of the player.
 They are updated weekly based on multiple criteria:
 
 - **Age**: Younger players improve faster.
 - **Staff Weight**: The quality of the club's staff affects training efficiency.
-- **Training Coefficients**: Each attribute has a training coefficient that determines how much it improves (determined by the manager)
-- **Played Position**: The position played during a game
+- **Training Coefficients**: Each attribute has a training coefficient that determines how much it improves (determined by the manager).
+- **Played Position**: The position played during a game.
 
-### Other Skills**
+### Other Skills
 
-The **Other Skills** are mental related skills and are also updated weekly and during games
+The **Other Skills** are mental and physical attributes that are also updated weekly and during games.
 
 #### Motivation
 
-Players' motivation is updated weekly, it can drop if not payed it's weekly expected expenses and may leave if the motivation is too low
+Players' motivation is updated weekly. It can drop if not paid their weekly expected expenses and may leave if the motivation is too low.
 
 #### Energy
 
-Energy is the player's ability to maintain his effort during a game
+Energy is the player's ability to maintain his effort during a game.
 
 #### Stamina
 
-Stamina is the player's ability to maintain his energy during a game. The higher the stamina, the lower the energy drops during a game
+Stamina is the player's ability to maintain his energy during a game. The higher the stamina, the lower the energy drops during a game.
 
 #### Experience
 
-Increases by playing games
+Increases by playing games.
 
 ### Player Performance Score
 
