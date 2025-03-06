@@ -7,6 +7,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsAll.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
+import 'package:opengoalz/models/player/playerExpensesListTile.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
@@ -79,6 +80,16 @@ class Player {
   final List<int> idGamesPlayed;
   final bool isSelectedUserIncarnatedPlayer;
   final bool isSelectedClubPlayer;
+  final bool isPlaying;
+  final double loyalty;
+  final double leadership;
+  final double discipline;
+  final double communication;
+  final double aggressivity;
+  final double composure;
+  final double teamwork;
+  final int size;
+  final DateTime? dateRetire;
 
   Player.fromMap(Map<String, dynamic> map, Profile user)
       : id = map['id'],
@@ -128,7 +139,19 @@ class Player {
         favorite = user.selectedClub?.playersFavorite.firstWhereOrNull(
             (PlayerFavorite element) => element.idPlayer == map['id']),
         poaching = user.selectedClub?.playersPoached.firstWhereOrNull(
-            (PlayerPoaching element) => element.idPlayer == map['id']);
+            (PlayerPoaching element) => element.idPlayer == map['id']),
+        isPlaying = map['is_playing'],
+        loyalty = (map['loyalty'] as num).toDouble(),
+        leadership = (map['leadership'] as num).toDouble(),
+        discipline = (map['discipline'] as num).toDouble(),
+        communication = (map['communication'] as num).toDouble(),
+        aggressivity = (map['aggressivity'] as num).toDouble(),
+        composure = (map['composure'] as num).toDouble(),
+        teamwork = (map['teamwork'] as num).toDouble(),
+        size = map['size'],
+        dateRetire = map['date_retire'] != null
+            ? DateTime.parse(map['date_retire']).toLocal()
+            : null;
 
   double get age {
     return calculateAge(dateBirth, multiverseSpeed);
@@ -204,6 +227,26 @@ class Player {
         return notes;
       case 'notes_small':
         return notesSmall;
+      case 'isPlaying':
+        return isPlaying;
+      case 'loyalty':
+        return loyalty;
+      case 'leadership':
+        return leadership;
+      case 'discipline':
+        return discipline;
+      case 'communication':
+        return communication;
+      case 'aggressivity':
+        return aggressivity;
+      case 'composure':
+        return composure;
+      case 'teamwork':
+        return teamwork;
+      case 'size':
+        return size;
+      case 'dateRetire':
+        return dateRetire;
       default:
         throw ArgumentError('Property not found');
     }
@@ -215,5 +258,59 @@ class Player {
 
   String getShortName() {
     return '${firstName[0].toUpperCase()}.${lastName.toUpperCase()}${surName != null ? ' (${surName!})' : ''}';
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'created_at': created_at,
+      'idClub': idClub,
+      'userName': userName,
+      'firstName': firstName,
+      'lastName': lastName,
+      'surName': surName,
+      'shirtNumber': shirtNumber,
+      'dateBirth': dateBirth,
+      'idMultiverse': idMultiverse,
+      'multiverseSpeed': multiverseSpeed,
+      'idCountry': idCountry,
+      'expensesExpected': expensesExpected,
+      'expensesPayed': expensesPayed,
+      'expensesMissed': expensesMissed,
+      'expensesTarget': expensesTarget,
+      'trainingPointsUsed': trainingPointsUsed,
+      'trainingCoef': trainingCoef,
+      'keeper': keeper,
+      'defense': defense,
+      'playmaking': playmaking,
+      'passes': passes,
+      'scoring': scoring,
+      'freekick': freekick,
+      'winger': winger,
+      'dateEndInjury': dateEndInjury,
+      'dateBidEnd': dateBidEnd,
+      'dateArrival': dateArrival,
+      'motivation': motivation,
+      'form': form,
+      'stamina': stamina,
+      'energy': energy,
+      'experience': experience,
+      'notes': notes,
+      'notesSmall': notesSmall,
+      'performanceScore': performanceScore,
+      'idGamesPlayed': idGamesPlayed,
+      'isSelectedUserIncarnatedPlayer': isSelectedUserIncarnatedPlayer,
+      'isSelectedClubPlayer': isSelectedClubPlayer,
+      'isPlaying': isPlaying,
+      'loyalty': loyalty,
+      'leadership': leadership,
+      'discipline': discipline,
+      'communication': communication,
+      'aggressivity': aggressivity,
+      'composure': composure,
+      'teamwork': teamwork,
+      'size': size,
+      'dateRetire': dateRetire,
+    };
   }
 }

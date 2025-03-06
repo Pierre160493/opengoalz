@@ -166,66 +166,32 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
   }
 
   Widget WidgetOtherStats() {
+    final stats = [
+      'Motivation',
+      'Form',
+      'Stamina',
+      'Energy',
+      'Experience',
+    ];
+
     return SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           moveHistoricDataListTile(),
-          widget.player.getStatLinearWidget(
-              'Motivation',
+          for (var stat in stats)
+            widget.player.getStatLinearWidget(
+              stat,
               [
                 if (listPlayerHistoricStats.isNotEmpty)
                   ...listPlayerHistoricStats
-                      .map((stat) => stat['motivation'].toDouble())
+                      .map((s) => s[stat.toLowerCase()].toDouble())
                       .toList(),
-                widget.player.motivation
+                widget.player.toJson()[stat.toLowerCase()]
               ],
               _weekOffsetToCompareWithNow,
-              context),
-          widget.player.getStatLinearWidget(
-              'Form',
-              [
-                if (listPlayerHistoricStats.isNotEmpty)
-                  ...listPlayerHistoricStats
-                      .map((stat) => stat['form'].toDouble())
-                      .toList(),
-                widget.player.form
-              ],
-              _weekOffsetToCompareWithNow,
-              context),
-          widget.player.getStatLinearWidget(
-              'Stamina',
-              [
-                if (listPlayerHistoricStats.isNotEmpty)
-                  ...listPlayerHistoricStats
-                      .map((stat) => stat['stamina'].toDouble())
-                      .toList(),
-                widget.player.stamina
-              ],
-              _weekOffsetToCompareWithNow,
-              context),
-          widget.player.getStatLinearWidget(
-              'Energy',
-              [
-                if (listPlayerHistoricStats.isNotEmpty)
-                  ...listPlayerHistoricStats
-                      .map((stat) => stat['energy'].toDouble())
-                      .toList(),
-                widget.player.energy
-              ],
-              _weekOffsetToCompareWithNow,
-              context),
-          widget.player.getStatLinearWidget(
-              'Experience',
-              [
-                if (listPlayerHistoricStats.isNotEmpty)
-                  ...listPlayerHistoricStats
-                      .map((stat) => stat['experience'].toDouble())
-                      .toList(),
-                widget.player.experience
-              ],
-              _weekOffsetToCompareWithNow,
-              context),
+              context,
+            ),
         ],
       ),
     );

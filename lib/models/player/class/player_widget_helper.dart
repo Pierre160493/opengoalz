@@ -153,7 +153,7 @@ extension PlayerWidgetsHelper on Player {
               Row(
                 children: [
                   Expanded(child: getPerformanceScoreListTile(context)),
-                  Expanded(child: getExpensesWidget(context)),
+                  Expanded(child: getExpensesWidget(context, this)),
                 ],
               ),
               if (dateBidEnd != null) PlayerCardTransferWidget(player: this),
@@ -167,7 +167,7 @@ extension PlayerWidgetsHelper on Player {
               getAgeListTile(context, this),
               getCountryListTileFromIdCountry(context, idCountry, idMultiverse),
               getPerformanceScoreListTile(context),
-              getExpensesWidget(context),
+              getExpensesWidget(context, this),
               if (dateBidEnd != null) PlayerCardTransferWidget(player: this),
               if (dateEndInjury != null) getInjuryWidget(),
             ],
@@ -219,139 +219,6 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  Widget getExpensesWidget(BuildContext context) {
-    return ListTile(
-      shape: shapePersoRoundedBorder(),
-      leading: Icon(
-        iconMoney,
-        color: Colors.green,
-        size: iconSizeMedium, // Adjust icon size as needed
-      ),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(
-                iconMoney,
-                size: iconSize,
-                color: expensesExpected > 0
-                    ? expensesMissed > 0
-                        ? Colors.red
-                        : Colors.green
-                    : Colors.blueGrey,
-              ),
-              formSpacer3,
-              Text(
-                expensesExpected.toString(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          if (expensesMissed > 0)
-            IconButton(
-              tooltip: 'Past expenses not payed ${expensesMissed.toString()}',
-              onPressed: () {
-                if (Provider.of<UserSessionProvider>(context, listen: false)
-                        .user
-                        .selectedClub!
-                        .id ==
-                    idClub) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Past expenses not payed'),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              ListTile(
-                                title: Row(
-                                  children: [
-                                    Icon(iconMoney, color: Colors.red),
-                                    Text(
-                                      ' ${expensesMissed.toString()}',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                                subtitle: Text(
-                                    'Total amount of unpaid expenses',
-                                    style: styleItalicBlueGrey),
-                              ),
-                              ListTile(
-                                title: Row(
-                                  children: [
-                                    Icon(iconMoney, color: Colors.green),
-                                    Text(
-                                      ' ${Provider.of<UserSessionProvider>(context, listen: false).user.selectedClub!.clubData.cash.toString()}',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                                subtitle: Text('Available cash',
-                                    style: styleItalicBlueGrey),
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: <Widget>[
-                          TextButton(
-                            child: Text('Pay expenses'),
-                            onPressed: () async {
-                              bool isOK = await operationInDB(
-                                  context, 'UPDATE', 'players',
-                                  data: {'expenses_missed': 0},
-                                  matchCriteria: {'id': id});
-                              if (isOK) {
-                                context.showSnackBar(
-                                    'Successfully payed ${firstName} ${lastName} missed expenses',
-                                    icon: Icon(iconSuccessfulOperation,
-                                        color: Colors.green));
-                              }
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                          TextButton(
-                            child: Text('Close'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                } else {
-                  context.showSnackBarError(
-                      'You are not the owner of ${firstName} ${lastName}\'s club');
-                }
-              },
-              icon: Icon(Icons.money_off, color: Colors.red),
-            ),
-        ],
-      ),
-      subtitle: Tooltip(
-        message: 'Weekly expected expenses of the player',
-        child: Text(
-          'Expected expenses',
-          style: styleItalicBlueGrey,
-        ),
-      ),
-      onTap: () => showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return getPlayerHistoryStreamGraph(context, id,
-              ['expenses_expected', 'expenses_target'], 'Expenses');
-        },
-      ),
-    );
-  }
-
   Widget getPerformanceScoreListTile(BuildContext context) {
     return ListTile(
       shape: shapePersoRoundedBorder(),
@@ -399,24 +266,60 @@ extension PlayerWidgetsHelper on Player {
 
   Widget getStatLinearWidget(String label, List<double> lisStatsHistoryAll,
       int weekOffsetToCompareWithNow, BuildContext context) {
-    IconData getIcon(String label) {
-      switch (label) {
-        case 'Motivation':
-          return iconMotivation;
-        case 'Stamina':
-          return iconStamina;
-        case 'Form':
-          return iconForm;
-        case 'Experience':
-          return iconExperience;
-        case 'Energy':
-          return iconEnergy;
-        default:
-          return iconBug;
-      }
+    late IconData icon;
+    String toolTipString = '';
+    switch (label) {
+      case 'Motivation':
+        icon = iconMotivation;
+        toolTipString = 'How motivated the player is';
+        break;
+      case 'Stamina':
+        icon = iconStamina;
+        toolTipString = 'How much stamina the player has';
+        break;
+      case 'Form':
+        icon = iconForm;
+        toolTipString = 'How good the player is currently playing';
+        break;
+      case 'Experience':
+        icon = iconExperience;
+        toolTipString = 'How experienced the player is';
+        break;
+      case 'Energy':
+        icon = iconEnergy;
+        toolTipString = 'How much energy the player has';
+        break;
+      case 'Loyalty':
+        icon = Icons.loyalty;
+        toolTipString = 'How loyal the player is to the club';
+        break;
+      case 'Leadership':
+        icon = Icons.leaderboard;
+        toolTipString = 'How good the player is at leading';
+        break;
+      case 'Discipline':
+        icon = Icons.gavel;
+        toolTipString = 'How disciplined the player is';
+        break;
+      case 'Communication':
+        icon = Icons.chat;
+        toolTipString = 'How good the player is at communicating';
+        break;
+      case 'Aggressivity':
+        icon = Icons.sports_mma;
+        toolTipString = 'How aggressive the player is';
+        break;
+      case 'Composure':
+        icon = Icons.self_improvement;
+        toolTipString = 'How well the player responds under pressure';
+        break;
+      case 'Teamwork':
+        icon = Icons.group;
+        toolTipString = 'How good the player is for playing in a team';
+        break;
+      default:
+        icon = iconBug;
     }
-
-    IconData icon = getIcon(label);
 
     double valueNow = lisStatsHistoryAll.last;
     double valueOld = lisStatsHistoryAll[
@@ -424,14 +327,17 @@ extension PlayerWidgetsHelper on Player {
 
     return ListTile(
       shape: shapePersoRoundedBorder(),
-      leading: Icon(
-        icon,
-        size: iconSize,
-        color: valueNow > 50
-            ? Colors.green
-            : valueNow > 20
-                ? Colors.orange
-                : Colors.red,
+      leading: Tooltip(
+        message: toolTipString,
+        child: Icon(
+          icon,
+          size: iconSize,
+          color: valueNow > 50
+              ? Colors.green
+              : valueNow > 20
+                  ? Colors.orange
+                  : Colors.red,
+        ),
       ),
       title: Row(
         children: [
