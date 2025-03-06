@@ -340,6 +340,9 @@ BEGIN
     FROM ranked_stats
     WHERE rn = 1;
 
+    ------ Delete the old rows in the table game_player_stats_all (stoareg problem)
+    DELETE FROM game_player_stats_all WHERE id_game = inp_id_game;
+
     ------ Update left club
     UPDATE clubs SET
         lis_last_results = lis_last_results || 
