@@ -130,7 +130,7 @@ BEGIN
         date_bid_end,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         size, loyalty, leadership, discipline, communication, aggressivity, composure, teamWork,
-        training_coef,
+        training_coef, coef_coach, coef_scout,
         shirt_number, notes, notes_small
     ) VALUES (
         inp_id_multiverse, inp_id_club, inp_id_country,
@@ -147,7 +147,7 @@ BEGIN
         random() * 100, -- Aggressivity
         random() * 100, -- Composure
         random() * 100, -- Teamwork        
-        loc_training_coef,
+        loc_training_coef, 0, 0,
         inp_shirt_number,
         -- Notes (if not given use the shirt number to determine the player's position)
         CASE

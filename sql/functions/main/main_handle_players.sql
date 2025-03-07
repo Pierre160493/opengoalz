@@ -14,12 +14,16 @@ BEGIN
         (created_at, id_player, performance_score,
         expenses_payed, expenses_expected, expenses_missed, expenses_target,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, energy, experience, training_points_used)
+        motivation, form, stamina, energy, experience,
+        loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
+        training_points_used)
     SELECT
         inp_multiverse.date_handling, id, performance_score,
         expenses_payed, expenses_expected, expenses_missed, expenses_target,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, energy, experience, training_points_used
+        motivation, form, stamina, energy, experience,
+        loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
+        training_points_used
     FROM players
     WHERE id_multiverse = inp_multiverse.id;
 
@@ -289,7 +293,12 @@ BEGIN
             1 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) +
             GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2 +
             (keeper + defense + passes + playmaking + winger + scoring + freekick) / 4
-            ))
+            )
+        ),
+        coef_coach = FLOOR((
+            loyalty + 2 * leadership + 2* discipline + 2 * communication + 2 * composure + teamwork) / 10),
+        coef_scout = FLOOR((
+            2 * loyalty + 1 * leadership + discipline + 3 * communication + 2 * composure + teamwork) / 10)
     WHERE id_multiverse = inp_multiverse.id;
 
 END;

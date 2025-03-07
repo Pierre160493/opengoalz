@@ -59,14 +59,14 @@ BEGIN
     -- Update players' expenses
     player_expenses AS (
         UPDATE players SET
-        expenses_payed = CEIL(expenses_expected * clubs_finances.expenses_players_ratio_applied)
-            + CASE
-                WHEN clubs_finances.cash > 3 * clubs_finances.total_expenses_missed_to_pay THEN
-                    LEAST(expenses_missed, expenses_expected)
-                ELSE 0
-            END
-    FROM clubs_finances
-    WHERE players.id_club = clubs_finances.id_club),
+            expenses_payed = CEIL(expenses_expected * clubs_finances.expenses_players_ratio_applied)
+                + CASE
+                    WHEN clubs_finances.cash > 3 * clubs_finances.total_expenses_missed_to_pay THEN
+                        LEAST(expenses_missed, expenses_expected)
+                    ELSE 0
+                END
+        FROM clubs_finances
+        WHERE players.id_club = clubs_finances.id_club),
     ------ Insert messages for clubs that paid missed expenses
     message_debt_payed AS (
         INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
