@@ -146,7 +146,7 @@ BEGIN
         random() * 100, -- Communication
         random() * 100, -- Aggressivity
         random() * 100, -- Composure
-        random() * 100, -- Teamwork        
+        random() * 100, -- Teamwork
         loc_training_coef, 0, 0,
         inp_shirt_number,
         -- Notes (if not given use the shirt number to determine the player's position)
