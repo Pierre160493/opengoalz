@@ -110,8 +110,8 @@ class _StaffPageState extends State<StaffPage> {
                       child: TabBarView(
                         children: [
                           StaffOverviewTab(club: club),
-                          StaffDetailTab(player: club.coach, title: 'Coach'),
-                          StaffDetailTab(player: club.scout, title: 'Scout'),
+                          StaffDetailTab(club: club, title: 'Coach'),
+                          StaffDetailTab(club: club, title: 'Scout'),
                         ],
                       ),
                     ),

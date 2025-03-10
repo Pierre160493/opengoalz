@@ -172,6 +172,13 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
       'Stamina',
       'Energy',
       'Experience',
+      'Loyalty',
+      'Leadership',
+      'Discipline',
+      'Communication',
+      'Aggressivity',
+      'Composure',
+      'Teamwork',
     ];
 
     return SingleChildScrollView(
@@ -179,6 +186,19 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           moveHistoricDataListTile(),
+          ListTile(
+            leading: Icon(
+              Icons.height,
+              size: iconSizeMedium,
+              color: Colors.green,
+            ),
+            title: Text(widget.player.size.toString()),
+            subtitle: Text(
+              'Player\'s size (in cm)',
+              style: styleItalicBlueGrey,
+            ),
+            shape: shapePersoRoundedBorder(),
+          ),
           for (var stat in stats)
             widget.player.getStatLinearWidget(
               stat,

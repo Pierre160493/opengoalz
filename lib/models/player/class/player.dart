@@ -23,7 +23,6 @@ import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:collection/collection.dart';
 
@@ -90,6 +89,8 @@ class Player {
   final double teamwork;
   final int size;
   final DateTime? dateRetire;
+  final int coefCoach;
+  final int coefScout;
 
   Player.fromMap(Map<String, dynamic> map, Profile user)
       : id = map['id'],
@@ -151,7 +152,9 @@ class Player {
         size = map['size'],
         dateRetire = map['date_retire'] != null
             ? DateTime.parse(map['date_retire']).toLocal()
-            : null;
+            : null,
+        coefCoach = map['coef_coach'],
+        coefScout = map['coef_scout'];
 
   double get age {
     return calculateAge(dateBirth, multiverseSpeed);
@@ -311,6 +314,8 @@ class Player {
       'teamwork': teamwork,
       'size': size,
       'dateRetire': dateRetire,
+      'coefCoach': coefCoach,
+      'coefScout': coefScout,
     };
   }
 }
