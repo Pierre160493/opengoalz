@@ -83,3 +83,51 @@ extension ConfirmationDialog on BuildContext {
         false;
   }
 }
+
+extension ConfirmationDialogWith2Options on BuildContext {
+  Future<bool> showConfirmationDialogWith2Options(
+      String text, String textOpt1, String textOpt2) async {
+    return await showDialog(
+          context: this,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              // title: Text('Confirmation'),
+              content: Text(text),
+              actions: <Widget>[
+                TextButton(
+                  child: Row(
+                    children: [
+                      Icon(
+                        iconSuccessfulOperation,
+                        color: Colors.green,
+                      ),
+                      SizedBox(width: 3.0),
+                      Text(textOpt1),
+                    ],
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(true); // Return true
+                  },
+                ),
+                TextButton(
+                  child: Row(
+                    children: [
+                      Icon(
+                        iconSuccessfulOperation,
+                        color: Colors.green,
+                      ),
+                      SizedBox(width: 3.0),
+                      Text(textOpt2),
+                    ],
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(false); // Return false
+                  },
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+}

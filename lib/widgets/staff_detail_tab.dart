@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/playerCoachScoutCoefListTile.dart';
 import 'package:opengoalz/models/player/playerExpensesListTile.dart';
+import 'package:opengoalz/models/player/playerSearchDialogBox.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
+import 'package:opengoalz/models/player/players_page.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 
 class StaffDetailTab extends StatelessWidget {
@@ -31,9 +36,68 @@ class StaffDetailTab extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
-                // tooltip: 'Click to recruit a new $title',
-                onPressed: () {
-                  print('Recruit a new $title');
+                onPressed: () async {
+                  if (await context.showConfirmationDialog(
+                          'Are you sure you want to recruit a new $title ?') ==
+                      false) {
+                    return;
+                  }
+
+                  bool playerFromClub =
+                      await context.showConfirmationDialogWith2Options(
+                          'Do you wish to recruit a player from the team or from outise ?',
+                          'From team',
+                          'From outside');
+
+                  Player? player;
+                  if (playerFromClub) {
+                    player = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PlayersPage(
+                          playerSearchCriterias:
+                              PlayerSearchCriterias(idClub: [club.id]),
+                          isReturningPlayer: true,
+                        ),
+                      ),
+                    );
+                  } else {
+                    showDialog<PlayerSearchCriterias>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return playerSearchDialogBox(
+                          inputPlayerSearchCriterias: PlayerSearchCriterias(),
+                        );
+                      },
+                    ).then((playerSearchCriterias) async {
+                      if (playerSearchCriterias != null) {
+                        player = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PlayersPage(
+                              playerSearchCriterias: PlayerSearchCriterias(),
+                              isReturningPlayer: true,
+                            ),
+                          ),
+                        );
+                      }
+                    });
+                  }
+
+                  if (player == null) {
+                    return;
+                  }
+
+                  bool isOK = await operationInDB(context, 'UPDATE', 'clubs',
+                      data: {'id_${title.toLowerCase()}': player!.id},
+                      matchCriteria: {'id': club.id});
+
+                  if (isOK) {
+                    context.showSnackBar(
+                        'Successfully hired ${player!.getFullName()} as our new ${title.toLowerCase()}',
+                        icon:
+                            Icon(iconSuccessfulOperation, color: Colors.green));
+                  }
                 },
                 icon: Icon(iconScout,
                     color: Colors.red, size: iconSizeLarge * 2)),
@@ -85,12 +149,26 @@ class StaffDetailTab extends StatelessWidget {
                   playerSmallNotesIcon(context, player),
                 ],
               ),
+
+              /// Fire coach
               trailing: IconButton(
                 icon: Icon(iconLeaveClub, color: Colors.red),
                 tooltip: 'Fire ${player.getFullName()}',
                 iconSize: iconSizeMedium,
-                onPressed: () {
-                  print('Fire $title');
+                onPressed: () async {
+                  if (await context.showConfirmationDialog(
+                      'Are you sure you want to fire ${player.getFullName()} as $title ?')) {
+                    bool isOK = await operationInDB(context, 'UPDATE', 'clubs',
+                        data: {'id_${title.toLowerCase()}': null},
+                        matchCriteria: {'id': club.id});
+
+                    if (isOK) {
+                      context.showSnackBar(
+                          'Successfully fired ${player.getPlayerNameString()}',
+                          icon: Icon(iconSuccessfulOperation,
+                              color: Colors.green));
+                    }
+                  }
                 },
               ),
             ),
