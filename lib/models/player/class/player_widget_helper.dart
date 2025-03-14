@@ -125,6 +125,26 @@ extension PlayerWidgetsHelper on Player {
               ),
             ],
           ),
+        if (dateRetire != null)
+          Tooltip(
+            message:
+                'Retired on ${DateFormat('EEE d MMM yyyy').format(dateRetire!)}',
+            child: Icon(
+              iconRetired,
+              color: Colors.red,
+              size: iconSizeMedium,
+            ),
+          ),
+        if (dateDeath != null)
+          Tooltip(
+            message:
+                'Died on ${DateFormat('EEE d MMM yyyy').format(dateDeath!)}',
+            child: Icon(
+              iconDead,
+              color: Colors.red,
+              size: iconSizeMedium,
+            ),
+          ),
         // if (is_currently_playing)
         //   const Icon(
         //     Icons.directions_run_outlined,

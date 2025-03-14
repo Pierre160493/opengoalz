@@ -91,6 +91,9 @@ const iconMailDelete = Icons.auto_delete;
 const iconCoach = Icons.campaign;
 const iconScout = Icons.search;
 
+const iconRetired = Icons.golf_course;
+const iconDead = Icons.sentiment_very_dissatisfied_outlined;
+
 /// Color for players or clubs belonging to the currently connected user
 const Color colorDefault = Colors.blueGrey;
 const Color colorIsMine = Colors.pink;

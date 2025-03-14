@@ -25,7 +25,8 @@ BEGIN
         loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
         training_points_used
     FROM players
-    WHERE id_multiverse = inp_multiverse.id;
+    WHERE id_multiverse = inp_multiverse.id
+    AND date_death IS NULL;
 
     ------ Update the players expenses_missed
     UPDATE players SET
@@ -35,7 +36,8 @@ BEGIN
                 0,
                 expenses_missed - expenses_payed + expenses_expected)
         END
-    WHERE id_multiverse = inp_multiverse.id;
+    WHERE id_multiverse = inp_multiverse.id
+    AND date_death IS NULL;
 
     ---- Update the clubs scouts weight based on the players_poaching table
     UPDATE clubs SET
@@ -63,7 +65,7 @@ BEGIN
     WHERE clubs.id = players_poaching.id_club
     AND clubs.id_multiverse = inp_multiverse.id;
 
-    ------ Update players motivation, form and stamina
+    ------ Update players motivation, form and stamina and update old players
     WITH players1 AS (
         SELECT 
             players.id,
@@ -78,7 +80,8 @@ BEGIN
         JOIN multiverses ON multiverses.id = players.id_multiverse
         LEFT JOIN clubs ON clubs.id = players.id_club 
         LEFT JOIN players_poaching ON players_poaching.id_player = players.id
-        WHERE players.id_multiverse = 3
+        WHERE players.id_multiverse = inp_multiverse.id
+        AND players.date_death IS NULL
         GROUP BY players.id, multiverses.speed, players.id_club, clubs.username
     )
     UPDATE players SET
@@ -90,8 +93,9 @@ BEGIN
             - players1.affinity_max * (0.1 + RANDOM()) -- Reduce motivation based on the max affinity
             - (players1.poaching_count ^ 0.5) -- Reduce motivation for each poaching attempt
             -- Lower motivation based on age for bot clubs from 30 years old
-            - CASE WHEN (players.id_club IS NULL OR players1.is_bot_club = FALSE) THEN 0
-                ELSE GREATEST(0, calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) - 30) * RANDOM() END)
+            -- - CASE WHEN (players.id_club IS NULL OR players1.is_bot_club = FALSE) THEN 0
+            --     ELSE GREATEST(0, calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) - 30) * RANDOM() END)
+            - GREATEST(0, age - 30.0) * RANDOM())
         ),
         form = LEAST(100, GREATEST(0,
             form + (random() * 20 - 10) + ((70 - form) / 10)
@@ -106,11 +110,13 @@ BEGIN
 
     ------ If player's motivation is too low, risk of leaving club
     FOR rec_player IN (
-        SELECT *, player_get_full_name(id) AS full_name FROM players
-            WHERE id_multiverse = inp_multiverse.id
-            AND id_club IS NOT NULL
-            AND date_bid_end IS NULL
-            AND motivation < 20
+        SELECT *, player_get_full_name(id) AS full_name
+        FROM players
+        WHERE id_multiverse = inp_multiverse.id
+        AND id_club IS NOT NULL
+        AND date_bid_end IS NULL
+        AND motivation < 20
+        AND date_death IS NULL
     ) LOOP
     
         -- If motivation = 0 ==> 100% chance of leaving, if motivation = 20 ==> 0% chance of leaving
@@ -215,6 +221,7 @@ BEGIN
         LEFT JOIN clubs ON clubs.id = players.id_club
         LEFT JOIN multiverses ON multiverses.id = players.id_multiverse
         WHERE players.id_multiverse = inp_multiverse.id
+        AND players.date_death IS NULL
     ), player_data2 AS (
         SELECT 
             player_data.*,
@@ -299,7 +306,8 @@ BEGIN
             loyalty + 2 * leadership + 2* discipline + 2 * communication + 2 * composure + teamwork) / 10),
         coef_scout = FLOOR((
             2 * loyalty + 1 * leadership + discipline + 3 * communication + 2 * composure + teamwork) / 10)
-    WHERE id_multiverse = inp_multiverse.id;
+    WHERE id_multiverse = inp_multiverse.id
+    AND date_death IS NULL;
 
 END;
 $function$

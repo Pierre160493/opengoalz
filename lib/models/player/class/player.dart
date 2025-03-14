@@ -89,6 +89,7 @@ class Player {
   final double teamwork;
   final int size;
   final DateTime? dateRetire;
+  final DateTime? dateDeath;
   final int coefCoach;
   final int coefScout;
 
@@ -152,6 +153,9 @@ class Player {
         size = map['size'],
         dateRetire = map['date_retire'] != null
             ? DateTime.parse(map['date_retire']).toLocal()
+            : null,
+        dateDeath = map['date_death'] != null
+            ? DateTime.parse(map['date_death']).toLocal()
             : null,
         coefCoach = map['coef_coach'],
         coefScout = map['coef_scout'];
@@ -250,6 +254,8 @@ class Player {
         return size;
       case 'dateRetire':
         return dateRetire;
+      case 'dateDeath':
+        return dateDeath;
       default:
         throw ArgumentError('Property not found');
     }
@@ -314,6 +320,7 @@ class Player {
       'teamwork': teamwork,
       'size': size,
       'dateRetire': dateRetire,
+      'dateDeath': dateDeath,
       'coefCoach': coefCoach,
       'coefScout': coefScout,
     };

@@ -15,8 +15,31 @@ BEGIN
     ---- Increase players energy
     UPDATE players
         SET energy = LEAST(100,
-            energy + (100 - energy) / 5)
-    WHERE id_multiverse = inp_multiverse.id;
+            energy + (100 - energy) / 5.0)
+    WHERE id_multiverse = inp_multiverse.id
+    AND date_death IS NULL;
+
+    WITH players1 AS (
+        SELECT 
+            players.id,
+            player_get_full_name(players.id) AS full_name,
+            calculate_age(multiverses.speed, players.date_birth) AS age,
+            players.id_club
+        FROM players
+        JOIN multiverses ON multiverses.id = players.id_multiverse
+        LEFT JOIN clubs ON clubs.id = players.id_club 
+        LEFT JOIN players_poaching ON players_poaching.id_player = players.id
+        WHERE players.id_multiverse = inp_multiverse.id
+        AND players.date_death IS NULL
+        GROUP BY players.id, multiverses.speed, players.id_club, clubs.username
+    )
+    UPDATE players SET
+        -- Randomly kill old players
+        date_death = CASE
+            WHEN random() < ((age - 60) / 100.0) THEN inp_multiverse.date_handling
+            ELSE NULL END
+    FROM players1
+    WHERE players.id = players1.id;
 
     ------ Handling of the day 7 ==> Game day
     IF inp_multiverse.day_number = 7 THEN

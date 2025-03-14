@@ -107,13 +107,13 @@ BEGIN
             FROM players 
             WHERE id_club = clubs.id), 0),
         -- Update the staff weight of the club 
-        staff_weight = (staff_weight +
+        staff_weight = FLOOR((staff_weight +
             (expenses_staff_applied * (1 +
-                COALESCE((SELECT coef_coach FROM players WHERE players.id = clubs.id_coach), 0) /100)
-            )) * 0.5,
+                COALESCE((SELECT coef_coach FROM players WHERE players.id = clubs.id_coach), 0) / 100.0)
+            )) * 0.5),
         -- Update the scouting network weight of the clubs
         scouts_weight = FLOOR(scouts_weight * 0.99) + expenses_scouts_applied * (1 +
-                COALESCE((SELECT coef_scout FROM players WHERE players.id = clubs.id_coach), 0) /100)
+                COALESCE((SELECT coef_scout FROM players WHERE players.id = clubs.id_coach), 0) /100.0)
     WHERE id_multiverse = inp_multiverse.id;
 
     -- Update the clubs revenues and expenses in the list
