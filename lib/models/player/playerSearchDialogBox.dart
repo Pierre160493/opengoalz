@@ -189,6 +189,7 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                   ),
                   subtitle: Column(
                     children: [
+                      /// Player is on transfer list
                       ListTile(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
@@ -206,6 +207,35 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                           onChanged: (bool value) {
                             setState(() {
                               playerSearchCriterias.onTransferList = value;
+                            });
+                          },
+                        ),
+                      ),
+
+                      /// Player is retired
+                      ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          side: BorderSide(color: Colors.green, width: 1.0),
+                        ),
+                        title: Row(
+                          children: [
+                            Icon(iconRetired, color: Colors.green),
+                            formSpacer6,
+                            Text('Retired'),
+                          ],
+                        ),
+                        trailing: Switch(
+                          value: playerSearchCriterias.retired,
+                          onChanged: (bool value) {
+                            setState(() {
+                              playerSearchCriterias.retired = value;
+
+                              /// If retired, increase the age range
+                              if (playerSearchCriterias.retired) {
+                                playerSearchCriterias.defaultMinAge = 0;
+                                playerSearchCriterias.defaultMaxAge = 99;
+                              }
                             });
                           },
                         ),

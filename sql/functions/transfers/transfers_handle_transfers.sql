@@ -303,6 +303,14 @@ BEGIN
         
     END LOOP;
 
+    ------ Retire players that have too small expected expenses
+    UPDATE players SET
+        date_retire = NOW(),
+        id_club = NULL
+    WHERE date_retire IS NULL
+    AND expenses_expected < 25
+    AND id_club IS NULL;
+
 END;
 $function$
 ;

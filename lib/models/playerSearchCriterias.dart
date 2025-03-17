@@ -15,6 +15,7 @@ class PlayerSearchCriterias {
   Multiverse? multiverse;
   List<Country> countries = [];
   bool onTransferList = false;
+  bool retired = false;
   // bool isFreePlayer = false;
   double defaultMinAge = 15;
   double defaultMaxAge = 35;
@@ -237,6 +238,10 @@ class PlayerSearchCriterias {
 
     if (onTransferList) {
       query = query.not('date_bid_end', 'is', null);
+    }
+
+    if (retired) {
+      query = query.not('date_retire', 'is', null);
     }
 
     if (minDateBirth != null) {

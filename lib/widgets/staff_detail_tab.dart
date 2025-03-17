@@ -43,58 +43,58 @@ class StaffDetailTab extends StatelessWidget {
                     return;
                   }
 
-                  bool playerFromClub =
-                      await context.showConfirmationDialogWith2Options(
-                          'Do you wish to recruit a player from the team or from outise ?',
-                          'From team',
-                          'From outside');
+                  // bool playerFromClub =
+                  //     await context.showConfirmationDialogWith2Options(
+                  //         'Do you wish to recruit a player from the team or from outise ?',
+                  //         'From team',
+                  //         'From outside');
 
                   Player? player;
-                  if (playerFromClub) {
-                    player = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PlayersPage(
-                          playerSearchCriterias:
-                              PlayerSearchCriterias(idClub: [club.id]),
-                          isReturningPlayer: true,
-                        ),
+                  // if (playerFromClub) {
+                  player = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PlayersPage(
+                        playerSearchCriterias:
+                            PlayerSearchCriterias(idClub: [club.id]),
+                        isReturningPlayer: true,
                       ),
-                    );
-                  } else {
-                    showDialog<PlayerSearchCriterias>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return playerSearchDialogBox(
-                          inputPlayerSearchCriterias: PlayerSearchCriterias(),
-                        );
-                      },
-                    ).then((playerSearchCriterias) async {
-                      if (playerSearchCriterias != null) {
-                        player = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PlayersPage(
-                              playerSearchCriterias: PlayerSearchCriterias(),
-                              isReturningPlayer: true,
-                            ),
-                          ),
-                        );
-                      }
-                    });
-                  }
+                    ),
+                  );
+                  // } else {
+                  //   showDialog<PlayerSearchCriterias>(
+                  //     context: context,
+                  //     builder: (BuildContext context) {
+                  //       return playerSearchDialogBox(
+                  //         inputPlayerSearchCriterias: PlayerSearchCriterias(),
+                  //       );
+                  //     },
+                  //   ).then((playerSearchCriterias) async {
+                  //     if (playerSearchCriterias != null) {
+                  //       player = await Navigator.push(
+                  //         context,
+                  //         MaterialPageRoute(
+                  //           builder: (context) => PlayersPage(
+                  //             playerSearchCriterias: PlayerSearchCriterias(),
+                  //             isReturningPlayer: true,
+                  //           ),
+                  //         ),
+                  //       );
+                  //     }
+                  //   });
+                  // }
 
                   if (player == null) {
                     return;
                   }
 
                   bool isOK = await operationInDB(context, 'UPDATE', 'clubs',
-                      data: {'id_${title.toLowerCase()}': player!.id},
+                      data: {'id_${title.toLowerCase()}': player.id},
                       matchCriteria: {'id': club.id});
 
                   if (isOK) {
                     context.showSnackBar(
-                        'Successfully hired ${player!.getFullName()} as our new ${title.toLowerCase()}',
+                        'Successfully hired ${player.getFullName()} as our new ${title.toLowerCase()}',
                         icon:
                             Icon(iconSuccessfulOperation, color: Colors.green));
                   }
