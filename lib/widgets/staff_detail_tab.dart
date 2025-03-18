@@ -6,7 +6,6 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/playerCoachScoutCoefListTile.dart';
 import 'package:opengoalz/models/player/playerExpensesListTile.dart';
-import 'package:opengoalz/models/player/playerSearchDialogBox.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
@@ -37,54 +36,25 @@ class StaffDetailTab extends StatelessWidget {
           children: [
             IconButton(
                 onPressed: () async {
-                  if (await context.showConfirmationDialog(
-                          'Are you sure you want to recruit a new $title ?') ==
-                      false) {
-                    return;
-                  }
-
-                  // bool playerFromClub =
-                  //     await context.showConfirmationDialogWith2Options(
-                  //         'Do you wish to recruit a player from the team or from outise ?',
-                  //         'From team',
-                  //         'From outside');
-
                   Player? player;
-                  // if (playerFromClub) {
                   player = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => PlayersPage(
-                        playerSearchCriterias:
-                            PlayerSearchCriterias(idClub: [club.id]),
+                        playerSearchCriterias: PlayerSearchCriterias(
+                            idClub: [club.id], retired: true),
                         isReturningPlayer: true,
                       ),
                     ),
                   );
-                  // } else {
-                  //   showDialog<PlayerSearchCriterias>(
-                  //     context: context,
-                  //     builder: (BuildContext context) {
-                  //       return playerSearchDialogBox(
-                  //         inputPlayerSearchCriterias: PlayerSearchCriterias(),
-                  //       );
-                  //     },
-                  //   ).then((playerSearchCriterias) async {
-                  //     if (playerSearchCriterias != null) {
-                  //       player = await Navigator.push(
-                  //         context,
-                  //         MaterialPageRoute(
-                  //           builder: (context) => PlayersPage(
-                  //             playerSearchCriterias: PlayerSearchCriterias(),
-                  //             isReturningPlayer: true,
-                  //           ),
-                  //         ),
-                  //       );
-                  //     }
-                  //   });
-                  // }
 
                   if (player == null) {
+                    return;
+                  }
+
+                  if (await context.showConfirmationDialog(
+                          'Are you sure you want to recruit ${player.getFullName()} as your new $title ?\nThis will cost 1 000 !') ==
+                      false) {
                     return;
                   }
 
@@ -157,7 +127,7 @@ class StaffDetailTab extends StatelessWidget {
                 iconSize: iconSizeMedium,
                 onPressed: () async {
                   if (await context.showConfirmationDialog(
-                      'Are you sure you want to fire ${player.getFullName()} as $title ?')) {
+                      'Are you sure you want to fire ${player.getFullName()} as $title ?\nThis will cost 1 000 !')) {
                     bool isOK = await operationInDB(context, 'UPDATE', 'clubs',
                         data: {'id_${title.toLowerCase()}': null},
                         matchCriteria: {'id': club.id});

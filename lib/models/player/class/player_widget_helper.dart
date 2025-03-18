@@ -145,12 +145,24 @@ extension PlayerWidgetsHelper on Player {
               size: iconSizeMedium,
             ),
           ),
-        // if (is_currently_playing)
-        //   const Icon(
-        //     Icons.directions_run_outlined,
-        //     color: Colors.green,
-        //     size: 30,
-        //   ),
+        if (isPlaying)
+          Tooltip(
+            message: 'Is currently playing',
+            child: Icon(
+              Icons.directions_run_outlined,
+              color: Colors.green,
+              size: iconSizeMedium,
+            ),
+          ),
+        if (isStaff)
+          Tooltip(
+            message: 'Is a staff member',
+            child: Icon(
+              iconStaff,
+              color: Colors.green,
+              size: iconSizeMedium,
+            ),
+          ),
       ],
     );
   }

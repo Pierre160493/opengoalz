@@ -32,6 +32,8 @@ class PlayerSearchCriterias {
     this.idPlayerRemove = const [],
     this.idClub,
     this.multiverse,
+    this.onTransferList = false,
+    this.retired = false,
     this.firstName,
     this.lastName,
     // this.selectedStatus,

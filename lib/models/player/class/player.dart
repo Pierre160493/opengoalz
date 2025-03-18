@@ -92,6 +92,7 @@ class Player {
   final DateTime? dateDeath;
   final int coefCoach;
   final int coefScout;
+  final bool isStaff;
 
   Player.fromMap(Map<String, dynamic> map, Profile user)
       : id = map['id'],
@@ -158,7 +159,8 @@ class Player {
             ? DateTime.parse(map['date_death']).toLocal()
             : null,
         coefCoach = map['coef_coach'],
-        coefScout = map['coef_scout'];
+        coefScout = map['coef_scout'],
+        isStaff = map['is_staff'];
 
   double get age {
     return calculateAge(dateBirth, multiverseSpeed);

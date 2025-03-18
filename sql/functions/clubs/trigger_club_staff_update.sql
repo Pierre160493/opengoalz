@@ -1,5 +1,7 @@
 CREATE OR REPLACE FUNCTION trigger_club_handle_staff_update()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SECURITY DEFINER
+AS $$
 DECLARE
     description_club TEXT;
     description_player TEXT;
@@ -42,11 +44,7 @@ BEGIN
 
     ------ If it's a hiring
     UPDATE players SET
-        id_club = CASE
-            WHEN is_hired THEN NEW.id
-            ELSE NULL
-        END,
-        date_arrival = NOW()
+        is_staff = is_hired
     WHERE id = loc_id_player;
 
     ------ Insert a new row in the history table
@@ -55,7 +53,14 @@ BEGIN
 
     ------ Send mails to the club to inform them of the death of the player
     INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
-    VALUES (NEW.id, 'Secretary', TRUE, 'Staff update', description_mail);
+    VALUES (NEW.id, 'Secretary', TRUE,
+    'Staff update with ' || description_player,
+    description_mail);
+
+    ------ Update the clubs table
+    UPDATE clubs
+        SET cash = cash - 1000
+    WHERE id = NEW.id;
 
     RETURN NEW;
 END;
