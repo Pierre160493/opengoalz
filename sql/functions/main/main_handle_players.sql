@@ -95,7 +95,8 @@ BEGIN
             -- Lower motivation based on age for bot clubs from 30 years old
             -- - CASE WHEN (players.id_club IS NULL OR players1.is_bot_club = FALSE) THEN 0
             --     ELSE GREATEST(0, calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) - 30) * RANDOM() END)
-            - GREATEST(0, age - 30.0) * RANDOM())
+            -- - GREATEST(0, age - 30.0) * RANDOM()
+            )
         ),
         form = LEAST(100, GREATEST(0,
             form + (random() * 20 - 10) + ((70 - form) / 10)

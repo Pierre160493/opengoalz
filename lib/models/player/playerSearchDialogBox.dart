@@ -45,7 +45,6 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 /// Select the multiverse
-
                 ListTile(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0),
@@ -103,11 +102,14 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                 ),
 
                 /// Select the country
-
                 ListTile(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    side: BorderSide(color: Colors.green, width: 2.0),
+                    side: BorderSide(
+                        color: playerSearchCriterias.countries.isEmpty
+                            ? Colors.orange
+                            : Colors.green,
+                        width: 2.0),
                   ),
                   title: ElevatedButton(
                     onPressed: () async {
@@ -193,7 +195,11 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                       ListTile(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
-                          side: BorderSide(color: Colors.green, width: 1.0),
+                          side: BorderSide(
+                              color: playerSearchCriterias.onTransferList
+                                  ? Colors.green
+                                  : Colors.orange,
+                              width: 1.0),
                         ),
                         title: Row(
                           children: [
@@ -220,7 +226,10 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                         ),
                         title: Row(
                           children: [
-                            Icon(iconRetired, color: Colors.green),
+                            Icon(iconRetired,
+                                color: playerSearchCriterias.retired
+                                    ? Colors.green
+                                    : Colors.orange),
                             formSpacer6,
                             Text('Retired'),
                           ],
@@ -267,6 +276,130 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
 
                 /// Select the age range
                 playerSearchCriterias.ageSelector(context, setState),
+
+                /// Select the first name
+                ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    side: BorderSide(
+                        color: playerSearchCriterias.firstName == null
+                            ? Colors.orange
+                            : Colors.green,
+                        width: 2.0),
+                  ),
+                  title: Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          String? name = await showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('First Name Contains:'),
+                                content: TextField(
+                                  decoration: InputDecoration(
+                                    hintText: 'First Name Contains',
+                                  ),
+                                  onSubmitted: (String value) {
+                                    Navigator.of(context).pop(value);
+                                  },
+                                ),
+                              );
+                            },
+                          );
+
+                          if (name != null) {
+                            setState(() {
+                              playerSearchCriterias.firstName = name;
+                            });
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Icon(Icons.person, color: Colors.green),
+                            formSpacer6,
+                            Text(playerSearchCriterias.firstName == null
+                                ? 'First Name Contains'
+                                : 'First Name Contains ${playerSearchCriterias.firstName}'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  trailing: playerSearchCriterias.firstName == null
+                      ? null
+                      : IconButton(
+                          tooltip: 'Remove the player first name criteria',
+                          onPressed: () {
+                            setState(() {
+                              playerSearchCriterias.firstName = null;
+                            });
+                          },
+                          icon: Icon(Icons.delete_forever, color: Colors.red),
+                        ),
+                ),
+
+                /// Select the last name
+                ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    side: BorderSide(
+                        color: playerSearchCriterias.lastName == null
+                            ? Colors.orange
+                            : Colors.green,
+                        width: 2.0),
+                  ),
+                  title: Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          String? name = await showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Last Name Contains:'),
+                                content: TextField(
+                                  decoration: InputDecoration(
+                                    hintText: 'Last Name Contains',
+                                  ),
+                                  onSubmitted: (String value) {
+                                    Navigator.of(context).pop(value);
+                                  },
+                                ),
+                              );
+                            },
+                          );
+
+                          if (name != null) {
+                            setState(() {
+                              playerSearchCriterias.lastName = name;
+                            });
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Icon(Icons.person, color: Colors.green),
+                            formSpacer6,
+                            Text(playerSearchCriterias.lastName == null
+                                ? 'Last Name Contains'
+                                : 'Last Name Contains ${playerSearchCriterias.lastName}'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  trailing: playerSearchCriterias.lastName == null
+                      ? null
+                      : IconButton(
+                          tooltip: 'Remove the player last name criteria',
+                          onPressed: () {
+                            setState(() {
+                              playerSearchCriterias.lastName = null;
+                            });
+                          },
+                          icon: Icon(Icons.delete_forever, color: Colors.red),
+                        ),
+                ),
 
                 /// Select the stats
                 ListTile(

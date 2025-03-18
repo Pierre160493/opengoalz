@@ -24,12 +24,16 @@ class PlayerSearchCriterias {
   DateTime? minDateBirth;
   DateTime? maxDateBirth;
   Map<String, RangeValues?> stats;
+  String? firstName;
+  String? lastName;
 
   PlayerSearchCriterias({
     this.idPlayer,
     this.idPlayerRemove = const [],
     this.idClub,
     this.multiverse,
+    this.firstName,
+    this.lastName,
     // this.selectedStatus,
     Map<String, RangeValues?>? stats,
   })  : countries = [],
@@ -54,6 +58,8 @@ class PlayerSearchCriterias {
       'max_age': selectedMaxAge,
       // if (selectedStatus != null) 'selected_status': selectedStatus,
       if (stats.isNotEmpty) 'selected_stats': stats,
+      if (firstName != null) 'first_name': firstName,
+      if (lastName != null) 'last_name': lastName,
     };
   }
 
@@ -249,6 +255,14 @@ class PlayerSearchCriterias {
     }
     if (maxDateBirth != null) {
       query = query.gte('date_birth', maxDateBirth!.toIso8601String());
+    }
+
+    if (firstName != null && firstName!.isNotEmpty) {
+      query = query.ilike('first_name', '%$firstName%');
+    }
+
+    if (lastName != null && lastName!.isNotEmpty) {
+      query = query.ilike('last_name', '%$lastName%');
     }
 
     /// Stats filtering

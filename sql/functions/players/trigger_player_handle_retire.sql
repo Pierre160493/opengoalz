@@ -2,19 +2,19 @@ CREATE OR REPLACE FUNCTION trigger_players_handle_retire()
 RETURNS TRIGGER AS $$
 DECLARE
     descriptions TEXT[] := ARRAY[
-        'Retired from playing football due to age',
-        'Retired from playing football due to injury',
-        'Retired from playing football to pursue a coaching career',
-        'Retired from playing football to spend more time with family',
-        'Retired from playing football to focus on personal business',
-        'Retired from playing football due to health reasons',
-        'Retired from playing football to become a sports analyst',
-        'Retired from playing football to travel the world',
-        'Retired from playing football to write a book',
-        'Retired from playing football to start a charity foundation',
-        'Retired from playing football to become a mentor for young players',
-        'Retired from playing football to pursue higher education',
-        'Retired from playing football to explore new opportunities'
+        'Retired due to age',
+        'Retired due to injury',
+        'Retired to pursue a coaching career',
+        'Retired to spend more time with family',
+        'Retired to focus on personal business',
+        'Retired due to health reasons',
+        'Retired to become a sports analyst',
+        'Retired to travel the world',
+        'Retired to write a book',
+        'Retired to start a charity foundation',
+        'Retired to become a mentor for young players',
+        'Retired to pursue higher education',
+        'Retired to explore new opportunities'
     ];
     random_description TEXT;
     player_string_parser TEXT;
