@@ -72,8 +72,7 @@ BEGIN
             player_get_full_name(players.id) AS full_name,
             calculate_age(multiverses.speed, players.date_birth) AS age,
             players.id_club,
-            CASE WHEN clubs.username IS NULL THEN TRUE
-            ELSE FALSE END AS is_bot_club,
+            players.date_retire,
             COUNT(players_poaching.id_player) AS poaching_count,
             COALESCE(MAX(players_poaching.affinity), 0) AS affinity_max
         FROM players
@@ -92,10 +91,9 @@ BEGIN
             -- Lower motivation if player is being poached
             - players1.affinity_max * (0.1 + RANDOM()) -- Reduce motivation based on the max affinity
             - (players1.poaching_count ^ 0.5) -- Reduce motivation for each poaching attempt
-            -- Lower motivation based on age for bot clubs from 30 years old
-            -- - CASE WHEN (players.id_club IS NULL OR players1.is_bot_club = FALSE) THEN 0
-            --     ELSE GREATEST(0, calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) - 30) * RANDOM() END)
-            -- - GREATEST(0, age - 30.0) * RANDOM()
+            ------ Lower motivation based on age for bot clubs from 30 years old
+            - CASE WHEN players1.date_retire IS NOT NULL THEN 0 -- If player is retired => 0
+                ELSE GREATEST(0, players1.age - 30) * RANDOM() END
             )
         ),
         form = LEAST(100, GREATEST(0,
