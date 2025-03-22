@@ -40,9 +40,15 @@ BEGIN
             clubs
         WHERE id_coach = NEW.id;
 
+    ------ Remove the player from the club if he was in the staff
+    UPDATE clubs SET
+        id_coach = CASE WHEN id_coach = NEW.id THEN NULL ELSE id_coach END,
+        id_scout = CASE WHEN id_scout = NEW.id THEN NULL ELSE id_scout END
+    WHERE id_coach = NEW.id OR id_scout = NEW.id;
+    
     ------ Reset the player
     UPDATE players SET
-        id_club = NULL,
+        id_club = NULL, is_staff = FALSE,
         performance_score = 0,
         expenses_payed = 0, expenses_expected = 0, expenses_missed = 0, expenses_target = 0,
         keeper = 0, defense = 0, passes = 0, playmaking = 0, winger = 0, scoring = 0, freekick = 0,
