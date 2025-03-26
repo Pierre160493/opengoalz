@@ -27,12 +27,8 @@ BEGIN
 
     ------ INSERT Init finance for this new club
     INSERT INTO finances (id_club, amount, description) VALUES (loc_id_club, 250000, 'Club Initialisation');
-    ------ INSERT Init fans for this new club
-    INSERT INTO fans (id_club, additional_fans, mood) VALUES (loc_id_club, 1000, 60);
     ------ INSERT Init club_history for this new club
     INSERT INTO clubs_history (id_club, description) VALUES (loc_id_club, 'Creation of the club');
-    ------ INSERT Init stadium for this new club
-    INSERT INTO stadiums (id_club, seats, name) VALUES (loc_id_club, 50, 'Stadium ' || loc_id_club);
 
     ------ Create the default teamcomps
     INSERT INTO games_teamcomp (id_club, season_number, week_number, name, description) VALUES
