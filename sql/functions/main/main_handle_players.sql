@@ -214,7 +214,7 @@ BEGIN
             (25 - calculate_age(multiverses.speed, players.date_birth, inp_multiverse.date_handling))/10 AS coef_age, -- Player's age
             training_points_available, -- Initial training points
             training_coef, -- Array of coef for each stat
-            (COALESCE(clubs.staff_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
+            (COALESCE(clubs.training_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
             training_coef[1]+training_coef[2]+training_coef[3]+training_coef[4]+training_coef[5]+training_coef[6]+training_coef[7] AS sum_training_coef
         FROM players
         LEFT JOIN clubs ON clubs.id = players.id_club

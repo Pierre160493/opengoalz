@@ -38,7 +38,7 @@ class _FinancesPageState extends State<FinancesPage> {
   int? _revenuesSponsors;
   int? _revenuesTransfersDone;
   int? _expensesSalaries;
-  int? _expensesStaff;
+  int? _expensesTraining;
   int? _expensesScouts;
   int? _expensesTaxes;
   int? _expensesTransfersDone;
@@ -84,7 +84,7 @@ class _FinancesPageState extends State<FinancesPage> {
     // if (clubData == null) {
     //   _revenuesSponsors = null;
     //   _expensesSalaries = null;
-    //   _expensesStaff = null;
+    //   _expensesTraining = null;
     //   _expensesScouts = null;
     //   _expensesTaxes = null;
     //   _revenuesTransfersDone = null;
@@ -95,9 +95,9 @@ class _FinancesPageState extends State<FinancesPage> {
     // }
     _revenuesSponsors = clubData.revenuesSponsors;
     _expensesSalaries = clubData.expensesPlayers;
-    _expensesStaff = _selectedWeek == 0
-        ? clubData.expensesStaffTarget
-        : clubData.expensesStaffApplied;
+    _expensesTraining = _selectedWeek == 0
+        ? clubData.expensesTrainingTarget
+        : clubData.expensesTrainingApplied;
     _expensesScouts = _selectedWeek == 0
         ? clubData.expensesScoutsTarget
         : clubData.expensesScoutsApplied;
@@ -108,7 +108,7 @@ class _FinancesPageState extends State<FinancesPage> {
     _expensesTransfersDone = clubData.expensesTransfersDone;
     _revenuesTotal = _revenuesSponsors! + _revenuesTransfersDone!;
     _expensesTotal = _expensesSalaries! +
-        _expensesStaff! +
+        _expensesTraining! +
         _expensesScouts! +
         _expensesTaxes! +
         _expensesTransfersDone!;
@@ -309,9 +309,9 @@ class _FinancesPageState extends State<FinancesPage> {
                   DataCell(_getDataCellRow(
                       'Staff',
                       'Staff per week',
-                      _expensesStaff,
+                      _expensesTraining,
                       clubDataHistory
-                          .map((e) => e.expensesStaffApplied)
+                          .map((e) => e.expensesTrainingApplied)
                           .toList(),
                       Colors.red)),
                 ]),

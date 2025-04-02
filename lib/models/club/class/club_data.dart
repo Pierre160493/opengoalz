@@ -10,7 +10,7 @@ class ClubData {
     required this.posLeague,
     required this.staffWeight,
     required this.cash,
-    required this.expensesStaffApplied,
+    required this.expensesTrainingApplied,
     required this.expensesPlayers,
     required this.expensesTotal,
     required this.revenuesSponsors,
@@ -26,7 +26,7 @@ class ClubData {
     required this.eloPoints,
     required this.expensesPlayersRatioTarget,
     required this.expensesPlayersRatio,
-    required this.expensesStaffTarget,
+    required this.expensesTrainingTarget,
     required this.expensesScoutsTarget,
   });
 
@@ -34,7 +34,7 @@ class ClubData {
   final int posLeague;
   final double staffWeight;
   final int cash;
-  final int expensesStaffApplied;
+  final int expensesTrainingApplied;
   final int expensesPlayers;
   final int expensesTotal;
   final int revenuesSponsors;
@@ -50,15 +50,15 @@ class ClubData {
   final int eloPoints;
   final double expensesPlayersRatioTarget;
   final double expensesPlayersRatio;
-  final int expensesStaffTarget;
+  final int expensesTrainingTarget;
   final int expensesScoutsTarget;
 
   ClubData.fromMap(Map<String, dynamic> map)
       : numberFans = map['number_fans'],
         posLeague = map['pos_league'],
-        staffWeight = (map['staff_weight'] as num).toDouble(),
+        staffWeight = (map['training_weight'] as num).toDouble(),
         cash = map['cash'],
-        expensesStaffApplied = map['expenses_staff_applied'],
+        expensesTrainingApplied = map['expenses_training_applied'],
         expensesPlayers = map['expenses_players'],
         expensesTotal = map['expenses_total'],
         revenuesSponsors = map['revenues_sponsors'],
@@ -76,7 +76,7 @@ class ClubData {
             (map['expenses_players_ratio_target'] as num).toDouble(),
         expensesPlayersRatio =
             (map['expenses_players_ratio'] as num).toDouble(),
-        expensesStaffTarget = map['expenses_staff_target'],
+        expensesTrainingTarget = map['expenses_training_target'],
         expensesScoutsTarget = map['expenses_scouts_target'];
 
   // Method to stream club data history from Supabase

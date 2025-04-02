@@ -90,7 +90,12 @@ class _StaffPageState extends State<StaffPage> {
           Club club = snapshot.data!;
           return Scaffold(
             appBar: AppBar(
-              title: Text('Staff of ${club.name}'),
+              title: Row(
+                children: [
+                  Text('Staff of '),
+                  club.getClubNameClickable(context),
+                ],
+              ),
               leading: goBackIconButton(context),
             ),
             body: MaxWidthContainer(
@@ -102,8 +107,16 @@ class _StaffPageState extends State<StaffPage> {
                       tabs: [
                         buildTabWithIcon(
                             icon: Icons.remove_red_eye, text: 'Overview'),
-                        buildTabWithIcon(icon: iconCoach, text: 'Coach'),
-                        buildTabWithIcon(icon: iconScout, text: 'Scout'),
+                        buildTabWithIcon(
+                            icon: iconCoach,
+                            text: 'Coach',
+                            iconColor:
+                                club.coach == null ? Colors.red : Colors.green),
+                        buildTabWithIcon(
+                            icon: iconScout,
+                            text: 'Scout',
+                            iconColor:
+                                club.scout == null ? Colors.red : Colors.green),
                       ],
                     ),
                     Expanded(
@@ -137,16 +150,229 @@ class StaffOverviewTab extends StatelessWidget {
       children: [
         // Club cash
         getClubCashListTile(context, club),
+        // Staff expenses
         ListTile(
           leading: Icon(iconStaff, size: iconSizeMedium, color: Colors.green),
-          title: Row(
+          title: Column(
             children: [
-              Text('Staff expenses: '),
-              Icon(iconMoney, size: iconSizeSmall),
-              SizedBox(width: 3.0),
-              Text(
-                stringValueSeparated(club.clubData.expensesStaffTarget),
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Text('Staff expenses '),
+                  Icon(iconMoney, size: iconSizeSmall, color: Colors.green),
+                  SizedBox(width: 3.0),
+                  Text(
+                    stringValueSeparated(club.clubData.expensesTrainingTarget +
+                        club.clubData.expensesScoutsTarget),
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              formSpacer3,
+
+              /// Training expenses
+              ListTile(
+                leading:
+                    Icon(iconCoach, size: iconSizeSmall, color: Colors.green),
+                title: Text(
+                  stringValueSeparated(club.clubData.expensesTrainingTarget),
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: const Text(
+                  'Training expenses per week',
+                  style: styleItalicBlueGrey,
+                ),
+                shape: shapePersoRoundedBorder(),
+                trailing: IconButton(
+                  tooltip: 'Update training weekly expenses',
+                  onPressed: () async {
+                    final TextEditingController controller =
+                        TextEditingController(
+                            text: club.clubData.expensesTrainingTarget
+                                .toString());
+                    await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Row(
+                            children: [
+                              Icon(iconCoach, color: Colors.green),
+                              Text('Update training Weekly Expenses'),
+                            ],
+                          ),
+                          content: TextField(
+                            controller: controller,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                                hintText: "Enter new training weekly expenses"),
+                          ),
+                          actions: <Widget>[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  child: persoCancelRow,
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: persoValidRow('Update'),
+                                  onPressed: () async {
+                                    int? newExpenses =
+                                        int.tryParse(controller.text);
+                                    if (newExpenses == null) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Input could not be parsed as an integer'),
+                                        ),
+                                      );
+                                    } else if (newExpenses ==
+                                        club.clubData.expensesTrainingTarget) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Training expenses is already set at ${club.clubData.expensesTrainingTarget} per week'),
+                                        ),
+                                      );
+                                    } else {
+                                      bool isOK = await operationInDB(
+                                          context, 'UPDATE', 'clubs', data: {
+                                        'expenses_training_target': newExpenses
+                                      }, matchCriteria: {
+                                        'id': club.id
+                                      });
+                                      if (isOK) {
+                                        context.showSnackBarSuccess(
+                                            'Successfully updated the training weekly expenses target to $newExpenses per week');
+                                        Navigator.of(context)
+                                            .pop(); // Close the dialog
+                                      }
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  icon: Icon(Icons.currency_exchange, color: Colors.orange),
+                ),
+                onTap: () async {
+                  ClubData.showClubHistoryChartDialog(
+                    context,
+                    club.id,
+                    'expenses_training_applied',
+                    'Weekly Training Expenses',
+                  );
+                },
+              ),
+
+              /// Scouts expenses
+              ListTile(
+                leading:
+                    Icon(iconScout, size: iconSizeSmall, color: Colors.green),
+                title: Text(
+                  stringValueSeparated(club.clubData.expensesScoutsTarget),
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: const Text(
+                  'Theoretical scouts weekly expenses',
+                  style: styleItalicBlueGrey,
+                ),
+                shape: shapePersoRoundedBorder(),
+                trailing: IconButton(
+                  tooltip: 'Update scouts weekly expenses',
+                  onPressed: () async {
+                    final TextEditingController controller =
+                        TextEditingController(
+                            text:
+                                club.clubData.expensesScoutsTarget.toString());
+                    await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Row(
+                            children: [
+                              Icon(iconScout, color: Colors.green),
+                              Text('Update Scouts Weekly Expenses'),
+                            ],
+                          ),
+                          content: TextField(
+                            controller: controller,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                                hintText: "Enter new scouts weekly expenses"),
+                          ),
+                          actions: <Widget>[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  child: persoCancelRow,
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: persoValidRow('Update'),
+                                  onPressed: () async {
+                                    int? newExpenses =
+                                        int.tryParse(controller.text);
+                                    if (newExpenses == null) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Input could not be parsed as an integer'),
+                                        ),
+                                      );
+                                    } else if (newExpenses ==
+                                        club.clubData.expensesScoutsTarget) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Scouts expenses is already set at ${club.clubData.expensesScoutsTarget} per week'),
+                                        ),
+                                      );
+                                    } else {
+                                      bool isOK = await operationInDB(
+                                          context, 'UPDATE', 'clubs', data: {
+                                        'expenses_scouts_target': newExpenses
+                                      }, matchCriteria: {
+                                        'id': club.id
+                                      });
+                                      if (isOK) {
+                                        context.showSnackBarSuccess(
+                                            'Successfully updated the scouts weekly expenses target to $newExpenses per week');
+                                        Navigator.of(context)
+                                            .pop(); // Close the dialog
+                                      }
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  icon: Icon(Icons.currency_exchange, color: Colors.orange),
+                ),
+                onTap: () async {
+                  ClubData.showClubHistoryChartDialog(
+                    context,
+                    club.id,
+                    'expenses_scouts_applied',
+                    'Weekly Scouts Expenses',
+                  );
+                },
               ),
             ],
           ),
@@ -155,90 +381,24 @@ class StaffOverviewTab extends StatelessWidget {
             style: styleItalicBlueGrey,
           ),
           shape: shapePersoRoundedBorder(),
-          trailing: IconButton(
-            onPressed: () async {
-              final TextEditingController controller = TextEditingController(
-                  text: club.clubData.expensesStaffTarget.toString());
-              await showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Update Staff Expenses'),
-                    content: TextField(
-                      controller: controller,
-                      keyboardType: TextInputType.number,
-                      decoration:
-                          InputDecoration(hintText: "Enter new staff expenses"),
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text('Cancel'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      TextButton(
-                        child: Text('Update'),
-                        onPressed: () async {
-                          int? newExpenses = int.tryParse(controller.text);
-                          if (newExpenses == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    'Input could not be parsed as an integer'),
-                              ),
-                            );
-                          } else if (newExpenses ==
-                              club.clubData.expensesStaffTarget) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    'Staff expenses is already set at ${club.clubData.expensesStaffTarget} per week'),
-                              ),
-                            );
-                          } else {
-                            bool isOK = await operationInDB(
-                                context, 'UPDATE', 'clubs',
-                                data: {'expenses_staff_target': newExpenses},
-                                matchCriteria: {'id': club.id});
-                            if (isOK) {
-                              context.showSnackBarSuccess(
-                                  'Successfully updated the staff expenses target to $newExpenses per week');
-                              Navigator.of(context).pop(); // Close the dialog
-                            }
-                          }
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            icon: Icon(Icons.currency_exchange, color: Colors.orange),
-          ),
-          onTap: () async {
-            ClubData.showClubHistoryChartDialog(
-              context,
-              club.id,
-              'expenses_staff_applied',
-              'Weekly Staff Expenses',
-            );
-          },
         ),
+
+        /// Training weight
         ListTile(
           leading:
               Icon(Icons.thermostat, size: iconSizeMedium, color: Colors.green),
           title: Row(
             children: [
-              Text('Staff skill: '),
+              Text('Club\'s Training skill '),
               Text(
                 stringValueSeparated(club.clubData.staffWeight.round()),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
               ),
             ],
           ),
           subtitle: const Text(
-            'Staff skill for training players',
+            'Club\'s training skill for training players',
             style: styleItalicBlueGrey,
           ),
           shape: shapePersoRoundedBorder(),
@@ -246,7 +406,7 @@ class StaffOverviewTab extends StatelessWidget {
             ClubData.showClubHistoryChartDialog(
               context,
               club.id,
-              'staff_weight',
+              'training_weight',
               'Weekly Staff Weight',
             );
           },

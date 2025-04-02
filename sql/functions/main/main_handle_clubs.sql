@@ -12,21 +12,21 @@ BEGIN
     ------ Store the clubs' revenues and expenses in the history_weekly table
     INSERT INTO public.clubs_history_weekly (
         id_club, season_number, week_number,
-        number_fans, staff_weight, scouts_weight,
+        number_fans, training_weight, scouts_weight,
         cash, revenues_sponsors, revenues_transfers_done, revenues_total,
-        expenses_staff_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+        expenses_training_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
         league_points, pos_league, league_goals_for, league_goals_against,
         elo_points, expenses_players_ratio_target, expenses_players_ratio,
-        expenses_staff_target, expenses_scouts_target
+        expenses_training_target, expenses_scouts_target
     )
     SELECT
         id, inp_multiverse.season_number, inp_multiverse.week_number,
-        number_fans, staff_weight, scouts_weight,
+        number_fans, training_weight, scouts_weight,
         cash, revenues_sponsors, revenues_transfers_done, revenues_total,
-        expenses_staff_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+        expenses_training_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
         league_points, pos_league, league_goals_for, league_goals_against,
         elo_points, expenses_players_ratio_target, expenses_players_ratio,
-        expenses_staff_target, expenses_scouts_target
+        expenses_training_target, expenses_scouts_target
     FROM clubs
     WHERE id_multiverse = inp_multiverse.id;
 
@@ -34,11 +34,11 @@ BEGIN
         SELECT
             clubs.id AS id_club, -- Club's id
             clubs.cash, -- Club's cash
-            -- Staff expenses applied this week
+            -- Training expenses applied this week
             CASE
-                WHEN clubs.cash >= 3 * clubs.expenses_staff_target THEN clubs.expenses_staff_target
+                WHEN clubs.cash >= 3 * clubs.expenses_training_target THEN clubs.expenses_training_target
                 ELSE 0
-            END AS expenses_staff_applied,
+            END AS expenses_training_applied,
             -- Scouting network expenses applied this week
             CASE
                 WHEN clubs.cash >= 3 * clubs.expenses_scouts_target THEN clubs.expenses_scouts_target
@@ -80,7 +80,7 @@ BEGIN
     AND total_expenses_missed_to_pay > 0)
     -- Update clubs' finances based on calculations
     UPDATE clubs SET
-        expenses_staff_applied = clubs_finances.expenses_staff_applied,
+        expenses_training_applied = clubs_finances.expenses_training_applied,
         expenses_scouts_applied = clubs_finances.expenses_scouts_applied,
         expenses_players_ratio = clubs_finances.expenses_players_ratio_applied
     FROM clubs_finances
@@ -107,8 +107,8 @@ BEGIN
             FROM players 
             WHERE id_club = clubs.id), 0),
         -- Update the staff weight of the club 
-        staff_weight = FLOOR((staff_weight +
-            (expenses_staff_applied * (1 +
+        training_weight = FLOOR((training_weight +
+            (expenses_training_applied * (1 +
                 COALESCE((SELECT coef_coach FROM players WHERE players.id = clubs.id_coach), 0) / 100.0 +
                 COALESCE((SELECT coef_coach FROM players WHERE players.id = clubs.id_scout), 0) / 200.0
                 )
@@ -124,7 +124,7 @@ BEGIN
             + revenues_transfers_done,
         expenses_total = expenses_tax +
             expenses_players +
-            expenses_staff_applied +
+            expenses_training_applied +
             expenses_scouts_applied +
             expenses_transfers_done
     WHERE id_multiverse = inp_multiverse.id;

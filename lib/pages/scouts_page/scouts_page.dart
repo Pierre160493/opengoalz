@@ -4,7 +4,6 @@ import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
-import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
 import 'package:opengoalz/models/playerPoaching/playersPoachingTab.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -80,7 +79,12 @@ class _ScoutsPageState extends State<ScoutsPage> {
 
               return Scaffold(
                 appBar: AppBar(
-                  title: Text('Scouting Network'),
+                  title: Row(
+                    children: [
+                      Text('Scouting Network of '),
+                      _user.selectedClub!.getClubNameClickable(context),
+                    ],
+                  ),
                   actions: [
                     Tooltip(
                       message: 'Help',
