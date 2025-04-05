@@ -130,11 +130,13 @@ Widget getPlayerHistoryStreamGraph(
 Widget getAgeListTile(BuildContext context, Player player) {
   return ListTile(
     shape: shapePersoRoundedBorder(),
-    leading: Icon(
-      Icons.cake_outlined,
-      size: iconSizeLarge,
-      color: Colors.green,
-    ),
+    leading: player.dateDeath != null
+        ? Icon(
+            iconDead,
+            size: iconSizeLarge,
+            color: Colors.red,
+          )
+        : Icon(Icons.cake_outlined, size: iconSizeLarge, color: Colors.green),
     title: Row(
       children: [
         getAgeStringRow(player.age),

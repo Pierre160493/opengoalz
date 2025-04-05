@@ -111,7 +111,7 @@ class _PlayerHistoryListTilesState extends State<PlayerHistoryListTiles> {
                                 getAgeString(calculateAge(
                                     widget.player.dateBirth,
                                     widget.player.multiverseSpeed,
-                                    date:
+                                    dateEnd:
                                         DateTime.parse(history['created_at']))),
                                 style: styleItalicBlueGrey,
                               ),

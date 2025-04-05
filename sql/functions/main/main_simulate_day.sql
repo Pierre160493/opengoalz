@@ -28,7 +28,7 @@ BEGIN
         FROM players
         JOIN multiverses ON multiverses.id = players.id_multiverse
         LEFT JOIN clubs ON clubs.id = players.id_club 
-        LEFT JOIN players_poaching ON players_poaching.id_player = players.id
+        -- LEFT JOIN players_poaching ON players_poaching.id_player = players.id
         WHERE players.id_multiverse = inp_multiverse.id
         AND players.date_death IS NULL
         GROUP BY players.id, multiverses.speed, players.id_club, clubs.username
@@ -36,10 +36,11 @@ BEGIN
     UPDATE players SET
         -- Randomly kill old players
         date_death = CASE
-            WHEN random() < ((age - 60) / 100.0) THEN inp_multiverse.date_handling
+            WHEN random() < ((age - 70) / 100.0) THEN inp_multiverse.date_handling
             ELSE NULL END
     FROM players1
-    WHERE players.id = players1.id;
+    WHERE players.id = players1.id
+    AND players.id NOT IN (SELECT id_player FROM transfers_bids);
 
     ------ Handling of the day 7 ==> Game day
     IF inp_multiverse.day_number = 7 THEN

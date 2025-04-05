@@ -6,9 +6,10 @@ DateTime calculateDateBirth(double age, int multiverseSpeed) {
   ));
 }
 
-double calculateAge(DateTime dateBirth, int multiverseSpeed, {DateTime? date}) {
-  date ??= DateTime.now();
-  return date.difference(dateBirth).inSeconds /
+double calculateAge(DateTime dateBirth, int multiverseSpeed,
+    {DateTime? dateEnd}) {
+  dateEnd ??= DateTime.now();
+  return dateEnd.difference(dateBirth).inSeconds /
       (14 * 7 * 24 * 3600 / multiverseSpeed);
 }
 

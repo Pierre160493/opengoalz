@@ -163,7 +163,7 @@ class Player {
         isStaff = map['is_staff'];
 
   double get age {
-    return calculateAge(dateBirth, multiverseSpeed);
+    return calculateAge(dateBirth, multiverseSpeed, dateEnd: dateDeath);
   }
 
   dynamic getPropertyValue(String propertyName) {
