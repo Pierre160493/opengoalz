@@ -48,6 +48,13 @@ class PlayerSearchCriterias {
               'winger': null,
               'scoring': null,
               'freekick': null,
+              'loyalty': null,
+              'leadership': null,
+              'discipline': null,
+              'communication': null,
+              'aggressivity': null,
+              'composure': null,
+              'teamwork': null,
             };
 
   Map<String, dynamic> toMap() {

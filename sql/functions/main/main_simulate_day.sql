@@ -40,7 +40,7 @@ BEGIN
             ELSE NULL END
     FROM players1
     WHERE players.id = players1.id
-    AND players.id NOT IN (SELECT id_player FROM transfers_bids);
+    AND players.id NOT IN (SELECT id_player FROM transfers_bids); -- Don't kill players that have bids on them (TO OPTIMIZE)
 
     ------ Handling of the day 7 ==> Game day
     IF inp_multiverse.day_number = 7 THEN

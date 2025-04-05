@@ -17,8 +17,6 @@ import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/postgresql_requests.dart';
-import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';

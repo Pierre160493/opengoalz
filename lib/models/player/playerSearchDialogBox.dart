@@ -420,7 +420,7 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: Text('Select Stat'),
+                            title: Text('Select Stats'),
                             content: SingleChildScrollView(
                               child: ListBody(
                                 children: availableStats.map((String stat) {
