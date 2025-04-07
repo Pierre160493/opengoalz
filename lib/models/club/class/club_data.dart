@@ -12,6 +12,7 @@ class ClubData {
     required this.cash,
     required this.expensesTrainingApplied,
     required this.expensesPlayers,
+    required this.expensesStaff,
     required this.expensesTotal,
     required this.revenuesSponsors,
     required this.revenuesTotal,
@@ -36,6 +37,7 @@ class ClubData {
   final int cash;
   final int expensesTrainingApplied;
   final int expensesPlayers;
+  final int expensesStaff;
   final int expensesTotal;
   final int revenuesSponsors;
   final int revenuesTotal;
@@ -60,6 +62,7 @@ class ClubData {
         cash = map['cash'],
         expensesTrainingApplied = map['expenses_training_applied'],
         expensesPlayers = map['expenses_players'],
+        expensesStaff = map['expenses_staff'],
         expensesTotal = map['expenses_total'],
         revenuesSponsors = map['revenues_sponsors'],
         revenuesTotal = map['revenues_total'],

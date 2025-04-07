@@ -299,12 +299,13 @@ BEGIN
             1 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) +
             GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2 +
             (keeper + defense + passes + playmaking + winger + scoring + freekick) / 4
+            + (coef_coach + coef_scout) / 2
             )
         ),
         coef_coach = FLOOR((
-            loyalty + 2 * leadership + 2* discipline + 2 * communication + 2 * composure + teamwork) / 10),
+            loyalty + 2 * leadership + 2 * discipline + 2 * communication + 2 * composure + teamwork) / 10),
         coef_scout = FLOOR((
-            2 * loyalty + 1 * leadership + discipline + 3 * communication + 2 * composure + teamwork) / 10)
+            2 * loyalty + leadership + discipline + 3 * communication + 2 * composure + teamwork) / 10)
     WHERE id_multiverse = inp_multiverse.id
     AND date_death IS NULL;
 

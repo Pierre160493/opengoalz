@@ -37,7 +37,8 @@ class _FinancesPageState extends State<FinancesPage> {
   late int _selectedWeekMax;
   int? _revenuesSponsors;
   int? _revenuesTransfersDone;
-  int? _expensesSalaries;
+  int? _expensesPlayers;
+  int? _expensesStaff;
   int? _expensesTraining;
   int? _expensesScouts;
   int? _expensesTaxes;
@@ -94,7 +95,8 @@ class _FinancesPageState extends State<FinancesPage> {
     //   _weeklyTotal = null;
     // }
     _revenuesSponsors = clubData.revenuesSponsors;
-    _expensesSalaries = clubData.expensesPlayers;
+    _expensesPlayers = clubData.expensesPlayers;
+    _expensesStaff = clubData.expensesStaff;
     _expensesTraining = _selectedWeek == 0
         ? clubData.expensesTrainingTarget
         : clubData.expensesTrainingApplied;
@@ -107,7 +109,8 @@ class _FinancesPageState extends State<FinancesPage> {
     _revenuesTransfersDone = clubData.revenuesTransfersDone;
     _expensesTransfersDone = clubData.expensesTransfersDone;
     _revenuesTotal = _revenuesSponsors! + _revenuesTransfersDone!;
-    _expensesTotal = _expensesSalaries! +
+    _expensesTotal = _expensesPlayers! +
+        _expensesStaff! +
         _expensesTraining! +
         _expensesScouts! +
         _expensesTaxes! +
@@ -298,8 +301,19 @@ class _FinancesPageState extends State<FinancesPage> {
                   DataCell(_getDataCellRow(
                       'Salaries',
                       'Last week paied salary',
-                      _expensesSalaries,
+                      _expensesPlayers,
                       clubDataHistory.map((e) => e.expensesPlayers).toList(),
+                      Colors.red)),
+                ]),
+
+                /// 2nd row
+                DataRow(cells: [
+                  DataCell(Text('')),
+                  DataCell(_getDataCellRow(
+                      'Staff Salaries',
+                      'Staff per week',
+                      _expensesStaff,
+                      clubDataHistory.map((e) => e.expensesStaff).toList(),
                       Colors.red)),
                 ]),
 

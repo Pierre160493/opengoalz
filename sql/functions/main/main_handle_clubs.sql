@@ -14,7 +14,7 @@ BEGIN
         id_club, season_number, week_number,
         number_fans, training_weight, scouts_weight,
         cash, revenues_sponsors, revenues_transfers_done, revenues_total,
-        expenses_training_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+        expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
         league_points, pos_league, league_goals_for, league_goals_against,
         elo_points, expenses_players_ratio_target, expenses_players_ratio,
         expenses_training_target, expenses_scouts_target
@@ -23,7 +23,7 @@ BEGIN
         id, inp_multiverse.season_number, inp_multiverse.week_number,
         number_fans, training_weight, scouts_weight,
         cash, revenues_sponsors, revenues_transfers_done, revenues_total,
-        expenses_training_applied, expenses_players, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+        expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
         league_points, pos_league, league_goals_for, league_goals_against,
         elo_points, expenses_players_ratio_target, expenses_players_ratio,
         expenses_training_target, expenses_scouts_target
@@ -105,7 +105,10 @@ BEGIN
         -- Players expenses are the expected expenses of the players * the ratio applied by the club
         expenses_players = COALESCE((SELECT SUM(expenses_payed)
             FROM players 
-            WHERE id_club = clubs.id), 0),
+            WHERE id_club = clubs.id AND date_retire IS NULL), 0),
+        expenses_staff = COALESCE((SELECT SUM(expenses_payed)
+            FROM players 
+            WHERE id_club = clubs.id AND date_retire IS NOT NULL), 0),
         -- Update the staff weight of the club 
         training_weight = FLOOR((training_weight +
             (expenses_training_applied * (1 +
