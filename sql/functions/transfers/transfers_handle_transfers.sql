@@ -39,7 +39,8 @@ BEGIN
                 UPDATE players SET
                     date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / inp_multiverse.speed),
                     expenses_expected = CEIL(0.9 * expenses_expected),
-                    transfer_price = 100
+                    transfer_price = 100,
+                    motivation = motivation - 5
                 WHERE id = player.id;
             
             ---- If the player has a club
@@ -303,13 +304,15 @@ BEGIN
         
     END LOOP;
 
-    ------ Retire players that have too small expected expenses
+    ------ Retire players that have too small motivation and are not in a club
     UPDATE players SET
         date_retire = NOW(),
         id_club = NULL
     WHERE date_retire IS NULL
-    AND expenses_expected < 25
-    AND id_club IS NULL;
+    -- AND expenses_expected < 25
+    AND id_club IS NULL
+    AND motivation < 20
+    AND RANDOM() < 0.1; -- Randomly retire players
 
 END;
 $function$

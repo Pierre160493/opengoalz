@@ -7,6 +7,8 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/clubCashListTile.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/players_page.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -96,6 +98,23 @@ class _StaffPageState extends State<StaffPage> {
                   club.getClubNameClickable(context),
                 ],
               ),
+              actions: [
+                IconButton(
+                  tooltip: 'Club\'s Retired Players',
+                  icon: Icon(iconRetired,
+                      color: Colors.green, size: iconSizeMedium),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PlayersPage(
+                            playerSearchCriterias: PlayerSearchCriterias(
+                                idClub: [club.id], retired: true)),
+                      ),
+                    );
+                  },
+                ),
+              ],
               leading: goBackIconButton(context),
             ),
             body: MaxWidthContainer(

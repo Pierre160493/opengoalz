@@ -321,8 +321,8 @@ class _FinancesPageState extends State<FinancesPage> {
                 DataRow(cells: [
                   DataCell(Text('')),
                   DataCell(_getDataCellRow(
-                      'Staff',
-                      'Staff per week',
+                      'Training',
+                      'Training per week',
                       _expensesTraining,
                       clubDataHistory
                           .map((e) => e.expensesTrainingApplied)

@@ -186,7 +186,7 @@ BEGIN
                 WHEN inp_notes = 'Youngster 2' THEN 'YOUNG2'
                 WHEN inp_notes = 'Young Scouted' THEN 'SCOUT'
                 WHEN inp_notes = 'Coach' THEN 'COACH'
-                ELSE 'None1?' END
+                ELSE '' END
             WHEN inp_shirt_number IS NOT NULL THEN
             CASE
                 WHEN inp_shirt_number IN (1, 12) THEN 'GK'
@@ -195,8 +195,8 @@ BEGIN
                 WHEN inp_shirt_number IN (6, 10, 15) THEN 'MF'
                 WHEN inp_shirt_number IN (7, 8, 16) THEN 'WG'
                 WHEN inp_shirt_number IN (9, 11, 17) THEN 'ST'
-                ELSE 'None2?' END
-            ELSE 'None3?'
+                ELSE '' END
+            ELSE ''
         END)
     RETURNING id INTO loc_new_player_id;
 

@@ -15,7 +15,7 @@ class PlayerSearchCriterias {
   Multiverse? multiverse;
   List<Country> countries = [];
   bool onTransferList = false;
-  bool retired = false;
+  bool? retired;
   // bool isFreePlayer = false;
   double defaultMinAge = 15;
   double defaultMaxAge = 35;
@@ -33,7 +33,7 @@ class PlayerSearchCriterias {
     this.idClub,
     this.multiverse,
     this.onTransferList = false,
-    this.retired = false,
+    this.retired,
     this.firstName,
     this.lastName,
     // this.selectedStatus,
@@ -255,8 +255,10 @@ class PlayerSearchCriterias {
       query = query.not('date_bid_end', 'is', null);
     }
 
-    if (retired) {
+    if (retired == true) {
       query = query.not('date_retire', 'is', null);
+    } else if (retired == false) {
+      query = query.isFilter('date_retire', null);
     }
 
     if (minDateBirth != null) {

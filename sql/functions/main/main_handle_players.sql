@@ -123,7 +123,7 @@ BEGIN
         
             -- Set date_bid_end for the demotivated players
             UPDATE players SET
-                date_bid_end = inp_multiverse.date_handling + (INTERVAL '6 days' / inp_multiverse.speed),
+                date_bid_end = inp_multiverse.date_handling + (INTERVAL '30 days' / inp_multiverse.speed),
                 transfer_price = - 100
             WHERE id = rec_player.id;
 

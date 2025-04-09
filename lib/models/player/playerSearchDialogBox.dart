@@ -227,7 +227,7 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                         title: Row(
                           children: [
                             Icon(iconRetired,
-                                color: playerSearchCriterias.retired
+                                color: playerSearchCriterias.retired == true
                                     ? Colors.green
                                     : Colors.orange),
                             formSpacer6,
@@ -235,13 +235,13 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                           ],
                         ),
                         trailing: Switch(
-                          value: playerSearchCriterias.retired,
+                          value: playerSearchCriterias.retired ?? false,
                           onChanged: (bool value) {
                             setState(() {
                               playerSearchCriterias.retired = value;
 
                               /// If retired, increase the age range
-                              if (playerSearchCriterias.retired) {
+                              if (playerSearchCriterias.retired == true) {
                                 playerSearchCriterias.defaultMinAge = 0;
                                 playerSearchCriterias.defaultMaxAge = 99;
                               }
