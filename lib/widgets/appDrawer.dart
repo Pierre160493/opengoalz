@@ -187,8 +187,8 @@ class _AppDrawerState extends State<AppDrawer> {
                 title: Text('Players'),
                 // shape: shapePersoRoundedBorder(),
                 page: PlayersPage(
-                  playerSearchCriterias:
-                      PlayerSearchCriterias(idClub: [selectedClub.id]),
+                  playerSearchCriterias: PlayerSearchCriterias(
+                      idClub: [selectedClub.id], retired: false),
                 ),
               ),
 

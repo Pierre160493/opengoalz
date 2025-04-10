@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -10,11 +8,15 @@ class ChartData {
   final List<List<num>>
       yValues; // Change to a list of lists to support multiple curves
   final XAxisType? typeXAxis; // Add xValues to support multiple curves
+  final double? minY; // Optional minimum Y value
+  final double? maxY; // Optional maximum Y value
 
   ChartData({
     required this.title,
     required this.yValues,
     this.typeXAxis,
+    this.minY,
+    this.maxY,
   });
 }
 
@@ -66,15 +68,8 @@ class ChartDialogBox extends StatelessWidget {
                 color: colors[index % colors.length],
               );
             }).toList(),
-            minY: 0,
-            // maxY: (max(
-            //                 100,
-            //                 data
-            //                     .expand((curve) => curve.map((spot) => spot.y))
-            //                     .reduce(max)) /
-            //             10)
-            //         .ceil() *
-            //     10,
+            minY: chartData.minY ?? 0, // Use provided minY or default to 0
+            maxY: chartData.maxY, // Use provided maxY if available
             titlesData: FlTitlesData(
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(

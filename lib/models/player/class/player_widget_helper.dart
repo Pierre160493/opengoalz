@@ -413,6 +413,8 @@ extension PlayerWidgetsHelper on Player {
           title: 'Player $label History',
           yValues: [lisStatsHistoryAll],
           typeXAxis: XAxisType.weekHistory,
+          minY: 0,
+          maxY: 100,
         );
 
         showDialog(
