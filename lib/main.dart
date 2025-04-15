@@ -8,24 +8,18 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 
 import 'package:opengoalz/pages/splash_page.dart';
-
-const supabaseUrl =
-    'https://kaderxuszmqjknsoyjpi.supabase.co'; // Get from Supabase Dashboard
+import 'package:opengoalz/config/supabase_config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); // Ensure WidgetsBinding is initialized
 
   await dotenv.load(fileName: ".env");
-  var supabaseKey = dotenv.env['SUPABASE_KEY']; // Get value from .env file
 
-  // Check if the SUPABASE_KEY is null
-  if (supabaseKey == null) {
-    // print('SUPABASE_KEY not found in .env file.');
-    return;
-  }
-
-  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+  await Supabase.initialize(
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabaseKey,
+  );
 
   final version = await _readVersion();
 
