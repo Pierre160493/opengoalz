@@ -2,4 +2,5 @@ flutter run -d windows
 
 flutter pub get
 
-.\pg_dump_schema.ps1 
+sql/dump/pg_dump.ps1
+sql/dump/pg_restore.ps1
