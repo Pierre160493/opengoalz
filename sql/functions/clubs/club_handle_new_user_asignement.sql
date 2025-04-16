@@ -35,6 +35,9 @@ BEGIN
 --        RAISE EXCEPTION 'You can not assign a user to a league that is not of the last level';
 --    END IF;
 
+    -- Delete the old mails
+    DELETE FROM mails WHERE id_club_to = NEW.id;
+
     -- Log history
     INSERT INTO clubs_history (id_club, description)
     VALUES (NEW.id, 'User {' || NEW.username || '} has been assigned to the club');
