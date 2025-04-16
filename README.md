@@ -1,6 +1,6 @@
 # OpenGoalz
 
-OpenGoalz is an open-source football management game of amateur football. You manage all of the club's decisions in order to climb the ranks and be the best club! The goal is to create a more realistic and dynamic experience (than Hattrick or FM), playable online against other managers.
+OpenGoalz is an open-source football management game of amateur football. You manage all of the club's decisions in order to climb the ranks and be the best club ! The goal is to create a more realistic and dynamic experience (than Hattrick or FM), playable online against other managers.
 
 ## Game Structure
 
@@ -20,13 +20,13 @@ Each club belongs to a country, and each country belongs to one of 6 continents:
 - North America
 - South America
 
-Each continent is made up of leagues of 6 clubs:
+Each continent is made up of multiple leagues (in a triangulare structure where the top leagues have two lower leagues).
 
 - 1 level 1 league
 - 2 level 2 leagues
 - 4 level 3 leagues
 - 8 level 4 leagues
-- ... and so on, depending on the number of active players in the multiverse
+- ... and so on, depending on the number of active clubs in the multiverse
 
 Like the following structure:
 
@@ -36,6 +36,8 @@ Like the following structure:
    2     -2
   / \    / \
  3  -3  4  -4
+
+Each league contains 6 clubs.
 
 ### End of Season
 
@@ -67,7 +69,7 @@ Transfers in OpenGoalz are handled through a bidding system. Here are the key po
 
 ### Transfer Outcomes
 
-- **No Bids**: If no bids are made, the player remains in their current club or becomes clubless (if he was fired or asked to leave)
+- **No Bids**: If no bids are made, the player remains in their current club or becomes clubless (if he was fired or if he asked to leave)
 - **Player Sold**: If a bid is successful, the player is transferred to the bidding club, and the selling club receives the bid amount.
 
 ### Player Status
@@ -75,25 +77,33 @@ Transfers in OpenGoalz are handled through a bidding system. Here are the key po
 - **Clubless Players**: Clubless players can be bid on and will join the highest bidding club. Each week, if a clubless has not been bought, his expected_expenses will drop, rendering him more attractive
 - **Club Players**: Players currently in a club can be transferred to another club through the bidding process.
 
+### Scouting mechanic
+
+With your scout, you have the possiblity of poaching other players (especially players from bot clubs).
+If you are interested in a player, you can ask your scout to start using some of the club's scout strength to start influencing the player to come to your club by undermining his motivation.
+Eventually the player will lack motivation and ask to leave the club. You can then try to buy him and you will get a reduction of the player salary because he wants to be in your club.
+
 ## Club Finances Handling
 
 ### Weekly Financial Updates
 
 Each week, the game updates the financial status of each club. Here are the key points:
 
-- **Staff and Scouting Expenses**: Clubs' staff and scouting expenses are applied based on target value and available cash.
+- **Staff and Scouting Expenses**: Club's staff and scouting expenses are applied based on target value and available cash.
 - **Player Expenses**: Players' expenses are paid based on the club's available cash and the expenses ratio.
 - **Debt Handling**: Clubs in debt receive notifications, and their staff, scouts, and players are not paid.
 - **Tax**: Clubs pay a tax of 1% of their available cash.
 
 ### Player Management
 
-- **Minimum Players**: Clubs must have at least 11 players. If a club has fewer than 11 players, new players are created to meet the minimum requirement.
+- **Minimum Players**: Clubs must have at least 11 players. If a club has fewer than 11 players:
+
+- Normal Clubs: Game is forfeit resulting to a 3-0 loss
+- Bot Clubs: New Players are created
 
 ## Features
 
-- **Players** Players have
-- **Players Training**: Training happens automatically based on various factors (age, player skill, played position, and coaching).
+- **Players Training**: Training happens automatically based on various factors (age, player skill, played position, and staff skill).
 - **Multiple Multiverses with Different Game Speeds**:
   - Speed1: 1 game per week (default)
   - Speed2: 2 games per week
@@ -109,15 +119,15 @@ Each week, the game updates the financial status of each club. Here are the key 
 Players have various attributes that affect their performance:
 
 - **Main Skills**
-  - **Keeper**: Goalkeeping ability.
-  - **Defense**: Defensive skills.
-  - **Passes**: Passing accuracy.
-  - **Playmaking**: Ability to create plays.
-  - **Winger**: Skills on the wing.
-  - **Scoring**: Goal-scoring ability.
+  - **Keeper**: Goalkeeping ability (for defense).
+  - **Defense**: Defensive skills (for defense).
+  - **Passes**: Passing accuracy (for goal opportunities and attacks)
+  - **Playmaking**: Ability to generate goal opportunities.
+  - **Winger**: Skills on the wing for side attacks.
+  - **Scoring**: Goal-scoring ability (for attacks).
   - **Freekick**: Free kick accuracy.
   
-  - **Technic**: Technical skills, including dribbling and ball control.
+  <!-- - **Technic**: Technical skills, including dribbling and ball control.
   - **Header**: Ability to win aerial duels and score with headers.
   - **Strength**: Physical power and ability to hold off opponents.
   - **Tackling**: Ability to dispossess opponents cleanly.
@@ -129,7 +139,7 @@ Players have various attributes that affect their performance:
   - **Marking**: Ability to closely guard and track opponents.
   - **Interceptions**: Ability to read the game and intercept passes.
   - **Long Shots**: Ability to score from long distances.
-  - **Set Pieces**: Skill in taking corners, free kicks, and penalties.
+  - **Set Pieces**: Skill in taking corners, free kicks, and penalties. -->
 
 - **Other Skills**
   - **Motivation**: Player's drive and determination.
@@ -192,29 +202,28 @@ Increases by playing games.
 
 ### Display Events of Current Games According to Time (NORMAL)
 
-### Poaching players (MEDIUM)
-
-Add the possibility of poaching players (easier for players belonging to bot clubs).
-Options:
-
-- The goal would be to promise a higher expected expenses to a player to drop his motivation
-- Consume scouting strength to drop a player's motivation
-
 ### Game Simulation Extra Cases (EASY)
 
 Handle injuries, substitutions, and free kicks.
 
-### Handle Training and Staff (MEDIUM)
-
-Create a staff table where staff have mental stats like loyalty, seriousness, motivation, discipline, and communication skills.
-
-### Select Followed (or Favorite) Clubs and Players and Access It from the UserPage (EASY)
-
-Make a table linking `id_clubs` or `id_player` to `id_user` (in profiles table).
-
 ### Solo Mode Like FM Where You Can Advance at Your Speed (HARD)
 
 Have more multiverses (can start becoming heavy for the database).
+Try to make a local database
+
+### Split money for transfers (EASY)
+
+When a player is transfered, split money for example:
+
+- 4%: For the league
+- 1%: For international cup
+- 10%: For previous clubs
+
+### Fans
+
+### Sligth updates of players other skills (Leadership, Discipline etc...) to have modified staff weight (EASY)
+
+### Make a trigger on cash column of clubs table to perfrectly handle money in closed loop (EASY)
 
 ## Contributing
 

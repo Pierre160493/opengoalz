@@ -1,6 +1,0 @@
-flutter run -d windows
-
-flutter pub get
-
-sql/dump/pg_dump.ps1
-sql/dump/pg_restore.ps1
