@@ -11,7 +11,7 @@ select cron.schedule (
 );
 
 
-select cron.unschedule('Handle transfers');
+select cron.unschedule('Main');
 
 select cron.schedule (
     'Handle transfers', -- name of the cron job
