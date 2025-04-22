@@ -41,6 +41,10 @@ The game is developed using:
 
 You'll find all you need to know in the wiki here: (<https://github.com/Pierre160493/opengoalz/wiki/Contributing>)
 
+## Community
+
+Join our community on Discord to discuss the project, share ideas, and get support: <https://discord.gg/M2eQ3HK7vQ>
+
 ## License
 
 This project is licensed under the MIT License.
