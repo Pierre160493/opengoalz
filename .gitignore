@@ -43,7 +43,7 @@ app.*.map.json
 /android/app/release
 
 # Ignore sensitive environment files
-.env
+# .env
 
 # Ignore Android build files
 linux/flutter/generated_plugin_registrant.cc
