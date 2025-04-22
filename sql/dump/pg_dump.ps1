@@ -9,10 +9,10 @@ Write-Output "Dumping schema for database '$DBName' from host '$DBHost_DEV' on p
 Set-Location "$(git rev-parse --show-toplevel)"
 
 # Set the PGPASSFILE environment variable
-$Env:PGPASSFILE = "C:\users\pgranger\OGZ_DEV.pgpass"
+$Env:PGPASSFILE = "C:\users\pgranger\OGZ_PROD.pgpass"
 
 # Dump Schema
-pg_dump -U $DBUser_DEV -h $DBHost_DEV -p $DBPort $DBName -f "$(git rev-parse --show-toplevel)\sql\dump\dump.sql"
-pg_dump -U $DBUser_DEV -h $DBHost_DEV -p $DBPort $DBName -Ft -f "$(git rev-parse --show-toplevel)\sql\dump\dump.tar"
+pg_dump -U $DBUser_DEV -h $DBHost_DEV -p $DBPort $DBName --schema-only -f "$(git rev-parse --show-toplevel)\sql\dump\dump.sql"
+pg_dump -U $DBUser_DEV -h $DBHost_DEV -p $DBPort $DBName --schema-only -Ft -f "$(git rev-parse --show-toplevel)\sql\dump\dump.tar"
 
 Write-Output "Dump completed successfully."
