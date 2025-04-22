@@ -35,11 +35,14 @@ BEGIN
     --UPDATE profiles SET id_default_club = NULL;
 
     INSERT INTO public.multiverses (id, date_season_start, speed, name) VALUES 
-    (1, date_trunc('hour', CURRENT_TIMESTAMP), 7, 'The Original'),
-    (2, date_trunc('hour', CURRENT_TIMESTAMP), 168, 'The Second'),
-    (3, date_trunc('hour', CURRENT_TIMESTAMP), 1008, 'The Third'),
-    (4, date_trunc('hour', CURRENT_TIMESTAMP), 1008, 'The Fourth'),
-    (5, date_trunc('hour', CURRENT_TIMESTAMP), 1008, 'The Fifth');
+    (1, date_trunc('week', CURRENT_DATE) + INTERVAL '5 days 20 hours' - interval '1 week', 1, 'The Original'), -- 1 game per week
+    (2, date_trunc('week', CURRENT_DATE) + INTERVAL '5 days 20 hours' - interval '1 week', 2, 'The Second'), -- 2 games per week
+    (3, date_trunc('week', CURRENT_DATE) + INTERVAL '5 days 20 hours' - interval '1 week', 7, 'The Third'), -- 1 game per day
+    (4, date_trunc('week', CURRENT_DATE) + INTERVAL '5 days 20 hours' - interval '1 week', 14, 'The Fourth'), -- 2 games per day
+    (5, date_trunc('week', CURRENT_DATE) + INTERVAL '5 days 20 hours' - interval '1 week', 168, 'The Fifth'); -- Every hour
+    (6, date_trunc('week', CURRENT_DATE) + INTERVAL '5 days 20 hours' - interval '1 week', 1008, 'The Sixth'); -- Every 10 minutes
+
+    
     
 --     FOR multiverse IN (
 --         SELECT * FROM multiverses
