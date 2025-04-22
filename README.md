@@ -4,11 +4,11 @@
 
 You manage all of the club's decisions in order to climb the ranks and be the best club against other managers online !
 
-The goal is to create a more realistic and dynamic experience (than Hattrick or Football Manager), with a focus on the amateur level of football.
+The goal is to create a more realistic and dynamic experience than Hattrick and a multiplayer experience that is more fun than Football Manager.
 
 The game is designed to be played on:
 
-- **Computer**:
+- **Computer**: <https://github.com/Pierre160493/opengoalz/releases>
 
   - Windows: ✅
   - Linux: ❓
