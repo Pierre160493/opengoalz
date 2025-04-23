@@ -450,7 +450,7 @@ BEGIN
     ------ Store the score
     UPDATE games SET
         -- date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
-        date_end = NOW() + INTERVAL '5 minutes',
+        date_end = date_start + INTERVAL '5 minutes',
         -- date_end = NOW(),
         ---- Score of the game
         score_left = CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END,
