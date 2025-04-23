@@ -1,0 +1,2 @@
+C:/Users/pgranger/OneDrive/git/opengoalz/android/app/.cxx/Debug/1y4h3p1z/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/pgranger/OneDrive/git/opengoalz/android/app/.cxx/Debug/1y4h3p1z/x86_64/CMakeFiles/rebuild_cache.dir
