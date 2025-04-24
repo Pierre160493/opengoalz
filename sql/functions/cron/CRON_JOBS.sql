@@ -2,6 +2,7 @@ select cron.schedule (
     'Main', -- name of the cron job
     '* * * * *',
     $$ CALL main_cron() $$
+    -- $$SET statement_timeout = '5min'; CALL public.main_cron()$$
 );
 
 select cron.schedule (
@@ -10,18 +11,11 @@ select cron.schedule (
     $$ CALL clean_data() $$
 );
 
-
 select cron.unschedule('Main');
 
-select cron.schedule (
-    'Handle transfers', -- name of the cron job
-    '* * * * *', -- Every minute
-    $$ select cron_handle_transfers() $$
-);
-
-select *
+select jobid, job_pid, command, username, status, return_message, start_time, end_time
 from cron.job_run_details
 order by start_time desc
 limit 10;
 
-SELECT * FROM cron.job;
+SELECT jobid, jobname, schedule, command, username, active FROM cron.job;
