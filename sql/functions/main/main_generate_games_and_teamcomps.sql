@@ -56,40 +56,40 @@ BEGIN
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_league, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
             -- Week 1 and 10
-(multiverse.id, league.id, inp_season_number, 1, inp_date_start, TRUE, 1, 2, league.id, league.id, 1),
-(multiverse.id, league.id, inp_season_number, 1, inp_date_start, TRUE, 4, 3, league.id, league.id, 1),
-(multiverse.id, league.id, inp_season_number, 1, inp_date_start, TRUE, 5, 6, league.id, league.id, 1),
-(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 9, TRUE, 2, 1, league.id, league.id, 10),
-(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 9, TRUE, 3, 4, league.id, league.id, 10),
-(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 9, TRUE, 6, 5, league.id, league.id, 10),
+(multiverse.id, league.id, inp_season_number, 1, inp_date_start + loc_interval_1_week, TRUE, 1, 2, league.id, league.id, 1),
+(multiverse.id, league.id, inp_season_number, 1, inp_date_start + loc_interval_1_week, TRUE, 4, 3, league.id, league.id, 1),
+(multiverse.id, league.id, inp_season_number, 1, inp_date_start + loc_interval_1_week, TRUE, 5, 6, league.id, league.id, 1),
+(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 10, TRUE, 2, 1, league.id, league.id, 10),
+(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 10, TRUE, 3, 4, league.id, league.id, 10),
+(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 10, TRUE, 6, 5, league.id, league.id, 10),
             -- Week 2 and 9
-(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week, TRUE, 3, 1, league.id, league.id, 2),
-(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week, TRUE, 2, 5, league.id, league.id, 2),
-(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week, TRUE, 6, 4, league.id, league.id, 2),
-(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 8, TRUE, 1, 3, league.id, league.id, 9),
-(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 8, TRUE, 5, 2, league.id, league.id, 9),
-(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 8, TRUE, 4, 6, league.id, league.id, 9),
+(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week * 2, TRUE, 3, 1, league.id, league.id, 2),
+(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week * 2, TRUE, 2, 5, league.id, league.id, 2),
+(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week * 2, TRUE, 6, 4, league.id, league.id, 2),
+(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 9, TRUE, 1, 3, league.id, league.id, 9),
+(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 9, TRUE, 5, 2, league.id, league.id, 9),
+(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 9, TRUE, 4, 6, league.id, league.id, 9),
             -- Week 3 and 8
-(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 2, TRUE, 1, 5, league.id, league.id, 3),
-(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 2, TRUE, 3, 6, league.id, league.id, 3),
-(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 2, TRUE, 4, 2, league.id, league.id, 3),
-(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 7, TRUE, 5, 1, league.id, league.id, 8),
-(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 7, TRUE, 6, 3, league.id, league.id, 8),
-(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 7, TRUE, 2, 4, league.id, league.id, 8),
+(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 3, TRUE, 1, 5, league.id, league.id, 3),
+(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 3, TRUE, 3, 6, league.id, league.id, 3),
+(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 3, TRUE, 4, 2, league.id, league.id, 3),
+(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 8, TRUE, 5, 1, league.id, league.id, 8),
+(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 8, TRUE, 6, 3, league.id, league.id, 8),
+(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 8, TRUE, 2, 4, league.id, league.id, 8),
             -- Week 4 and 7
-(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 3, TRUE, 6, 1, league.id, league.id, 4),
-(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 3, TRUE, 5, 4, league.id, league.id, 4),
-(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 3, TRUE, 2, 3, league.id, league.id, 4),
-(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 6, TRUE, 1, 6, league.id, league.id, 7),
-(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 6, TRUE, 4, 5, league.id, league.id, 7),
-(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 6, TRUE, 3, 2, league.id, league.id, 7),
+(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 4, TRUE, 6, 1, league.id, league.id, 4),
+(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 4, TRUE, 5, 4, league.id, league.id, 4),
+(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 4, TRUE, 2, 3, league.id, league.id, 4),
+(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 7, TRUE, 1, 6, league.id, league.id, 7),
+(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 7, TRUE, 4, 5, league.id, league.id, 7),
+(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 7, TRUE, 3, 2, league.id, league.id, 7),
             -- Week 5 and 6
-(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 4, TRUE, 1, 4, league.id, league.id, 5),
-(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 4, TRUE, 6, 2, league.id, league.id, 5),
-(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 4, TRUE, 5, 3, league.id, league.id, 5),
-(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 5, TRUE, 4, 1, league.id, league.id, 6),
-(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 5, TRUE, 2, 6, league.id, league.id, 6),
-(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 5, TRUE, 3, 5, league.id, league.id, 6);
+(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 5, TRUE, 1, 4, league.id, league.id, 5),
+(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 5, TRUE, 6, 2, league.id, league.id, 5),
+(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 5, TRUE, 5, 3, league.id, league.id, 5),
+(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 6, TRUE, 4, 1, league.id, league.id, 6),
+(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 6, TRUE, 2, 6, league.id, league.id, 6),
+(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 6, TRUE, 3, 5, league.id, league.id, 6);
 
             END IF; -- End of the creation of the championship games
 
@@ -106,21 +106,21 @@ id_multiverse, id_league, season_number, week_number, date_start, is_league, pos
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_league, is_home_game, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
             -- Week 11 (First Round)
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 1, 4, league.id, league.id, 11),
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 2, 5, league.id, league.id, 11),
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 3, 6, league.id, league.id, 11),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 4, league.id, league.id, 11),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 5, league.id, league.id, 11),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 3, 6, league.id, league.id, 11),
             -- Week 12 (Second Round)
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 5, league.id, league.id, 12),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 6, league.id, league.id, 12),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 3, 4, league.id, league.id, 12),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 5, league.id, league.id, 12),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 6, league.id, league.id, 12),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 3, 4, league.id, league.id, 12),
             -- Week 13 (Third Round)
-(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 6, league.id, league.id, 13),
-(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 4, league.id, league.id, 13),
-(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 3, 5, league.id, league.id, 13),
+(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 6, league.id, league.id, 13),
+(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 2, 4, league.id, league.id, 13),
+(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 3, 5, league.id, league.id, 13),
             -- Week 14 (Cup round)
-(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, FALSE, 1, 2, league.id, league.id, 14),
-(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, FALSE, 3, 4, league.id, league.id, 15),
-(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, FALSE, 5, 6, league.id, league.id, 16);
+(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, FALSE, 1, 2, league.id, league.id, 14),
+(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, FALSE, 3, 4, league.id, league.id, 15),
+(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, FALSE, 5, 6, league.id, league.id, 16);
 
                 -- Friendly games (week11 and 12) between 4th, 5th and 6th of top level leagues while waiting for barrages
                 ELSE
@@ -128,12 +128,12 @@ id_multiverse, id_league, season_number, week_number, date_start, is_league, is_
                     -- 3*2 international friendly games between 4th, 5th and 6th of master leagues for week 11 and 12
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 6, 1, league.id, league.id, 151),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 5, league.id, league.id, 161),
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 5, 2, league.id, league.id, 152),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 4, league.id, league.id, 162),
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 4, 3, league.id, league.id, 153),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 3, 6, league.id, league.id, 163);
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 6, 1, league.id, league.id, 151),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 5, league.id, league.id, 161),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 5, 2, league.id, league.id, 152),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 4, league.id, league.id, 162),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 4, 3, league.id, league.id, 153),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 3, 6, league.id, league.id, 163);
 
                 END IF;
 
@@ -152,12 +152,12 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
 
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 4, 4, league.id, -league.id, 171),
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 4, 4, -league.id, league.id, 181),
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 5, 5, league.id, -league.id, 172),
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 5, 5, -league.id, league.id, 182),
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 6, 6, league.id, -league.id, 173),
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 6, 6, -league.id, league.id, 183);
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 4, 4, league.id, -league.id, 171),
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 4, 4, -league.id, league.id, 181),
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 5, 5, league.id, -league.id, 172),
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 5, 5, -league.id, league.id, 182),
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 6, 6, league.id, -league.id, 173),
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 6, 6, -league.id, league.id, 183);
                 
                 END IF;
 
@@ -165,11 +165,11 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
                 -- Week 11 and 12: Games between both 1st of the lower leagues ==> Winner goes up, Loser plays barrage against 5th of upper league
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, 1, 1, league.id, -league.id, 211)
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, 1, 1, league.id, -league.id, 211)
 RETURNING id INTO loc_id_game_1;
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 1, -league.id, league.id, loc_id_game_1, 212)
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 1, -league.id, league.id, loc_id_game_1, 212)
 RETURNING id INTO loc_id_game_1;
                 -- Week 13 and 14: Friendly game between winner of the barrage 1 and winner of the barrage 1 from the symmetric league
                 IF loc_id_game_transverse IS NULL THEN
@@ -179,11 +179,11 @@ RETURNING id INTO loc_id_game_1;
                     -- Then we can insert the game between two winners of barrage 1
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, 1, 1, loc_id_game_1, loc_id_game_transverse, 215)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, 1, 1, loc_id_game_1, loc_id_game_transverse, 215)
 RETURNING id INTO loc_id_game_2;
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 1, loc_id_game_transverse, loc_id_game_1, loc_id_game_2, 216);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 1, 1, loc_id_game_transverse, loc_id_game_1, loc_id_game_2, 216);
                     -- Reset to NULL for next leagues
                     loc_id_game_transverse := NULL;
                 END IF;
@@ -191,64 +191,64 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
                 -- Week 13 and 14: Relegation Game Between 5th of the upper league and Loser of the barrage1
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, pos_club_left, pos_club_right, id_game_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, 2, 5, loc_id_game_1, league.id_upper_league, 213)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, 2, 5, loc_id_game_1, league.id_upper_league, 213)
 RETURNING id INTO loc_id_game_2;
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_game_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 5, 2, league.id_upper_league, loc_id_game_1, loc_id_game_2, 214);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 5, 2, league.id_upper_league, loc_id_game_1, loc_id_game_2, 214);
             
                 ---- Barrage2
                 -- Week 11
                 -- Game1: Barrage between 2nd and 3rd {2nd of left league vs 3rd of right league}
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 2, 3, league.id, -league.id, 311)
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 3, league.id, -league.id, 311)
 RETURNING id INTO loc_id_game_3;
                 -- Game2: Barrage between 2nd and 3rd {2nd of right league vs 3rd of left league}
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 2, 3, -league.id, league.id, 312)
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 3, -league.id, league.id, 312)
 RETURNING id INTO loc_id_game_4;
                 -- Week12
                 -- Game1: Barrage between winners of the first round {Winner of loc_id_game_1 vs Winner of loc_id_game_2} => Winner plays barrage and loser plays friendly
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 321)
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 321)
 RETURNING id INTO loc_id_game_1;
                 -- Game2: Friendly between losers of first round {Loser of loc_id_game_1 vs Loser of loc_id_game_2} => Winner plays international friendly game and loser plays friendly
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 322)
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 322)
 RETURNING id INTO loc_id_game_2;
                 ------ Week 13 and 14
                 -- Relegation between 4th of master league and Winner of the barrage2
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, pos_club_left, pos_club_right, id_league_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, 4, 1, league.id_upper_league, loc_id_game_1, 331)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, 4, 1, league.id_upper_league, loc_id_game_1, 331)
 RETURNING id INTO loc_id_game_3;
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_league_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 4, loc_id_game_1, league.id_upper_league, loc_id_game_3, 332);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 1, 4, loc_id_game_1, league.id_upper_league, loc_id_game_3, 332);
                 ------ Week 13
                 -- Friendly game between loser of second round of barrage 2 and winner of friendly game between losers of the first round of the barrage 2
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 2, loc_id_game_1, loc_id_game_2, 341)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 2, 2, loc_id_game_1, loc_id_game_2, 341)
 RETURNING id INTO loc_id_game_3;
                 -- Friendly game between winner of friendly game between losers of first round of barrage 2 and 6th club from the upper league (that is going down)
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 6, loc_id_game_2, league.id_upper_league, 342)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 6, loc_id_game_2, league.id_upper_league, 342)
 RETURNING id INTO loc_id_game_4;
                 ------ Week 14
                 -- Friendly Game between winners of last two friendly games loc_id_game_3 and loc_id_game_4
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 351);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 351);
                 -- Friendly Game between losers of last two friendly games loc_id_game_3 and loc_id_game_4
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 352);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 352);
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -258,12 +258,12 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
                     -- Friendly Games between clubs of symmetric last level leagues
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 4, 5, league.id, -league.id, 431),
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 5, 6, league.id, -league.id, 432),
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 6, 4, league.id, -league.id, 433),
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 4, 5, -league.id, league.id, 441),
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 5, 6, -league.id, league.id, 442),
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 6, 4, -league.id, league.id, 443);
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 4, 5, league.id, -league.id, 431),
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 5, 6, league.id, -league.id, 432),
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 6, 4, league.id, -league.id, 433),
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 4, 5, -league.id, league.id, 441),
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 5, 6, -league.id, league.id, 442),
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 6, 4, -league.id, league.id, 443);
 
                 END IF; -- End of the friendly games for the last level leagues
             END IF; -- End of the leagues with id < 0

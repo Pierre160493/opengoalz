@@ -29,7 +29,7 @@ BEGIN
             LOOP
                 ------ Refresh the multiverse record to get the updated week_number and date_handling
                 SELECT *,
-                    date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number) / speed)
+                    date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + (day_number - 1)) / speed)
                         AS date_handling
                 INTO multiverse
                 FROM multiverses
