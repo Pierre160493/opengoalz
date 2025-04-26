@@ -17,6 +17,7 @@ BEGIN
     FOR rec_multiverse IN (
         SELECT * FROM multiverses
         WHERE id = ANY(id_multiverses)
+        AND is_active = TRUE -- Only run active multiverses
     )
     LOOP
         ------ Loop while the current date is before the next handling date

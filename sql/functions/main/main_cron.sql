@@ -16,7 +16,7 @@ BEGIN
     ------ Loop through all multiverses
     FOR rec_multiverse IN (
         SELECT * FROM multiverses
-        WHERE error IS NULL -- Do not run multiverses on error
+        WHERE error IS NULL -- Do not run multiverses on error to save time and resources
         ORDER BY id
     )
     LOOP
