@@ -39,7 +39,8 @@ Widget getMultiverseSpeedRow(Multiverse multiverse) {
         'Multiverse Speed: ' + getMultiverseSpeedDescription(multiverse.speed),
     child: Row(
       children: [
-        Icon(iconMultiverseSpeed, color: Colors.green),
+        Icon(iconMultiverseSpeed,
+            color: multiverse.isActive ? Colors.green : Colors.red),
         formSpacer3,
         Text('X '),
         Text(

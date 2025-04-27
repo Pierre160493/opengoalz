@@ -207,13 +207,10 @@ class _MultiversePageState extends State<MultiversePage>
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Tooltip(
-                                          message: 'Name of the multiverse',
-                                          child: Text(
-                                            multiverse.name,
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
+                                        Text(
+                                          multiverse.name,
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
                                         ),
                                         getMultiverseSpeedRow(multiverse),
                                       ],
@@ -323,22 +320,43 @@ class _MultiversePageState extends State<MultiversePage>
       children: [
         ListTile(
           leading: Icon(iconMultiverseSpeed,
-              color: Colors.green, size: iconSizeMedium),
+              color: multiverse.isActive ? Colors.green : Colors.red,
+              size: iconSizeMedium),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Tooltip(
-                message: 'Name of the multiverse',
-                child: Text(
-                  multiverse.name,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+              Text(
+                multiverse.name,
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
               getMultiverseSpeedRow(multiverse),
             ],
           ),
-          subtitle: Text(getMultiverseSpeedDescription(multiverse.speed),
-              style: styleItalicBlueGrey),
+          subtitle: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.speed, color: Colors.blueGrey, size: 16),
+                  SizedBox(width: 4),
+                  Text(getMultiverseSpeedDescription(multiverse.speed),
+                      style: styleItalicBlueGrey),
+                ],
+              ),
+              Row(
+                children: [
+                  Icon(
+                    multiverse.isActive ? Icons.check_circle : Icons.cancel,
+                    color: multiverse.isActive ? Colors.green : Colors.red,
+                    size: 16,
+                  ),
+                  SizedBox(width: 4),
+                  Text(multiverse.isActive ? 'Active' : 'Inactive',
+                      style: styleItalicBlueGrey),
+                ],
+              ),
+            ],
+          ),
           shape: shapePersoRoundedBorder(),
         ),
         ListTile(
@@ -391,27 +409,24 @@ class _MultiversePageState extends State<MultiversePage>
                 title: Text(
                   'Time since last run: $minutesSinceLastRun minutes and $secondsSinceLastRun seconds',
                 ),
-                subtitle: Text(
-                  multiverse.error == null
-                      ? 'No error detected'
-                      : 'Error: ${multiverse.error}',
-                  style: styleItalicBlueGrey,
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Next handling: ${DateFormat('E d MMM \'at\' HH\':\'mm').format(multiverse.dateNextHandling)}',
+                    ),
+                    Text(
+                      multiverse.error == null
+                          ? 'No error detected'
+                          : 'Error: ${multiverse.error}',
+                      style: styleItalicBlueGrey,
+                    ),
+                  ],
                 ),
                 shape: shapePersoRoundedBorder(iconColor),
               ),
             );
           },
-        ),
-        ListTile(
-          leading: Icon(
-            Icons.sync_problem,
-            size: iconSizeMedium,
-            color: Colors.green,
-          ),
-          title: Text(
-            'Next handling: ${DateFormat('E d MMM \'at\' HH\':\'mm').format(multiverse.dateNextHandling)}',
-          ),
-          shape: shapePersoRoundedBorder(),
         ),
       ],
     );
