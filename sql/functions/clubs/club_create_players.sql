@@ -218,6 +218,7 @@ BEGIN
         inp_id_country := loc_id_country,
         inp_age := 35,
         inp_notes := 'Coach');
+    
     UPDATE players SET
         id_club = NULL,
         leadership = 75,
@@ -227,6 +228,7 @@ BEGIN
         teamwork = 75,
         date_retire = NOW()
     WHERE id = loc_id_player;
+    
     UPDATE clubs SET
         id_coach = loc_id_player
     WHERE id = inp_id_club;

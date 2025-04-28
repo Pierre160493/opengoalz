@@ -5,12 +5,12 @@ LANGUAGE plpgsql
 AS $function$
 DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
-    loc_time_of_next_handling INTERVAL; -- Variable to store the time of the next handling
 BEGIN
 
     -- Acquire a SHARE lock on the multiverses table to allow reads but prevent writes
     -- LOCK TABLE multiverses IN SHARE MODE;
 
+    RAISE NOTICE '****** START: main_handle_multiverse !';
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------ Loop through all multiverses
@@ -31,28 +31,25 @@ BEGIN
             WHERE id = rec_multiverse.id;
 
             ------ Calculate the time of the next handling of the multiverse
-            loc_time_of_next_handling := rec_multiverse.date_handling - now();
+            -- loc_time_of_next_handling := rec_multiverse.date_handling - now();
 
             ------ If it's in the future, exit the loop and wait for the next handling
-            IF loc_time_of_next_handling > INTERVAL '0 seconds' THEN
-                RAISE NOTICE '****** MAIN: %: S%W%D%: date_handling= % (NOW()=%) NO ==> %', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now(), loc_time_of_next_handling;
+            IF (rec_multiverse.date_handling - now()) > INTERVAL '0 seconds' THEN
+                RAISE NOTICE '*** %: Multiverse [%]: S%W%D%: date_handling= % (NOW()=%) ==> NOT YET', clock_timestamp() - statement_timestamp(), rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
                 EXIT;
             ELSE
-                RAISE NOTICE '****** MAIN: %: S%W%D%: date_handling= % (NOW()=%) YES ==> %', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now(), loc_time_of_next_handling;
+                RAISE NOTICE '*** %: Multiverse [%]: S%W%D%: date_handling= % (NOW()=%) ==> YES SIMULATE', clock_timestamp() - statement_timestamp(), rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
             END IF;
 
             ------ Handle the transfers
             PERFORM transfers_handle_transfers(
                 inp_multiverse := rec_multiverse
             );
-            -- COMMIT;
 
             ------ Check if we can pass to the next day
             IF main_simulate_day(inp_multiverse := rec_multiverse) = FALSE THEN
                 EXIT;
             END IF;
-            -- Display the time it took to run
-            RAISE NOTICE 'Time taken to run: %', clock_timestamp() - statement_timestamp();
 
             IF rec_multiverse.day_number = 7 THEN
 
@@ -65,7 +62,6 @@ BEGIN
 
             END IF;
 
-            RAISE NOTICE '**** MAIN: Multiverse [%] S%W%D%: Incrementing to next day for handling', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number;
             ------ Update the week number of the multiverse
             UPDATE multiverses SET
                 day_number = CASE
@@ -98,6 +94,6 @@ BEGIN
         
     END LOOP; -- End of the loop through the multiverses
 
-    RAISE NOTICE '************ END MAIN !!!';
+    RAISE NOTICE '****** END: main_handle_multiverse !';
 END;
 $function$;
