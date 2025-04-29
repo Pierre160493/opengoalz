@@ -88,7 +88,9 @@ BEGIN
         ------ Store the last run date of the multiverse
         UPDATE multiverses SET
             last_run = now(),
-            date_next_handling = rec_multiverse.date_handling,
+            date_next_handling = GREATEST(
+                rec_multiverse.date_handling,
+                date_trunc('minute', now()) + INTERVAL '1 minute'), -- Remove all the functions in queues from cron
             error = NULL
         WHERE id = rec_multiverse.id;
         
