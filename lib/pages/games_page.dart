@@ -101,7 +101,7 @@ class _HomePageState extends State<GamesPage> {
                   return supabase
                       .from('games')
                       .stream(primaryKey: ['id'])
-                      .eq('id_club_right', club.id)
+                      .eq('id_club_left', club.id)
                       .map((maps) => maps
                           .map((map) => Game.fromMap(map, widget.idClub))
                           .toList())
