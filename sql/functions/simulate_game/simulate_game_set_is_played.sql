@@ -72,10 +72,10 @@ BEGIN
     tmp_text1 := rec_game.text_score_game || ' in ' ||  rec_game.game_presentation || ' against ';
     text_title_winner := rec_game.overall_text || CASE
             WHEN rec_game.score_cumul_with_penalty_left = rec_game.score_cumul_with_penalty_right THEN ' Draw '
-            ELSE ' Victory ' END || tmp_text1 || string_parser(rec_game.id_club_overall_loser, 'idClub');
+            ELSE 'Victory ' END || tmp_text1 || string_parser(rec_game.id_club_overall_loser, 'idClub');
     text_title_loser := rec_game.overall_text || CASE
             WHEN rec_game.score_cumul_with_penalty_left = rec_game.score_cumul_with_penalty_right THEN ' Draw '
-            ELSE ' Defeat ' END || tmp_text1 || string_parser(rec_game.id_club_overall_winner, 'idClub');
+            ELSE 'Defeat ' END || tmp_text1 || string_parser(rec_game.id_club_overall_winner, 'idClub');
     text_message_winner := text_title_winner || ' for the game: ' || rec_game.game_description;
     text_message_loser := text_title_loser || ' for the game: ' || rec_game.game_description;
 
