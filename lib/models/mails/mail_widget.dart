@@ -82,18 +82,22 @@ class MailWidget extends StatelessWidget {
                       color: Colors.red,
                     ),
                     onPressed: () async {
+                      print('1: Delete mail ${mail.id}');
                       Map<String, dynamic> data = {
                         'date_delete': DateTime.now()
                             .add(Duration(days: 7))
                             .toIso8601String()
                       };
+                      print('2: Delete mail ${mail.id}');
                       bool isOk =
                           await updateMails(context, [mail], data: data);
+                      print('3: Delete mail ${mail.id}');
                       if (isOk) {
                         onStateChange(() {
                           mail.dateDelete =
                               DateTime.now().add(Duration(days: 7));
                         });
+                        print('4: Delete mail ${mail.id}');
                       }
                     },
                   ),
