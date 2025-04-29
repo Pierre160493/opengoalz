@@ -123,7 +123,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
             INSERT INTO clubs_history (id_club, description)
             SELECT
                 clubs.id AS id_club,
-                'Season ' || inp_multiverse.season_number || 'Finished ' ||
+                'S' || inp_multiverse.season_number || ': Finished ' ||
                 CASE
                     WHEN pos_league = 1 THEN '1st'
                     WHEN pos_league = 2 THEN '2nd'
@@ -139,7 +139,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
             INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
             SELECT
                 players.id AS id_player, players.id_club AS id_club,
-                'Season ' || inp_multiverse.season_number || ': ' || 
+                'S' || inp_multiverse.season_number || ': ' || 
                 CASE
                     WHEN clubs.pos_league = 1 THEN 'Champions'
                     WHEN clubs.pos_league = 2 THEN '2nd'
