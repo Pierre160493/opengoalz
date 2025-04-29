@@ -303,7 +303,7 @@ class _AssignPlayerOrClubDialogBoxState
                                   'username': Provider.of<UserSessionProvider>(
                                           context,
                                           listen: false)
-                                      .user!
+                                      .user
                                       .username,
                                   'id_country': _selectedCountry!.id,
                                 },
@@ -360,7 +360,7 @@ class _AssignPlayerOrClubDialogBoxState
                                   'username': Provider.of<UserSessionProvider>(
                                           context,
                                           listen: false)
-                                      .user!
+                                      .user
                                       .username,
                                   'id_country': _selectedCountry!.id,
                                   'id_multiverse': _selectedMultiverse!.id,
