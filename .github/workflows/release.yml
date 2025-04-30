@@ -6,6 +6,11 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'  # Trigger on semantic versioning tags starting with 'v'
   workflow_dispatch:  # Allow manual triggers
 
+permissions:
+  contents: write
+  packages: write
+  issues: read
+
 jobs:
   verify-version:
     runs-on: ubuntu-latest
@@ -33,7 +38,7 @@ jobs:
       - name: Set up Flutter
         uses: flutter-actions/setup-flutter@v2
         with:
-          flutter-version: 'stable' # Use the latest stable Flutter version
+          channel: 'stable' # Use the latest stable Flutter version
 
       - name: Install dependencies
         run: flutter pub get
@@ -64,7 +69,7 @@ jobs:
       - name: Set up Flutter
         uses: flutter-actions/setup-flutter@v2
         with:
-          flutter-version: 'stable' # Use the latest stable Flutter version
+          channel: 'stable' # Use the latest stable Flutter version
 
       - name: Install dependencies
         run: flutter pub get
