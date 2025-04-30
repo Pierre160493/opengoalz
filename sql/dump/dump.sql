@@ -1105,6 +1105,7 @@ BEGIN
         inp_id_country := loc_id_country,
         inp_age := 35,
         inp_notes := 'Coach');
+    
     UPDATE players SET
         id_club = NULL,
         leadership = 75,
@@ -1114,6 +1115,7 @@ BEGIN
         teamwork = 75,
         date_retire = NOW()
     WHERE id = loc_id_player;
+    
     UPDATE clubs SET
         id_coach = loc_id_player
     WHERE id = inp_id_club;
@@ -1666,142 +1668,6 @@ $$;
 ALTER FUNCTION public.leagues_create_lower_leagues(inp_id_upper_league bigint, inp_max_level bigint) OWNER TO postgres;
 
 --
--- Name: main(boolean); Type: PROCEDURE; Schema: public; Owner: postgres
---
-
-CREATE PROCEDURE public.main(IN is_cron boolean DEFAULT false)
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    multiverse RECORD; -- Record for the multiverses loop
-    loc_time_of_next_handling INTERVAL; -- Variable to store the time of the next handling
-BEGIN
-
-    IF is_cron THEN
-        RAISE EXCEPTION '************ KILL THE CRON !!!';
-    END IF;
-
-    -- Acquire a SHARE lock on the multiverses table to allow reads but prevent writes
-    LOCK TABLE multiverses IN SHARE MODE;
-
-    ------------------------------------------------------------------------------------------------------------------------------------------------
-    ------------------------------------------------------------------------------------------------------------------------------------------------
-    ------ Loop through all multiverses
-    FOR multiverse IN (
-        SELECT * FROM multiverses
-        WHERE (is_cron IS FALSE OR error IS NULL) -- When cron, do not run multiverses on error
-        ORDER BY id
-    )
-    LOOP
-        -- Start a new transaction for each multiverse
-        -- BEGIN
-            ------ Loop while the current date is before the next handling date
-            LOOP
-                ------ Refresh the multiverse record to get the updated week_number and date_handling
-                SELECT *,
-                    date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number) / speed)
-                        AS date_handling
-                INTO multiverse
-                FROM multiverses
-                WHERE id = multiverse.id;
-
-                ------ Calculate the time of the next handling of the multiverse
-                loc_time_of_next_handling := multiverse.date_handling - now();
-
-                ------ If it's in the future, exit the loop and wait for the next handling
-                IF loc_time_of_next_handling > INTERVAL '0 seconds' THEN
-                    RAISE NOTICE '****** MAIN: %: S%W%D%: date_handling= % (NOW()=%) NO ==> %', multiverse.name, multiverse.season_number, multiverse.week_number, multiverse.day_number, multiverse.date_handling, now(), loc_time_of_next_handling;
-                    EXIT;
-                ELSE
-                    RAISE NOTICE '****** MAIN: %: S%W%D%: date_handling= % (NOW()=%) YES ==> %', multiverse.name, multiverse.season_number, multiverse.week_number, multiverse.day_number, multiverse.date_handling, now(), loc_time_of_next_handling;
-                END IF;
-
-                ------ Handle the transfers
-                PERFORM transfers_handle_transfers(
-                    inp_multiverse := multiverse
-                );
-                COMMIT;
-
-                ------ Check if we can pass to the next day
-                IF main_simulate_day(inp_multiverse := multiverse) = FALSE THEN
-                    EXIT;
-                END IF;
-                -- Display the time it took to run
-                RAISE NOTICE 'Time taken to run: %', clock_timestamp() - statement_timestamp();
-
-                IF multiverse.day_number = 7 THEN
-    
-                    ------ Handle the clubs (weekly finances etc...)
-                    PERFORM main_handle_clubs(multiverse);
-
-                    ------ Handle the players (stats increase etc...)
-                    PERFORM main_handle_players(multiverse);
-
-                    ------ Handle season (promotions, relegations etc...)
-                    PERFORM main_handle_season(multiverse);
-                END IF;
-
-                RAISE NOTICE '**** MAIN: Multiverse [%] S%W%D%: Incrementing to next day for handling', multiverse.name, multiverse.season_number, multiverse.week_number, multiverse.day_number;
-                ------ Update the week number of the multiverse
-                UPDATE multiverses SET
-                    day_number = CASE
-                        WHEN day_number = 7 THEN 1
-                        ELSE day_number + 1
-                        END,
-                    week_number = CASE
-                        WHEN day_number = 7 THEN week_number + 1
-                        ELSE week_number
-                        END
-                WHERE id = multiverse.id;
-
-                ------ Avoid handling more than a full week in one run
-                IF multiverse.day_number = 1 THEN
-                    EXIT;
-                END IF;
-            END LOOP; -- End of the LOOP
-
-            ------ Handle the transfers
-            PERFORM transfers_handle_transfers(
-                inp_multiverse := multiverse
-            );
-
-            ------ Store the last run date of the multiverse
-            UPDATE multiverses SET
-                last_run = now(),
-                date_next_handling = multiverse.date_handling,
-                error = NULL
-            WHERE id = multiverse.id;
-
-        -- EXCEPTION
-        --     WHEN OTHERS THEN
-        --         -- Rollback the transaction in case of an error
-        --         ROLLBACK;
-        --         RAISE NOTICE 'Error processing multiverse %: %', multiverse.id, SQLERRM;
-
-        --         -- Raise exception when not in cron mode
-        --         IF is_cron IS FALSE THEN
-        --             RAISE EXCEPTION 'Error processing multiverse %: %', multiverse.id, SQLERRM;
-        --         END IF;
-
-        --         -- Store the error message in the multiverse record
-        --         UPDATE multiverses SET
-        --             error = SQLERRM
-        --         WHERE id = multiverse.id;
-        -- END;
-        
-        ------ Commit the transaction for the current multiverse
-        COMMIT;
-    END LOOP; -- End of the loop through the multiverses
-
-    RAISE NOTICE '************ END MAIN !!!';
-    -- RAISE EXCEPTION '************ END MAIN !!!';
-END;
-$$;
-
-
-ALTER PROCEDURE public.main(IN is_cron boolean) OWNER TO postgres;
-
---
 -- Name: main_cron(); Type: PROCEDURE; Schema: public; Owner: postgres
 --
 
@@ -1810,6 +1676,7 @@ CREATE PROCEDURE public.main_cron()
     AS $$
 DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
+    lock_exists BOOLEAN;   -- Variable to check if the lock exists
 BEGIN
 
     ------ Uncomment the following line to deactivate the cron
@@ -1823,7 +1690,7 @@ BEGIN
     ------ Loop through all multiverses
     FOR rec_multiverse IN (
         SELECT * FROM multiverses
-        WHERE error IS NULL -- Do not run multiverses on error
+        WHERE error IS NULL -- Do not run multiverses on error to save time and resources
         ORDER BY id
     )
     LOOP
@@ -1913,40 +1780,40 @@ BEGIN
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_league, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
             -- Week 1 and 10
-(multiverse.id, league.id, inp_season_number, 1, inp_date_start, TRUE, 1, 2, league.id, league.id, 1),
-(multiverse.id, league.id, inp_season_number, 1, inp_date_start, TRUE, 4, 3, league.id, league.id, 1),
-(multiverse.id, league.id, inp_season_number, 1, inp_date_start, TRUE, 5, 6, league.id, league.id, 1),
-(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 9, TRUE, 2, 1, league.id, league.id, 10),
-(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 9, TRUE, 3, 4, league.id, league.id, 10),
-(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 9, TRUE, 6, 5, league.id, league.id, 10),
+(multiverse.id, league.id, inp_season_number, 1, inp_date_start + loc_interval_1_week, TRUE, 1, 2, league.id, league.id, 1),
+(multiverse.id, league.id, inp_season_number, 1, inp_date_start + loc_interval_1_week, TRUE, 4, 3, league.id, league.id, 1),
+(multiverse.id, league.id, inp_season_number, 1, inp_date_start + loc_interval_1_week, TRUE, 5, 6, league.id, league.id, 1),
+(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 10, TRUE, 2, 1, league.id, league.id, 10),
+(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 10, TRUE, 3, 4, league.id, league.id, 10),
+(multiverse.id, league.id, inp_season_number, 10, inp_date_start + loc_interval_1_week * 10, TRUE, 6, 5, league.id, league.id, 10),
             -- Week 2 and 9
-(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week, TRUE, 3, 1, league.id, league.id, 2),
-(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week, TRUE, 2, 5, league.id, league.id, 2),
-(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week, TRUE, 6, 4, league.id, league.id, 2),
-(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 8, TRUE, 1, 3, league.id, league.id, 9),
-(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 8, TRUE, 5, 2, league.id, league.id, 9),
-(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 8, TRUE, 4, 6, league.id, league.id, 9),
+(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week * 2, TRUE, 3, 1, league.id, league.id, 2),
+(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week * 2, TRUE, 2, 5, league.id, league.id, 2),
+(multiverse.id, league.id, inp_season_number, 2, inp_date_start + loc_interval_1_week * 2, TRUE, 6, 4, league.id, league.id, 2),
+(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 9, TRUE, 1, 3, league.id, league.id, 9),
+(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 9, TRUE, 5, 2, league.id, league.id, 9),
+(multiverse.id, league.id, inp_season_number, 9, inp_date_start + loc_interval_1_week * 9, TRUE, 4, 6, league.id, league.id, 9),
             -- Week 3 and 8
-(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 2, TRUE, 1, 5, league.id, league.id, 3),
-(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 2, TRUE, 3, 6, league.id, league.id, 3),
-(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 2, TRUE, 4, 2, league.id, league.id, 3),
-(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 7, TRUE, 5, 1, league.id, league.id, 8),
-(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 7, TRUE, 6, 3, league.id, league.id, 8),
-(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 7, TRUE, 2, 4, league.id, league.id, 8),
+(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 3, TRUE, 1, 5, league.id, league.id, 3),
+(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 3, TRUE, 3, 6, league.id, league.id, 3),
+(multiverse.id, league.id, inp_season_number, 3, inp_date_start + loc_interval_1_week * 3, TRUE, 4, 2, league.id, league.id, 3),
+(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 8, TRUE, 5, 1, league.id, league.id, 8),
+(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 8, TRUE, 6, 3, league.id, league.id, 8),
+(multiverse.id, league.id, inp_season_number, 8, inp_date_start + loc_interval_1_week * 8, TRUE, 2, 4, league.id, league.id, 8),
             -- Week 4 and 7
-(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 3, TRUE, 6, 1, league.id, league.id, 4),
-(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 3, TRUE, 5, 4, league.id, league.id, 4),
-(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 3, TRUE, 2, 3, league.id, league.id, 4),
-(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 6, TRUE, 1, 6, league.id, league.id, 7),
-(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 6, TRUE, 4, 5, league.id, league.id, 7),
-(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 6, TRUE, 3, 2, league.id, league.id, 7),
+(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 4, TRUE, 6, 1, league.id, league.id, 4),
+(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 4, TRUE, 5, 4, league.id, league.id, 4),
+(multiverse.id, league.id, inp_season_number, 4, inp_date_start + loc_interval_1_week * 4, TRUE, 2, 3, league.id, league.id, 4),
+(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 7, TRUE, 1, 6, league.id, league.id, 7),
+(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 7, TRUE, 4, 5, league.id, league.id, 7),
+(multiverse.id, league.id, inp_season_number, 7, inp_date_start + loc_interval_1_week * 7, TRUE, 3, 2, league.id, league.id, 7),
             -- Week 5 and 6
-(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 4, TRUE, 1, 4, league.id, league.id, 5),
-(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 4, TRUE, 6, 2, league.id, league.id, 5),
-(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 4, TRUE, 5, 3, league.id, league.id, 5),
-(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 5, TRUE, 4, 1, league.id, league.id, 6),
-(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 5, TRUE, 2, 6, league.id, league.id, 6),
-(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 5, TRUE, 3, 5, league.id, league.id, 6);
+(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 5, TRUE, 1, 4, league.id, league.id, 5),
+(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 5, TRUE, 6, 2, league.id, league.id, 5),
+(multiverse.id, league.id, inp_season_number, 5, inp_date_start + loc_interval_1_week * 5, TRUE, 5, 3, league.id, league.id, 5),
+(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 6, TRUE, 4, 1, league.id, league.id, 6),
+(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 6, TRUE, 2, 6, league.id, league.id, 6),
+(multiverse.id, league.id, inp_season_number, 6, inp_date_start + loc_interval_1_week * 6, TRUE, 3, 5, league.id, league.id, 6);
 
             END IF; -- End of the creation of the championship games
 
@@ -1963,21 +1830,21 @@ id_multiverse, id_league, season_number, week_number, date_start, is_league, pos
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_league, is_home_game, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
             -- Week 11 (First Round)
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 1, 4, league.id, league.id, 11),
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 2, 5, league.id, league.id, 11),
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 3, 6, league.id, league.id, 11),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 4, league.id, league.id, 11),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 5, league.id, league.id, 11),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 3, 6, league.id, league.id, 11),
             -- Week 12 (Second Round)
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 5, league.id, league.id, 12),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 6, league.id, league.id, 12),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 3, 4, league.id, league.id, 12),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 5, league.id, league.id, 12),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 6, league.id, league.id, 12),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 3, 4, league.id, league.id, 12),
             -- Week 13 (Third Round)
-(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 6, league.id, league.id, 13),
-(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 4, league.id, league.id, 13),
-(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 3, 5, league.id, league.id, 13),
+(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 6, league.id, league.id, 13),
+(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 2, 4, league.id, league.id, 13),
+(multiverse.id, league.id, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 3, 5, league.id, league.id, 13),
             -- Week 14 (Cup round)
-(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, FALSE, 1, 2, league.id, league.id, 14),
-(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, FALSE, 3, 4, league.id, league.id, 15),
-(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, FALSE, 5, 6, league.id, league.id, 16);
+(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, FALSE, 1, 2, league.id, league.id, 14),
+(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, FALSE, 3, 4, league.id, league.id, 15),
+(multiverse.id, league.id, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, FALSE, 5, 6, league.id, league.id, 16);
 
                 -- Friendly games (week11 and 12) between 4th, 5th and 6th of top level leagues while waiting for barrages
                 ELSE
@@ -1985,12 +1852,12 @@ id_multiverse, id_league, season_number, week_number, date_start, is_league, is_
                     -- 3*2 international friendly games between 4th, 5th and 6th of master leagues for week 11 and 12
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 6, 1, league.id, league.id, 151),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 5, league.id, league.id, 161),
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 5, 2, league.id, league.id, 152),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 4, league.id, league.id, 162),
-(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 4, 3, league.id, league.id, 153),
-(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 3, 6, league.id, league.id, 163);
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 6, 1, league.id, league.id, 151),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 5, league.id, league.id, 161),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 5, 2, league.id, league.id, 152),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 4, league.id, league.id, 162),
+(multiverse.id, league.id, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 4, 3, league.id, league.id, 153),
+(multiverse.id, league.id, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 3, 6, league.id, league.id, 163);
 
                 END IF;
 
@@ -2009,12 +1876,12 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
 
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 4, 4, league.id, -league.id, 171),
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 4, 4, -league.id, league.id, 181),
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 5, 5, league.id, -league.id, 172),
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 5, 5, -league.id, league.id, 182),
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 6, 6, league.id, -league.id, 173),
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 6, 6, -league.id, league.id, 183);
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 4, 4, league.id, -league.id, 171),
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 4, 4, -league.id, league.id, 181),
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 5, 5, league.id, -league.id, 172),
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 5, 5, -league.id, league.id, 182),
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 6, 6, league.id, -league.id, 173),
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 6, 6, -league.id, league.id, 183);
                 
                 END IF;
 
@@ -2022,11 +1889,11 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
                 -- Week 11 and 12: Games between both 1st of the lower leagues ==> Winner goes up, Loser plays barrage against 5th of upper league
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, 1, 1, league.id, -league.id, 211)
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, 1, 1, league.id, -league.id, 211)
 RETURNING id INTO loc_id_game_1;
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 1, -league.id, league.id, loc_id_game_1, 212)
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 1, -league.id, league.id, loc_id_game_1, 212)
 RETURNING id INTO loc_id_game_1;
                 -- Week 13 and 14: Friendly game between winner of the barrage 1 and winner of the barrage 1 from the symmetric league
                 IF loc_id_game_transverse IS NULL THEN
@@ -2036,11 +1903,11 @@ RETURNING id INTO loc_id_game_1;
                     -- Then we can insert the game between two winners of barrage 1
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, 1, 1, loc_id_game_1, loc_id_game_transverse, 215)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, 1, 1, loc_id_game_1, loc_id_game_transverse, 215)
 RETURNING id INTO loc_id_game_2;
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 1, loc_id_game_transverse, loc_id_game_1, loc_id_game_2, 216);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 1, 1, loc_id_game_transverse, loc_id_game_1, loc_id_game_2, 216);
                     -- Reset to NULL for next leagues
                     loc_id_game_transverse := NULL;
                 END IF;
@@ -2048,64 +1915,64 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
                 -- Week 13 and 14: Relegation Game Between 5th of the upper league and Loser of the barrage1
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, pos_club_left, pos_club_right, id_game_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, 2, 5, loc_id_game_1, league.id_upper_league, 213)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, 2, 5, loc_id_game_1, league.id_upper_league, 213)
 RETURNING id INTO loc_id_game_2;
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_game_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 5, 2, league.id_upper_league, loc_id_game_1, loc_id_game_2, 214);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 5, 2, league.id_upper_league, loc_id_game_1, loc_id_game_2, 214);
             
                 ---- Barrage2
                 -- Week 11
                 -- Game1: Barrage between 2nd and 3rd {2nd of left league vs 3rd of right league}
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 2, 3, league.id, -league.id, 311)
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 3, league.id, -league.id, 311)
 RETURNING id INTO loc_id_game_3;
                 -- Game2: Barrage between 2nd and 3rd {2nd of right league vs 3rd of left league}
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 10, TRUE, TRUE, 2, 3, -league.id, league.id, 312)
+(multiverse.id, league.id_upper_league, inp_season_number, 11, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 3, -league.id, league.id, 312)
 RETURNING id INTO loc_id_game_4;
                 -- Week12
                 -- Game1: Barrage between winners of the first round {Winner of loc_id_game_1 vs Winner of loc_id_game_2} => Winner plays barrage and loser plays friendly
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 321)
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 321)
 RETURNING id INTO loc_id_game_1;
                 -- Game2: Friendly between losers of first round {Loser of loc_id_game_1 vs Loser of loc_id_game_2} => Winner plays international friendly game and loser plays friendly
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 11, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 322)
+(multiverse.id, league.id_upper_league, inp_season_number, 12, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 322)
 RETURNING id INTO loc_id_game_2;
                 ------ Week 13 and 14
                 -- Relegation between 4th of master league and Winner of the barrage2
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, pos_club_left, pos_club_right, id_league_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, 4, 1, league.id_upper_league, loc_id_game_1, 331)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, 4, 1, league.id_upper_league, loc_id_game_1, 331)
 RETURNING id INTO loc_id_game_3;
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_relegation, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_league_club_right, is_return_game_id_game_first_round, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 4, loc_id_game_1, league.id_upper_league, loc_id_game_3, 332);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 1, 4, loc_id_game_1, league.id_upper_league, loc_id_game_3, 332);
                 ------ Week 13
                 -- Friendly game between loser of second round of barrage 2 and winner of friendly game between losers of the first round of the barrage 2
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 2, 2, loc_id_game_1, loc_id_game_2, 341)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 2, 2, loc_id_game_1, loc_id_game_2, 341)
 RETURNING id INTO loc_id_game_3;
                 -- Friendly game between winner of friendly game between losers of first round of barrage 2 and 6th club from the upper league (that is going down)
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 1, 6, loc_id_game_2, league.id_upper_league, 342)
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 6, loc_id_game_2, league.id_upper_league, 342)
 RETURNING id INTO loc_id_game_4;
                 ------ Week 14
                 -- Friendly Game between winners of last two friendly games loc_id_game_3 and loc_id_game_4
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 351);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 1, 1, loc_id_game_3, loc_id_game_4, 351);
                 -- Friendly Game between losers of last two friendly games loc_id_game_3 and loc_id_game_4
                 INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_game_club_left, id_game_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 352);
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 2, 2, loc_id_game_3, loc_id_game_4, 352);
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2115,12 +1982,12 @@ id_multiverse, id_league, season_number, week_number, date_start, is_friendly, i
                     -- Friendly Games between clubs of symmetric last level leagues
                     INSERT INTO games (
 id_multiverse, id_league, season_number, week_number, date_start, is_friendly, is_cup, pos_club_left, pos_club_right, id_league_club_left, id_league_club_right, id_games_description) VALUES
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 4, 5, league.id, -league.id, 431),
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 5, 6, league.id, -league.id, 432),
-(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 12, TRUE, TRUE, 6, 4, league.id, -league.id, 433),
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 4, 5, -league.id, league.id, 441),
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 5, 6, -league.id, league.id, 442),
-(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 6, 4, -league.id, league.id, 443);
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 4, 5, league.id, -league.id, 431),
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 5, 6, league.id, -league.id, 432),
+(multiverse.id, league.id_upper_league, inp_season_number, 13, inp_date_start + loc_interval_1_week * 13, TRUE, TRUE, 6, 4, league.id, -league.id, 433),
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 4, 5, -league.id, league.id, 441),
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 5, 6, -league.id, league.id, 442),
+(multiverse.id, league.id_upper_league, inp_season_number, 14, inp_date_start + loc_interval_1_week * 14, TRUE, TRUE, 6, 4, -league.id, league.id, 443);
 
                 END IF; -- End of the friendly games for the last level leagues
             END IF; -- End of the leagues with id < 0
@@ -2308,18 +2175,19 @@ CREATE FUNCTION public.main_handle_multiverse(id_multiverses bigint[]) RETURNS v
     AS $$
 DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
-    loc_time_of_next_handling INTERVAL; -- Variable to store the time of the next handling
 BEGIN
 
     -- Acquire a SHARE lock on the multiverses table to allow reads but prevent writes
     -- LOCK TABLE multiverses IN SHARE MODE;
 
+    RAISE NOTICE '****** START: main_handle_multiverse !';
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------ Loop through all multiverses
     FOR rec_multiverse IN (
         SELECT * FROM multiverses
         WHERE id = ANY(id_multiverses)
+        AND is_active = TRUE -- Only run active multiverses
     )
     LOOP
         ------ Loop while the current date is before the next handling date
@@ -2333,28 +2201,25 @@ BEGIN
             WHERE id = rec_multiverse.id;
 
             ------ Calculate the time of the next handling of the multiverse
-            loc_time_of_next_handling := rec_multiverse.date_handling - now();
+            -- loc_time_of_next_handling := rec_multiverse.date_handling - now();
 
             ------ If it's in the future, exit the loop and wait for the next handling
-            IF loc_time_of_next_handling > INTERVAL '0 seconds' THEN
-                RAISE NOTICE '****** MAIN: %: S%W%D%: date_handling= % (NOW()=%) NO ==> %', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now(), loc_time_of_next_handling;
+            IF (rec_multiverse.date_handling - now()) > INTERVAL '0 seconds' THEN
+                RAISE NOTICE '*** %: Multiverse [%]: S%W%D%: date_handling= % (NOW()=%) ==> NOT YET', clock_timestamp() - statement_timestamp(), rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
                 EXIT;
             ELSE
-                RAISE NOTICE '****** MAIN: %: S%W%D%: date_handling= % (NOW()=%) YES ==> %', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now(), loc_time_of_next_handling;
+                RAISE NOTICE '*** %: Multiverse [%]: S%W%D%: date_handling= % (NOW()=%) ==> YES SIMULATE', clock_timestamp() - statement_timestamp(), rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
             END IF;
 
             ------ Handle the transfers
             PERFORM transfers_handle_transfers(
                 inp_multiverse := rec_multiverse
             );
-            -- COMMIT;
 
             ------ Check if we can pass to the next day
             IF main_simulate_day(inp_multiverse := rec_multiverse) = FALSE THEN
                 EXIT;
             END IF;
-            -- Display the time it took to run
-            RAISE NOTICE 'Time taken to run: %', clock_timestamp() - statement_timestamp();
 
             IF rec_multiverse.day_number = 7 THEN
 
@@ -2367,7 +2232,6 @@ BEGIN
 
             END IF;
 
-            RAISE NOTICE '**** MAIN: Multiverse [%] S%W%D%: Incrementing to next day for handling', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number;
             ------ Update the week number of the multiverse
             UPDATE multiverses SET
                 day_number = CASE
@@ -2394,13 +2258,15 @@ BEGIN
         ------ Store the last run date of the multiverse
         UPDATE multiverses SET
             last_run = now(),
-            date_next_handling = rec_multiverse.date_handling,
+            date_next_handling = GREATEST(
+                rec_multiverse.date_handling,
+                date_trunc('minute', now()) + INTERVAL '1 minute'), -- Remove all the functions in queues from cron
             error = NULL
         WHERE id = rec_multiverse.id;
         
     END LOOP; -- End of the loop through the multiverses
 
-    RAISE NOTICE '************ END MAIN !!!';
+    RAISE NOTICE '****** END: main_handle_multiverse !';
 END;
 $$;
 
@@ -2850,7 +2716,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
             INSERT INTO clubs_history (id_club, description)
             SELECT
                 clubs.id AS id_club,
-                'Season ' || inp_multiverse.season_number || 'Finished ' ||
+                'S' || inp_multiverse.season_number || ': Finished ' ||
                 CASE
                     WHEN pos_league = 1 THEN '1st'
                     WHEN pos_league = 2 THEN '2nd'
@@ -2866,7 +2732,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
             INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
             SELECT
                 players.id AS id_player, players.id_club AS id_club,
-                'Season ' || inp_multiverse.season_number || ': ' || 
+                'S' || inp_multiverse.season_number || ': ' || 
                 CASE
                     WHEN clubs.pos_league = 1 THEN 'Champions'
                     WHEN clubs.pos_league = 2 THEN '2nd'
@@ -5172,7 +5038,7 @@ BEGIN
     ------ Store the score
     UPDATE games SET
         -- date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
-        date_end = NOW() + INTERVAL '5 minutes',
+        date_end = date_start + INTERVAL '5 minutes',
         -- date_end = NOW(),
         ---- Score of the game
         score_left = CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END,
@@ -5482,10 +5348,10 @@ BEGIN
     tmp_text1 := rec_game.text_score_game || ' in ' ||  rec_game.game_presentation || ' against ';
     text_title_winner := rec_game.overall_text || CASE
             WHEN rec_game.score_cumul_with_penalty_left = rec_game.score_cumul_with_penalty_right THEN ' Draw '
-            ELSE ' Victory ' END || tmp_text1 || string_parser(rec_game.id_club_overall_loser, 'idClub');
+            ELSE 'Victory ' END || tmp_text1 || string_parser(rec_game.id_club_overall_loser, 'idClub');
     text_title_loser := rec_game.overall_text || CASE
             WHEN rec_game.score_cumul_with_penalty_left = rec_game.score_cumul_with_penalty_right THEN ' Draw '
-            ELSE ' Defeat ' END || tmp_text1 || string_parser(rec_game.id_club_overall_winner, 'idClub');
+            ELSE 'Defeat ' END || tmp_text1 || string_parser(rec_game.id_club_overall_winner, 'idClub');
     text_message_winner := text_title_winner || ' for the game: ' || rec_game.game_description;
     text_message_loser := text_title_loser || ' for the game: ' || rec_game.game_description;
 
@@ -9911,7 +9777,8 @@ CREATE TABLE public.multiverses (
     day_number smallint DEFAULT '1'::smallint NOT NULL,
     last_run timestamp with time zone DEFAULT now() NOT NULL,
     error text,
-    date_next_handling timestamp with time zone DEFAULT now() NOT NULL
+    date_next_handling timestamp with time zone DEFAULT now() NOT NULL,
+    is_active boolean DEFAULT true NOT NULL
 );
 
 
@@ -10021,8 +9888,8 @@ CREATE TABLE public.players (
     size smallint DEFAULT '185'::smallint NOT NULL,
     date_retire timestamp with time zone,
     date_death timestamp with time zone,
-    coef_coach smallint NOT NULL,
-    coef_scout smallint NOT NULL,
+    coef_coach smallint DEFAULT '0'::smallint NOT NULL,
+    coef_scout smallint DEFAULT '0'::smallint NOT NULL,
     is_staff boolean DEFAULT false NOT NULL,
     CONSTRAINT players_first_name_check CHECK ((length(first_name) <= 24)),
     CONSTRAINT players_last_name_check CHECK ((length(last_name) <= 24)),
@@ -11078,6 +10945,132 @@ CREATE TABLE realtime.messages_2025_04_25 (
 ALTER TABLE realtime.messages_2025_04_25 OWNER TO supabase_admin;
 
 --
+-- Name: messages_2025_04_26; Type: TABLE; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE TABLE realtime.messages_2025_04_26 (
+    topic text NOT NULL,
+    extension text NOT NULL,
+    payload jsonb,
+    event text,
+    private boolean DEFAULT false,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL
+);
+
+
+ALTER TABLE realtime.messages_2025_04_26 OWNER TO supabase_admin;
+
+--
+-- Name: messages_2025_04_27; Type: TABLE; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE TABLE realtime.messages_2025_04_27 (
+    topic text NOT NULL,
+    extension text NOT NULL,
+    payload jsonb,
+    event text,
+    private boolean DEFAULT false,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL
+);
+
+
+ALTER TABLE realtime.messages_2025_04_27 OWNER TO supabase_admin;
+
+--
+-- Name: messages_2025_04_28; Type: TABLE; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE TABLE realtime.messages_2025_04_28 (
+    topic text NOT NULL,
+    extension text NOT NULL,
+    payload jsonb,
+    event text,
+    private boolean DEFAULT false,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL
+);
+
+
+ALTER TABLE realtime.messages_2025_04_28 OWNER TO supabase_admin;
+
+--
+-- Name: messages_2025_04_29; Type: TABLE; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE TABLE realtime.messages_2025_04_29 (
+    topic text NOT NULL,
+    extension text NOT NULL,
+    payload jsonb,
+    event text,
+    private boolean DEFAULT false,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL
+);
+
+
+ALTER TABLE realtime.messages_2025_04_29 OWNER TO supabase_admin;
+
+--
+-- Name: messages_2025_04_30; Type: TABLE; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE TABLE realtime.messages_2025_04_30 (
+    topic text NOT NULL,
+    extension text NOT NULL,
+    payload jsonb,
+    event text,
+    private boolean DEFAULT false,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL
+);
+
+
+ALTER TABLE realtime.messages_2025_04_30 OWNER TO supabase_admin;
+
+--
+-- Name: messages_2025_05_01; Type: TABLE; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE TABLE realtime.messages_2025_05_01 (
+    topic text NOT NULL,
+    extension text NOT NULL,
+    payload jsonb,
+    event text,
+    private boolean DEFAULT false,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL
+);
+
+
+ALTER TABLE realtime.messages_2025_05_01 OWNER TO supabase_admin;
+
+--
+-- Name: messages_2025_05_02; Type: TABLE; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE TABLE realtime.messages_2025_05_02 (
+    topic text NOT NULL,
+    extension text NOT NULL,
+    payload jsonb,
+    event text,
+    private boolean DEFAULT false,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL
+);
+
+
+ALTER TABLE realtime.messages_2025_05_02 OWNER TO supabase_admin;
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
@@ -11430,6 +11423,55 @@ ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_24
 --
 
 ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_25 FOR VALUES FROM ('2025-04-25 00:00:00') TO ('2025-04-26 00:00:00');
+
+
+--
+-- Name: messages_2025_04_26; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_26 FOR VALUES FROM ('2025-04-26 00:00:00') TO ('2025-04-27 00:00:00');
+
+
+--
+-- Name: messages_2025_04_27; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_27 FOR VALUES FROM ('2025-04-27 00:00:00') TO ('2025-04-28 00:00:00');
+
+
+--
+-- Name: messages_2025_04_28; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_28 FOR VALUES FROM ('2025-04-28 00:00:00') TO ('2025-04-29 00:00:00');
+
+
+--
+-- Name: messages_2025_04_29; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_29 FOR VALUES FROM ('2025-04-29 00:00:00') TO ('2025-04-30 00:00:00');
+
+
+--
+-- Name: messages_2025_04_30; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_30 FOR VALUES FROM ('2025-04-30 00:00:00') TO ('2025-05-01 00:00:00');
+
+
+--
+-- Name: messages_2025_05_01; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_05_01 FOR VALUES FROM ('2025-05-01 00:00:00') TO ('2025-05-02 00:00:00');
+
+
+--
+-- Name: messages_2025_05_02; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_05_02 FOR VALUES FROM ('2025-05-02 00:00:00') TO ('2025-05-03 00:00:00');
 
 
 --
@@ -11789,6 +11831,14 @@ ALTER TABLE ONLY public.messages
 
 ALTER TABLE ONLY public.multiverses
     ADD CONSTRAINT multiverses_id_key UNIQUE (id);
+
+
+--
+-- Name: multiverses multiverses_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.multiverses
+    ADD CONSTRAINT multiverses_name_key UNIQUE (name);
 
 
 --
@@ -12157,6 +12207,62 @@ ALTER TABLE ONLY realtime.messages_2025_04_24
 
 ALTER TABLE ONLY realtime.messages_2025_04_25
     ADD CONSTRAINT messages_2025_04_25_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2025_04_26 messages_2025_04_26_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2025_04_26
+    ADD CONSTRAINT messages_2025_04_26_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2025_04_27 messages_2025_04_27_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2025_04_27
+    ADD CONSTRAINT messages_2025_04_27_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2025_04_28 messages_2025_04_28_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2025_04_28
+    ADD CONSTRAINT messages_2025_04_28_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2025_04_29 messages_2025_04_29_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2025_04_29
+    ADD CONSTRAINT messages_2025_04_29_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2025_04_30 messages_2025_04_30_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2025_04_30
+    ADD CONSTRAINT messages_2025_04_30_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2025_05_01 messages_2025_05_01_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2025_05_01
+    ADD CONSTRAINT messages_2025_05_01_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2025_05_02 messages_2025_05_02_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2025_05_02
+    ADD CONSTRAINT messages_2025_05_02_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
@@ -12865,6 +12971,55 @@ ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_24
 --
 
 ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_25_pkey;
+
+
+--
+-- Name: messages_2025_04_26_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_26_pkey;
+
+
+--
+-- Name: messages_2025_04_27_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_27_pkey;
+
+
+--
+-- Name: messages_2025_04_28_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_28_pkey;
+
+
+--
+-- Name: messages_2025_04_29_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_29_pkey;
+
+
+--
+-- Name: messages_2025_04_30_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_30_pkey;
+
+
+--
+-- Name: messages_2025_05_01_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_05_01_pkey;
+
+
+--
+-- Name: messages_2025_05_02_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_05_02_pkey;
 
 
 --
@@ -15288,15 +15443,6 @@ GRANT ALL ON FUNCTION public.leagues_create_lower_leagues(inp_id_upper_league bi
 
 
 --
--- Name: PROCEDURE main(IN is_cron boolean); Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON PROCEDURE public.main(IN is_cron boolean) TO anon;
-GRANT ALL ON PROCEDURE public.main(IN is_cron boolean) TO authenticated;
-GRANT ALL ON PROCEDURE public.main(IN is_cron boolean) TO service_role;
-
-
---
 -- Name: PROCEDURE main_cron(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -16840,6 +16986,62 @@ GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.
 
 GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_25 TO postgres;
 GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_25 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2025_04_26; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_26 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_26 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2025_04_27; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_27 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_27 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2025_04_28; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_28 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_28 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2025_04_29; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_29 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_29 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2025_04_30; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_30 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_30 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2025_05_01; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_05_01 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_05_01 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2025_05_02; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_05_02 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_05_02 TO dashboard_user;
 
 
 --
