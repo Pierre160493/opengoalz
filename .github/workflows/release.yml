@@ -33,7 +33,7 @@ jobs:
       - name: Set up Flutter
         uses: flutter-actions/setup-flutter@v2
         with:
-          version: 'stable' # Use the latest stable Flutter version
+          flutter-version: 'stable' # Use the latest stable Flutter version
 
       - name: Install dependencies
         run: flutter pub get
@@ -64,7 +64,7 @@ jobs:
       - name: Set up Flutter
         uses: flutter-actions/setup-flutter@v2
         with:
-          version: 'stable' # Use the latest stable Flutter version
+          flutter-version: 'stable' # Use the latest stable Flutter version
 
       - name: Install dependencies
         run: flutter pub get
