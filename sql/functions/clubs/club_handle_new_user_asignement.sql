@@ -10,6 +10,19 @@ DECLARE
   league RECORD;
 BEGIN
 
+    ------ Clean the mails of the club
+    DELETE FROM mails WHERE id_club_to = NEW.id;
+
+    ------ If the user leaves the club
+    IF NEW.username IS NULL THEN
+
+        -- Log history
+        INSERT INTO clubs_history (id_club, description)
+        VALUES (NEW.id, 'User {' || OLD.username || '} has left the club');
+    
+    ------ If the user is assigned to the club
+    ELSE
+    
     ------ Check that the club is available
     IF (OLD.username IS NOT NULL) THEN
         RAISE EXCEPTION 'This club already belongs to: %', OLD.username;
@@ -34,9 +47,6 @@ BEGIN
 --    THEN
 --        RAISE EXCEPTION 'You can not assign a user to a league that is not of the last level';
 --    END IF;
-
-    -- Delete the old mails
-    DELETE FROM mails WHERE id_club_to = NEW.id;
 
     -- Log history
     INSERT INTO clubs_history (id_club, description)
@@ -107,6 +117,8 @@ BEGIN
 
         -- Handle the season by simulating the games
         PERFORM handle_season_main();
+    END IF;
+
     END IF;
 
     -- Return the new record to proceed with the update
