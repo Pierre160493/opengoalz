@@ -50,73 +50,65 @@ BEGIN
     ------ If the inp_stats array is NULL, generate random stats based on the player's age and inp_notes
     IF inp_stats IS NULL THEN
         loc_tmp := 3.0 * (inp_age - 15); -- Age: (15 ==> 35) ==> Value: [0 ==> 60]
-        ---- Goalkeepers
-        IF inp_shirt_number IN (1, 12) THEN
-            inp_stats := ARRAY[
+        inp_stats := CASE
+            ---- Goalkeepers
+            WHEN inp_shirt_number IN (1, 12) THEN ARRAY[
                 loc_tmp + 10 * (1 + random()), -- Keeper: BaseValue(age) + Random(10 ==> 20)
                 loc_tmp + 10 * random(), -- Defense: BaseValue(age) + Random(0 ==> 5)
                 loc_tmp + 10 * random(), -- Passes: BaseValue(age) + Random(0 ==> 5)
                 loc_tmp * random(), -- Playmaking: Random(0 ==> BaseValue(age))
                 loc_tmp * random(), -- Winger: Random(0 ==> BaseValue(age))
                 loc_tmp * random(), -- Scoring: Random(0 ==> BaseValue(age))
-                loc_tmp + 10 * random()]; -- Freekick
-        ---- Back Wingers
-        ELSIF inp_shirt_number IN (2, 3, 13) THEN
-            inp_stats := ARRAY[
+                loc_tmp + 10 * random()] -- Freekick
+            ---- Back Wingers
+            WHEN inp_shirt_number IN (2, 3, 13) THEN ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * (1 + random()), -- Defense
                 loc_tmp + 10 * random(), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * (1 + random()), -- Winger
                 0, -- Scoring
-                0]; -- Freekick
-        ---- Central Backs
-        ELSIF inp_shirt_number IN (4, 5, 14) THEN
-            inp_stats := ARRAY[
+                0] -- Freekick
+            ---- Central Backs
+            WHEN inp_shirt_number IN (4, 5, 14) THEN ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * (1 + random()), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp * 10 * random(), -- Playmaking
                 0, -- Winger
                 0, -- Scoring
-                0]; -- Freekick
-        ---- Midfielders
-        ELSIF inp_shirt_number IN (6, 10, 15) THEN
-            inp_stats := ARRAY[
+                0] -- Freekick
+            ---- Midfielders
+            WHEN inp_shirt_number IN (6, 10, 15) THEN ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * (1 + random()), -- Playmaking
                 0, -- Winger
                 0, -- Scoring
-                0]; -- Freekick
-        ---- Wingers
-        ELSIF inp_shirt_number IN (7, 8, 16) THEN
-            inp_stats := ARRAY[
+                0] -- Freekick
+            ---- Wingers
+            WHEN inp_shirt_number IN (7, 8, 16) THEN ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * (1 + random()), -- Winger
                 loc_tmp + 10 * random(), -- Scoring
-                0]; -- Freekick
-        ---- Strikers
-        ELSIF inp_shirt_number IN (9, 11, 17) THEN
-            inp_stats := ARRAY[
+                0] -- Freekick
+            ---- Strikers
+            WHEN inp_shirt_number IN (9, 11, 17) THEN ARRAY[
                 0, -- Keeper
                 0, -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * random(), -- Winger
                 loc_tmp + 10 * (1 + random()), -- Scoring
-                0]; -- Freekick
-        ELSE
-            IF inp_notes = 'Coach' THEN -- Coach
-                inp_stats := ARRAY[0, 0, 0, 0, 0, 0, 0];
-            ELSE
-                RAISE EXCEPTION 'Invalid shirt_number when creating a player with no stats given (must be between 1 and 17)';
-            END IF;
-        END IF;
+                0] -- Freekick
+            ---- Coach
+            WHEN inp_notes = 'Coach' THEN ARRAY[0, 0, 0, 0, 0, 0, 0]
+            ELSE RAISE EXCEPTION 'Invalid shirt_number when creating a player with no stats given (must be between 1 and 17)'
+        END;
     END IF;
 
     -- Find the two highest values in inp_stats

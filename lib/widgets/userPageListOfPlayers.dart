@@ -52,7 +52,7 @@ Widget userPlayerListWidget(BuildContext context, Profile user) {
           title: Text(user.playersIncarnated.length == 0
               ? 'You dont have any players yet'
               : 'Get an additional player'),
-          subtitle: const Text('Create a player and start his amazing career !',
+          subtitle: const Text('Create a player and start an amazing career !',
               style: TextStyle(
                   color: Colors.blueGrey, fontStyle: FontStyle.italic)),
           onTap: () => showDialog(
