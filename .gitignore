@@ -53,6 +53,3 @@ macos/Flutter/GeneratedPluginRegistrant.swift
 windows/flutter/generated_plugin_registrant.cc
 windows/flutter/generated_plugin_registrant.h
 windows/flutter/generated_plugins.cmake
-
-# Ignore drive files (not necessary but annoying and I should stop working on Drive)
-.tmp.driveupload/*
