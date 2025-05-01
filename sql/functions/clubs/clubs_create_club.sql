@@ -23,7 +23,7 @@ BEGIN
         RETURNING id INTO loc_id_club; -- Get the newly created id for the club
 
     ------ Generate name of the club
-    UPDATE clubs SET name = 'Bot ' || loc_id_club WHERE clubs.id = loc_id_club;
+    UPDATE clubs SET name = 'Club ' || loc_id_club WHERE clubs.id = loc_id_club;
 
     ------ INSERT Init finance for this new club
     INSERT INTO finances (id_club, amount, description) VALUES (loc_id_club, 250000, 'Club Initialisation');
