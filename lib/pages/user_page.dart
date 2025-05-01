@@ -144,6 +144,25 @@ class _UserPageState extends State<UserPage> {
                   size: iconSizeMedium, color: Colors.green),
             ),
           ),
+
+          /// Reload pae button
+          Tooltip(
+            message: 'Reload page',
+            child: IconButton(
+              onPressed: () async {
+                // Refetch the user
+                await Provider.of<UserSessionProvider>(context, listen: false)
+                    .providerFetchUser(context,
+                        userId: supabase.auth.currentUser!.id);
+// Reload the UserPage
+                Navigator.of(context)
+                    .pushAndRemoveUntil(UserPage.route(), (route) => false);
+                context.showSnackBarSuccess('User and Page reloaded');
+              },
+              icon: Icon(Icons.refresh,
+                  size: iconSizeMedium, color: Colors.green),
+            ),
+          ),
           user.isConnectedUser
               ? mailToolTip(context, user)
               : Tooltip(
