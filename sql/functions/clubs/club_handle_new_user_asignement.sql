@@ -48,6 +48,15 @@ BEGIN
 --        RAISE EXCEPTION 'You can not assign a user to a league that is not of the last level';
 --    END IF;
 
+    -- Send an email
+    INSERT INTO mails (id_club_to, created_at, sender_role, is_club_info, title, message)
+    VALUES
+        (NEW.id, now(), 'Secretary', TRUE,
+        'Welcome to ' || string_parser(NEW.id, 'idClub'),
+        'Hi, I''m the club''s secretary on behalf of all the staff I would like to welcome you as the new owner of ' || string_parser(NEW.id, 'idClub') || '. I hope you will enjoy your time here and that you will be able to lead the club to success !');
+
+    -- Send a mail to user's following the club
+
     -- Log history
     INSERT INTO clubs_history (id_club, description)
     VALUES (NEW.id, 'User {' || NEW.username || '} has been assigned to the club');
