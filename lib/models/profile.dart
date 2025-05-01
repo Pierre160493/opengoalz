@@ -48,8 +48,8 @@ class Profile {
             ? DateTime.parse(map['last_username_update']).toLocal()
             : null,
         creditsAvailable = map['credits_available'].toDouble(),
-        numberClubsAvailable = map['number_clubs_available'] ?? 1,
-        numberPlayersAvailable = map['number_players_available'] ?? 1;
+        numberClubsAvailable = map['max_number_clubs'] ?? 1,
+        numberPlayersAvailable = map['max_number_players'] ?? 1;
 
   Map<String, dynamic> toMap() {
     return {
@@ -58,8 +58,8 @@ class Profile {
       'created_at': createdAt.toIso8601String(),
       'id_default_club': idDefaultClub,
       'last_username_update': lastUsernameUpdate?.toIso8601String(),
-      'number_clubs_available': numberClubsAvailable,
-      'number_players_available': numberPlayersAvailable,
+      'max_number_clubs': numberClubsAvailable,
+      'max_number_players': numberPlayersAvailable,
     };
   }
 
@@ -145,7 +145,7 @@ class Profile {
                 .setOtherThemeWhenSelectedUserIsNotConnectedUser(
                     Provider.of<UserSessionProvider>(context, listen: false)
                             .user
-                            ?.isConnectedUser ??
+                            .isConnectedUser ??
                         false);
 
             /// Launch UserPage Page
@@ -171,7 +171,7 @@ Widget getUserName(BuildContext context, {String? userName, int? idClub}) {
   }
 
   bool isSelected = userName ==
-      Provider.of<UserSessionProvider>(context, listen: false).user?.username;
+      Provider.of<UserSessionProvider>(context, listen: false).user.username;
 
   return Row(
     children: [

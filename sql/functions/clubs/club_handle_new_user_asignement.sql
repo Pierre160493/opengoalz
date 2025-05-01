@@ -30,7 +30,7 @@ BEGIN
 
     ------ Check that the user can have an additional club
     IF ((SELECT COUNT(*) FROM clubs WHERE username = NEW.username) >
-        (SELECT number_clubs_available FROM profiles WHERE username = NEW.username))
+        (SELECT max_number_clubs FROM profiles WHERE username = NEW.username))
     THEN
         RAISE EXCEPTION 'You can not have an additional club assigned to you';
     END IF;

@@ -5,6 +5,7 @@ CREATE OR REPLACE FUNCTION public.players_create_player(
     inp_id_club bigint,
     inp_id_country bigint,
     inp_age double precision,
+    inp_username text DEFAULT NULL::text, -- Username of user incarning the player
     inp_shirt_number bigint DEFAULT NULL::bigint,
     inp_notes text DEFAULT NULL::text,
     inp_stats double precision[] DEFAULT NULL)
@@ -13,11 +14,29 @@ CREATE OR REPLACE FUNCTION public.players_create_player(
  SECURITY DEFINER
 AS $function$
 DECLARE
+    loc_record RECORD; -- Record variable
     loc_new_player_id bigint; -- Variable to store the inserted player's ID
     loc_top_two_stats double precision[];
     loc_training_coef double precision[];
     loc_tmp double precision; -- Temporary variable for calculations
 BEGIN
+
+    ------ Check if the username exists and can have an additional player
+    IF inp_username IS NOT NULL THEN
+
+        ---- Checks on the username
+        SELECT * INTO loc_record FROM profiles WHERE username = inp_username;
+        ---- Check if the user exists
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'The username {%} does not exist', inp_username;
+        END IF;
+
+        ---- Check if the user can have an additional player
+        IF (SELECT COUNT(*) FROM players WHERE username = inp_username) >= loc_record.max_number_players THEN
+            RAISE EXCEPTION 'The username {%} can not have an additional player (max: %)', inp_username, loc_record.max_number_players;
+        END IF;        
+
+    END IF;
 
     ------ Check if the player creation is from scouts
     IF inp_notes = 'Young Scouted' THEN
@@ -125,7 +144,7 @@ BEGIN
     ------------------------------------------------------------------------
     ------ Create player
     INSERT INTO players (
-        id_multiverse, id_club, id_country,
+        id_multiverse, id_club, id_country, username,
         date_birth, experience,
         date_bid_end,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
@@ -133,7 +152,7 @@ BEGIN
         training_coef, coef_coach, coef_scout,
         shirt_number, notes, notes_small
     ) VALUES (
-        inp_id_multiverse, inp_id_club, inp_id_country,
+        inp_id_multiverse, inp_id_club, inp_id_country, inp_username,
         players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age), 3.0 * (inp_age - 15.0),
         CASE WHEN inp_id_club IS NULL THEN
             (NOW() + (INTERVAL '6 day' / (SELECT speed FROM multiverses WHERE id = inp_id_multiverse)))
