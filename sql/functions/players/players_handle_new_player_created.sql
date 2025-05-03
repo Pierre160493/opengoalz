@@ -68,10 +68,10 @@ BEGIN
     NEW.multiverse_speed = (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse);
 
     ------ Calculate the expected expenses
-    NEW.expenses_target = FLOOR((50 + 1 * calculate_age(inp_multiverse_speed := NEW.multiverse_speed, inp_date_birth := NEW.date_birth) +
+    NEW.expenses_target = FLOOR(50 + 1 * calculate_age(inp_multiverse_speed := NEW.multiverse_speed, inp_date_birth := NEW.date_birth) +
         GREATEST(NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.winger, NEW.scoring, NEW.freekick) / 2 +
         (NEW.keeper + NEW.defense + NEW.passes + NEW.playmaking + NEW.winger + NEW.scoring + NEW.freekick) / 4
-        ));
+        );
     NEW.expenses_expected = FLOOR(NEW.expenses_target * 0.75);
 
     ------ Calculate experience

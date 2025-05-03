@@ -367,8 +367,30 @@ class _AssignPlayerOrClubDialogBoxState
                                   'first_name': firstNameController.text,
                                   'last_name': lastNameController.text,
                                   'date_birth': dateBirth!.toIso8601String(),
-                                  'training_points_available': selectedAge * 2,
+                                  'user_points_available': 50 + selectedAge * 3,
+                                  'loyalty': 80,
+                                  'leadership': 80,
+                                  'discipline': 80,
+                                  'communication': 80,
+                                  'aggressivity': 80,
+                                  'composure': 80,
+                                  'teamwork': 80,
                                 });
+
+                            // bool success = await operationInDB(
+                            //   context,
+                            //   'FUNCTION',
+                            //   'players_create_player',
+                            //   data: {
+                            //     'inp_id_multiverse': _selectedMultiverse!.id,
+                            //     'inp_id_club': widget.club.id,
+                            //     'inp_id_country': _selectedCountry!.id,
+                            //     'inp_stats': [0, 0, 0, 0, 0, 0, 0],
+                            //     'inp_age': 15,
+                            //     'inp_notes': 'Young Scouted'
+                            //   },
+                            // );
+
                             if (isOK) {
                               context.showSnackBarSuccess(
                                   'You now incarne ${firstNameController.text} ${lastNameController.text} in the continent: ${_selectedCountry!.selectedContinent} !');

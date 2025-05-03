@@ -6,6 +6,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -174,45 +175,47 @@ class _ScoutsDialogState extends State<ScoutsDialog> {
                             }
                             int? idNewPlayer;
                             try {
-                              idNewPlayer = await supabase
-                                  .rpc('players_create_player', params: {
-                                'inp_id_multiverse': widget.club.idMultiverse,
-                                'inp_id_club': widget.club.id,
-                                'inp_id_country': widget.club.idCountry,
-                                'inp_stats': [
-                                  _playerWeigths['Keeper']['value'],
-                                  _playerWeigths['Defense']['value'],
-                                  _playerWeigths['Passing']['value'],
-                                  _playerWeigths['Midfield']['value'],
-                                  _playerWeigths['Winger']['value'],
-                                  _playerWeigths['Scoring']['value'],
-                                  _playerWeigths['Freekick']['value']
-                                ],
-                                'inp_age': 15,
-                                'inp_notes': 'Young Scouted'
-                              });
-                            } on PostgrestException catch (error) {
-                              context.showSnackBarPostgreSQLError(
-                                  'PostgreSQL ERROR: ${error.message}');
+                              bool success = await operationInDB(
+                                context,
+                                'FUNCTION',
+                                'players_create_player',
+                                data: {
+                                  'inp_id_multiverse': widget.club.idMultiverse,
+                                  'inp_id_club': widget.club.id,
+                                  'inp_id_country': widget.club.idCountry,
+                                  'inp_stats': [
+                                    _playerWeigths['Keeper']['value'],
+                                    _playerWeigths['Defense']['value'],
+                                    _playerWeigths['Passing']['value'],
+                                    _playerWeigths['Midfield']['value'],
+                                    _playerWeigths['Winger']['value'],
+                                    _playerWeigths['Scoring']['value'],
+                                    _playerWeigths['Freekick']['value']
+                                  ],
+                                  'inp_age': 15,
+                                  'inp_notes': 'Young Scouted'
+                                },
+                              );
+
+                              if (success) {
+                                context.showSnackBarSuccess(
+                                    'You now have a new player in the squad !');
+                                Navigator.of(context).pop();
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PlayersPage(
+                                        playerSearchCriterias:
+                                            PlayerSearchCriterias(
+                                                idPlayer: [idNewPlayer!]),
+                                      ),
+                                    ));
+                              }
                             } catch (error) {
                               context
                                   .showSnackBarError('Unknown ERROR: $error');
                             }
 
-                            if (idNewPlayer != null) {
-                              context.showSnackBarSuccess(
-                                  'You now have a new player in the squad !');
-                              Navigator.of(context).pop();
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PlayersPage(
-                                      playerSearchCriterias:
-                                          PlayerSearchCriterias(
-                                              idPlayer: [idNewPlayer!]),
-                                    ),
-                                  ));
-                            }
                             setState(() {
                               _isLoading = false;
                             });

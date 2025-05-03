@@ -50,7 +50,7 @@ BEGIN
     UPDATE players SET
         id_club = NULL, is_staff = FALSE, date_bid_end = NULL,
         performance_score = 0,
-        expenses_payed = 0, expenses_expected = 0, expenses_missed = 0, expenses_target = 0,
+        expenses_payed = 0, expenses_expected = 0, expenses_missed = 0,
         keeper = 0, defense = 0, passes = 0, playmaking = 0, winger = 0, scoring = 0, freekick = 0,
         motivation = 0, form = 0, stamina = 0, energy = 0,
         training_points_available = 0, training_points_used = 0,

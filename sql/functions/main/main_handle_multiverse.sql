@@ -34,7 +34,8 @@ BEGIN
             -- loc_time_of_next_handling := rec_multiverse.date_handling - now();
 
             ------ If it's in the future, exit the loop and wait for the next handling
-            IF (rec_multiverse.date_handling - now()) > INTERVAL '0 seconds' THEN
+            -- IF (rec_multiverse.date_handling - now()) > INTERVAL '0 seconds' THEN
+            IF (rec_multiverse.date_next_handling - now()) > INTERVAL '0 seconds' THEN
                 RAISE NOTICE '*** %: Multiverse [%]: S%W%D%: date_handling= % (NOW()=%) ==> NOT YET', clock_timestamp() - statement_timestamp(), rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
                 EXIT;
             ELSE

@@ -8,6 +8,7 @@ CREATE OR REPLACE FUNCTION public.players_create_player(
     inp_username text DEFAULT NULL::text, -- Username of user incarning the player
     inp_shirt_number bigint DEFAULT NULL::bigint,
     inp_notes text DEFAULT NULL::text,
+    inp_stats_better_player double precision DEFAULT 0.0, -- Tthe higher the better the stats generated
     inp_stats double precision[] DEFAULT NULL)
  RETURNS bigint
  LANGUAGE plpgsql
@@ -49,7 +50,12 @@ BEGIN
 
     ------ If the inp_stats array is NULL, generate random stats based on the player's age and inp_notes
     IF inp_stats IS NULL THEN
-        loc_tmp := 3.0 * (inp_age - 15); -- Age: (15 ==> 35) ==> Value: [0 ==> 60]
+
+        IF inp_stats_better_player < 0.0 OR inp_stats_better_player > 1.0 THEN
+            RAISE EXCEPTION 'The inp_stats_better_player value must be between 0.0 and 1.0, found %', inp_stats_better_player;
+        END IF;
+
+        loc_tmp := 3.0 * ((inp_age - 10) + (5 * inp_stats_better_player)); -- Age: (15 ==> 35) ==> Value: [15 ==> 75] + [0 ==> 15]
         inp_stats := CASE
             ---- Goalkeepers
             WHEN inp_shirt_number IN (1, 12) THEN ARRAY[
@@ -107,8 +113,13 @@ BEGIN
                 0] -- Freekick
             ---- Coach
             WHEN inp_notes = 'Coach' THEN ARRAY[0, 0, 0, 0, 0, 0, 0]
-            ELSE RAISE EXCEPTION 'Invalid shirt_number when creating a player with no stats given (must be between 1 and 17)'
+            ELSE NULL -- Placeholder for invalid shirt_number
         END;
+
+        -- Raise an exception if the stats array is still NULL (invalid shirt_number)
+        IF inp_stats IS NULL THEN
+            RAISE EXCEPTION 'Invalid shirt_number when creating a player with no stats given (must be between 1 and 17)';
+        END IF;
     END IF;
 
     -- Find the two highest values in inp_stats
@@ -175,6 +186,8 @@ BEGIN
         CASE
             WHEN inp_notes IS NOT NULL THEN
             CASE
+                WHEN inp_notes LIKE 'New player from %' THEN 'NEW1' -- New player from country (from main_handle_season)
+                WHEN inp_notes LIKE 'New player replacing %' THEN 'NEW2' -- New player replacing one who left (from transfers_handle_transfers)
                 WHEN inp_notes = 'Experienced GoalKeeper' THEN 'GK1'
                 WHEN inp_notes = 'Young GoalKeeper' THEN 'GK2'
                 WHEN inp_notes = 'Experienced Back Winger' THEN 'BW1'

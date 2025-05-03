@@ -279,7 +279,8 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                     inp_id_country := loc_record.id_country,
                     inp_age := 15 + RANDOM() * 1,
                     inp_shirt_number := loc_record.random_shirt_number,
-                    inp_notes := 'New player from ' || string_parser(loc_record.id_country, 'idCountry') || ' for the new season'
+                    inp_notes := 'New player from ' || string_parser(loc_record.id_country, 'idCountry') || ' for the new season',
+                    inp_stats_better_player := 0.5,
                 );
 
             END LOOP;
