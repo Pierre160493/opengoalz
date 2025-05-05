@@ -7,7 +7,7 @@ DECLARE
 BEGIN
 
     ------ Uncomment the following line to deactivate the cron
-    -- RAISE EXCEPTION '************ KILL THE CRON !!!';
+    RAISE EXCEPTION '************ KILL THE CRON !!!';
 
     -- Acquire a SHARE lock on the multiverses table to allow reads but prevent writes
     LOCK TABLE multiverses IN SHARE MODE;

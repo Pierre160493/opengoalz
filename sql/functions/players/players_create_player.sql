@@ -9,7 +9,9 @@ CREATE OR REPLACE FUNCTION public.players_create_player(
     inp_shirt_number bigint DEFAULT NULL::bigint,
     inp_notes text DEFAULT NULL::text,
     inp_stats_better_player double precision DEFAULT 0.0, -- Tthe higher the better the stats generated
-    inp_stats double precision[] DEFAULT NULL)
+    inp_stats double precision[] DEFAULT NULL,
+    inp_first_name text DEFAULT NULL::text,
+    inp_last_name text DEFAULT NULL::text)
  RETURNS bigint
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -147,28 +149,28 @@ BEGIN
     ------------------------------------------------------------------------
     ------ Create player
     INSERT INTO players (
-        id_multiverse, id_club, id_country, username,
-        date_birth, experience,
+        id_multiverse, id_club, id_country, username, user_points_available,
+        first_name, last_name, date_birth, experience,
         date_bid_end,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         size, loyalty, leadership, discipline, communication, aggressivity, composure, teamWork,
         training_coef, coef_coach, coef_scout,
         shirt_number, notes, notes_small
     ) VALUES (
-        inp_id_multiverse, inp_id_club, inp_id_country, inp_username,
-        players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age), 3.0 * (inp_age - 15.0),
+        inp_id_multiverse, inp_id_club, inp_id_country, inp_username, inp_age * 3.0,
+        inp_first_name, inp_last_name, players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age), 3.0 * (inp_age - 15.0),
         CASE WHEN inp_id_club IS NULL THEN
-            (NOW() + (INTERVAL '6 day' / (SELECT speed FROM multiverses WHERE id = inp_id_multiverse)))
+            (NOW() + (INTERVAL '7 day' / (SELECT speed FROM multiverses WHERE id = inp_id_multiverse)))
             ELSE NULL END,
         inp_stats[1], inp_stats[2], inp_stats[3], inp_stats[4], inp_stats[5], inp_stats[6], inp_stats[7],
         ROUND(160 + 40 * (random() + random() + random() + random() + random()) / 5), -- Size
-        random() * 100, -- Loyalty
-        random() * 100, -- Leadership
-        random() * 100, -- Discipline
-        random() * 100, -- Communication
-        random() * 100, -- Aggressivity
-        random() * 100, -- Composure
-        random() * 100, -- Teamwork
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Loyalty
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Leadership
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Discipline
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Communication
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Aggressivity
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Composure
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Teamwork
         loc_training_coef, 0, 0,
         inp_shirt_number,
         -- Notes (if not given use the shirt number to determine the player's position)
