@@ -57,7 +57,6 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
             INSERT INTO mails (id_club_to, sender_role, is_season_info, title, message)
             SELECT 
                 id AS id_club_to, 'Coach' AS sender_role, TRUE AS is_season_info,
-                -- inp_multiverse.date_handling + INTERVAL '1 second' * EXTRACT(SECOND FROM CURRENT_TIMESTAMP) + INTERVAL '1 millisecond' * EXTRACT(MILLISECOND FROM CURRENT_TIMESTAMP),
                 'Finished ' || 
                 CASE 
                     WHEN pos_league = 1 THEN '1st'
@@ -280,7 +279,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                     inp_age := 15 + RANDOM() * 1,
                     inp_shirt_number := loc_record.random_shirt_number,
                     inp_notes := 'New player from ' || string_parser(loc_record.id_country, 'idCountry') || ' for the new season',
-                    inp_stats_better_player := 0.5,
+                    inp_stats_better_player := 0.5
                 );
 
             END LOOP;

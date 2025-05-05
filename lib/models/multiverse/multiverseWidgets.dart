@@ -3,21 +3,20 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
+import 'package:intl/intl.dart';
 
-Color getMultiverseSyncColor(DateTime lastRun) {
-  int minutesSinceLastRun = DateTime.now().difference(lastRun).inMinutes;
-
-  if (minutesSinceLastRun >= 2) {
+Color getMultiverseSyncColor(Multiverse multiverse) {
+  // print('multiverse: ${multiverse.name}: ${multiverse.dateMultiverse}');
+  if (!multiverse.isActive || multiverse.error != null) {
     return Colors.red;
-    // } else if (minutesSinceLastRun >= 1) {
-    //   return Colors.orange;
-  } else {
-    return Colors.green;
   }
+  return multiverse.dateMultiverse.isAfter(DateTime.now())
+      ? Colors.green
+      : Colors.orange;
 }
 
 Widget getMultiverseIconFromMultiverse(Multiverse multiverse) {
-  Color syncColor = getMultiverseSyncColor(multiverse.lastRun);
+  Color syncColor = getMultiverseSyncColor(multiverse);
   return Row(
     children: [
       if (syncColor != Colors.green)
@@ -40,13 +39,14 @@ Widget getMultiverseSpeedRow(Multiverse multiverse) {
     child: Row(
       children: [
         Icon(iconMultiverseSpeed,
-            color: multiverse.isActive ? Colors.green : Colors.red),
+            color: getMultiverseSyncColor(multiverse), size: iconSizeMedium),
         formSpacer3,
         Text('X '),
         Text(
           multiverse.speed.toString(),
           style: TextStyle(
             fontWeight: FontWeight.bold,
+            fontStyle: FontStyle.italic,
           ),
         ),
       ],
@@ -203,5 +203,84 @@ Widget getMultiverseSelectionListTile(
             },
             icon: Icon(Icons.delete_forever, color: Colors.red),
           ),
+  );
+}
+
+Widget multiverseSpeedTile(Multiverse multiverse) {
+  Color syncColor = getMultiverseSyncColor(multiverse);
+
+  return ListTile(
+    leading: Icon(iconMultiverseSpeed, color: syncColor, size: iconSizeMedium),
+    title: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          multiverse.name,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        getMultiverseSpeedRow(multiverse),
+      ],
+    ),
+    subtitle: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.speed, color: Colors.blueGrey, size: 16),
+            SizedBox(width: 4),
+            Text(getMultiverseSpeedDescription(multiverse.speed),
+                style: styleItalicBlueGrey),
+          ],
+        ),
+        Row(
+          children: [
+            Icon(
+              multiverse.isActive ? Icons.check_circle : Icons.cancel,
+              color: syncColor,
+              size: iconSizeSmall,
+            ),
+            SizedBox(width: 4),
+            Text(multiverse.isActive ? 'Active' : 'Inactive',
+                style: styleItalicBlueGrey),
+          ],
+        ),
+      ],
+    ),
+    shape: shapePersoRoundedBorder(),
+  );
+}
+
+Widget multiverseSeasonTile(Multiverse multiverse) {
+  return ListTile(
+    leading:
+        Icon(Icons.calendar_today, color: Colors.green, size: iconSizeMedium),
+    title: Text('Currently playing season ${multiverse.seasonNumber}'),
+    subtitle: Text('Week ${multiverse.weekNumber} Day ${multiverse.dayNumber}',
+        style: styleItalicBlueGrey),
+    shape: shapePersoRoundedBorder(),
+  );
+}
+
+Widget multiverseDateRangeTile(Multiverse multiverse) {
+  return ListTile(
+    leading: Icon(Icons.date_range, color: Colors.green, size: iconSizeMedium),
+    title: Text(
+        'From ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonStart)} to ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonEnd)}'),
+    subtitle: Text(
+        multiverse.dateSeasonEnd.difference(DateTime.now()).inDays > 0
+            ? 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} day(s)'
+            : 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inHours} hour(s)',
+        style: styleItalicBlueGrey),
+    shape: shapePersoRoundedBorder(),
+  );
+}
+
+Widget multiverseCashTile(Multiverse multiverse) {
+  return ListTile(
+    leading: Icon(iconMoney, color: Colors.green, size: iconSizeMedium),
+    title: Text(persoFormatCurrency(multiverse.cashPrinted)),
+    subtitle: Text('Amount of fixed money circulating in the multiverse',
+        style: styleItalicBlueGrey),
+    shape: shapePersoRoundedBorder(),
   );
 }

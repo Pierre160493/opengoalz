@@ -200,8 +200,7 @@ class _MultiversePageState extends State<MultiversePage>
                                   return ListTile(
                                     leading: Icon(
                                       iconMultiverseSpeed,
-                                      color: getMultiverseSyncColor(
-                                          multiverse.lastRun),
+                                      color: getMultiverseSyncColor(multiverse),
                                     ),
                                     title: Row(
                                       mainAxisAlignment:
@@ -318,75 +317,10 @@ class _MultiversePageState extends State<MultiversePage>
 
     return ListView(
       children: [
-        ListTile(
-          leading: Icon(iconMultiverseSpeed,
-              color: multiverse.isActive ? Colors.green : Colors.red,
-              size: iconSizeMedium),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                multiverse.name,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              getMultiverseSpeedRow(multiverse),
-            ],
-          ),
-          subtitle: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.speed, color: Colors.blueGrey, size: 16),
-                  SizedBox(width: 4),
-                  Text(getMultiverseSpeedDescription(multiverse.speed),
-                      style: styleItalicBlueGrey),
-                ],
-              ),
-              Row(
-                children: [
-                  Icon(
-                    multiverse.isActive ? Icons.check_circle : Icons.cancel,
-                    color: multiverse.isActive ? Colors.green : Colors.red,
-                    size: 16,
-                  ),
-                  SizedBox(width: 4),
-                  Text(multiverse.isActive ? 'Active' : 'Inactive',
-                      style: styleItalicBlueGrey),
-                ],
-              ),
-            ],
-          ),
-          shape: shapePersoRoundedBorder(),
-        ),
-        ListTile(
-          leading: Icon(Icons.calendar_today,
-              color: Colors.green, size: iconSizeMedium),
-          title: Text('Currently playing season ${multiverse.seasonNumber}'),
-          subtitle: Text(
-              'Week ${multiverse.weekNumber} Day ${multiverse.dayNumber}',
-              style: styleItalicBlueGrey),
-          shape: shapePersoRoundedBorder(),
-        ),
-        ListTile(
-          leading:
-              Icon(Icons.date_range, color: Colors.green, size: iconSizeMedium),
-          title: Text(
-              'From ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonStart)} to ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonEnd)}'),
-          subtitle: Text(
-              multiverse.dateSeasonEnd.difference(DateTime.now()).inDays > 0
-                  ? 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} day(s)'
-                  : 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inHours} hour(s)',
-              style: styleItalicBlueGrey),
-          shape: shapePersoRoundedBorder(),
-        ),
-        ListTile(
-          leading: Icon(iconMoney, color: Colors.green, size: iconSizeMedium),
-          title: Text(persoFormatCurrency(multiverse.cashPrinted)),
-          subtitle: Text('Amount of fixed money circulating in the multiverse',
-              style: styleItalicBlueGrey),
-          shape: shapePersoRoundedBorder(),
-        ),
+        multiverseSpeedTile(multiverse),
+        multiverseSeasonTile(multiverse),
+        multiverseDateRangeTile(multiverse),
+        multiverseCashTile(multiverse),
         StreamBuilder<int>(
           stream: _timerSubject.stream,
           builder: (context, snapshot) {
@@ -395,7 +329,7 @@ class _MultiversePageState extends State<MultiversePage>
             int minutesSinceLastRun = timeSinceLastRun.inMinutes;
             int secondsSinceLastRun = timeSinceLastRun.inSeconds % 60;
 
-            Color iconColor = getMultiverseSyncColor(multiverse.lastRun);
+            Color iconColor = getMultiverseSyncColor(multiverse);
 
             return Tooltip(
               message:

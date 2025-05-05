@@ -11,8 +11,7 @@ BEGIN
 
     -- Loop through all multiverses that need handling
     FOR rec_multiverse IN (
-        SELECT *,
-            date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number) / speed) AS date_handling
+        SELECT *
         FROM multiverses
         WHERE id = ANY(id_multiverses)
         AND is_active = TRUE
@@ -60,6 +59,7 @@ BEGIN
                 WHEN day_number = 7 THEN week_number + 1
                 ELSE week_number
                 END,
+            date_multiverse = date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number + 1) / speed),
             date_next_handling =
                 GREATEST(
                     date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number + 1) / speed),
@@ -91,7 +91,7 @@ BEGIN
         UPDATE players SET
             -- Randomly kill old players
             date_death = CASE
-                WHEN random() < ((age - 70) / 100.0) THEN rec_multiverse.date_handling
+                WHEN random() < ((age - 70) / 100.0) THEN rec_multiverse.date_multiverse
                 ELSE NULL END
         FROM players1
         WHERE players.id = players1.id

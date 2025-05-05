@@ -72,7 +72,6 @@ BEGIN
         INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
     SELECT 
         id_club AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_club_info,
-        --inp_multiverse.date_handling + INTERVAL '1 second' * EXTRACT(SECOND FROM CURRENT_TIMESTAMP) + INTERVAL '1 millisecond' * EXTRACT(MILLISECOND FROM CURRENT_TIMESTAMP),
         clubs_finances.total_expenses_missed_to_pay || 'Missed Expenses Paid' AS title,
         'The previous missed expenses (' || clubs_finances.total_expenses_missed_to_pay || ') have been paid for week ' || inp_multiverse.week_number || '. The club now has available cash: ' || cash || '.' AS message
     FROM clubs_finances

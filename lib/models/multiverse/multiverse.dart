@@ -6,6 +6,7 @@ class Multiverse {
   final int speed;
   final int seasonNumber;
   final DateTime dateSeasonStart;
+  final DateTime dateMultiverse;
   final DateTime dateSeasonEnd;
   final int weekNumber;
   final int dayNumber;
@@ -21,14 +22,15 @@ class Multiverse {
     required this.speed,
     required this.seasonNumber,
     required this.dateSeasonStart,
+    required this.dateMultiverse,
     required this.dateSeasonEnd,
     required this.weekNumber,
     required this.dayNumber,
     required this.cashPrinted,
     required this.lastRun,
     required this.error,
-    required this.dateNextHandling, // New property
-    required this.isActive, // New property
+    required this.dateNextHandling,
+    required this.isActive,
   });
 
   factory Multiverse.fromMap(Map<String, dynamic> map) {
@@ -38,6 +40,7 @@ class Multiverse {
       speed: map['speed'],
       seasonNumber: map['season_number'],
       dateSeasonStart: DateTime.parse(map['date_season_start']).toLocal(),
+      dateMultiverse: DateTime.parse(map['date_multiverse']).toLocal(),
       dateSeasonEnd: DateTime.parse(map['date_season_end']).toLocal(),
       weekNumber: map['week_number'],
       dayNumber: map['day_number'],
