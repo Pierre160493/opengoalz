@@ -16,7 +16,7 @@ BEGIN
         FROM multiverses
         WHERE id = ANY(id_multiverses)
         AND is_active = TRUE
-        AND date_next_handling <= now() -- Only process due multiverses
+        AND now() >= date_next_handling -- Only process due multiverses
     )
     LOOP
         RAISE NOTICE '*** Processing Multiverse [%]: S%W%D%: date_next_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_next_handling, now();
@@ -26,14 +26,25 @@ BEGIN
             inp_multiverse := rec_multiverse
         );
 
-        -- Simulate the day
-        IF main_simulate_day(inp_multiverse := rec_multiverse) = FALSE THEN
-            RAISE NOTICE '*** Multiverse [%]: Simulation stopped for today.', rec_multiverse.name;
-            CONTINUE;
-        END IF;
-
-        -- Handle weekly and seasonal updates if it's the end of the week
+        -- Handle weekly and seasonal updates if it's the end of the week (match day)
         IF rec_multiverse.day_number = 7 THEN
+            -- Simulate the week games
+            PERFORM main_simulate_week_games(rec_multiverse);
+
+            -- Exit the loop if there are games from the current week that are not finished
+            IF (
+                SELECT COUNT(id)
+                FROM games
+                WHERE id_multiverse = rec_multiverse.id
+                AND is_playing <> FALSE
+                AND season_number = rec_multiverse.season_number
+                AND week_number = rec_multiverse.week_number
+            ) > 0
+            THEN
+                EXIT; -- Exit the loop
+            END IF;
+
+            -- Handle clubs, players, and season updates
             PERFORM main_handle_clubs(rec_multiverse);
             PERFORM main_handle_players(rec_multiverse);
             PERFORM main_handle_season(rec_multiverse);
@@ -56,6 +67,35 @@ BEGIN
             last_run = now(),
             error = NULL
         WHERE id = rec_multiverse.id;
+
+        ---- Increase players energy
+        UPDATE players
+            SET energy = LEAST(100,
+                energy + (100 - energy) / 5.0)
+        WHERE id_multiverse = rec_multiverse.id
+        AND date_death IS NULL;
+
+        WITH players1 AS (
+            SELECT 
+                players.id,
+                player_get_full_name(players.id) AS full_name,
+                calculate_age(multiverses.speed, players.date_birth) AS age,
+                players.id_club
+            FROM players
+            JOIN multiverses ON multiverses.id = players.id_multiverse
+            LEFT JOIN clubs ON clubs.id = players.id_club 
+            WHERE players.id_multiverse = rec_multiverse.id
+            AND players.date_death IS NULL
+            GROUP BY players.id, multiverses.speed, players.id_club, clubs.username
+        )
+        UPDATE players SET
+            -- Randomly kill old players
+            date_death = CASE
+                WHEN random() < ((age - 70) / 100.0) THEN rec_multiverse.date_handling
+                ELSE NULL END
+        FROM players1
+        WHERE players.id = players1.id
+        AND players.id NOT IN (SELECT id_player FROM transfers_bids); -- Don't kill players that have bids on them (TO OPTIMIZE)
 
         RAISE NOTICE '*** Multiverse [%]: Successfully processed.', rec_multiverse.name;
     END LOOP;
