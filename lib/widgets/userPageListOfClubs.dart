@@ -3,7 +3,8 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/clubCardWidget.dart';
 import 'package:opengoalz/models/profile.dart';
-import 'package:opengoalz/widgets/clubAndPlayerCreationDialogBox.dart';
+import 'package:opengoalz/widgets/creationDialogBox_Club.dart';
+import 'package:opengoalz/widgets/creationDialogBox_Player.dart';
 
 Widget userClubListWidget(BuildContext context, Profile user) {
   return Column(
@@ -50,7 +51,7 @@ Widget userClubListWidget(BuildContext context, Profile user) {
           onTap: () => showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AssignPlayerOrClubDialogBox(isClub: true);
+              return CreationDialogBox_Club();
             },
           ),
         ),

@@ -5,7 +5,7 @@ import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
-import 'package:opengoalz/widgets/clubAndPlayerCreationDialogBox.dart';
+import 'package:opengoalz/widgets/creationDialogBox_Player.dart';
 
 Widget userPlayerListWidget(BuildContext context, Profile user) {
   // If user has no club, show the ListTile with possibility of creating a club
@@ -58,7 +58,7 @@ Widget userPlayerListWidget(BuildContext context, Profile user) {
           onTap: () => showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AssignPlayerOrClubDialogBox(isClub: false);
+              return CreationDialogBox_Player();
             },
           ),
         ),

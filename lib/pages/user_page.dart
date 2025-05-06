@@ -10,8 +10,9 @@ import 'package:opengoalz/pages/settings_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/widgets/clubAndPlayerCreationDialogBox.dart';
 import 'package:opengoalz/models/mails/mailsWidget.dart';
+import 'package:opengoalz/widgets/creationDialogBox_Club.dart';
+import 'package:opengoalz/widgets/creationDialogBox_Player.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
@@ -308,7 +309,7 @@ class _UserPageState extends State<UserPage> {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
-                        return AssignPlayerOrClubDialogBox(isClub: true);
+                        return CreationDialogBox_Club();
                       },
                     );
                   }
@@ -339,7 +340,7 @@ class _UserPageState extends State<UserPage> {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
-                        return AssignPlayerOrClubDialogBox(isClub: false);
+                        return CreationDialogBox_Player();
                       },
                     );
                   }
