@@ -18,7 +18,7 @@ BEGIN
         loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
         training_points_used, user_points_available, user_points_used)
     SELECT
-        inp_multiverse.date_multiverse, id, performance_score,
+        inp_multiverse.date_multiverse_next, id, performance_score,
         expenses_payed, expenses_expected, expenses_missed, expenses_target,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience,
@@ -123,7 +123,7 @@ BEGIN
         
             -- Set date_bid_end for the demotivated players
             UPDATE players SET
-                date_bid_end = inp_multiverse.date_multiverse + (INTERVAL '30 days' / inp_multiverse.speed),
+                date_bid_end = inp_multiverse.date_multiverse_next + (INTERVAL '30 days' / inp_multiverse.speed),
                 transfer_price = - 100
             WHERE id = rec_player.id;
 
@@ -211,7 +211,7 @@ BEGIN
         SELECT 
             players.id, -- Player's id
             --calculate_age(multiverses.speed, players.date_birth) AS age, -- Player's age
-            (25 - calculate_age(multiverses.speed, players.date_birth, inp_multiverse.date_multiverse))/10 AS coef_age, -- Player's age
+            (25 - calculate_age(multiverses.speed, players.date_birth, inp_multiverse.date_multiverse_next))/10 AS coef_age, -- Player's age
             training_points_available, -- Initial training points
             training_coef, -- Array of coef for each stat
             (COALESCE(clubs.training_weight, 1000) / 5000) ^ 0.3 AS staff_coef, -- Value between 0 and 1 [0 => 0, 5000 => 1]
@@ -295,7 +295,7 @@ BEGIN
             ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
             motivation, form, experience, energy, stamina]),
         expenses_target = FLOOR(50 +
-            1 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_multiverse) +
+            1 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_multiverse_next) +
             GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2 +
             (keeper + defense + passes + playmaking + winger + scoring + freekick) / 4
             + (coef_coach + coef_scout) / 2),

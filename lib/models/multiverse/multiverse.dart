@@ -6,7 +6,7 @@ class Multiverse {
   final int speed;
   final int seasonNumber;
   final DateTime dateSeasonStart;
-  final DateTime dateMultiverse;
+  final DateTime dateMultiverseNext;
   final DateTime dateSeasonEnd;
   final int weekNumber;
   final int dayNumber;
@@ -22,7 +22,7 @@ class Multiverse {
     required this.speed,
     required this.seasonNumber,
     required this.dateSeasonStart,
-    required this.dateMultiverse,
+    required this.dateMultiverseNext,
     required this.dateSeasonEnd,
     required this.weekNumber,
     required this.dayNumber,
@@ -40,7 +40,7 @@ class Multiverse {
       speed: map['speed'],
       seasonNumber: map['season_number'],
       dateSeasonStart: DateTime.parse(map['date_season_start']).toLocal(),
-      dateMultiverse: DateTime.parse(map['date_multiverse']).toLocal(),
+      dateMultiverseNext: DateTime.parse(map['date_multiverse_next']).toLocal(),
       dateSeasonEnd: DateTime.parse(map['date_season_end']).toLocal(),
       weekNumber: map['week_number'],
       dayNumber: map['day_number'],

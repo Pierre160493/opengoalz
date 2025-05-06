@@ -347,6 +347,9 @@ class _MultiversePageState extends State<MultiversePage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      'Date next handling: ${DateFormat('E d MMM \'at\' HH\':\'mm').format(multiverse.dateMultiverseNext)}',
+                    ),
+                    Text(
                       'Next handling: ${DateFormat('E d MMM \'at\' HH\':\'mm').format(multiverse.dateNextHandling)}',
                     ),
                     Text(
