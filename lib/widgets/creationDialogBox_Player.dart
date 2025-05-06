@@ -35,8 +35,19 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
   }
 
   Future<void> initializeMultiverse() async {
-    _selectedMultiverse = await Multiverse.fromId(1);
-    setState(() {});
+    final multiverse = await Multiverse.fromId(1);
+    if (mounted) {
+      setState(() {
+        _selectedMultiverse = multiverse;
+        if (_selectedMultiverse != null) {
+          dateBirth = DateTime.now().subtract(Duration(
+              days:
+                  (selectedAge * 14 * 7 / _selectedMultiverse!.speed).round()));
+        } else {
+          dateBirth = null;
+        }
+      });
+    }
   }
 
   @override
@@ -108,11 +119,15 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                             icon: Icon(Icons.delete_forever, color: Colors.red),
                           ),
                     onTap: () async {
-                      _selectedCountry = await Navigator.push<Country>(
+                      final selected = await Navigator.push<Country>(
                         context,
                         CountriesSelectionPage.route(),
                       );
-                      setState(() {});
+                      if (selected != null) {
+                        setState(() {
+                          _selectedCountry = selected;
+                        });
+                      }
                     },
                   ),
 
