@@ -206,9 +206,10 @@ BEGIN
                 loc_score_left_previous := COALESCE(rec_game.score_previous_left, 0);
                 loc_score_right_previous := COALESCE(rec_game.score_previous_right, 0);
                 -- Check if the game is over already (e.g., if the game is not a cup game or if the scores are different)
-                IF rec_game.is_cup = FALSE
-                    AND (loc_score_left + loc_score_left_previous) <> (loc_score_right + loc_score_right_previous) THEN
-                    EXIT; -- If the game is over, then exit the loop
+                IF rec_game.is_cup = FALSE THEN
+                    EXIT; -- If the game is not a cup game, then exit the loop
+                ELSIF (loc_score_left + loc_score_left_previous) <> (loc_score_right + loc_score_right_previous) THEN
+                    EXIT; -- If the cup game is not a draw, then exit the loop
                 END IF;
                 loc_date_start_period := loc_date_start_period + (45 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the first prolongation is the start date of the second half plus 45 minutes + extra time
                 loc_minute_period_start := 90; -- Start minute of the first period
