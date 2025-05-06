@@ -59,7 +59,7 @@ BEGIN
     INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
     VALUES (NEW.id, 'Secretary', TRUE,
     description_role || ' Update: ' || description_player,
-    description_mail || '.\nYou have payed ' || description_player || ' 1000$ for the transfer.');
+    description_mail || '. You have payed ' || description_player || ' 1000 for the transfer.');
 
     ------ Update the clubs table
     UPDATE clubs
