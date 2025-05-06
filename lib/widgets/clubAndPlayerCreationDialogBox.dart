@@ -353,30 +353,6 @@ class _AssignPlayerOrClubDialogBoxState
                               return;
                             }
 
-                            // Insert the player in the database
-                            // bool isOK = await operationInDB(
-                            //     context, 'INSERT', 'players',
-                            //     data: {
-                            //       'username': Provider.of<UserSessionProvider>(
-                            //               context,
-                            //               listen: false)
-                            //           .user
-                            //           .username,
-                            //       'id_country': _selectedCountry!.id,
-                            //       'id_multiverse': _selectedMultiverse!.id,
-                            //       'first_name': firstNameController.text,
-                            //       'last_name': lastNameController.text,
-                            //       'date_birth': dateBirth!.toIso8601String(),
-                            //       'user_points_available': 50 + selectedAge * 3,
-                            //       'loyalty': 80,
-                            //       'leadership': 80,
-                            //       'discipline': 80,
-                            //       'communication': 80,
-                            //       'aggressivity': 80,
-                            //       'composure': 80,
-                            //       'teamwork': 80,
-                            //     });
-
                             bool isOK = await operationInDB(
                               context,
                               'FUNCTION',
@@ -392,7 +368,7 @@ class _AssignPlayerOrClubDialogBoxState
                                         .user
                                         .username,
                                 'inp_stats': [0, 0, 0, 0, 0, 0, 0],
-                                'inp_notes': 'New user player',
+                                'inp_notes': 'New embodied player',
                                 'inp_first_name': firstNameController.text,
                                 'inp_last_name': lastNameController.text,
                               },
