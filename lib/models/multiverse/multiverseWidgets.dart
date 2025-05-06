@@ -223,8 +223,8 @@ Widget multiverseSpeedTile(Multiverse multiverse) {
       children: [
         Row(
           children: [
-            Icon(Icons.speed, color: Colors.blueGrey, size: 16),
-            SizedBox(width: 4),
+            Icon(Icons.speed, color: Colors.green, size: iconSizeSmall),
+            formSpacer3,
             Text(getMultiverseSpeedDescription(multiverse.speed),
                 style: styleItalicBlueGrey),
           ],
