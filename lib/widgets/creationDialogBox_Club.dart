@@ -239,7 +239,7 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
 
                           if (isOK) {
                             context.showSnackBarSuccess(
-                                'You are now the happy owner of a new club in ${_selectedCountry!.name} in the continent: ${_selectedCountry!.selectedContinent} !');
+                                'You are now the happy owner of a new club in ${_selectedCountry!.name} in the continent: ${_selectedCountry!.selectedContinent} ! Good luck !');
                             Navigator.of(context).pop();
                           }
 

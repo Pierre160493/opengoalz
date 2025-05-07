@@ -34,7 +34,9 @@ class PlayerCardTransferWidget extends StatelessWidget {
                 context, null, player.transferBids.first.idClub),
           formSpacer6,
           Text(
-            player.transferPrice!.abs().toString(),
+            player.transferPrice != null
+                ? player.transferPrice!.abs().toString()
+                : 'Price not available',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.green,

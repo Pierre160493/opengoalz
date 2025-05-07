@@ -284,7 +284,7 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
 
                           if (isOK) {
                             context.showSnackBarSuccess(
-                                'You now embody ${firstNameController.text} ${lastNameController.text} in the continent: ${_selectedCountry!.selectedContinent} !');
+                                'You now embody ${firstNameController.text} ${lastNameController.text}, let wish him good fortune in his career !');
                             Navigator.of(context).pop();
                           }
 
