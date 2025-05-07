@@ -6,15 +6,14 @@ class Multiverse {
   final int speed;
   final int seasonNumber;
   final DateTime dateSeasonStart;
-  final DateTime dateMultiverseNext;
+  final DateTime dateHandling;
   final DateTime dateSeasonEnd;
   final int weekNumber;
   final int dayNumber;
   final int cashPrinted;
   final DateTime lastRun;
   final String? error;
-  final DateTime dateNextHandling; // New property
-  final bool isActive; // New property
+  final bool isActive;
 
   Multiverse({
     required this.id,
@@ -22,14 +21,13 @@ class Multiverse {
     required this.speed,
     required this.seasonNumber,
     required this.dateSeasonStart,
-    required this.dateMultiverseNext,
+    required this.dateHandling,
     required this.dateSeasonEnd,
     required this.weekNumber,
     required this.dayNumber,
     required this.cashPrinted,
     required this.lastRun,
     required this.error,
-    required this.dateNextHandling,
     required this.isActive,
   });
 
@@ -40,14 +38,13 @@ class Multiverse {
       speed: map['speed'],
       seasonNumber: map['season_number'],
       dateSeasonStart: DateTime.parse(map['date_season_start']).toLocal(),
-      dateMultiverseNext: DateTime.parse(map['date_multiverse_next']).toLocal(),
+      dateHandling: DateTime.parse(map['date_handling']).toLocal(),
       dateSeasonEnd: DateTime.parse(map['date_season_end']).toLocal(),
       weekNumber: map['week_number'],
       dayNumber: map['day_number'],
       cashPrinted: map['cash_printed'],
       lastRun: DateTime.parse(map['last_run']).toLocal(),
       error: map['error'],
-      dateNextHandling: DateTime.parse(map['date_next_handling']).toLocal(),
       isActive: map['is_active'], // New property
     );
   }

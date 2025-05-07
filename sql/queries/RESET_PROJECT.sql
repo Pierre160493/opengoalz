@@ -39,7 +39,7 @@ BEGIN
     (2, date_trunc('week', NOW()) - INTERVAL '1 week' + INTERVAL '5 days 20 hours', 2, 'The Second'), -- 2 games per week
     (3, date_trunc('week', NOW()) + INTERVAL '20 hours', 7, 'The Lucky Seven'), -- 1 game per day
     (4, date_trunc('week', NOW()) + INTERVAL '20 hours', 14, 'The Double Seven'), -- 2 games per day
-    (5, date_trunc('day', NOW()), 168, 'The Very Fast'), -- Every hour
+    (5, date_trunc('hour', NOW()), 168, 'The Very Fast'), -- Every hour
     (6, date_trunc('hour', NOW()), 1008, 'The Ultra Fast'); -- Every 10 minutes
 
 --     FOR multiverse IN (

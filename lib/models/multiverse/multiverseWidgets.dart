@@ -6,10 +6,16 @@ import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:intl/intl.dart';
 
 Color getMultiverseSyncColor(Multiverse multiverse) {
-  if (!multiverse.isActive || multiverse.error != null) return Colors.red;
-  return multiverse.dateMultiverseNext != multiverse.dateNextHandling
-      ? Colors.orange
-      : Colors.green;
+  if (multiverse.error != null) {
+    return Colors.red;
+  }
+  if (!multiverse.isActive) {
+    return Colors.yellow;
+  }
+  if (multiverse.dateHandling.isBefore(DateTime.now())) {
+    return Colors.orange;
+  }
+  return Colors.green;
 }
 
 Widget getMultiverseIconFromMultiverse(Multiverse multiverse) {

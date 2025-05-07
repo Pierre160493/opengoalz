@@ -17,14 +17,14 @@ BEGIN
         AND is_active = TRUE
     )
     LOOP
-        RAISE NOTICE '*** Processing Multiverse [%]: S%W%D%: date_next_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_next_handling, now();
+        RAISE NOTICE '*** Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
 
         -- Handle the transfers
         PERFORM transfers_handle_transfers(
             inp_multiverse := rec_multiverse
         );
 
-        IF now() >= rec_multiverse.date_next_handling THEN
+        IF now() >= rec_multiverse.date_handling THEN
             -- Handle weekly and seasonal updates if it's the end of the week (match day)
             IF rec_multiverse.day_number = 7 THEN
                 -- Simulate the week games
@@ -72,7 +72,7 @@ BEGIN
             UPDATE players SET
                 -- Randomly kill old players
                 date_death = CASE
-                    WHEN random() < ((age - 70) / 100.0) THEN rec_multiverse.date_multiverse_next
+                    WHEN random() < ((age - 70) / 100.0) THEN rec_multiverse.date_handling
                     ELSE NULL END
             FROM players1
             WHERE players.id = players1.id
@@ -94,11 +94,11 @@ BEGIN
 
         -- Update the multiverse's day and week
         UPDATE multiverses SET
-            date_multiverse_next = date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number + 1) / speed),
-            date_next_handling =
-                GREATEST(
-                    date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number + 1) / speed),
-                    date_trunc('minute', now()) + INTERVAL '1 minute'),
+            date_handling = date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number + 1) / speed),
+            -- date_handling =
+            --     GREATEST(
+            --         date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number + 1) / speed),
+            --         date_trunc('minute', now()) + INTERVAL '1 minute'),
             last_run = now(),
             error = NULL
         WHERE id = rec_multiverse.id;
