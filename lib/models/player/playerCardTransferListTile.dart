@@ -13,6 +13,41 @@ class PlayerCardTransferWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (player.userName != null) {
+      // Build a different layout when username is not null
+      return ListTile(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Colors.blueGrey),
+        ),
+        leading: Icon(
+          Icons.person,
+          size: iconSizeMedium,
+          color: Colors.blue,
+        ),
+        title: Text(
+          'Player: ${player.userName}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+          ),
+        ),
+        subtitle: Text(
+          'Special player with username',
+          style: styleItalicBlueGrey,
+        ),
+        onTap: () {
+          // Handle tap for players with usernames
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return PlayerTransferBidDialogBox(idPlayer: player.id);
+            },
+          );
+        },
+      );
+    }
+
     return ListTile(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
