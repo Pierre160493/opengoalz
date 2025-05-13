@@ -285,7 +285,15 @@ BEGIN
                 normalized_training_coef[7] * (1 - (freekick / 100))
             ELSE normalized_training_coef[7] END),
         training_points_available = 0,
-        training_points_used = training_points_used + updated_training_points_available
+        training_points_used = training_points_used + updated_training_points_available,
+        -- Randomly update the mental stats
+        loyalty = clamp(loyalty + random() - 0.5, 0, 100),
+        leadership = clamp(leadership + random() - 0.5, 0, 100),
+        discipline = clamp(discipline + random() - 0.5, 0, 100),
+        communication = clamp(communication + random() - 0.5, 0, 100),
+        aggressivity = clamp(aggressivity + random() - 0.5, 0, 100),
+        composure = clamp(composure + random() - 0.5, 0, 100),
+        teamwork = clamp(teamwork + random() - 0.5, 0, 100)
     FROM final_data
     WHERE players.id = final_data.id;
 
