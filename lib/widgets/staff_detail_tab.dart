@@ -4,7 +4,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/models/player/playerCoachScoutCoefListTile.dart';
+import 'package:opengoalz/models/player/playerStaffCoefListTile.dart';
 import 'package:opengoalz/models/player/playerExpensesListTile.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/player/players_page.dart';
@@ -154,39 +154,17 @@ class StaffDetailTab extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: getCoachScoutCoefWidget(context, player, title),
+                  child: getStaffCoefListTile(context, player, title),
                 ),
                 Expanded(child: getExpensesWidget(context, player)),
               ],
             ),
             Divider(),
-            ListTile(
-              leading: Icon(iconCoach,
-                  color: getColorBasedOnValue(player.coefCoach)),
-              title: Text(player.coefCoach.toString()),
-              subtitle: Text('Coach Coeffcient', style: styleItalicBlueGrey),
-              shape: shapePersoRoundedBorder(),
-            ),
-            ListTile(
-              leading: Icon(iconScout,
-                  color: getColorBasedOnValue(player.coefScout)),
-              title: Text(player.coefScout.toString()),
-              subtitle: Text('Scout Coeffcient', style: styleItalicBlueGrey),
-              shape: shapePersoRoundedBorder(),
-            ),
+            getStaffCoefListTile(context, player, 'Coach'),
+            getStaffCoefListTile(context, player, 'Scout'),
           ],
         ),
       ),
     );
-  }
-
-  Color getColorBasedOnValue(int value) {
-    if (value > 50) {
-      return Colors.green;
-    } else if (value > 25) {
-      return Colors.orange;
-    } else {
-      return Colors.red;
-    }
   }
 }

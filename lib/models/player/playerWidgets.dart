@@ -112,6 +112,25 @@ Widget getPlayerHistoryStreamGraph(
       }
       final historyData = snapshot.data!;
 
+      // Check for null values in the required fields
+      for (var field in fieldsToPlot) {
+        if (historyData.any((item) => item[field] == null)) {
+          return AlertDialog(
+            title: Text('Data Error'),
+            content: Text(
+              'Error: Missing data for field "$field".',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK'),
+              ),
+            ],
+          );
+        }
+      }
+
       final chartData = ChartData(
         title: title,
         yValues: fieldsToPlot.map((field) {

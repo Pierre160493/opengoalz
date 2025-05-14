@@ -3,8 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 
-Widget getCoachScoutCoefWidget(
-    BuildContext context, Player player, String title) {
+Widget getStaffCoefListTile(BuildContext context, Player player, String title) {
   IconData icon;
   int value;
   if (title == 'Coach') {
@@ -27,7 +26,11 @@ Widget getCoachScoutCoefWidget(
     shape: shapePersoRoundedBorder(),
     leading: Icon(
       icon,
-      color: Colors.green,
+      color: value >= 50
+          ? Colors.green
+          : value >= 25
+              ? Colors.orange
+              : Colors.red,
       size: iconSizeMedium, // Adjust icon size as needed
     ),
     title: Row(
@@ -45,15 +48,17 @@ Widget getCoachScoutCoefWidget(
       '$title coefficient',
       style: styleItalicBlueGrey,
     ),
-    onTap: () => showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return getPlayerHistoryStreamGraph(
-            context,
-            player.id,
-            [title == '' ? 'coef_coach' : 'coef_scout'],
-            '${title} coefficient');
-      },
-    ),
+    onTap: () async {
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return getPlayerHistoryStreamGraph(
+              context,
+              player.id,
+              [title == 'Coach' ? 'coef_coach' : 'coef_scout'],
+              '${title} coefficient');
+        },
+      );
+    },
   );
 }
