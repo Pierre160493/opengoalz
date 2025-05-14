@@ -73,7 +73,8 @@ class Player {
   final double experience;
   final String notes;
   final String notesSmall;
-  final double performanceScore;
+  final double performanceScoreReal;
+  final double performanceScoreTheoretical;
   final List<int> idGamesPlayed;
   final bool isSelectedUserIncarnatedPlayer;
   final bool isSelectedClubPlayer;
@@ -133,7 +134,10 @@ class Player {
         dateArrival = DateTime.parse(map['date_arrival']).toLocal(),
         notes = map['notes'],
         notesSmall = map['notes_small'],
-        performanceScore = (map['performance_score'] as num).toDouble(),
+        performanceScoreReal =
+            (map['performance_score_real'] as num).toDouble(),
+        performanceScoreTheoretical =
+            (map['performance_score_theoretical'] as num).toDouble(),
         idGamesPlayed = List<int>.from(map['id_games_played']),
         isSelectedClubPlayer = user.selectedClub?.id == map['id_club'],
         isSelectedUserIncarnatedPlayer = user.username == map['username'],
@@ -306,7 +310,8 @@ class Player {
       'experience': experience,
       'notes': notes,
       'notesSmall': notesSmall,
-      'performanceScore': performanceScore,
+      'performanceScoreReal': performanceScoreReal,
+      'performanceScoreTheoretical': performanceScoreTheoretical,
       'idGamesPlayed': idGamesPlayed,
       'isSelectedUserIncarnatedPlayer': isSelectedUserIncarnatedPlayer,
       'isSelectedClubPlayer': isSelectedClubPlayer,

@@ -80,9 +80,14 @@ BEGIN
     END IF;
 
     ------ Calculate the performance score
-    NEW.performance_score = players_calculate_player_best_weight(
+    NEW.performance_score_real = players_calculate_player_best_weight(
         ARRAY[NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.scoring, NEW.freekick, NEW.winger,
-        NEW.motivation, NEW.form, NEW.experience, NEW.energy, NEW.stamina]
+        -- NEW.motivation, NEW.form, NEW.experience, NEW.energy, NEW.stamina]
+        NEW.motivation, NEW.form, NEW.experience, 100, NEW.stamina]
+    );
+    NEW.performance_score_theoretical = players_calculate_player_best_weight(
+        ARRAY[NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.scoring, NEW.freekick, NEW.winger,
+        100, 100, NEW.experience, 100, 100]
     );
 
     -- Return the new record to proceed with the update

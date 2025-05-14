@@ -84,7 +84,7 @@ class _CountryPageState extends State<CountryPage>
               .from('players')
               .stream(primaryKey: ['id'])
               .eq('id_country', country.id)
-              .order('performance_score', ascending: false)
+              .order('performance_score_real', ascending: false)
               .map((maps) => maps
                   .map((map) => Player.fromMap(
                       map,

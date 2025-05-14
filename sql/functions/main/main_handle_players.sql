@@ -11,14 +11,14 @@ BEGIN
 
     ------ Store player's stats in the history
     INSERT INTO players_history_stats
-        (created_at, id_player, performance_score,
+        (created_at, id_player, performance_score_real, performance_score_theoretical, 
         expenses_payed, expenses_expected, expenses_missed, expenses_target,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience,
         loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
         training_points_used, user_points_available, user_points_used)
     SELECT
-        inp_multiverse.date_handling, id, performance_score,
+        inp_multiverse.date_handling, id, performance_score_real, performance_score_theoretical,
         expenses_payed, expenses_expected, expenses_missed, expenses_target,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience,
@@ -299,9 +299,13 @@ BEGIN
 
     ------ Calculate player performance score
     UPDATE players SET
-        performance_score = players_calculate_player_best_weight(
+        performance_score_real = players_calculate_player_best_weight(
             ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
-            motivation, form, experience, energy, stamina]),
+            -- motivation, form, experience, energy, stamina]),
+            motivation, form, experience, 100, stamina]),
+        performance_score_theoretical = players_calculate_player_best_weight(
+            ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
+            100, 100, experience, 100, 100]),
         expenses_target = FLOOR(50 +
             1 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) +
             GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2 +

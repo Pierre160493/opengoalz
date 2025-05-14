@@ -139,7 +139,7 @@ BEGIN
         ------------------------------------------------------------------------------------------------------------------------
         ------------ Add players to the teamcomp if there are less than 11 players
         ------ Select the players from the club that are not in the starting positions
-        SELECT array_agg(id ORDER BY performance_score DESC) INTO array_id_players_tmp FROM players
+        SELECT array_agg(id ORDER BY performance_score_real DESC) INTO array_id_players_tmp FROM players
         WHERE id NOT IN (
             SELECT unnest(array_remove(array_id_players[1:14], NULL))
         )
@@ -191,7 +191,7 @@ BEGIN
         ------------------------------------------------------------------------------------------------------------------------
         ------------ Finally try to populate the subs positions
         ------ Select the players from the club that are not in the starting positions
-        SELECT array_agg(id ORDER BY performance_score DESC) INTO array_id_players_tmp FROM players
+        SELECT array_agg(id ORDER BY performance_score_real DESC) INTO array_id_players_tmp FROM players
         WHERE id NOT IN (SELECT unnest(array_remove(array_id_players, NULL)))
         AND id_club = rec_teamcomp.id_club;
 

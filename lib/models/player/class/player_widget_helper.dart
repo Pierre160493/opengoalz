@@ -260,7 +260,7 @@ extension PlayerWidgetsHelper on Player {
         color: Colors.green,
       ),
       title: Text(
-        performanceScore.toStringAsFixed(0),
+        performanceScoreReal.toStringAsFixed(0),
         style: TextStyle(
           fontWeight: FontWeight.bold,
         ),
@@ -272,7 +272,10 @@ extension PlayerWidgetsHelper on Player {
       onTap: () => showDialog(
         context: context,
         builder: (BuildContext context) {
-          return getPlayerHistoryStreamGraph(context, id, ['performance_score'],
+          return getPlayerHistoryStreamGraph(
+              context,
+              id,
+              ['performance_score_real'],
               'Performance Score History (${getShortName()})');
         },
       ),
