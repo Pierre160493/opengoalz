@@ -273,10 +273,11 @@ extension PlayerWidgetsHelper on Player {
         context: context,
         builder: (BuildContext context) {
           return getPlayerHistoryStreamGraph(
-              context,
-              id,
-              ['performance_score_real'],
-              'Performance Score History (${getShortName()})');
+            context,
+            id,
+            ['performance_score_real', 'performance_score_theoretical'],
+            'Weekly Performance Score (Real and theoretical)',
+          );
         },
       ),
     );
