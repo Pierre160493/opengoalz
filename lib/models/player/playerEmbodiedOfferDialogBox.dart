@@ -6,9 +6,11 @@ import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
 class PlayerEmbodiedOfferDialogBox extends StatefulWidget {
   final int idPlayer;
@@ -28,6 +30,8 @@ class _PlayerEmbodiedOfferDialogBoxState
   String? _bidErrorMessage;
   String _commentForPlayer = '';
   String _commentForClub = '';
+  TransfersEmbodiedPlayersOffer? _existingClubOffer;
+  bool _initializedFromExistingOffer = false;
 
   @override
   void initState() {
@@ -42,7 +46,28 @@ class _PlayerEmbodiedOfferDialogBoxState
         .map((maps) => maps
             .map((map) => Player.fromMap(map,
                 Provider.of<UserSessionProvider>(context, listen: false).user))
-            .first);
+            .first)
+        .switchMap((Player player) {
+          return supabase
+              .from('transfers_embodied_players_offers')
+              .stream(primaryKey: ['id'])
+              .eq('id_player', player.id)
+              .order('created_at', ascending: true)
+              .map((maps) => maps
+                  .map((map) => TransfersEmbodiedPlayersOffer.fromMap(map))
+                  .toList())
+              .map((List<TransfersEmbodiedPlayersOffer> offers) {
+                final currentClubId =
+                    Provider.of<UserSessionProvider>(context, listen: false)
+                        .user
+                        .selectedClub!
+                        .id;
+                final existingOffer =
+                    offers.firstWhere((offer) => offer.idClub == currentClubId);
+                _existingClubOffer = existingOffer;
+                return player;
+              });
+        });
 
     _bidController.addListener(() {
       setState(() {
@@ -125,6 +150,15 @@ class _PlayerEmbodiedOfferDialogBoxState
         _offerMin = (player.expensesTarget * 0.5).toInt();
         _offerMax = _offerMin * 3;
 
+        // If there is an existing offer, initialize controllers/fields only once
+        if (_existingClubOffer != null && !_initializedFromExistingOffer) {
+          _bidController.text = _existingClubOffer!.expensesOffered.toString();
+          _offerAmount = _existingClubOffer!.expensesOffered;
+          _commentForPlayer = _existingClubOffer!.commentForPlayer ?? '';
+          _commentForClub = _existingClubOffer!.commentForClub ?? '';
+          _initializedFromExistingOffer = true;
+        }
+
         // Determine border color once
         final Color offerColor =
             _offerAmount == null ? Colors.red : Colors.green;
@@ -147,6 +181,28 @@ class _PlayerEmbodiedOfferDialogBoxState
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (_existingClubOffer != null)
+                        Card(
+                          color: Colors.yellow[50],
+                          margin: EdgeInsets.only(bottom: 12),
+                          child: ListTile(
+                            leading: Icon(Icons.info, color: Colors.orange),
+                            title: Text(
+                              'Your existing offer',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Amount: ${NumberFormat('#,###').format(_existingClubOffer!.expensesOffered)}',
+                                  style: TextStyle(color: Colors.blue),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
                       /// Offer input
                       ListTile(
                         shape: RoundedRectangleBorder(
@@ -329,8 +385,8 @@ class _PlayerEmbodiedOfferDialogBoxState
                             // Add these if you want to pass comments or date_limit
                             // 'inp_date_limit': ...,
                             // 'inp_number_season': ...,
-                            // 'inp_comment_for_player': ...,
-                            // 'inp_comment_for_club': ...,
+                            'inp_comment_for_player': _commentForPlayer,
+                            'inp_comment_for_club': _commentForClub,
                           });
                           bool isOK = await operationInDB(context, 'FUNCTION',
                               'transfers_handle_new_embodied_player_offer',
@@ -347,12 +403,14 @@ class _PlayerEmbodiedOfferDialogBoxState
                                 // Add these if you want to pass comments or date_limit
                                 // 'inp_date_limit': ...,
                                 // 'inp_number_season': ...,
-                                // 'inp_comment_for_player': ...,
-                                // 'inp_comment_for_club': ...,
+                                'inp_comment_for_player': _commentForPlayer,
+                                'inp_comment_for_club': _commentForClub,
                               });
                           if (isOK) {
                             context.showSnackBar(
-                                'Successfully placed an offer on embodied ${player.getPlayerNameString()}',
+                                _existingClubOffer == null
+                                    ? 'Successfully placed an offer on embodied ${player.getPlayerNameString()}'
+                                    : 'Successfully updated your offer on embodied ${player.getPlayerNameString()}',
                                 icon: Icon(iconSuccessfulOperation,
                                     color: Colors.green));
                           }
@@ -363,14 +421,9 @@ class _PlayerEmbodiedOfferDialogBoxState
                           children: [
                             Icon(Icons.gavel, color: Colors.green),
                             formSpacer3,
-                            Text('Offer '),
-                            Text(
-                              NumberFormat('#,###')
-                                  .format(_offerAmount)
-                                  .replaceAll(',', ' '),
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(' on '),
+                            Text(_existingClubOffer == null
+                                ? 'Place an Offer on '
+                                : 'Update Offer on'),
                             player.getPlayerNameToolTip(context)
                           ],
                         ),

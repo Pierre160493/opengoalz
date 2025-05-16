@@ -11,42 +11,81 @@ CREATE OR REPLACE FUNCTION public.transfers_handle_new_embodied_player_offer(
 )
 RETURNS bigint AS $$
 DECLARE
+    rec_player RECORD; -- Player record
+    rec_club RECORD; -- Club record
     new_id bigint;
     current_user_name text;
 BEGIN
-    -- Get the PostgreSQL session user (database user)
-    current_user_name := session_user;
 
-    RAISE EXCEPTION 'Current user: %', current_user_name;
-
-    -- Check that the bidding club belongs to the user (assuming clubs table has a user_name or user_id column)
-    IF NOT EXISTS (
-        SELECT 1
-        FROM clubs
-        WHERE id = inp_id_club
-          AND (username = current_user_name)
-    ) THEN
-        RAISE EXCEPTION 'Club % does not belong to the current user: %', inp_id_club, current_user_name;
+    ------ CHECKS
+    IF inp_id_player IS NULL THEN
+        RAISE EXCEPTION 'Player id cannot be NULL';
+    ELSIF inp_id_club IS NULL THEN
+        RAISE EXCEPTION 'Club id cannot be null !';
+    ELSIF inp_expenses_offered IS NULL THEN
+        RAISE EXCEPTION 'Expenses offered cannot be NULL !';
+    ELSIF inp_expenses_offered < 0 THEN
+        RAISE EXCEPTION 'Expenses offered cannot be negative !';
     END IF;
 
-    INSERT INTO public.transfers_embodied_players_offers (
-        id_player,
-        id_club,
-        expenses_offered,
-        date_limit,
-        number_season,
-        comment_for_player,
-        comment_for_club
-    ) VALUES (
-        inp_id_player,
-        inp_id_club,
-        inp_expenses_offered,
-        inp_date_limit,
-        inp_number_season,
-        inp_comment_for_player,
-        inp_comment_for_club
-    )
+    ------ Get the club record
+    SELECT * INTO rec_club FROM clubs WHERE id = inp_id_club;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Club with id % does not exist', inp_id_club;
+    END IF;
+
+    ------ Get the player record
+    SELECT players.*, player_get_full_name(players.id) AS full_name, multiverses.speed INTO rec_player
+    FROM players
+    LEFT JOIN clubs ON clubs.id = players.id_club
+    JOIN multiverses ON multiverses.id = players.id_multiverse
+    WHERE players.id = inp_id_player;
+
+    ------ CHECKS on the player record
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Player with id % does not exist', inp_id_player;
+    ELSIF rec_player.id_multiverse != rec_club.id_multiverse THEN
+        RAISE EXCEPTION 'Player and club must be in the same multiverse';
+    ELSIF inp_expenses_offered < rec_player.expenses_target * 0.5 THEN
+        RAISE EXCEPTION 'Expenses offered cannot be lower than 50%% of the target expenses (%)', rec_player.expenses_target;
+    ELSIF inp_expenses_offered > rec_player.expenses_target * 1.5 THEN
+        RAISE EXCEPTION 'Expenses offered cannot be higher than 150%% of the target expenses (%)', rec_player.expenses_target; 
+    END IF;
+
+    -- Instead of always inserting, try to update first
+    UPDATE public.transfers_embodied_players_offers
+    SET
+        expenses_offered = inp_expenses_offered,
+        date_limit = inp_date_limit,
+        number_season = inp_number_season,
+        comment_for_player = inp_comment_for_player,
+        comment_for_club = inp_comment_for_club,
+        created_at = now()
+    WHERE id_player = inp_id_player
+      AND id_club = inp_id_club
     RETURNING id INTO new_id;
+
+    IF new_id IS NULL THEN
+        -- No existing offer, do an insert
+        INSERT INTO public.transfers_embodied_players_offers (
+            id_player,
+            id_club,
+            expenses_offered,
+            date_limit,
+            number_season,
+            comment_for_player,
+            comment_for_club
+        ) VALUES (
+            inp_id_player,
+            inp_id_club,
+            inp_expenses_offered,
+            inp_date_limit,
+            inp_number_season,
+            inp_comment_for_player,
+            inp_comment_for_club
+        )
+        RETURNING id INTO new_id;
+    END IF;
 
     RETURN new_id;
 END;
