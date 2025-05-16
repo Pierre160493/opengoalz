@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
 import 'package:opengoalz/models/player/playerTransferBidDialogBox.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/tickingTime.dart';
@@ -14,67 +15,63 @@ class PlayerCardTransferWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Build a different layout when username is not null
-    if (player.userName != null) {
-      return ListTile(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Colors.blueGrey),
-        ),
-        leading: Icon(
-          iconUser,
-          size: iconSizeMedium,
-          color: Colors.blue,
-        ),
-        title: Row(
-          children: [
-            Text(
-              'Embodied player',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+    // Choose tile builder based on player.userName presence
+    return (player.userName != null)
+        ? _buildEmbodiedPlayerTile(context, player)
+        : _buildTransferListTile(context, player);
+  }
+
+  Widget _buildEmbodiedPlayerTile(BuildContext context, Player player) {
+    return ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Colors.blueGrey),
+      ),
+      leading: Icon(
+        iconUser,
+        size: iconSizeMedium,
+        color: Colors.blue,
+      ),
+      title: Row(
+        children: [
+          Text(
+            'Embodied player',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
             ),
-          ],
-        ),
-        subtitle: Row(
-          children: [
-            Text(
-              'User: ',
-              style: styleItalicBlueGrey,
-            ),
-            getUserNameClickable(context, userName: player.userName),
-          ],
-        ),
-        // onTap: () {
-        //   // Handle tap for players with usernames
-        //   showDialog(
-        //     context: context,
-        //     builder: (BuildContext context) {
-        //       return PlayerTransferBidDialogBox(idPlayer: player.id);
-        //     },
-        //   );
-        // },
-        trailing: IconButton(
-          icon: Icon(
-            iconTransfers,
-            size: iconSizeMedium,
-            color: Colors.green,
           ),
-          onPressed: () {
-            // Handle tap for players with usernames
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return PlayerTransferBidDialogBox(idPlayer: player.id);
-              },
-            );
-          },
-          iconSize: iconSizeMedium,
+        ],
+      ),
+      subtitle: Row(
+        children: [
+          Text(
+            'User: ',
+            style: styleItalicBlueGrey,
+          ),
+          getUserNameClickable(context, userName: player.userName),
+        ],
+      ),
+      trailing: IconButton(
+        icon: Icon(
+          iconTransfers,
+          size: iconSizeMedium,
           color: Colors.green,
         ),
-      );
-    }
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return PlayerEmbodiedOfferDialogBox(idPlayer: player.id);
+            },
+          );
+        },
+        iconSize: iconSizeMedium,
+        color: Colors.green,
+      ),
+    );
+  }
 
+  Widget _buildTransferListTile(BuildContext context, Player player) {
     return ListTile(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
