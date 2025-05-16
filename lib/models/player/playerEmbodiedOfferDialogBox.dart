@@ -3,13 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
-import 'package:opengoalz/models/club/clubCashListTile.dart';
-import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
-import 'package:opengoalz/models/transfer_bid.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -31,6 +26,8 @@ class _PlayerEmbodiedOfferDialogBoxState
   late int _offerMin;
   late int _offerMax;
   String? _bidErrorMessage;
+  String _commentForPlayer = '';
+  String _commentForClub = '';
 
   @override
   void initState() {
@@ -89,14 +86,9 @@ class _PlayerEmbodiedOfferDialogBoxState
       onTap: () {
         setState(() {
           int newValue = (_offerAmount! * factor).round();
+          newValue = newValue.clamp(_offerMin, _offerMax);
           _bidController.text = newValue.toString();
           _offerAmount = newValue;
-          if (_offerAmount! < _offerMin) {
-            _offerAmount = _offerMin;
-          }
-          if (_offerAmount! > _offerMax) {
-            _offerAmount = _offerMax;
-          }
           _bidErrorMessage = _validateBid();
         });
       },
@@ -272,6 +264,40 @@ class _PlayerEmbodiedOfferDialogBoxState
                               ),
                           ],
                         ),
+                      ),
+
+                      /// Comment for the user embodying the player
+                      ListTile(
+                        leading: Icon(iconUser, color: Colors.green),
+                        title: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: 'Comment for the user (optional)',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _commentForPlayer = value;
+                            });
+                          },
+                        ),
+                        shape: shapePersoRoundedBorder(),
+                      ),
+
+                      /// Comment for the club
+                      ListTile(
+                        leading: Icon(iconClub, color: Colors.green),
+                        title: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: 'Comment for the club (optional)',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _commentForClub = value;
+                            });
+                          },
+                        ),
+                        shape: shapePersoRoundedBorder(),
                       ),
                     ],
                   ),
