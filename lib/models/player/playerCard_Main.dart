@@ -7,6 +7,7 @@ import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/playerFavorite/playerFavoriteIconButton.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
+import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
@@ -93,7 +94,31 @@ class _PlayerCardState extends State<PlayerCard>
               children: [
                 Row(
                   children: [
+                    /// Player's name
                     widget.player.getPlayerNameToolTip(context),
+
+                    /// If the player is embodied by a user, show the username
+                    if (widget.player.userName != null)
+                      IconButton(
+                        tooltip: 'Embodied by: ${widget.player.userName}',
+                        icon: Icon(
+                          iconUser,
+                          size: iconSizeSmall,
+                          color: Colors.blue,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UserPage(
+                                userName: widget.player.userName,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                    /// Show the status row of the player
                     widget.player.getStatusRow(),
                     if (widget.player.isSelectedUserIncarnatedPlayer ||
                         widget.player.isSelectedClubPlayer)

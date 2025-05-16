@@ -22,7 +22,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
   int _playerHistoricStatsLength = 0; // Initialize with default value
   int _weekOffsetToCompareWithNow = 0; // Initialize with default value
   List<Map> listPlayerHistoricStats = [];
-  bool _showTrainingCoef = false;
+  bool _showTrainingCoef = true;
 
   @override
   void initState() {
@@ -107,7 +107,6 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           moveHistoricDataListTile(),
-
           SizedBox(
             width: double.infinity,
             height: 240, // Adjust the height as needed
@@ -130,33 +129,36 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
               // graphColors: [Colors.green, Colors.red],
             ),
           ),
-
-          /// Player training coefficients for training
-          GestureDetector(
-            onLongPress: () {
-              setState(() {
-                _showTrainingCoef = !_showTrainingCoef;
-              });
+          ListTile(
+            leading: Icon(
+              iconStats,
+              size: iconSizeMedium,
+              color: Colors.green,
+            ),
+            title: Text(
+                'Points gained this season: ${widget.player.trainingPointsUsed.floor()}'),
+            subtitle: Text(
+              'Gain training points thanks to the staff',
+              style: styleItalicBlueGrey,
+            ),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return PlayerTrainingDialog(player: widget.player);
+                },
+              );
             },
-            child: ListTile(
-              leading: Icon(
-                iconStats,
-                size: iconSizeMedium,
-                color: Colors.green,
-              ),
-              title: Text(
-                  'Points gained this season: ${widget.player.trainingPointsUsed.floor()}'),
-              subtitle: Text(
-                'Gain training points thanks to the staff',
-                style: styleItalicBlueGrey,
-              ),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return PlayerTrainingDialog(player: widget.player);
-                  },
-                );
+            shape: shapePersoRoundedBorder(
+              Colors.green,
+              2,
+            ),
+            trailing: Switch(
+              value: _showTrainingCoef,
+              onChanged: (value) {
+                setState(() {
+                  _showTrainingCoef = value;
+                });
               },
             ),
           ),

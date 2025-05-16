@@ -3,6 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerTransferBidDialogBox.dart';
+import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/tickingTime.dart';
 
 class PlayerCardTransferWidget extends StatelessWidget {
@@ -13,38 +14,64 @@ class PlayerCardTransferWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build a different layout when username is not null
     if (player.userName != null) {
-      // Build a different layout when username is not null
       return ListTile(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: Colors.blueGrey),
         ),
         leading: Icon(
-          Icons.person,
+          iconUser,
           size: iconSizeMedium,
           color: Colors.blue,
         ),
-        title: Text(
-          'Player: ${player.userName}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
+        title: Row(
+          children: [
+            Text(
+              'Embodied player',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        subtitle: Row(
+          children: [
+            Text(
+              'User: ',
+              style: styleItalicBlueGrey,
+            ),
+            getUserNameClickable(context, userName: player.userName),
+          ],
+        ),
+        // onTap: () {
+        //   // Handle tap for players with usernames
+        //   showDialog(
+        //     context: context,
+        //     builder: (BuildContext context) {
+        //       return PlayerTransferBidDialogBox(idPlayer: player.id);
+        //     },
+        //   );
+        // },
+        trailing: IconButton(
+          icon: Icon(
+            iconTransfers,
+            size: iconSizeMedium,
+            color: Colors.green,
           ),
+          onPressed: () {
+            // Handle tap for players with usernames
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return PlayerTransferBidDialogBox(idPlayer: player.id);
+              },
+            );
+          },
+          iconSize: iconSizeMedium,
+          color: Colors.green,
         ),
-        subtitle: Text(
-          'Special player with username',
-          style: styleItalicBlueGrey,
-        ),
-        onTap: () {
-          // Handle tap for players with usernames
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return PlayerTransferBidDialogBox(idPlayer: player.id);
-            },
-          );
-        },
       );
     }
 
