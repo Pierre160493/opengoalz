@@ -169,8 +169,7 @@ class Player {
         coefScout = map['coef_scout'],
         isStaff = map['is_staff'],
         belongsToClubOfCurrentUser = user.selectedClub?.id == map['id_club'],
-        isEmbodiedByCurrentUser = user.selectedClub?.id == map['id_club'] &&
-            user.username == map['username'];
+        isEmbodiedByCurrentUser = user.username == map['username'];
 
   double get age {
     return calculateAge(dateBirth, multiverseSpeed, dateEnd: dateDeath);

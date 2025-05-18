@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
+import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
 import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -81,9 +82,29 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage> {
             title: Row(
               children: [
                 Text('Offers made for '),
-                player.getPlayerNameClickable(context)
+                player.getPlayerNameClickable(context),
               ],
             ),
+            actions: [
+              IconButton(
+                tooltip: 'Place an offer from your currently selected club',
+                icon: Icon(
+                  iconTransfers,
+                  size: iconSizeMedium,
+                  color: Colors.green,
+                ),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return PlayerEmbodiedOfferDialogBox(idPlayer: player.id);
+                    },
+                  );
+                },
+                iconSize: iconSizeMedium,
+                color: Colors.green,
+              ),
+            ],
           ),
           body: MaxWidthContainer(
             child: ListView.builder(
