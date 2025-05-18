@@ -4,6 +4,7 @@ import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
 import 'package:opengoalz/models/player/playerTransferBidDialogBox.dart';
+import 'package:opengoalz/models/player/player_embodied_offers_page.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/tickingTime.dart';
 
@@ -58,12 +59,21 @@ class PlayerCardTransferWidget extends StatelessWidget {
           color: Colors.green,
         ),
         onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return PlayerEmbodiedOfferDialogBox(idPlayer: player.id);
-            },
-          );
+          if (player.isEmbodiedByCurrentUser) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) =>
+                    PlayerEmbodiedOffersPage(playerId: player.id),
+              ),
+            );
+          } else {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return PlayerEmbodiedOfferDialogBox(idPlayer: player.id);
+              },
+            );
+          }
         },
         iconSize: iconSizeMedium,
         color: Colors.green,

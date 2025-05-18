@@ -23,6 +23,7 @@ import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:collection/collection.dart';
+import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
 
 part 'player_widget_helper.dart';
 part 'player_widget_actions.dart';
@@ -30,9 +31,13 @@ part 'player_widget_actions.dart';
 class Player {
   Club? club;
   List<TransferBid> transferBids = [];
+  List<TransfersEmbodiedPlayersOffer> offersForEmbodied = [];
   Multiverse? multiverse;
   GamePlayerStatsBest? gamePlayerStatsBest;
   List<GamePlayerStatsAll>? gamePlayerStatsAll;
+
+  bool belongsToClubOfCurrentUser;
+  bool isEmbodiedByCurrentUser;
 
   PlayerFavorite? favorite;
   PlayerPoaching? poaching;
@@ -162,7 +167,10 @@ class Player {
             : null,
         coefCoach = map['coef_coach'],
         coefScout = map['coef_scout'],
-        isStaff = map['is_staff'];
+        isStaff = map['is_staff'],
+        belongsToClubOfCurrentUser = user.selectedClub?.id == map['id_club'],
+        isEmbodiedByCurrentUser = user.selectedClub?.id == map['id_club'] &&
+            user.username == map['username'];
 
   double get age {
     return calculateAge(dateBirth, multiverseSpeed, dateEnd: dateDeath);

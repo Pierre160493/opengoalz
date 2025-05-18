@@ -57,14 +57,9 @@ class _PlayerEmbodiedOfferDialogBoxState
                   .map((map) => TransfersEmbodiedPlayersOffer.fromMap(map))
                   .toList())
               .map((List<TransfersEmbodiedPlayersOffer> offers) {
-                final currentClubId =
-                    Provider.of<UserSessionProvider>(context, listen: false)
-                        .user
-                        .selectedClub!
-                        .id;
-                final existingOffer =
-                    offers.firstWhere((offer) => offer.idClub == currentClubId);
-                _existingClubOffer = existingOffer;
+                player.offersForEmbodied =
+                    offers; // Update the player's offers list
+                // Return a tuple (player, offers) for use in build
                 return player;
               });
         });
@@ -152,11 +147,19 @@ class _PlayerEmbodiedOfferDialogBoxState
 
         // If there is an existing offer, initialize controllers/fields only once
         if (_existingClubOffer != null && !_initializedFromExistingOffer) {
-          _bidController.text = _existingClubOffer!.expensesOffered.toString();
-          _offerAmount = _existingClubOffer!.expensesOffered;
-          _commentForPlayer = _existingClubOffer!.commentForPlayer ?? '';
-          _commentForClub = _existingClubOffer!.commentForClub ?? '';
-          _initializedFromExistingOffer = true;
+          // Schedule the update after build to avoid setState during build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _bidController.text =
+                    _existingClubOffer!.expensesOffered.toString();
+                _offerAmount = _existingClubOffer!.expensesOffered;
+                _commentForPlayer = _existingClubOffer!.commentForPlayer ?? '';
+                _commentForClub = _existingClubOffer!.commentForClub ?? '';
+                _initializedFromExistingOffer = true;
+              });
+            }
+          });
         }
 
         // Determine border color once
@@ -188,15 +191,17 @@ class _PlayerEmbodiedOfferDialogBoxState
                           child: ListTile(
                             leading: Icon(Icons.info, color: Colors.orange),
                             title: Text(
-                              'Your existing offer',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              'You already have an offer for this player',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Amount: ${NumberFormat('#,###').format(_existingClubOffer!.expensesOffered)}',
-                                  style: TextStyle(color: Colors.blue),
+                                  'Weekly expenses offered: ${NumberFormat('#,###').format(_existingClubOffer!.expensesOffered)}',
+                                  style: TextStyle(color: Colors.blueGrey),
                                 ),
                               ],
                             ),
@@ -423,7 +428,7 @@ class _PlayerEmbodiedOfferDialogBoxState
                             formSpacer3,
                             Text(_existingClubOffer == null
                                 ? 'Place an Offer on '
-                                : 'Update Offer on'),
+                                : 'Update Offer on '),
                             player.getPlayerNameToolTip(context)
                           ],
                         ),
