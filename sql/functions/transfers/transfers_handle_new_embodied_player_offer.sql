@@ -7,9 +7,8 @@ CREATE OR REPLACE FUNCTION public.transfers_handle_new_embodied_player_offer(
     inp_date_limit timestamp with time zone DEFAULT NULL,
     inp_number_season smallint DEFAULT 1,
     inp_comment_for_player text DEFAULT NULL,
-    inp_comment_for_club text DEFAULT NULL
-)
-RETURNS bigint AS $$
+    inp_comment_for_club text DEFAULT NULL)
+RETURNS void AS $$
 DECLARE
     rec_player RECORD; -- Player record
     rec_club RECORD; -- Club record
@@ -52,41 +51,31 @@ BEGIN
         RAISE EXCEPTION 'Expenses offered cannot be higher than 150%% of the target expenses (%)', rec_player.expenses_target; 
     END IF;
 
-    -- Instead of always inserting, try to update first
-    UPDATE public.transfers_embodied_players_offers
-    SET
-        expenses_offered = inp_expenses_offered,
-        date_limit = inp_date_limit,
-        number_season = inp_number_season,
-        comment_for_player = inp_comment_for_player,
-        comment_for_club = inp_comment_for_club,
-        created_at = now()
+    ------ Delete the previous offer if it exists
+    DELETE FROM public.transfers_embodied_players_offers
     WHERE id_player = inp_id_player
-      AND id_club = inp_id_club
-    RETURNING id INTO new_id;
+        AND id_club = inp_id_club
+        AND is_accepted IS NULL;
 
-    IF new_id IS NULL THEN
-        -- No existing offer, do an insert
-        INSERT INTO public.transfers_embodied_players_offers (
-            id_player,
-            id_club,
-            expenses_offered,
-            date_limit,
-            number_season,
-            comment_for_player,
-            comment_for_club
-        ) VALUES (
-            inp_id_player,
-            inp_id_club,
-            inp_expenses_offered,
-            inp_date_limit,
-            inp_number_season,
-            inp_comment_for_player,
-            inp_comment_for_club
-        )
-        RETURNING id INTO new_id;
-    END IF;
+    ------ Insert the new offer
+    INSERT INTO public.transfers_embodied_players_offers (
+        id_player,
+        id_club,
+        expenses_offered,
+        date_limit,
+        number_season,
+        comment_for_player,
+        comment_for_club
+    ) VALUES (
+        inp_id_player,
+        inp_id_club,
+        inp_expenses_offered,
+        inp_date_limit,
+        inp_number_season,
+        inp_comment_for_player,
+        inp_comment_for_club
+    );
 
-    RETURN new_id;
+    RETURN;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -171,7 +171,7 @@ class _PlayerEmbodiedOfferDialogBoxState
             return AlertDialog(
               title: Row(
                 children: [
-                  Text('Offer for embodied player: '),
+                  Text('Place an offer on '),
                   player.getPlayerNameToolTip(context),
                 ],
               ),

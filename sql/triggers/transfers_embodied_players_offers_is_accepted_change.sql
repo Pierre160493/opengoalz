@@ -20,9 +20,11 @@ BEGIN
             string_parser(NEW.id_player, 'idPlayer') || ' has refused our offer',
             'The embodied player ' || string_parser(NEW.id_player, 'idPlayer') || ' has refused our offer of ' || NEW.expenses_offered || ' weekly expenses !');
 
-        -- Delete the offer
-        -- DELETE FROM public.transfers_embodied_players_offers
-        -- WHERE id = NEW.id;
+        -- Update the offer
+        UPDATE public.transfers_embodied_players_offers SET
+            is_accepted = FALSE,
+            date_handled = now()
+        WHERE id = NEW.id;
 
     END IF;
 
