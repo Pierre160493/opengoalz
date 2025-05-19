@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
 import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -74,8 +76,9 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage> {
           );
         }
 
-        final player = snapshot.data!;
-        final offers = player.offersForEmbodied;
+        final Player player = snapshot.data!;
+        final List<TransfersEmbodiedPlayersOffer> offers =
+            player.offersForEmbodied;
 
         return Scaffold(
           appBar: AppBar(
@@ -112,28 +115,210 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage> {
               itemBuilder: (context, index) {
                 final offer = offers[index];
                 return ListTile(
-                  leading:
-                      Icon(Icons.account_balance_wallet, color: Colors.blue),
+                  leading: Icon(Icons.account_balance_wallet,
+                      color: Colors.green, size: iconSizeMedium),
                   title: Row(
                     children: [
+                      getClubNameClickable(context, null, offer.idClub),
                       Text(
-                        'Weekly expenses: ${offer.expensesOffered} from ',
-                        style: const TextStyle(
+                        ' offers weekly expenses of ',
+                      ),
+                      Text(
+                        offer.expensesOffered.toString(),
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          color: Colors.green,
                         ),
                       ),
-                      getClubNameClickable(context, null, offer.idClub),
                     ],
                   ),
                   subtitle: Row(
                     children: [
                       Text(
-                        'Created at: ${DateFormat.yMd().add_Hm().format(offer.createdAt)}',
-                        style: TextStyle(color: Colors.blueGrey),
+                        'Comment: ',
+                      ),
+                      Text(
+                        offer.commentForPlayer ?? 'None',
+                        style: styleItalicBlueGrey,
                       ),
                     ],
                   ),
                   shape: shapePersoRoundedBorder(),
+                  trailing: IconButton(
+                    icon: Icon(
+                      Icons.open_in_new,
+                      size: iconSizeMedium,
+                      color: Colors.green,
+                    ),
+                    tooltip: 'View offer details',
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Row(
+                              children: [
+                                getClubNameClickable(
+                                    context, null, offer.idClub),
+                                Text(' Offer'),
+                              ],
+                            ),
+                            content: Column(
+                              children: [
+                                ListTile(
+                                  title: Text(
+                                      persoFormatCurrency(
+                                        offer.expensesOffered,
+                                      ),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green)),
+                                  subtitle: Text('Weekly expenses offered',
+                                      style: styleItalicBlueGrey),
+                                  shape: shapePersoRoundedBorder(),
+                                ),
+                                ListTile(
+                                  title: Text(
+                                      DateFormat(persoDateFormat)
+                                          .format(offer.createdAt),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green)),
+                                  subtitle: Text('Creation date',
+                                      style: styleItalicBlueGrey),
+                                  shape: shapePersoRoundedBorder(),
+                                ),
+                                ListTile(
+                                  title: Text(
+                                      offer.dateLimit != null
+                                          ? DateFormat(persoDateFormat)
+                                              .format(offer.dateLimit!)
+                                          : 'No date limit',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green)),
+                                  subtitle: Text('Date limit of the offer',
+                                      style: styleItalicBlueGrey),
+                                  shape: shapePersoRoundedBorder(),
+                                ),
+                                ListTile(
+                                  title: Text(offer.numberSeason.toString(),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green)),
+                                  subtitle: Text('Number of seasons',
+                                      style: styleItalicBlueGrey),
+                                  shape: shapePersoRoundedBorder(),
+                                ),
+                                ListTile(
+                                  title: Text(offer.commentForPlayer.toString(),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green)),
+                                  subtitle: Text('Comment',
+                                      style: styleItalicBlueGrey),
+                                  shape: shapePersoRoundedBorder(),
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              /// Cancel button
+                              Row(
+                                children: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.share_arrival_time,
+                                            color: Colors.green),
+                                        Text(' Decide Later'),
+                                      ],
+                                    ),
+                                  ),
+
+                                  /// Refuse offer button
+                                  TextButton(
+                                    onPressed: () async {
+                                      bool isOK = await operationInDB(
+                                          context,
+                                          'UPDATE',
+                                          'transfers_embodied_players_offers',
+                                          data: {
+                                            'is_accepted': false,
+                                          },
+                                          matchCriteria: {
+                                            'id': offer.id
+                                          });
+
+                                      if (isOK) {
+                                        Navigator.of(context).pop();
+                                        context.showSnackBarSuccess(
+                                          'Offer successfully refused',
+                                        );
+                                      } else {
+                                        context.showSnackBarError(
+                                          'Error refusing the offer, please contact the support',
+                                        );
+                                      }
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.cancel, color: Colors.red),
+                                        Text(' Refuse'),
+                                      ],
+                                    ),
+                                  ),
+
+                                  /// Accept offer button
+                                  Tooltip(
+                                    message: player.idClub == null
+                                        ? ''
+                                        : 'You have to leave your current club before accepting an offer',
+                                    child: TextButton(
+                                      onPressed: player.idClub == null
+                                          ? () async {
+                                              bool isOK = await operationInDB(
+                                                  context,
+                                                  'UPDATE',
+                                                  'transfers_embodied_players_offers',
+                                                  data: {
+                                                    'is_accepted': true,
+                                                  },
+                                                  matchCriteria: {
+                                                    'id': offer.id
+                                                  });
+
+                                              if (isOK) {
+                                                Navigator.of(context).pop();
+                                                context.showSnackBarSuccess(
+                                                  'Offer successfully accepted, the paperwork is in progress !',
+                                                );
+                                              } else {
+                                                context.showSnackBarError(
+                                                  'Error accepting the offer, please contact the support',
+                                                );
+                                              }
+                                            }
+                                          : null, // Disabled if player has a club
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.check,
+                                              color: Colors.green),
+                                          Text('Accept'),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
                 );
               },
             ),
