@@ -5,7 +5,9 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
+import 'package:opengoalz/models/player/transfers_embodied_players_offer_dialog_column.dart';
 import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 
 Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
     TransfersEmbodiedPlayersOffer offer, bool isHandled) {
@@ -20,95 +22,76 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
           offer.expensesOffered.toString(),
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: isHandled ? Colors.grey : Colors.green,
+            color: Colors.green,
           ),
         ),
       ],
     ),
-    subtitle: Row(
-      children: [
-        Text('Comment: '),
-        Text(
-          offer.commentForPlayer ?? 'None',
-          style: styleItalicBlueGrey,
-        ),
-      ],
-    ),
+    subtitle: offer.isAccepted == null
+        ? Row(
+            children: [
+              Text('Creation date: '),
+              Text(
+                DateFormat(persoDateFormat).format(offer.createdAt),
+                style: styleItalicBlueGrey,
+              ),
+            ],
+          )
+        : offer.isAccepted == true
+            ? Row(
+                children: [
+                  Icon(iconCalendar, color: Colors.green),
+                  Text('Accepted on '),
+                  Text(
+                    offer.dateHandled != null
+                        ? DateFormat(persoDateFormat).format(offer.dateHandled!)
+                        : 'Unknown date',
+                    style: styleItalicBlueGrey,
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  Icon(iconCalendar, color: Colors.red),
+                  Text('Refused on '),
+                  Text(
+                    offer.dateHandled != null
+                        ? DateFormat(persoDateFormat).format(offer.dateHandled!)
+                        : 'Unknown date',
+                    style: styleItalicBlueGrey,
+                  ),
+                ],
+              ),
+
+    // Row(
+    //   children: [
+    //     Text('Comment: '),
+    //     Text(
+    //       offer.commentForPlayer ?? 'None',
+    //       style: styleItalicBlueGrey,
+    //     ),
+    //   ],
+    // ),
     shape: shapePersoRoundedBorder(),
     onTap: () {
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
+          return persoAlertDialogWithConstrainedContent(
             title: Row(
               children: [
+                Text(
+                  'Offer from ',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 getClubNameClickable(context, null, offer.idClub),
-                Text(' Offer'),
               ],
             ),
-            content: Column(
-              children: [
-                ListTile(
-                  title: Text(
-                      persoFormatCurrency(
-                        offer.expensesOffered,
-                      ),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isHandled ? Colors.grey : Colors.green)),
-                  subtitle: Text('Weekly expenses offered',
-                      style: styleItalicBlueGrey),
-                  shape: shapePersoRoundedBorder(),
-                ),
-                ListTile(
-                  title: Text(
-                      DateFormat(persoDateFormat).format(offer.createdAt),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isHandled ? Colors.grey : Colors.green)),
-                  subtitle: Text('Creation date', style: styleItalicBlueGrey),
-                  shape: shapePersoRoundedBorder(),
-                ),
-                ListTile(
-                  title: Text(
-                      offer.dateLimit != null
-                          ? DateFormat(persoDateFormat).format(offer.dateLimit!)
-                          : 'No date limit',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isHandled ? Colors.grey : Colors.green)),
-                  subtitle: Text('Date limit of the offer',
-                      style: styleItalicBlueGrey),
-                  shape: shapePersoRoundedBorder(),
-                ),
-                ListTile(
-                  title: Text(offer.numberSeason.toString(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isHandled ? Colors.grey : Colors.green)),
-                  subtitle:
-                      Text('Number of seasons', style: styleItalicBlueGrey),
-                  shape: shapePersoRoundedBorder(),
-                ),
-                ListTile(
-                  title: Text(offer.commentForPlayer.toString(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isHandled ? Colors.grey : Colors.green)),
-                  subtitle: Text('Comment', style: styleItalicBlueGrey),
-                  shape: shapePersoRoundedBorder(),
-                ),
-                if (isHandled && offer.dateDelete != null)
-                  ListTile(
-                    title: Text(
-                      DateFormat(persoDateFormat).format(offer.dateDelete!),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey),
-                    ),
-                    subtitle: Text('Handled at', style: styleItalicBlueGrey),
-                    shape: shapePersoRoundedBorder(),
-                  ),
-              ],
+            content: TransfersEmbodiedPlayersOfferColumn(
+              player: player,
+              offer: offer,
             ),
             actions: [
               if (!isHandled)

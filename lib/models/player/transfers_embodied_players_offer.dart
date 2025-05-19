@@ -10,6 +10,7 @@ class TransfersEmbodiedPlayersOffer {
   final String? commentForClub;
   final bool? isAccepted;
   final DateTime? dateDelete;
+  final DateTime? dateHandled;
 
   TransfersEmbodiedPlayersOffer({
     required this.id,
@@ -23,6 +24,7 @@ class TransfersEmbodiedPlayersOffer {
     this.commentForClub,
     this.isAccepted,
     this.dateDelete,
+    this.dateHandled,
   });
 
   factory TransfersEmbodiedPlayersOffer.fromMap(Map<String, dynamic> map) {
@@ -41,6 +43,9 @@ class TransfersEmbodiedPlayersOffer {
       isAccepted: map['is_accepted'],
       dateDelete: map['date_delete'] != null
           ? DateTime.parse(map['date_delete']).toLocal()
+          : null,
+      dateHandled: map['date_handled'] != null
+          ? DateTime.parse(map['date_handled']).toLocal()
           : null,
     );
   }

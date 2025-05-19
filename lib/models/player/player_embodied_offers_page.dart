@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
 import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/transfers_embodied_players_offer_tile.dart';
-import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -30,12 +26,16 @@ class PlayerEmbodiedOffersPage extends StatefulWidget {
 class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
     with SingleTickerProviderStateMixin {
   late Stream<Player> _playerStream;
+  String _orderBy = 'createdAt'; // or 'expensesOffered'
+  bool _descending = false;
 
   @override
   void initState() {
     super.initState();
 
     _playerStream = Supabase.instance.client
+
+        /// Fetch the player
         .from('players')
         .stream(primaryKey: ['id'])
         .eq('id', widget.playerId)
@@ -45,8 +45,10 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
                   Provider.of<UserSessionProvider>(context, listen: false).user,
                 ))
             .first)
+
+        /// Fetch the offers
         .switchMap((Player player) {
-          return Supabase.instance.client
+          return supabase
               .from('transfers_embodied_players_offers')
               .stream(primaryKey: ['id'])
               .eq('id_player', player.id)
@@ -81,8 +83,19 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
         }
 
         final Player player = snapshot.data!;
-        final List<TransfersEmbodiedPlayersOffer> offers =
-            player.offersForEmbodied;
+        List<TransfersEmbodiedPlayersOffer> offers = player.offersForEmbodied;
+
+        // Apply ordering
+        offers = List<TransfersEmbodiedPlayersOffer>.from(offers);
+        offers.sort((a, b) {
+          int cmp;
+          if (_orderBy == 'expensesOffered') {
+            cmp = a.expensesOffered.compareTo(b.expensesOffered);
+          } else {
+            cmp = a.createdAt.compareTo(b.createdAt);
+          }
+          return _descending ? -cmp : cmp;
+        });
 
         final undecidedOffers =
             offers.where((o) => o.isAccepted == null).toList();
@@ -98,16 +111,49 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
               ],
             ),
             actions: [
-              /// Filter button
-              IconButton(
+              /// Order offers button
+              PopupMenuButton<String>(
                 tooltip: 'Order offers by',
                 icon: Icon(
                   Icons.sort,
                   size: iconSizeMedium,
                   color: Colors.green,
                 ),
-                onPressed: () {},
-                iconSize: iconSizeMedium,
+                onSelected: (value) {
+                  setState(() {
+                    if (value == 'expensesAsc') {
+                      _orderBy = 'expensesOffered';
+                      _descending = false;
+                    } else if (value == 'expensesDesc') {
+                      _orderBy = 'expensesOffered';
+                      _descending = true;
+                    } else if (value == 'dateAsc') {
+                      _orderBy = 'createdAt';
+                      _descending = false;
+                    } else if (value == 'dateDesc') {
+                      _orderBy = 'createdAt';
+                      _descending = true;
+                    }
+                  });
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'dateDesc',
+                    child: Text('Newest first'),
+                  ),
+                  PopupMenuItem(
+                    value: 'dateAsc',
+                    child: Text('Oldest first'),
+                  ),
+                  PopupMenuItem(
+                    value: 'expensesDesc',
+                    child: Text('Highest expenses first'),
+                  ),
+                  PopupMenuItem(
+                    value: 'expensesAsc',
+                    child: Text('Lowest expenses first'),
+                  ),
+                ],
               ),
 
               /// Place an offer from your currently selected club

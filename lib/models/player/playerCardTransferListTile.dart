@@ -53,10 +53,11 @@ class PlayerCardTransferWidget extends StatelessWidget {
         ],
       ),
       trailing: IconButton(
+        tooltip: 'Embodied player offers',
         icon: Icon(
           iconTransfers,
           size: iconSizeMedium,
-          color: Colors.green,
+          color: player.isEmbodiedByCurrentUser? colorIsMine: Colors.green,
         ),
         onPressed: () {
           if (player.isEmbodiedByCurrentUser) {
