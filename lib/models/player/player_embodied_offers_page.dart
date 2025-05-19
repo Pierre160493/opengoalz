@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
 class PlayerEmbodiedOffersPage extends StatefulWidget {
   final int playerId;
@@ -25,12 +26,14 @@ class PlayerEmbodiedOffersPage extends StatefulWidget {
       _PlayerEmbodiedOffersPageState();
 }
 
-class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage> {
+class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
+    with SingleTickerProviderStateMixin {
   late Stream<Player> _playerStream;
 
   @override
   void initState() {
     super.initState();
+
     _playerStream = Supabase.instance.client
         .from('players')
         .stream(primaryKey: ['id'])
@@ -80,21 +83,39 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage> {
         final List<TransfersEmbodiedPlayersOffer> offers =
             player.offersForEmbodied;
 
+        final undecidedOffers =
+            offers.where((o) => o.isAccepted == null).toList();
+        final handledOffers =
+            offers.where((o) => o.isAccepted != null).toList();
+
         return Scaffold(
           appBar: AppBar(
             title: Row(
               children: [
-                Text('Offers made for '),
+                Text('Offers for '),
                 player.getPlayerNameClickable(context),
               ],
             ),
             actions: [
+              /// Filter button
               IconButton(
-                tooltip: 'Place an offer from your currently selected club',
+                tooltip: 'Order offers by',
+                icon: Icon(
+                  Icons.sort,
+                  size: iconSizeMedium,
+                  color: Colors.green,
+                ),
+                onPressed: () {},
+                iconSize: iconSizeMedium,
+              ),
+
+              /// Place an offer from your currently selected club
+              IconButton(
+                tooltip: 'Place an offer from your club',
                 icon: Icon(
                   iconTransfers,
                   size: iconSizeMedium,
-                  color: Colors.green,
+                  color: colorIsSelected,
                 ),
                 onPressed: () {
                   showDialog(
@@ -110,218 +131,268 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage> {
             ],
           ),
           body: MaxWidthContainer(
-            child: ListView.builder(
-              itemCount: offers.length,
-              itemBuilder: (context, index) {
-                final offer = offers[index];
-                return ListTile(
-                  leading: Icon(Icons.account_balance_wallet,
-                      color: Colors.green, size: iconSizeMedium),
-                  title: Row(
-                    children: [
-                      getClubNameClickable(context, null, offer.idClub),
-                      Text(
-                        ' offers weekly expenses of ',
-                      ),
-                      Text(
-                        offer.expensesOffered.toString(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                    ],
+            child: DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  TabBar(tabs: [
+                    buildTabWithIcon(
+                        icon: Icons.hourglass_top,
+                        text: 'Pending (${undecidedOffers.length})'),
+                    buildTabWithIcon(
+                        icon: Icons.check_circle_outline,
+                        text: 'Closed (${handledOffers.length})'),
+                  ]),
+                  Expanded(
+                    child: TabBarView(children: [
+                      _buildOffersList(context, player, undecidedOffers,
+                          isHandled: false),
+                      _buildOffersList(context, player, handledOffers,
+                          isHandled: true),
+                    ]),
                   ),
-                  subtitle: Row(
-                    children: [
-                      Text(
-                        'Comment: ',
-                      ),
-                      Text(
-                        offer.commentForPlayer ?? 'None',
-                        style: styleItalicBlueGrey,
-                      ),
-                    ],
-                  ),
-                  shape: shapePersoRoundedBorder(),
-                  trailing: IconButton(
-                    icon: Icon(
-                      Icons.open_in_new,
-                      size: iconSizeMedium,
-                      color: Colors.green,
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOffersList(BuildContext context, Player player,
+      List<TransfersEmbodiedPlayersOffer> offers,
+      {required bool isHandled}) {
+    if (offers.isEmpty) {
+      return Center(
+        child: Text(
+          isHandled
+              ? 'No handled offers yet'
+              : 'You don\'t have any pending offers',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.blueGrey,
+          ),
+        ),
+      );
+    }
+    return ListView.builder(
+      itemCount: offers.length,
+      itemBuilder: (context, index) {
+        final offer = offers[index];
+        return ListTile(
+          leading: Icon(Icons.account_balance_wallet,
+              color: isHandled ? Colors.grey : Colors.green,
+              size: iconSizeMedium),
+          title: Row(
+            children: [
+              getClubNameClickable(context, null, offer.idClub),
+              Text(' offers weekly expenses of '),
+              Text(
+                offer.expensesOffered.toString(),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isHandled ? Colors.grey : Colors.green,
+                ),
+              ),
+            ],
+          ),
+          subtitle: Row(
+            children: [
+              Text('Comment: '),
+              Text(
+                offer.commentForPlayer ?? 'None',
+                style: styleItalicBlueGrey,
+              ),
+            ],
+          ),
+          shape: shapePersoRoundedBorder(),
+          trailing: IconButton(
+            icon: Icon(
+              Icons.open_in_new,
+              size: iconSizeMedium,
+              color: isHandled ? Colors.grey : Colors.green,
+            ),
+            tooltip: 'View offer details',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Row(
+                      children: [
+                        getClubNameClickable(context, null, offer.idClub),
+                        Text(' Offer'),
+                      ],
                     ),
-                    tooltip: 'View offer details',
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Row(
-                              children: [
-                                getClubNameClickable(
-                                    context, null, offer.idClub),
-                                Text(' Offer'),
-                              ],
+                    content: Column(
+                      children: [
+                        ListTile(
+                          title: Text(
+                              persoFormatCurrency(
+                                offer.expensesOffered,
+                              ),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isHandled ? Colors.grey : Colors.green)),
+                          subtitle: Text('Weekly expenses offered',
+                              style: styleItalicBlueGrey),
+                          shape: shapePersoRoundedBorder(),
+                        ),
+                        ListTile(
+                          title: Text(
+                              DateFormat(persoDateFormat)
+                                  .format(offer.createdAt),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isHandled ? Colors.grey : Colors.green)),
+                          subtitle:
+                              Text('Creation date', style: styleItalicBlueGrey),
+                          shape: shapePersoRoundedBorder(),
+                        ),
+                        ListTile(
+                          title: Text(
+                              offer.dateLimit != null
+                                  ? DateFormat(persoDateFormat)
+                                      .format(offer.dateLimit!)
+                                  : 'No date limit',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isHandled ? Colors.grey : Colors.green)),
+                          subtitle: Text('Date limit of the offer',
+                              style: styleItalicBlueGrey),
+                          shape: shapePersoRoundedBorder(),
+                        ),
+                        ListTile(
+                          title: Text(offer.numberSeason.toString(),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isHandled ? Colors.grey : Colors.green)),
+                          subtitle: Text('Number of seasons',
+                              style: styleItalicBlueGrey),
+                          shape: shapePersoRoundedBorder(),
+                        ),
+                        ListTile(
+                          title: Text(offer.commentForPlayer.toString(),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isHandled ? Colors.grey : Colors.green)),
+                          subtitle: Text('Comment', style: styleItalicBlueGrey),
+                          shape: shapePersoRoundedBorder(),
+                        ),
+                        if (isHandled && offer.dateDelete != null)
+                          ListTile(
+                            title: Text(
+                              DateFormat(persoDateFormat)
+                                  .format(offer.dateDelete!),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey),
                             ),
-                            content: Column(
-                              children: [
-                                ListTile(
-                                  title: Text(
-                                      persoFormatCurrency(
-                                        offer.expensesOffered,
-                                      ),
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green)),
-                                  subtitle: Text('Weekly expenses offered',
-                                      style: styleItalicBlueGrey),
-                                  shape: shapePersoRoundedBorder(),
-                                ),
-                                ListTile(
-                                  title: Text(
-                                      DateFormat(persoDateFormat)
-                                          .format(offer.createdAt),
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green)),
-                                  subtitle: Text('Creation date',
-                                      style: styleItalicBlueGrey),
-                                  shape: shapePersoRoundedBorder(),
-                                ),
-                                ListTile(
-                                  title: Text(
-                                      offer.dateLimit != null
-                                          ? DateFormat(persoDateFormat)
-                                              .format(offer.dateLimit!)
-                                          : 'No date limit',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green)),
-                                  subtitle: Text('Date limit of the offer',
-                                      style: styleItalicBlueGrey),
-                                  shape: shapePersoRoundedBorder(),
-                                ),
-                                ListTile(
-                                  title: Text(offer.numberSeason.toString(),
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green)),
-                                  subtitle: Text('Number of seasons',
-                                      style: styleItalicBlueGrey),
-                                  shape: shapePersoRoundedBorder(),
-                                ),
-                                ListTile(
-                                  title: Text(offer.commentForPlayer.toString(),
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green)),
-                                  subtitle: Text('Comment',
-                                      style: styleItalicBlueGrey),
-                                  shape: shapePersoRoundedBorder(),
-                                ),
-                              ],
-                            ),
-                            actions: [
-                              /// Cancel button
-                              Row(
+                            subtitle:
+                                Text('Handled at', style: styleItalicBlueGrey),
+                            shape: shapePersoRoundedBorder(),
+                          ),
+                      ],
+                    ),
+                    actions: [
+                      if (!isHandled)
+                        Row(
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Row(
                                 children: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.share_arrival_time,
-                                            color: Colors.green),
-                                        Text(' Decide Later'),
-                                      ],
-                                    ),
-                                  ),
-
-                                  /// Refuse offer button
-                                  TextButton(
-                                    onPressed: () async {
-                                      bool isOK = await operationInDB(
-                                          context,
-                                          'UPDATE',
-                                          'transfers_embodied_players_offers',
-                                          data: {
-                                            'is_accepted': false,
-                                          },
-                                          matchCriteria: {
-                                            'id': offer.id
-                                          });
-
-                                      if (isOK) {
-                                        Navigator.of(context).pop();
-                                        context.showSnackBarSuccess(
-                                          'Offer successfully refused',
-                                        );
-                                      } else {
-                                        context.showSnackBarError(
-                                          'Error refusing the offer, please contact the support',
-                                        );
-                                      }
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.cancel, color: Colors.red),
-                                        Text(' Refuse'),
-                                      ],
-                                    ),
-                                  ),
-
-                                  /// Accept offer button
-                                  Tooltip(
-                                    message: player.idClub == null
-                                        ? ''
-                                        : 'You have to leave your current club before accepting an offer',
-                                    child: TextButton(
-                                      onPressed: player.idClub == null
-                                          ? () async {
-                                              bool isOK = await operationInDB(
-                                                  context,
-                                                  'UPDATE',
-                                                  'transfers_embodied_players_offers',
-                                                  data: {
-                                                    'is_accepted': true,
-                                                  },
-                                                  matchCriteria: {
-                                                    'id': offer.id
-                                                  });
-
-                                              if (isOK) {
-                                                Navigator.of(context).pop();
-                                                context.showSnackBarSuccess(
-                                                  'Offer successfully accepted, the paperwork is in progress !',
-                                                );
-                                              } else {
-                                                context.showSnackBarError(
-                                                  'Error accepting the offer, please contact the support',
-                                                );
-                                              }
-                                            }
-                                          : null, // Disabled if player has a club
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.check,
-                                              color: Colors.green),
-                                          Text('Accept'),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                  Icon(Icons.share_arrival_time,
+                                      color: Colors.green),
+                                  Text(' Decide Later'),
                                 ],
                               ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                bool isOK = await operationInDB(
+                                    context,
+                                    'UPDATE',
+                                    'transfers_embodied_players_offers',
+                                    data: {
+                                      'is_accepted': false,
+                                    },
+                                    matchCriteria: {
+                                      'id': offer.id
+                                    });
+
+                                if (isOK) {
+                                  Navigator.of(context).pop();
+                                  context.showSnackBarSuccess(
+                                    'Offer successfully refused',
+                                  );
+                                } else {
+                                  context.showSnackBarError(
+                                    'Error refusing the offer, please contact the support',
+                                  );
+                                }
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(Icons.cancel, color: Colors.red),
+                                  Text(' Refuse'),
+                                ],
+                              ),
+                            ),
+                            Tooltip(
+                              message: player.idClub == null
+                                  ? ''
+                                  : 'You have to leave your current club before accepting an offer',
+                              child: TextButton(
+                                onPressed: player.idClub == null
+                                    ? () async {
+                                        bool isOK = await operationInDB(
+                                            context,
+                                            'UPDATE',
+                                            'transfers_embodied_players_offers',
+                                            data: {
+                                              'is_accepted': true,
+                                            },
+                                            matchCriteria: {
+                                              'id': offer.id
+                                            });
+
+                                        if (isOK) {
+                                          Navigator.of(context).pop();
+                                          context.showSnackBarSuccess(
+                                            'Offer successfully accepted, the paperwork is in progress !',
+                                          );
+                                        } else {
+                                          context.showSnackBarError(
+                                            'Error accepting the offer, please contact the support',
+                                          );
+                                        }
+                                      }
+                                    : null, // Disabled if player has a club
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.check, color: Colors.green),
+                                    Text('Accept'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         );
       },
