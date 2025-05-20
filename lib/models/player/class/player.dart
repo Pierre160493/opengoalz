@@ -6,9 +6,10 @@ import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsAll.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/player/playerCardTransferListTile.dart';
+import 'package:opengoalz/models/player/playerTransferListTile.dart';
 import 'package:opengoalz/models/player/playerExpensesListTile.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
+import 'package:opengoalz/models/player/player_embodied_listtile.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
@@ -69,6 +70,7 @@ class Player {
   final double winger;
   final DateTime? dateEndInjury;
   final DateTime? dateBidEnd;
+  final DateTime? dateEndContract;
   final int? transferPrice;
   final DateTime dateArrival;
   final double motivation;
@@ -134,6 +136,9 @@ class Player {
             : null,
         dateBidEnd = map['date_bid_end'] != null
             ? DateTime.parse(map['date_bid_end']).toLocal()
+            : null,
+        dateEndContract = map['date_end_contract'] != null
+            ? DateTime.parse(map['date_end_contract']).toLocal()
             : null,
         transferPrice = map['transfer_price'],
         dateArrival = DateTime.parse(map['date_arrival']).toLocal(),
@@ -229,6 +234,8 @@ class Player {
         return dateEndInjury;
       case 'dateBidEnd':
         return dateBidEnd;
+      case 'dateEndContract':
+        return dateEndContract;
       case 'dateArrival':
         return dateArrival;
       case 'motivation':
@@ -309,6 +316,7 @@ class Player {
       'winger': winger,
       'dateEndInjury': dateEndInjury,
       'dateBidEnd': dateBidEnd,
+      'dateEndContract': dateEndContract,
       'dateArrival': dateArrival,
       'motivation': motivation,
       'form': form,

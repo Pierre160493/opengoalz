@@ -189,6 +189,7 @@ extension PlayerWidgetsHelper on Player {
                 ],
               ),
               if (dateBidEnd != null) PlayerCardTransferWidget(player: this),
+              if (userName != null) PlayerCardEmbodiedListTile(player: this),
               if (dateEndInjury != null) getInjuryWidget(),
             ],
           );
@@ -201,6 +202,7 @@ extension PlayerWidgetsHelper on Player {
               getPerformanceScoreListTile(context),
               getExpensesWidget(context, this),
               if (dateBidEnd != null) PlayerCardTransferWidget(player: this),
+              if (userName != null) PlayerCardEmbodiedListTile(player: this),
               if (dateEndInjury != null) getInjuryWidget(),
             ],
           );

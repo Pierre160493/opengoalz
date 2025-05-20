@@ -96,6 +96,7 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
             actions: [
               if (!isHandled)
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       onPressed: () {
@@ -103,7 +104,8 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
                       },
                       child: Row(
                         children: [
-                          Icon(Icons.share_arrival_time, color: Colors.green),
+                          Icon(Icons.share_arrival_time,
+                              color: Colors.green, size: iconSizeSmall),
                           Text(' Decide Later'),
                         ],
                       ),
@@ -132,7 +134,8 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
                       },
                       child: Row(
                         children: [
-                          Icon(Icons.cancel, color: Colors.red),
+                          Icon(Icons.cancel,
+                              color: Colors.red, size: iconSizeSmall),
                           Text(' Refuse'),
                         ],
                       ),
@@ -169,8 +172,9 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
                             : null, // Disabled if player has a club
                         child: Row(
                           children: [
-                            Icon(Icons.check, color: Colors.green),
-                            Text('Accept'),
+                            Icon(iconSuccessfulOperation,
+                                color: Colors.green, size: iconSizeSmall),
+                            Text(' Accept'),
                           ],
                         ),
                       ),

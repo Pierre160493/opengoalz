@@ -20,6 +20,7 @@ BEGIN
             WHERE date_bid_end < NOW()
             AND is_playing = FALSE
             AND id_multiverse = inp_multiverse.id
+            AND username IS NULL -- Exclude embodied players
     ) LOOP
 
         -- Get the last bid on the player
@@ -271,7 +272,6 @@ BEGIN
                 id_club = last_bid.id_club,
                 date_arrival = date_bid_end,
                 motivation = 70 + random() * 30,
-                -- new expenses_expected = expenses_expected * (125 - affinity) / 100.0,
                 expenses_expected = expenses_expected *
                     (125 - COALESCE((SELECT affinity FROM players_poaching WHERE id_player = rec_player.id AND id_club = last_bid.id_club), 0)) / 100.0,
                 transfer_price = NULL,

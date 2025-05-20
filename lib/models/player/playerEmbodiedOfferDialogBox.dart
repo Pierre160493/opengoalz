@@ -25,6 +25,7 @@ class _PlayerEmbodiedOfferDialogBoxState
     extends State<PlayerEmbodiedOfferDialogBox> {
   late Stream<Player> _playerStream;
   final TextEditingController _bidController = TextEditingController();
+  final TextEditingController _numberSeasonController = TextEditingController();
   int? _offerAmount;
   late int _offerMin;
   late int _offerMax;
@@ -200,7 +201,7 @@ class _PlayerEmbodiedOfferDialogBoxState
                   ),
                 ),
 
-              /// Offer input
+              /// Offer input (weekly expenses)
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0),
@@ -313,6 +314,67 @@ class _PlayerEmbodiedOfferDialogBoxState
                 ),
               ),
 
+              /// Offer input (number of seasons)
+              ListTile(
+                shape: shapePersoRoundedBorder(),
+                leading: Icon(
+                  Icons.edit_calendar,
+                  color: offerColor,
+                ),
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _numberSeasonController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Number of seasons (1-5)',
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            // Optionally validate here if needed
+                          });
+                        },
+                        validator: (value) {
+                          final n = int.tryParse(value ?? '');
+                          if (n == null || n < 1 || n > 5) {
+                            return 'Enter a value between 1 and 5';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    DropdownButton<int>(
+                      value: int.tryParse(_numberSeasonController.text) !=
+                                  null &&
+                              int.parse(_numberSeasonController.text) >= 1 &&
+                              int.parse(_numberSeasonController.text) <= 5
+                          ? int.parse(_numberSeasonController.text)
+                          : 1,
+                      items: List.generate(
+                        5,
+                        (i) => DropdownMenuItem(
+                          value: i + 1,
+                          child: Text('${i + 1}'),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _numberSeasonController.text = value.toString();
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                subtitle: Text(
+                  'Select the number of seasons for the contract (1 to 5)',
+                  style: styleItalicBlueGrey,
+                ),
+              ),
+
               /// Comment for the user embodying the player
               ListTile(
                 leading: Icon(iconUser, color: Colors.green),
@@ -371,7 +433,8 @@ class _PlayerEmbodiedOfferDialogBoxState
                         'inp_expenses_offered': int.parse(_bidController.text),
                         // Add these if you want to pass comments or date_limit
                         // 'inp_date_limit': ...,
-                        // 'inp_number_season': ...,
+                        'inp_number_season':
+                            int.tryParse(_numberSeasonController.text) ?? 1,
                         'inp_comment_for_player': _commentForPlayer,
                         'inp_comment_for_club': _commentForClub,
                       });
@@ -389,7 +452,8 @@ class _PlayerEmbodiedOfferDialogBoxState
                                 int.parse(_bidController.text),
                             // Add these if you want to pass comments or date_limit
                             // 'inp_date_limit': ...,
-                            // 'inp_number_season': ...,
+                            'inp_number_season':
+                                int.tryParse(_numberSeasonController.text) ?? 1,
                             'inp_comment_for_player': _commentForPlayer,
                             'inp_comment_for_club': _commentForClub,
                           });
