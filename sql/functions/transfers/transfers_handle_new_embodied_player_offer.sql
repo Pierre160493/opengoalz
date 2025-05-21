@@ -25,6 +25,10 @@ BEGIN
         RAISE EXCEPTION 'Expenses offered cannot be NULL !';
     ELSIF inp_expenses_offered < 0 THEN
         RAISE EXCEPTION 'Expenses offered cannot be negative !';
+    ELSIF inp_number_season < 1 THEN
+        RAISE EXCEPTION 'Number of seasons cannot be lower than 1 !';
+    ELSIF inp_number_season > 5 THEN
+        RAISE EXCEPTION 'Number of seasons cannot be higher than 5 !';
     END IF;
 
     ------ Get the club record

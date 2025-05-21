@@ -251,8 +251,8 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
             UPDATE players SET
                 -- Calculate the new salary based on the target
                 expenses_expected = CASE
-                    -- If the player has no club, do not modify the expected expenses
-                    WHEN id_club IS NULL THEN expenses_expected
+                    -- If the player has no club and is not embodied
+                    WHEN id_club IS NULL AND username IS NULL THEN expenses_expected
                     -- If the player has a club, calculate the new expected expenses
                     ELSE FLOOR(
                         (expenses_expected * 0.75 + 
