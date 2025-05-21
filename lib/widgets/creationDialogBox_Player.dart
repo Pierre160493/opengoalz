@@ -280,11 +280,11 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                               'inp_first_name': firstNameController.text,
                               'inp_last_name': lastNameController.text,
                             },
+                            messageSuccess:
+                                'You now embody ${firstNameController.text} ${lastNameController.text}, let wish him good fortune in his career !',
                           );
 
                           if (isOK) {
-                            context.showSnackBarSuccess(
-                                'You now embody ${firstNameController.text} ${lastNameController.text}, let wish him good fortune in his career !');
                             Navigator.of(context).pop();
                           }
 

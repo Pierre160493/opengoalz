@@ -82,25 +82,20 @@ class _PlayerShirtNumberDialogBoxState
 
   void _onEnterPressed() async {
     if (_isShirtNumberValid) {
-      bool isOK = await operationInDB(
-          context, 'FUNCTION', 'player_change_shirt_number',
+      await operationInDB(context, 'FUNCTION', 'player_change_shirt_number',
           data: {
             'inp_id_player': widget.player.id,
             'inp_id_club':
                 Provider.of<UserSessionProvider>(context, listen: false)
-                    .user!
+                    .user
                     .selectedClub!
                     .id,
             'inp_shirt_number': _shirtNumberController.text.isEmpty
                 ? null
                 : int.parse(_shirtNumberController.text)
-          });
-
-      if (isOK) {
-        context.showSnackBar(
-            'Successfully changed the shirt number of ${widget.player.getPlayerNameString()}',
-            icon: Icon(iconSuccessfulOperation, color: Colors.green));
-      }
+          },
+          messageSuccess:
+              'Successfully changed the shirt number of ${widget.player.getPlayerNameString()}');
 
       Navigator.of(context).pop();
     }

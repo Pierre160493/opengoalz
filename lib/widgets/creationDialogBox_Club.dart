@@ -235,11 +235,11 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
                               },
                               matchCriteria: {
                                 'id': _selectedClub!.id,
-                              });
+                              },
+                              messageSuccess:
+                                  'Successfully assigned the club ${_selectedClub!.name} to the country ${_selectedCountry!.name}');
 
                           if (isOK) {
-                            context.showSnackBarSuccess(
-                                'You are now the happy owner of a new club in ${_selectedCountry!.name} in the continent: ${_selectedCountry!.selectedContinent} ! Good luck !');
                             Navigator.of(context).pop();
                           }
 

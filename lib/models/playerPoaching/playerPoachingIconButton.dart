@@ -333,21 +333,20 @@ class _PlayerPoachingIconButtonState extends State<PlayerPoachingIconButton> {
           });
           return;
         }
-        bool isOK =
-            await operationInDB(context, 'INSERT', 'players_poaching', data: {
-          'id_club': widget.user.selectedClub!.id,
-          'id_player': widget.player.id,
-          if (_notes != null) 'notes': _notes,
-          if (_dateDelete != null)
-            'date_delete': _dateDelete!.toIso8601String(),
-          'investment_target': _investmentTarget,
-          'max_price': _maxPrice,
-        });
-        if (isOK) {
-          context.showSnackBar(
-              'Successfully set ${widget.player.getFullName()} in the list of poached players',
-              icon: Icon(iconSuccessfulOperation, color: Colors.green));
-        }
+
+        await operationInDB(context, 'INSERT', 'players_poaching',
+            data: {
+              'id_club': widget.user.selectedClub!.id,
+              'id_player': widget.player.id,
+              if (_notes != null) 'notes': _notes,
+              if (_dateDelete != null)
+                'date_delete': _dateDelete!.toIso8601String(),
+              'investment_target': _investmentTarget,
+              'max_price': _maxPrice,
+            },
+            messageSuccess:
+                'Successfully set ${widget.player.getFullName()} in the list of poached players');
+
         Navigator.of(context).pop();
       },
     );
@@ -363,14 +362,12 @@ class _PlayerPoachingIconButtonState extends State<PlayerPoachingIconButton> {
         ],
       ),
       onPressed: () async {
-        bool isOK = await operationInDB(context, 'UPDATE', 'players_poaching',
+        await operationInDB(context, 'UPDATE', 'players_poaching',
             data: {'to_delete': true, 'investment_target': 0},
-            matchCriteria: {'id': widget.player.poaching!.id});
-        if (isOK) {
-          context.showSnackBar(
-              'Successfully removed ${widget.player.getFullName()} from the list of poached players',
-              icon: Icon(iconSuccessfulOperation, color: Colors.green));
-        }
+            matchCriteria: {'id': widget.player.poaching!.id},
+            messageSuccess:
+                'Successfully removed ${widget.player.getFullName()} from the list of poached players');
+
         Navigator.of(context).pop();
       },
     );
@@ -392,25 +389,23 @@ class _PlayerPoachingIconButtonState extends State<PlayerPoachingIconButton> {
           });
           return;
         }
-        bool isOK =
-            await operationInDB(context, 'UPDATE', 'players_poaching', data: {
-          'id': widget.player.poaching!.id,
-          if (_notes != widget.player.poaching?.notes) 'notes': _notes,
-          if (_dateDelete != widget.player.poaching?.dateDelete)
-            'date_delete':
-                _dateDelete != null ? _dateDelete!.toIso8601String() : null,
-          if (_investmentTarget != widget.player.poaching?.investmentTarget)
-            'investment_target': _investmentTarget,
-          if (_maxPrice != widget.player.poaching?.maxPrice)
-            'max_price': _maxPrice,
-        }, matchCriteria: {
-          'id': widget.player.poaching!.id
-        });
-        if (isOK) {
-          context.showSnackBar(
-              'Successfully updated ${widget.player.getFullName()} in the list of poached players',
-              icon: Icon(iconSuccessfulOperation, color: Colors.green));
-        }
+
+        await operationInDB(context, 'UPDATE', 'players_poaching',
+            data: {
+              'id': widget.player.poaching!.id,
+              if (_notes != widget.player.poaching?.notes) 'notes': _notes,
+              if (_dateDelete != widget.player.poaching?.dateDelete)
+                'date_delete':
+                    _dateDelete != null ? _dateDelete!.toIso8601String() : null,
+              if (_investmentTarget != widget.player.poaching?.investmentTarget)
+                'investment_target': _investmentTarget,
+              if (_maxPrice != widget.player.poaching?.maxPrice)
+                'max_price': _maxPrice,
+            },
+            matchCriteria: {'id': widget.player.poaching!.id},
+            messageSuccess:
+                'Successfully updated ${widget.player.getFullName()} in the list of poached players');
+
         Navigator.of(context).pop();
       },
     );

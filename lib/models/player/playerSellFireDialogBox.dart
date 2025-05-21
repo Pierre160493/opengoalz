@@ -376,37 +376,19 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
                           minimumPrice = -100;
                         }
 
-                        // Call the transfers_new_transfer function
-                        // await supabase.rpc('transfers_handle_new_bid', params: {
-                        //   'inp_id_player': player.id,
-                        //   'inp_id_club_bidder': Provider.of<UserSessionProvider>(
-                        //           context,
-                        //           listen: false)
-                        //       .user!
-                        //       .selectedClub
-                        //       ?.id,
-                        //   'inp_amount': minimumPrice,
-                        //   'inp_date_bid_end':
-                        //       _selectedDateTime.toUtc().toIso8601String(),
-                        // });
-
-                        bool isOK = await operationInDB(
+                        bool isOk = await operationInDB(
                             context, 'UPDATE', 'players',
                             data: {
                               'date_bid_end':
                                   _selectedDateTime.toUtc().toIso8601String(),
                               'transfer_price': minimumPrice
                             },
-                            matchCriteria: {
-                              'id': player.id
-                            });
+                            matchCriteria: {'id': player.id},
+                            messageSuccess: _firePlayer
+                                ? '${player.getPlayerNameString()} has been put to transfer list and will be fired if no bids are received'
+                                : '${player.getPlayerNameString()} has been put to transfer list');
 
-                        if (isOK) {
-                          context.showSnackBarSuccess(
-                              '${player.getPlayerNameString()} ' +
-                                  (_firePlayer
-                                      ? 'has been put to transfer list and will be fired if no bids are received'
-                                      : 'has been put to transfer list'));
+                        if (isOk) {
                           Navigator.of(context).pop(); // Close the dialog
                         }
                       }

@@ -186,22 +186,19 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                                   'Are you sure you want to remove all players from the teamcomp?');
 
                                           if (!confirm) return;
-                                          bool isOK = await operationInDB(
-                                              context,
-                                              'FUNCTION',
-                                              'teamcomp_copy_previous',
-                                              data: {
-                                                'inp_id_teamcomp':
-                                                    selectedTeamcomp.id,
-                                                'inp_season_number': -999
-                                              }); // Use index to modify id
-                                          if (isOK) {
-                                            context.showSnackBar(
+                                          await operationInDB(
+                                            context,
+                                            'FUNCTION',
+                                            'teamcomp_copy_previous',
+                                            data: {
+                                              'inp_id_teamcomp':
+                                                  selectedTeamcomp.id,
+                                              'inp_season_number': -999
+                                            },
+                                            messageSuccess:
                                                 'The teamcomp has successfully being cleaned',
-                                                icon: Icon(
-                                                    iconSuccessfulOperation,
-                                                    color: Colors.green));
-                                          }
+                                          ); // Use index to modify id
+
                                           Navigator.pop(context);
                                         },
                                       ),
@@ -221,22 +218,18 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                                     'Are you sure you want to apply the default ${index + 1} teamcomp to this teamcomp ?');
 
                                             if (!confirm) return;
-                                            bool isOK = await operationInDB(
-                                                context,
-                                                'FUNCTION',
-                                                'teamcomp_copy_previous',
-                                                data: {
-                                                  'inp_id_teamcomp':
-                                                      selectedTeamcomp.id,
-                                                  'inp_week_number': index + 1
-                                                }); // Use index to modify id
-                                            if (isOK) {
-                                              context.showSnackBar(
+                                            await operationInDB(
+                                              context,
+                                              'FUNCTION',
+                                              'teamcomp_copy_previous',
+                                              data: {
+                                                'inp_id_teamcomp':
+                                                    selectedTeamcomp.id,
+                                                'inp_week_number': index + 1
+                                              },
+                                              messageSuccess:
                                                   'The teamcomp has successfully being applied',
-                                                  icon: Icon(
-                                                      iconSuccessfulOperation,
-                                                      color: Colors.green));
-                                            }
+                                            ); // Use index to modify id
                                             Navigator.pop(context);
                                           },
                                         );
@@ -296,20 +289,16 @@ class _TeamCompTabState extends State<TeamCompTab> {
                                 ],
                               ),
                               onPressed: () async {
-                                bool isOK = await operationInDB(
-                                    context, 'UPDATE', 'games_teamcomp', data: {
-                                  'name': inputName,
-                                  'description': inputDescription
-                                }, matchCriteria: {
-                                  'id': selectedTeamcomp.id
-                                });
+                                await operationInDB(
+                                    context, 'UPDATE', 'games_teamcomp',
+                                    data: {
+                                      'name': inputName,
+                                      'description': inputDescription
+                                    },
+                                    matchCriteria: {'id': selectedTeamcomp.id},
+                                    messageSuccess:
+                                        'Successfully updated the teamcomp');
 
-                                if (isOK) {
-                                  context.showSnackBarSuccess(
-                                      'Successfully updated the teamcomp');
-                                  Navigator.of(context)
-                                      .pop(); // Close the dialog
-                                }
                                 Navigator.of(context).pop();
                               },
                             ),

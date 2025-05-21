@@ -175,7 +175,7 @@ class _ScoutsDialogState extends State<ScoutsDialog> {
                             }
                             int? idNewPlayer;
                             try {
-                              bool success = await operationInDB(
+                              bool isOK = await operationInDB(
                                 context,
                                 'FUNCTION',
                                 'players_create_player',
@@ -197,7 +197,7 @@ class _ScoutsDialogState extends State<ScoutsDialog> {
                                 },
                               );
 
-                              if (success) {
+                              if (isOK) {
                                 context.showSnackBarSuccess(
                                     'You now have a new player in the squad !');
                                 Navigator.of(context).pop();

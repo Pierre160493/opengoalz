@@ -11,6 +11,7 @@ Future<bool> operationInDB(
   Map<String, Object?>? data,
   Map<String, Object>? matchCriteria,
   Map<String, List<dynamic>>? inFilterMatchCriteria,
+  String? messageSuccess = null,
 }) async {
   /// Check if data is present for the INSERT and UPDATE operation
   if (['INSERT', 'UPDATE', 'FUNCTION'].contains(operationType.toUpperCase())) {
@@ -54,6 +55,14 @@ Future<bool> operationInDB(
       default:
         throw Exception(
             'Invalid operation type in the operationInDB function: $operationType');
+    }
+
+    /// Show success message if provided
+    if (messageSuccess != null) {
+      context.showSnackBar(
+        messageSuccess,
+        icon: Icon(iconSuccessfulOperation, color: Colors.green),
+      );
     }
     return true;
   } on PostgrestException catch (error) {

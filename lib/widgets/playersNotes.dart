@@ -28,16 +28,16 @@ class _PostItNoteState extends State<PostItNote> {
   }
 
   Future<void> _updateNote() async {
-    bool success = await operationInDB(
+    bool isOK = await operationInDB(
       context,
       'UPDATE',
       'players',
       data: {'notes': _noteController.text},
       matchCriteria: {'id': widget.player.id},
+      messageSuccess: 'Successfully updated the player\'s notes',
     );
 
-    if (success) {
-      context.showSnackBarSuccess('Successfully updated the player\'s notes');
+    if (isOK) {
       _isModified.value = false; // Reset the modified state
     } else {
       context.showSnackBarError('Failed to update the player\'s notes');
@@ -52,7 +52,7 @@ class _PostItNoteState extends State<PostItNote> {
       return;
     }
 
-    bool success = await operationInDB(
+    bool isOK = await operationInDB(
       context,
       'UPDATE',
       'players',
@@ -60,7 +60,7 @@ class _PostItNoteState extends State<PostItNote> {
       matchCriteria: {'id': widget.player.id},
     );
 
-    if (success) {
+    if (isOK) {
       _noteController.text = ''; // Clear the text in the TextField
       context.showSnackBarSuccess('Successfully removed the player\'s notes');
       _isModified.value = false; // Reset the modified state

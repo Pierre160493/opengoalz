@@ -91,16 +91,12 @@ Widget getExpensesWidget(BuildContext context, Player player) {
                         TextButton(
                           child: Text('Pay expenses'),
                           onPressed: () async {
-                            bool isOK = await operationInDB(
-                                context, 'UPDATE', 'players',
+                            await operationInDB(context, 'UPDATE', 'players',
                                 data: {'expenses_missed': 0},
-                                matchCriteria: {'id': player.id});
-                            if (isOK) {
-                              context.showSnackBar(
-                                  'Successfully payed ${player.firstName} ${player.lastName.toUpperCase()} missed expenses',
-                                  icon: Icon(iconSuccessfulOperation,
-                                      color: Colors.green));
-                            }
+                                matchCriteria: {'id': player.id},
+                                messageSuccess:
+                                    'Successfully payed ${player.getFullName()} missed expenses');
+
                             Navigator.of(context).pop();
                           },
                         ),

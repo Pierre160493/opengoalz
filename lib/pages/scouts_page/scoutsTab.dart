@@ -86,11 +86,11 @@ class ScoutsMainTab extends StatelessWidget {
                               bool isOK = await operationInDB(
                                   context, 'UPDATE', 'clubs',
                                   data: {'expenses_scouts_target': newExpenses},
-                                  matchCriteria: {'id': club.id});
+                                  matchCriteria: {'id': club.id},
+                                  messageSuccess:
+                                      'Successfully updated the scouting network expenses target to $newExpenses per week');
 
                               if (isOK) {
-                                context.showSnackBarSuccess(
-                                    'Successfully updated the scouting network expenses target to $newExpenses per week');
                                 Navigator.of(context).pop(); // Close the dialog
                               }
                             }
@@ -171,7 +171,7 @@ class ScoutsMainTab extends StatelessWidget {
         /// Fetch a new player
         if (club.id ==
             Provider.of<UserSessionProvider>(context, listen: false)
-                .user!
+                .user
                 .selectedClub!
                 .id)
           ListTile(

@@ -178,26 +178,12 @@ extension TabOrders on TeamComp {
                     : IconButton(
                         icon: Icon(Icons.delete),
                         onPressed: () async {
-                          /// Update the game order table by resetting column to NULL
-                          // if (await deleteFromDB(
-                          //       context: context,
-                          //       tableName: 'game_orders',
-                          //       data: {
-                          //         'id': sub.id,
-                          //       },
-                          //     ) ==
-                          //     true) {
-                          bool isOK = await operationInDB(
-                              context, 'DELETE', 'game_orders',
+                          await operationInDB(context, 'DELETE', 'game_orders',
                               matchCriteria: {
                                 'id': sub.id,
-                              });
-                          if (isOK) {
-                            context.showSnackBar(
-                                'The order has been successfully deleted',
-                                icon: Icon(iconSuccessfulOperation,
-                                    color: Colors.green));
-                          }
+                              },
+                              messageSuccess:
+                                  'The order has been successfully deleted');
                         },
                       ),
               );

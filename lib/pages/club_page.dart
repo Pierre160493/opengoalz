@@ -154,24 +154,15 @@ class _ClubPageState extends State<ClubPage> {
                                                   ],
                                                 ),
                                                 onPressed: () async {
-                                                  bool isOK =
-                                                      await operationInDB(
-                                                          context,
-                                                          'UPDATE',
-                                                          'clubs',
-                                                          data: {
-                                                        'name': inputText
-                                                      },
-                                                          matchCriteria: {
+                                                  await operationInDB(context,
+                                                      'UPDATE', 'clubs',
+                                                      data: {'name': inputText},
+                                                      matchCriteria: {
                                                         'id': club.id
-                                                      });
+                                                      },
+                                                      messageSuccess:
+                                                          'Successfully changed the club name to $inputText');
 
-                                                  if (isOK) {
-                                                    context.showSnackBarSuccess(
-                                                        'Successfully updated the club name to $inputText');
-                                                    Navigator.of(context)
-                                                        .pop(); // Close the dialog
-                                                  }
                                                   Navigator.of(context).pop();
                                                 },
                                               ),

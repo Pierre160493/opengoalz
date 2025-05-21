@@ -472,21 +472,7 @@ class _PlayerEmbodiedOfferDialogBoxState
                 if (_offerAmount != null)
                   TextButton(
                     onPressed: () async {
-                      print({
-                        'inp_id_player': player.id,
-                        'inp_id_club': Provider.of<UserSessionProvider>(context,
-                                listen: false)
-                            .user
-                            .selectedClub!
-                            .id,
-                        'inp_expenses_offered': int.parse(_bidController.text),
-                        // Add these if you want to pass comments or date_limit
-                        // 'inp_date_limit': ...,
-                        'inp_number_season': _numberSeason,
-                        'inp_comment_for_player': _commentForPlayer,
-                        'inp_comment_for_club': _commentForClub,
-                      });
-                      bool isOK = await operationInDB(context, 'FUNCTION',
+                      await operationInDB(context, 'FUNCTION',
                           'transfers_handle_new_embodied_player_offer',
                           data: {
                             'inp_id_player': player.id,
@@ -503,15 +489,10 @@ class _PlayerEmbodiedOfferDialogBoxState
                             'inp_number_season': _numberSeason,
                             'inp_comment_for_player': _commentForPlayer,
                             'inp_comment_for_club': _commentForClub,
-                          });
-                      if (isOK) {
-                        context.showSnackBar(
-                            _existingClubOffer == null
-                                ? 'Successfully placed an offer on embodied ${player.getPlayerNameString()}'
-                                : 'Successfully updated your offer on embodied ${player.getPlayerNameString()}',
-                            icon: Icon(iconSuccessfulOperation,
-                                color: Colors.green));
-                      }
+                          },
+                          messageSuccess: _existingClubOffer == null
+                              ? 'Successfully placed an offer on embodied ${player.getPlayerNameString()}'
+                              : 'Successfully updated your offer on embodied ${player.getPlayerNameString()}');
 
                       Navigator.of(context).pop();
                     },

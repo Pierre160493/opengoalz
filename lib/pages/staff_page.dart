@@ -258,14 +258,15 @@ class StaffOverviewTab extends StatelessWidget {
                                       );
                                     } else {
                                       bool isOK = await operationInDB(
-                                          context, 'UPDATE', 'clubs', data: {
-                                        'expenses_training_target': newExpenses
-                                      }, matchCriteria: {
-                                        'id': club.id
-                                      });
+                                          context, 'UPDATE', 'clubs',
+                                          data: {
+                                            'expenses_training_target':
+                                                newExpenses
+                                          },
+                                          matchCriteria: {'id': club.id},
+                                          messageSuccess:
+                                              'Successfully updated the training weekly expenses target to $newExpenses per week');
                                       if (isOK) {
-                                        context.showSnackBarSuccess(
-                                            'Successfully updated the training weekly expenses target to $newExpenses per week');
                                         Navigator.of(context)
                                             .pop(); // Close the dialog
                                       }
@@ -361,14 +362,15 @@ class StaffOverviewTab extends StatelessWidget {
                                       );
                                     } else {
                                       bool isOK = await operationInDB(
-                                          context, 'UPDATE', 'clubs', data: {
-                                        'expenses_scouts_target': newExpenses
-                                      }, matchCriteria: {
-                                        'id': club.id
-                                      });
+                                          context, 'UPDATE', 'clubs',
+                                          data: {
+                                            'expenses_scouts_target':
+                                                newExpenses
+                                          },
+                                          matchCriteria: {'id': club.id},
+                                          messageSuccess:
+                                              'Successfully updated the scouts weekly expenses target to $newExpenses per week');
                                       if (isOK) {
-                                        context.showSnackBarSuccess(
-                                            'Successfully updated the scouts weekly expenses target to $newExpenses per week');
                                         Navigator.of(context)
                                             .pop(); // Close the dialog
                                       }

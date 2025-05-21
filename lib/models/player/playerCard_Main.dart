@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/playerCardGamesTab.dart';
 import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
+import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
 import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
+import 'package:opengoalz/models/player/player_actions_listtiles.dart';
+import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerFavorite/playerFavoriteIconButton.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
+import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
@@ -124,9 +129,11 @@ class _PlayerCardState extends State<PlayerCard>
                         widget.player.isSelectedClubPlayer)
                       Row(
                         children: [
-                          SizedBox(width: 3.0),
-                          widget.player
-                              .playerPopUpMenuItem(context, widget.index),
+                          formSpacer3,
+                          PlayerActionsWidget(
+                            player: widget.player,
+                            index: widget.index,
+                          ),
                         ],
                       ),
 

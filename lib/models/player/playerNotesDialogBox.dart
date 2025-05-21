@@ -81,18 +81,14 @@ class _PlayerNotesDialogBoxState extends State<PlayerNotesDialogBox> {
 
   void _onEnterPressed() async {
     if (_isSmallNotesValid) {
-      bool isOK = await operationInDB(context, 'UPDATE', 'players', data: {
-        'notes_small': _smallNotes,
-        'notes': _largeNotesController.text
-      }, matchCriteria: {
-        'id': widget.player.id
-      });
-
-      if (isOK) {
-        context.showSnackBar(
-            'Successfully changed the notes ${widget.player.getPlayerNameString()}',
-            icon: Icon(iconSuccessfulOperation, color: Colors.green));
-      }
+      await operationInDB(context, 'UPDATE', 'players',
+          data: {
+            'notes_small': _smallNotes,
+            'notes': _largeNotesController.text
+          },
+          matchCriteria: {'id': widget.player.id},
+          messageSuccess:
+              'Successfully changed the notes ${widget.player.getPlayerNameString()}');
 
       Navigator.of(context).pop();
     }

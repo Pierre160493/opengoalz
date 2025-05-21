@@ -7,7 +7,6 @@ Widget persoAlertDialogWithConstrainedContent({
   required Widget title,
   required Widget content,
   List<Widget>? actions,
-  double? minWidth,
 }) {
   return LayoutBuilder(
     builder: (BuildContext context, BoxConstraints constraints) {

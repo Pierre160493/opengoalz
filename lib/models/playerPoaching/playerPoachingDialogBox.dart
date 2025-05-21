@@ -174,7 +174,7 @@ class _PoachingDialogState extends State<PoachingDialog> {
                   ],
                 ),
                 onPressed: () async {
-                  bool isOk = await operationInDB(
+                  await operationInDB(
                       context, 'UPDATE', 'players_poaching',
                       matchCriteria: {
                         'id': widget.player.id,
@@ -184,10 +184,9 @@ class _PoachingDialogState extends State<PoachingDialog> {
                         'notes': _notes,
                         'max_price': null,
                         'to_delete': true,
-                      });
-                  if (isOk)
-                    context.showSnackBar(
-                        'The scouting network will stop working on ${widget.player.getFullName()}, no more investment will be made and will be deleted soon');
+                      },
+                      messageSuccess:
+                          'The scouting network will stop working on ${widget.player.getFullName()}, no more investment will be made and will be deleted soon');
                   Navigator.of(context).pop();
                 },
               ),

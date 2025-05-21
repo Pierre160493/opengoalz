@@ -17,17 +17,13 @@ import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
-import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:collection/collection.dart';
 import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
 
 part 'player_widget_helper.dart';
-part 'player_widget_actions.dart';
 
 class Player {
   Club? club;

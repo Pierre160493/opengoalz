@@ -59,15 +59,11 @@ void sendMailDialog(BuildContext context, {int? idClub, String? username}) {
                   'username_to': username,
                   'username_from':
                       Provider.of<UserSessionProvider>(context, listen: false)
-                          .user!
+                          .user
                           .username,
                 },
+                messageSuccess: 'Mail sent',
               );
-
-              if (isOk) {
-                context.showSnackBar('Mail sent',
-                    icon: Icon(iconSuccessfulOperation, color: Colors.green));
-              }
 
               Navigator.of(context).pop();
             },

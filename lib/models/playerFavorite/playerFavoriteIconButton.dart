@@ -219,19 +219,17 @@ class _PlayerFavoriteIconButtonState extends State<PlayerFavoriteIconButton> {
         ],
       ),
       onPressed: () async {
-        bool isOK =
-            await operationInDB(context, 'INSERT', 'players_favorite', data: {
-          'id_club': widget.user.selectedClub!.id,
-          'id_player': widget.player.id,
-          if (_notes != null) 'notes': _notes,
-          if (_dateDelete != null)
-            'date_delete': _dateDelete!.toIso8601String(),
-        });
-        if (isOK) {
-          context.showSnackBar(
-              'Successfully set ${widget.player.getFullName()} in the list of favorite players',
-              icon: Icon(iconSuccessfulOperation, color: Colors.green));
-        }
+        await operationInDB(context, 'INSERT', 'players_favorite',
+            data: {
+              'id_club': widget.user.selectedClub!.id,
+              'id_player': widget.player.id,
+              if (_notes != null) 'notes': _notes,
+              if (_dateDelete != null)
+                'date_delete': _dateDelete!.toIso8601String(),
+            },
+            messageSuccess:
+                'Successfully set ${widget.player.getFullName()} in the list of favorite players');
+
         Navigator.of(context).pop();
       },
     );
@@ -247,13 +245,11 @@ class _PlayerFavoriteIconButtonState extends State<PlayerFavoriteIconButton> {
         ],
       ),
       onPressed: () async {
-        bool isOK = await operationInDB(context, 'DELETE', 'players_favorite',
-            matchCriteria: {'id': widget.player.favorite!.id});
-        if (isOK) {
-          context.showSnackBar(
-              'Successfully removed ${widget.player.getFullName()} from the list of favorite players',
-              icon: Icon(iconSuccessfulOperation, color: Colors.green));
-        }
+        await operationInDB(context, 'DELETE', 'players_favorite',
+            matchCriteria: {'id': widget.player.favorite!.id},
+            messageSuccess:
+                'Successfully removed ${widget.player.getFullName()} from the list of favorite players');
+
         Navigator.of(context).pop();
       },
     );
@@ -269,21 +265,18 @@ class _PlayerFavoriteIconButtonState extends State<PlayerFavoriteIconButton> {
         ],
       ),
       onPressed: () async {
-        bool isOK =
-            await operationInDB(context, 'UPDATE', 'players_favorite', data: {
-          'id': widget.player.favorite!.id,
-          if (_notes != widget.player.favorite?.notes) 'notes': _notes,
-          if (_dateDelete != widget.player.favorite?.dateDelete)
-            'date_delete':
-                _dateDelete != null ? _dateDelete!.toIso8601String() : null,
-        }, matchCriteria: {
-          'id': widget.player.favorite!.id
-        });
-        if (isOK) {
-          context.showSnackBar(
-              'Successfully updated ${widget.player.getFullName()} in the list of favorite players',
-              icon: Icon(iconSuccessfulOperation, color: Colors.green));
-        }
+        await operationInDB(context, 'UPDATE', 'players_favorite',
+            data: {
+              'id': widget.player.favorite!.id,
+              if (_notes != widget.player.favorite?.notes) 'notes': _notes,
+              if (_dateDelete != widget.player.favorite?.dateDelete)
+                'date_delete':
+                    _dateDelete != null ? _dateDelete!.toIso8601String() : null,
+            },
+            matchCriteria: {'id': widget.player.favorite!.id},
+            messageSuccess:
+                'Successfully updated ${widget.player.getFullName()} in the list of favorite players');
+
         Navigator.of(context).pop();
       },
     );

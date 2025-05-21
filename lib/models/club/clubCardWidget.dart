@@ -84,22 +84,17 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
                                     TextButton(
                                       child: persoValidRow('Yes'),
                                       onPressed: () async {
-                                        bool isOK = await operationInDB(
+                                        await operationInDB(
                                             context, 'UPDATE', 'profiles',
                                             data: {
                                               'id_default_club': club.id,
                                             },
                                             matchCriteria: {
                                               'uuid_user': user.id
-                                            });
+                                            },
+                                            messageSuccess:
+                                                'Successfully changed your default club to ${club.name}');
 
-                                        if (isOK) {
-                                          context.showSnackBar(
-                                              'Successfully changed your default club to ${club.name}',
-                                              icon: Icon(
-                                                  iconSuccessfulOperation,
-                                                  color: Colors.green));
-                                        }
                                         Navigator.of(context).pop();
                                       },
                                     ),

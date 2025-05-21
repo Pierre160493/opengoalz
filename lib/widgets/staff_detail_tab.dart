@@ -58,16 +58,11 @@ class StaffDetailTab extends StatelessWidget {
                     return;
                   }
 
-                  bool isOK = await operationInDB(context, 'UPDATE', 'clubs',
+                  await operationInDB(context, 'UPDATE', 'clubs',
                       data: {'id_${title.toLowerCase()}': player.id},
-                      matchCriteria: {'id': club.id});
-
-                  if (isOK) {
-                    context.showSnackBar(
-                        'Successfully hired ${player.getFullName()} as our new ${title.toLowerCase()}',
-                        icon:
-                            Icon(iconSuccessfulOperation, color: Colors.green));
-                  }
+                      matchCriteria: {'id': club.id},
+                      messageSuccess:
+                          'Successfully hired ${player.getFullName()} as our new $title');
                 },
                 icon: Icon(iconScout,
                     color: Colors.red, size: iconSizeLarge * 2)),
@@ -128,16 +123,11 @@ class StaffDetailTab extends StatelessWidget {
                 onPressed: () async {
                   if (await context.showConfirmationDialog(
                       'Are you sure you want to fire ${player.getFullName()} as $title ?\nThis will cost 1 000 !')) {
-                    bool isOK = await operationInDB(context, 'UPDATE', 'clubs',
+                    await operationInDB(context, 'UPDATE', 'clubs',
                         data: {'id_${title.toLowerCase()}': null},
-                        matchCriteria: {'id': club.id});
-
-                    if (isOK) {
-                      context.showSnackBar(
-                          'Successfully fired ${player.getPlayerNameString()}',
-                          icon: Icon(iconSuccessfulOperation,
-                              color: Colors.green));
-                    }
+                        matchCriteria: {'id': club.id},
+                        messageSuccess:
+                            'Successfully fired ${player.getPlayerNameString()}');
                   }
                 },
               ),

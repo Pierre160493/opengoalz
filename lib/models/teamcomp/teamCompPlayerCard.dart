@@ -53,19 +53,15 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
             ),
           );
           if (player != null) {
-            bool isOK = await operationInDB(
+            await operationInDB(
               context,
               'UPDATE',
               'games_teamcomp',
               data: {widget.playerWithPosition.database: player.id},
               matchCriteria: {'id': widget.teamComp.id},
+              messageSuccess:
+                  'Successfully added ${player.firstName} ${player.lastName} to the teamcomp',
             );
-            if (isOK) {
-              context.showSnackBar(
-                'Successfully added ${player.firstName} ${player.lastName} to the teamcomp',
-                icon: Icon(iconSuccessfulOperation, color: Colors.green),
-              );
-            }
             setState(() {
               widget.playerWithPosition.player = player;
             });
@@ -231,8 +227,7 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
                           'The condition of substitution is not valid !',
                         );
                       } else {
-                        bool isOK = await operationInDB(
-                            context, 'INSERT', 'game_orders',
+                        await operationInDB(context, 'INSERT', 'game_orders',
                             data: {
                               'id_teamcomp': widget.teamComp.id,
                               'id_player_out': idSelectedPlayerForSubstitution,
@@ -243,13 +238,9 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
                               'condition': conditionController.text.isEmpty
                                   ? null
                                   : int.parse(conditionController.text),
-                            });
-                        if (isOK) {
-                          context.showSnackBar(
-                              'Successfully set substitution of ${selectedPlayerForSubstitution!.firstName} ${selectedPlayerForSubstitution.lastName} with ${player.firstName} ${player.lastName}',
-                              icon: Icon(iconSuccessfulOperation,
-                                  color: Colors.green));
-                        }
+                            },
+                            messageSuccess:
+                                'Successfully set substitution of ${selectedPlayerForSubstitution!.getFullName()} with ${player.getFullName()}');
                       }
                       setState(() {
                         widget.teamComp.selectedPlayerForSubstitution = null;
@@ -261,16 +252,11 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
                 TextButton(
                   child: Text('Remove'),
                   onPressed: () async {
-                    bool isOK = await operationInDB(
-                        context, 'UPDATE', 'games_teamcomp',
+                    await operationInDB(context, 'UPDATE', 'games_teamcomp',
                         data: {widget.playerWithPosition.database: null},
-                        matchCriteria: {'id': widget.teamComp.id});
-                    if (isOK) {
-                      context.showSnackBar(
-                          'Successfully removed ${player.firstName} ${player.lastName} from the teamcomp',
-                          icon: Icon(iconSuccessfulOperation,
-                              color: Colors.green));
-                    }
+                        matchCriteria: {'id': widget.teamComp.id},
+                        messageSuccess:
+                            'Successfully removed ${player.getFullName()} from the teamcomp');
                     Navigator.of(context).pop();
                   },
                 ),

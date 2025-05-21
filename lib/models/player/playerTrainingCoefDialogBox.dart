@@ -216,16 +216,12 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
             TextButton(
               onPressed: _isModified
                   ? () async {
-                      bool isOK = await operationInDB(
-                          context, 'UPDATE', 'players',
+                      await operationInDB(context, 'UPDATE', 'players',
                           data: {'training_coef': trainingCoefNew},
-                          matchCriteria: {'id': widget.player.id});
-                      if (isOK) {
-                        context.showSnackBar(
-                            'Successfully updated the training coefficients for ${widget.player.getFullName()}',
-                            icon: Icon(iconSuccessfulOperation,
-                                color: Colors.green));
-                      }
+                          matchCriteria: {'id': widget.player.id},
+                          messageSuccess:
+                              'Successfully updated the training coefficients for ${widget.player.getFullName()}');
+
                       Navigator.of(context).pop();
                     }
                   : null,

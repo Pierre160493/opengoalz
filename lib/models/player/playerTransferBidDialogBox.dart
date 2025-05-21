@@ -273,7 +273,7 @@ class _PlayerTransferBidDialogBoxState
                                     .id,
                             'inp_amount': int.parse(_bidController.text)
                           });
-                          bool isOK = await operationInDB(
+                          await operationInDB(
                               context, 'FUNCTION', 'transfers_handle_new_bid',
                               data: {
                                 'inp_id_player': player.id,
@@ -284,13 +284,9 @@ class _PlayerTransferBidDialogBoxState
                                         .selectedClub!
                                         .id,
                                 'inp_amount': int.parse(_bidController.text)
-                              });
-                          if (isOK) {
-                            context.showSnackBar(
-                                'Successfully placed bid on ${player.getPlayerNameString()}',
-                                icon: Icon(iconSuccessfulOperation,
-                                    color: Colors.green));
-                          }
+                              },
+                              messageSuccess:
+                                  'Successfully placed a bid of ${_bidController.text} on ${player.getPlayerNameString()}');
 
                           Navigator.of(context).pop();
                         },
