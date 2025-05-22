@@ -93,6 +93,8 @@ class Player {
   final int coefCoach;
   final int coefScout;
   final bool isStaff;
+  final int userPointsAvailable;
+  final int userPointsUsed;
 
   Player.fromMap(Map<String, dynamic> map, Profile user)
       : id = map['id'],
@@ -165,6 +167,8 @@ class Player {
         coefCoach = map['coef_coach'],
         coefScout = map['coef_scout'],
         isStaff = map['is_staff'],
+        userPointsAvailable = map['user_points_available'],
+        userPointsUsed = map['user_points_used'],
         isPartOfClubOfCurrentUser = user.selectedClub?.id == map['id_club'],
         isEmbodiedByCurrentUser = user.username == map['username'];
 
@@ -335,6 +339,9 @@ class Player {
       'dateDeath': dateDeath,
       'coefCoach': coefCoach,
       'coefScout': coefScout,
+      'isStaff': isStaff,
+      'userPointsAvailable': userPointsAvailable,
+      'userPointsUsed': userPointsUsed,
     };
   }
 }

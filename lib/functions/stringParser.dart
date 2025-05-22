@@ -12,8 +12,8 @@ import 'package:provider/provider.dart';
 
 TextSpan stringParser(BuildContext context, String description,
     {Color colorDefaultText = Colors.white}) {
-  final RegExp regex =
-      RegExp(r'\{id(Player|Club|League|Game|Teamcomp):(-?\d+),([^}]+)\}');
+  final RegExp regex = RegExp(
+      r'\{id(Player|Club|League|Game|Teamcomp|Country):(-?\d+),([^}]+)\}');
   final List<TextSpan> spans = [];
   int start = 0;
 
@@ -36,46 +36,53 @@ TextSpan stringParser(BuildContext context, String description,
       ),
       recognizer: TapGestureRecognizer()
         ..onTap = () {
-          if (type == 'player') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PlayersPage(
-                  playerSearchCriterias:
-                      PlayerSearchCriterias(idPlayer: [int.parse(id)]),
+          switch (type) {
+            case 'player':
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PlayersPage(
+                    playerSearchCriterias:
+                        PlayerSearchCriterias(idPlayer: [int.parse(id)]),
+                  ),
                 ),
-              ),
-            );
-          } else if (type == 'club') {
-            Navigator.push(
-              context,
-              ClubPage.route(int.parse(id)),
-            );
-          } else if (type == 'league') {
-            Navigator.push(
-              context,
-              LeaguePage.route(int.parse(id)),
-            );
-          } else if (type == 'game') {
-            Navigator.push(
-              context,
-              GamePage.route(
-                  int.parse(id),
-                  Provider.of<UserSessionProvider>(context, listen: false)
-                      .user
-                      .selectedClub!
-                      .id),
-            );
-          } else if (type == 'teamcomp') {
-            Navigator.push(
-              context,
-              TeamCompPage.routeWithId(int.parse(id)),
-            );
-          } else if (type == 'country') {
-            Navigator.push(
-              context,
-              CountryPage.route(int.parse(id), idMultiverse: null),
-            );
+              );
+              break;
+            case 'club':
+              Navigator.push(
+                context,
+                ClubPage.route(int.parse(id)),
+              );
+              break;
+            case 'league':
+              Navigator.push(
+                context,
+                LeaguePage.route(int.parse(id)),
+              );
+              break;
+            case 'game':
+              Navigator.push(
+                context,
+                GamePage.route(
+                    int.parse(id),
+                    Provider.of<UserSessionProvider>(context, listen: false)
+                        .user
+                        .selectedClub!
+                        .id),
+              );
+              break;
+            case 'teamcomp':
+              Navigator.push(
+                context,
+                TeamCompPage.routeWithId(int.parse(id)),
+              );
+              break;
+            case 'country':
+              Navigator.push(
+                context,
+                CountryPage.route(int.parse(id), idMultiverse: null),
+              );
+              break;
           }
         },
     ));

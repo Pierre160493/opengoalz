@@ -41,8 +41,7 @@ BEGIN
         INSERT INTO players_history (id_player, id_club, is_transfer_description, description)
         VALUES (
             NEW.id_player, NEW.id_club, TRUE,
-            -- 'Joined ' || string_parser(NEW.id_club, 'idClub') || ' for a ' || NEW.number_season || ' year contract'
-            'Joined: NEED TESTING CAUSE BUG IN THIS INSERT'
+            'Joined ' || string_parser(NEW.id_club, 'idClub') || ' for a ' || NEW.number_season || ' year contract'
         );
 
     ------ Offer is refused

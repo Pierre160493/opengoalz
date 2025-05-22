@@ -230,7 +230,7 @@ BEGIN
     IF inp_id_club IS NULL THEN
         INSERT INTO players_history (id_player, id_club, description)
         VALUES (loc_new_player_id, NULL,
-        'New player from COUNTRY ' || string_parser(inp_id_country, 'idCountry'));
+        'New player from ' || string_parser(inp_id_country, 'idCountry'));
 
     ELSE
         INSERT INTO players_history (id_player, id_club, description)

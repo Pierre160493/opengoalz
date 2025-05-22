@@ -106,7 +106,6 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          moveHistoricDataListTile(),
           SizedBox(
             width: double.infinity,
             height: 240, // Adjust the height as needed
@@ -129,39 +128,88 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
               // graphColors: [Colors.green, Colors.red],
             ),
           ),
+
+          /// Training coef
           ListTile(
             leading: Icon(
               iconStats,
               size: iconSizeMedium,
               color: Colors.green,
             ),
-            title: Text(
-                'Points gained this season: ${widget.player.trainingPointsUsed.floor()}'),
+            title: Row(
+              children: [
+                Text('Points gained this season: '),
+                Text(widget.player.trainingPointsUsed.floor().toString(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: widget.player.trainingPointsUsed < 0
+                          ? Colors.red
+                          : Colors.green,
+                    )),
+              ],
+            ),
             subtitle: Text(
-              'Gain training points thanks to the staff',
+              'Progression is based on the training coef and the staff',
               style: styleItalicBlueGrey,
             ),
             onTap: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return PlayerTrainingDialog(player: widget.player);
-                },
-              );
+              widget.player.isPartOfClubOfCurrentUser
+                  ? showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return PlayerTrainingDialog(player: widget.player);
+                      },
+                    )
+                  : null;
             },
             shape: shapePersoRoundedBorder(
               Colors.green,
               2,
             ),
-            trailing: Switch(
-              value: _showTrainingCoef,
-              onChanged: (value) {
-                setState(() {
-                  _showTrainingCoef = value;
-                });
-              },
+            trailing: Tooltip(
+              message: 'Show/Hide Training Coef',
+              child: Switch(
+                value: _showTrainingCoef,
+                onChanged: (value) {
+                  setState(() {
+                    _showTrainingCoef = value;
+                  });
+                },
+              ),
             ),
           ),
+
+          /// Display available user points if the player is embodied by a user
+          if (widget.player.isEmbodiedByCurrentUser)
+            ListTile(
+              leading: Icon(
+                iconStats,
+                size: iconSizeMedium,
+                color: Colors.green,
+              ),
+              title: Row(
+                children: [
+                  Text('Available points: '),
+                  Text(
+                    widget.player.userPointsAvailable.toString(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: widget.player.userPointsAvailable < 0
+                          ? Colors.red
+                          : Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+              subtitle: Text(
+                widget.player.userPointsUsed.toString(),
+                style: styleItalicBlueGrey,
+              ),
+              shape: shapePersoRoundedBorder(),
+            ),
+
+          /// Compare with a specific week to check progress
+          moveHistoricDataListTile(),
         ],
       ),
     );
@@ -238,13 +286,13 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
           Row(
             children: [
               IconButton(
-                tooltip: 'Previous 7 weeks',
+                tooltip: 'Previous 14 weeks',
                 icon: Icon(Icons.keyboard_double_arrow_left),
                 onPressed: () {
                   setState(() {
                     _weekOffsetToCompareWithNow = min(
                         _playerHistoricStatsLength - 1,
-                        _weekOffsetToCompareWithNow + 7);
+                        _weekOffsetToCompareWithNow + 14);
                   });
                 },
               ),
@@ -270,12 +318,12 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
                 },
               ),
               IconButton(
-                tooltip: 'Next 7 weeks',
+                tooltip: 'Next 14 weeks',
                 icon: Icon(Icons.keyboard_double_arrow_right),
                 onPressed: () {
                   setState(() {
                     _weekOffsetToCompareWithNow =
-                        max(0, _weekOffsetToCompareWithNow - 7);
+                        max(0, _weekOffsetToCompareWithNow - 14);
                   });
                 },
               ),
