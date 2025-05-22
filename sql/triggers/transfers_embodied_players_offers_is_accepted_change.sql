@@ -38,11 +38,11 @@ BEGIN
         WHERE id = NEW.id_player;
 
         ---- Insert a new row in the players_history table
-        INSERT INTO players_history (id_player, id_club, description)
+        INSERT INTO players_history (id_player, id_club, is_transfer_description, description)
         VALUES (
-            NEW.id_player,
-            NEW.id_club,
-            'Joined ' || string_parser(NEW.id_club, 'idClub') || ' for a ' || NEW.number_season || ' year contract'
+            NEW.id_player, NEW.id_club, TRUE,
+            -- 'Joined ' || string_parser(NEW.id_club, 'idClub') || ' for a ' || NEW.number_season || ' year contract'
+            'Joined: NEED TESTING CAUSE BUG IN THIS INSERT'
         );
 
     ------ Offer is refused

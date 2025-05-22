@@ -50,63 +50,89 @@ class PlayerActionsWidget extends StatelessWidget {
                     shape: shapePersoRoundedBorder(),
                   ),
 
-                /// Sell the player
-                if (player.dateBidEnd == null) ...[
-                  ListTile(
-                    leading: Icon(iconTransfers,
-                        color: Colors.red, size: iconSizeMedium),
-                    title: Text('Sell'),
-                    onTap: () {
-                      Navigator.pop(context); // Close dialog
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return SellFirePlayerDialogBox(idPlayer: player.id);
-                        },
-                      );
-                    },
-                    subtitle:
-                        Text('Put ${player.getFullName()} in auction for sale'),
-                    shape: shapePersoRoundedBorder(),
-                  ),
+                /// Actions for players belonging to the current user's club
+                if (player.isPartOfClubOfCurrentUser) ...[
+                  if (player.dateBidEnd == null) ...[
+                    /// Sell the player
+                    ListTile(
+                      leading: Icon(iconTransfers,
+                          color: Colors.red, size: iconSizeMedium),
+                      title: Text('Sell'),
+                      onTap: () {
+                        Navigator.pop(context); // Close dialog
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SellFirePlayerDialogBox(idPlayer: player.id);
+                          },
+                        );
+                      },
+                      subtitle: Text(
+                          'Put ${player.getFullName()} in auction for sale'),
+                      shape: shapePersoRoundedBorder(),
+                    ),
 
-                  /// Fire the player
-                  ListTile(
-                    leading: Icon(iconLeaveClub,
-                        color: Colors.red, size: iconSizeMedium),
-                    title: Text('Fire'),
-                    onTap: () {
-                      Navigator.pop(context); // Close dialog
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return SellFirePlayerDialogBox(
-                              idPlayer: player.id, firePlayer: true);
-                        },
-                      );
-                    },
-                    subtitle:
-                        Text('Fire ${player.getFullName()} from your club'),
-                    shape: shapePersoRoundedBorder(),
-                  ),
-                ] else ...[
-                  /// Unfire the player
+                    /// Fire the player
+                    ListTile(
+                      leading: Icon(iconLeaveClub,
+                          color: Colors.red, size: iconSizeMedium),
+                      title: Text('Fire'),
+                      onTap: () {
+                        Navigator.pop(context); // Close dialog
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SellFirePlayerDialogBox(
+                                idPlayer: player.id, firePlayer: true);
+                          },
+                        );
+                      },
+                      subtitle:
+                          Text('Fire ${player.getFullName()} from your club'),
+                      shape: shapePersoRoundedBorder(),
+                    ),
+                  ] else ...[
+                    /// Unfire the player
+                    ListTile(
+                      leading: Icon(Icons.cancel,
+                          color: Colors.green, size: iconSizeMedium),
+                      title: Text('Unfire'),
+                      onTap: () async {
+                        Navigator.pop(context); // Close dialog
+                        await operationInDB(context, 'UPDATE', 'players',
+                            data: {
+                              'date_bid_end': null,
+                            },
+                            matchCriteria: {'id': player.id},
+                            messageSuccess: player.getFullName() +
+                                ' is glad to stay in your club !');
+                      },
+                      subtitle:
+                          Text('Unfire ${player.getFullName()} from your club'),
+                      shape: shapePersoRoundedBorder(),
+                    ),
+                  ]
+                ], // End if player.isPartOfClubOfCurrentUser
+
+                /// Actions for players embodied by the current user
+                if (player.isEmbodiedByCurrentUser) ...[
+                  /// Unembody the player
                   ListTile(
                     leading: Icon(Icons.cancel,
-                        color: Colors.green, size: iconSizeMedium),
-                    title: Text('Unfire'),
+                        color: Colors.red, size: iconSizeMedium),
+                    title: Text('Unembody'),
                     onTap: () async {
                       Navigator.pop(context); // Close dialog
                       await operationInDB(context, 'UPDATE', 'players',
                           data: {
-                            'date_bid_end': null,
+                            'id_user': null,
                           },
                           matchCriteria: {'id': player.id},
-                          messageSuccess: player.getFullName() +
-                              ' is glad to stay in your club !');
+                          messageSuccess:
+                              player.getFullName() + ' is glad to be free !');
                     },
                     subtitle:
-                        Text('Unfire ${player.getFullName()} from your club'),
+                        Text('Unembody ${player.getFullName()} from your club'),
                     shape: shapePersoRoundedBorder(),
                   ),
                 ]

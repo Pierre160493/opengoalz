@@ -254,9 +254,8 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                     -- If the player has no club and is not embodied
                     WHEN id_club IS NULL AND username IS NULL THEN expenses_expected
                     -- If the player has a club, calculate the new expected expenses
-                    ELSE FLOOR(
-                        (expenses_expected * 0.75 + 
-                        expenses_target * 0.25))
+                    ELSE LEAST(expenses_target,
+                        FLOOR((expenses_expected * 0.75 + expenses_target * 0.25)))
                     END,
                 -- Reset the training points used
                 training_points_used = 0

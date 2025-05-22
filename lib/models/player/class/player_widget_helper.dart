@@ -15,9 +15,9 @@ extension PlayerWidgetsHelper on Player {
       getPlayerNameString(isSurname: isSurname),
       style: TextStyle(
         fontWeight: FontWeight.bold,
-        color: isSelectedUserIncarnatedPlayer
+        color: isEmbodiedByCurrentUser
             ? colorIsMine
-            : isSelectedClubPlayer
+            : isPartOfClubOfCurrentUser
                 ? colorIsSelected
                 : null,
       ),
@@ -189,7 +189,6 @@ extension PlayerWidgetsHelper on Player {
                 ],
               ),
               if (dateBidEnd != null) PlayerCardTransferWidget(player: this),
-              if (userName != null) PlayerCardEmbodiedListTile(player: this),
               if (dateEndInjury != null) getInjuryWidget(),
             ],
           );

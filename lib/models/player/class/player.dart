@@ -33,7 +33,7 @@ class Player {
   GamePlayerStatsBest? gamePlayerStatsBest;
   List<GamePlayerStatsAll>? gamePlayerStatsAll;
 
-  bool belongsToClubOfCurrentUser;
+  bool isPartOfClubOfCurrentUser;
   bool isEmbodiedByCurrentUser;
 
   PlayerFavorite? favorite;
@@ -79,8 +79,6 @@ class Player {
   final double performanceScoreReal;
   final double performanceScoreTheoretical;
   final List<int> idGamesPlayed;
-  final bool isSelectedUserIncarnatedPlayer;
-  final bool isSelectedClubPlayer;
   final bool isPlaying;
   final double loyalty;
   final double leadership;
@@ -145,8 +143,6 @@ class Player {
         performanceScoreTheoretical =
             (map['performance_score_theoretical'] as num).toDouble(),
         idGamesPlayed = List<int>.from(map['id_games_played']),
-        isSelectedClubPlayer = user.selectedClub?.id == map['id_club'],
-        isSelectedUserIncarnatedPlayer = user.username == map['username'],
         favorite = user.selectedClub?.playersFavorite.firstWhereOrNull(
             (PlayerFavorite element) => element.idPlayer == map['id']),
         poaching = user.selectedClub?.playersPoached.firstWhereOrNull(
@@ -169,7 +165,7 @@ class Player {
         coefCoach = map['coef_coach'],
         coefScout = map['coef_scout'],
         isStaff = map['is_staff'],
-        belongsToClubOfCurrentUser = user.selectedClub?.id == map['id_club'],
+        isPartOfClubOfCurrentUser = user.selectedClub?.id == map['id_club'],
         isEmbodiedByCurrentUser = user.username == map['username'];
 
   double get age {
@@ -324,8 +320,8 @@ class Player {
       'performanceScoreReal': performanceScoreReal,
       'performanceScoreTheoretical': performanceScoreTheoretical,
       'idGamesPlayed': idGamesPlayed,
-      'isSelectedUserIncarnatedPlayer': isSelectedUserIncarnatedPlayer,
-      'isSelectedClubPlayer': isSelectedClubPlayer,
+      'isPartOfClubOfCurrentUser': isPartOfClubOfCurrentUser,
+      'isEmbodiedByCurrentUser': isEmbodiedByCurrentUser,
       'isPlaying': isPlaying,
       'loyalty': loyalty,
       'leadership': leadership,

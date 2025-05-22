@@ -63,6 +63,7 @@ const iconAge = Icons.cake_outlined;
 const iconTeamComp = Icons.grid_on;
 // const iconTeamComp = Icons.groups;
 const iconMails = Icons.email;
+const iconContract = Icons.date_range;
 const iconBug = Icons.bug_report;
 const iconCancel = Icons.cancel;
 const iconError = Icons.error;

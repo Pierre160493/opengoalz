@@ -6,8 +6,11 @@ import 'package:opengoalz/models/player/playerCardGamesTab.dart';
 import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
 import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
 import 'package:opengoalz/models/player/playerStatsWidget.dart';
+import 'package:opengoalz/models/player/playerTransferListTile.dart';
 import 'package:opengoalz/models/player/playerWidgets.dart';
 import 'package:opengoalz/models/player/player_actions_listtiles.dart';
+import 'package:opengoalz/models/player/player_contract_duration_listtile.dart';
+import 'package:opengoalz/models/player/player_embodied_listtile.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerFavorite/playerFavoriteIconButton.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
@@ -66,9 +69,9 @@ class _PlayerCardState extends State<PlayerCard>
     final user = Provider.of<UserSessionProvider>(context, listen: false).user;
 
     /// Player Card
-    Color playerColor = widget.player.isSelectedUserIncarnatedPlayer
+    Color playerColor = widget.player.isEmbodiedByCurrentUser
         ? colorIsMine
-        : widget.player.isSelectedClubPlayer
+        : widget.player.isPartOfClubOfCurrentUser
             ? colorIsSelected
             : colorDefault;
     return Card(
@@ -125,8 +128,8 @@ class _PlayerCardState extends State<PlayerCard>
 
                     /// Show the status row of the player
                     widget.player.getStatusRow(),
-                    if (widget.player.isSelectedUserIncarnatedPlayer ||
-                        widget.player.isSelectedClubPlayer)
+                    if (widget.player.isEmbodiedByCurrentUser ||
+                        widget.player.isPartOfClubOfCurrentUser)
                       Row(
                         children: [
                           formSpacer3,
@@ -172,20 +175,6 @@ class _PlayerCardState extends State<PlayerCard>
                 ),
               ],
             ),
-            // subtitle: Text(
-            //   'Born: ${DateFormat('yyyy-MM-dd').format(widget.player.dateBirth)}',
-            // ),
-            // trailing: IconButton(
-            //   icon: Icon(_developed
-            //       ? Icons.expand_less
-            //       : Icons.expand_circle_down_outlined),
-            //   iconSize: iconSizeSmall,
-            //   onPressed: () {
-            //     setState(() {
-            //       _developed = !_developed;
-            //     });
-            //   },
-            // ),
           ),
           if (!_developed) widget.player.getPlayerMainInformation(context),
           if (_developed)
@@ -212,7 +201,19 @@ class _PlayerCardState extends State<PlayerCard>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            /// Player's main information
                             widget.player.getPlayerMainInformation(context),
+
+                            /// ListTile to display only when expended
+                            if (_developed) ...[
+                              if (widget.player.userName != null)
+
+                                /// Players embodied listtile
+                                PlayerCardEmbodiedListTile(
+                                    player: widget.player),
+                              PlayerCardContractDurationListTile(
+                                  player: widget.player),
+                            ]
                           ],
                         ),
                       ),

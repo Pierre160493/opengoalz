@@ -77,9 +77,9 @@ BEGIN
 
                     -- Insert a new row in the players_history table
                     INSERT INTO players_history
-                        (id_player, id_club, description)
+                        (id_player, id_club, is_transfer_description, description)
                         VALUES (
-                            rec_player.id, rec_player.id_club,
+                            rec_player.id, rec_player.id_club, TRUE,
                             'Left ' || string_parser(rec_player.id_club, 'idClub') || ' because no bids were made on him'
                     );
 
@@ -153,10 +153,9 @@ BEGIN
 
                     -- Insert a new row in the players_history table
                     INSERT INTO players_history
-                        (id_player, id_club, description)
+                        (id_player, id_club, is_transfer_description, description)
                     VALUES (
-                        rec_player.id,
-                        rec_player.id_club,
+                        rec_player.id, rec_player.id_club, TRUE,
                         'Put on transfer list by ' || string_parser(rec_player.id_club, 'idClub') || ' but no bids were made'
                     );
 
@@ -254,10 +253,9 @@ BEGIN
 
             -- Insert a new row in the players_history table
             INSERT INTO players_history
-                (id_player, id_club, description)
+                (id_player, id_club, is_transfer_description, description)
                 VALUES (
-                    rec_player.id,
-                    rec_player.id_club,
+                    rec_player.id, rec_player.id_club, TRUE,
                     'Joined ' || string_parser(last_bid.id_club, 'idClub') || ' for ' || last_bid.amount
                 );
 

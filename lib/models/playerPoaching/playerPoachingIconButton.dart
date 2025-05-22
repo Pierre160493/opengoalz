@@ -76,7 +76,7 @@ class _PlayerPoachingIconButtonState extends State<PlayerPoachingIconButton> {
   @override
   Widget build(BuildContext context) {
     /// If the player is already in the club, do not show the poaching button
-    // if (widget.player.isSelectedClubPlayer) {
+    // if (widget.player.isPartOfClubOfCurrentUser) {
     //   return Container();
     // }
     return IconButton(

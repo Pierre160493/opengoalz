@@ -12,7 +12,7 @@ BEGIN
     ------ Store player's stats in the history
     INSERT INTO players_history_stats
         (created_at, id_player, performance_score_real, performance_score_theoretical, 
-        expenses_payed, expenses_expected, expenses_missed, expenses_target,
+        expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience,
         loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
@@ -20,7 +20,7 @@ BEGIN
         training_points_used, user_points_available, user_points_used)
     SELECT
         inp_multiverse.date_handling, id, performance_score_real, performance_score_theoretical,
-        expenses_payed, expenses_expected, expenses_missed, expenses_target,
+        expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience,
         loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
@@ -37,7 +37,9 @@ BEGIN
             ELSE GREATEST(
                 0,
                 expenses_missed - expenses_payed + expenses_expected)
-        END
+        END,
+        expenses_won_total = expenses_won_total + expenses_payed,
+        expenses_won_available = expenses_won_available + expenses_payed
     WHERE id_multiverse = inp_multiverse.id
     AND date_death IS NULL;
 
