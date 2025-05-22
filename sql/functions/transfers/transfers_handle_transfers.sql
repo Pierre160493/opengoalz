@@ -11,7 +11,7 @@ DECLARE
     loc_tmp INT8; -- Variable to store the count of rows affected by the query
 BEGIN
 
-    -- Query to select rows to process (bids finished and player is not currently playing a game)
+    ------ Query to select rows to process (bids finished and player is not currently playing a game)
     FOR rec_player IN (
         SELECT *, player_get_full_name(id) AS full_name,
             string_parser(id, 'idPlayer') AS special_string_player,
@@ -304,6 +304,55 @@ BEGIN
         -- Remove bids for this transfer from the transfer_bids table
         DELETE FROM transfers_bids WHERE id_player = rec_player.id;
         
+    END LOOP;
+
+    ------ Handle players that have their contract ended
+    FOR rec_player IN (
+        SELECT *, player_get_full_name(id) AS full_name,
+            string_parser(id, 'idPlayer') AS special_string_player,
+            string_parser(id_club, 'idClub') AS special_string_club
+            FROM players
+            WHERE date_end_contract < NOW()
+            AND is_playing = FALSE
+            AND id_multiverse = inp_multiverse.id
+    ) LOOP
+
+        ---- Insert a message to say that the player was not sold
+        INSERT INTO mails (
+            id_club_to, created_at, sender_role, is_transfer_info, title, message)
+        VALUES
+            (rec_player.id_club, rec_player.date_end_contract, 'Coach', TRUE,
+            rec_player.special_string_player || ' contract ended',
+            rec_player.special_string_player || ' contract ended, he left the club, lets hope he will find what he is looking for');
+
+        ---- Send mail to the clubs following and poaching the player
+        INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
+        SELECT DISTINCT id_club, 'Scouts', TRUE,
+            rec_player.special_string_player || ' (followed) contract ended',
+            rec_player.special_string_player || ' (followed) contract ended and he is now clubless, its probably a good time to make a move !'
+        FROM (
+            SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
+            UNION
+            SELECT id_club FROM players_poaching WHERE id_player = rec_player.id
+        ) AS clubs;
+
+        ---- Update the player to set him as clubless
+        UPDATE players SET
+            id_club = NULL,
+            date_arrival = date_end_contract,
+            date_end_contract = NULL,
+            expenses_missed = 0,
+            motivation = 60 + random() * 30
+        WHERE id = rec_player.id;
+
+        ---- Insert a new row in the players_history table
+        INSERT INTO players_history
+            (id_player, id_club, is_transfer_description, description)
+        VALUES (
+            rec_player.id, rec_player.id_club, TRUE,
+            'Contract ended and left ' || string_parser(rec_player.id_club, 'idClub')
+        );
+
     END LOOP;
 
     ------ Retire players that have too small motivation and are not in a club

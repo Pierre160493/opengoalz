@@ -211,8 +211,11 @@ class _PlayerCardState extends State<PlayerCard>
                                 /// Players embodied listtile
                                 PlayerCardEmbodiedListTile(
                                     player: widget.player),
-                              PlayerCardContractDurationListTile(
-                                  player: widget.player),
+
+                              /// Player's end contract list tile
+                              if (widget.player.dateEndContract != null)
+                                PlayerCardContractDurationListTile(
+                                    player: widget.player),
                             ]
                           ],
                         ),

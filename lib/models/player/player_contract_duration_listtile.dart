@@ -15,23 +15,19 @@ class PlayerCardContractDurationListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     /// If the player is not an embodied player
-    if (player.userName == null) {
+    if (player.dateEndContract == null) {
       return ListTile(
         shape: shapePersoRoundedBorder(),
         leading: Icon(
-          iconUser,
+          iconContract,
           size: iconSizeMedium,
           color: Colors.red,
         ),
         title: Text(
-          'Player not embodied',
+          'Player does not have a contract end date',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
-        ),
-        subtitle: Text(
-          'No user assigned',
-          style: styleItalicBlueGrey,
         ),
       );
     }
