@@ -75,6 +75,7 @@ BEGIN
             players.id,
             player_get_full_name(players.id) AS full_name,
             calculate_age(multiverses.speed, players.date_birth) AS age,
+            players.username,
             players.id_club,
             players.date_retire,
             COUNT(players_poaching.id_player) AS poaching_count,
@@ -96,8 +97,11 @@ BEGIN
             - players1.affinity_max * (0.1 + RANDOM()) -- Reduce motivation based on the max affinity
             - (players1.poaching_count ^ 0.5) -- Reduce motivation for each poaching attempt
             ------ Lower motivation based on age for bot clubs from 30 years old
-            - CASE WHEN players1.date_retire IS NOT NULL THEN 0 -- If player is retired => 0
-                ELSE GREATEST(0, players1.age - 30) * RANDOM() END
+            - CASE
+            ---- Not for retired players nor embodied players
+                WHEN players1.date_retire IS NOT NULL OR players1.username IS NOT NULL THEN 0
+                ELSE GREATEST(0, players1.age - 30) * RANDOM()
+            END
             )
         ),
         form = LEAST(100, GREATEST(0,
@@ -224,13 +228,15 @@ BEGIN
 
     ------ If player's motivation is too low, risk of leaving club
     FOR rec_player IN (
-        SELECT *, player_get_full_name(id) AS full_name
+        SELECT *,
+            player_get_full_name(id) AS full_name
         FROM players
         WHERE id_multiverse = inp_multiverse.id
-        AND id_club IS NOT NULL
-        AND date_bid_end IS NULL
-        AND motivation < 20
-        AND date_death IS NULL
+        AND id_club IS NOT NULL -- Not for players without club
+        AND date_bid_end IS NULL -- Not for players already on the market
+        AND motivation < 20 -- Motivation < 20
+        AND date_death IS NULL -- Not for dead players
+        AND username IS NULL -- Not for embodied players
     ) LOOP
     
         -- If motivation = 0 ==> 100% chance of leaving, if motivation = 20 ==> 0% chance of leaving
@@ -279,8 +285,8 @@ BEGIN
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     VALUES (
                         rec_poaching.id_club, 'Scouts', TRUE,
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
-                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club (' || string_parser(rec_player.id_club, 'idClub') || ') and we made a bid to get him, his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || ' and the max price is ' || ROUND(rec_poaching.max_price::numeric, 1) || '.');
+                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub'),
+                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club (' || string_parser(rec_player.id_club, 'idClub') || ') and we made a bid to get him, his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || ' and the max price is ' || ROUND(rec_poaching.max_price::numeric, 1) || '.');
 
                 ELSE
 
@@ -288,7 +294,7 @@ BEGIN
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     VALUES (
                         rec_poaching.id_club, 'Scouts', TRUE,
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
+                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub'),
                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub') || ', it''s time to make a move, knowing that his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || '.');
 
                 END IF;

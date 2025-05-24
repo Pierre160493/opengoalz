@@ -5,6 +5,7 @@ import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerTrainingCoefDialogBox.dart';
+import 'package:opengoalz/models/player/player_user_points_listtile.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
 class PlayerCardStatsWidget extends StatefulWidget {
@@ -181,32 +182,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
 
           /// Display available user points if the player is embodied by a user
           if (widget.player.isEmbodiedByCurrentUser)
-            ListTile(
-              leading: Icon(
-                iconStats,
-                size: iconSizeMedium,
-                color: Colors.green,
-              ),
-              title: Row(
-                children: [
-                  Text('Available points: '),
-                  Text(
-                    widget.player.userPointsAvailable.toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: widget.player.userPointsAvailable < 0
-                          ? Colors.red
-                          : Colors.green,
-                    ),
-                  ),
-                ],
-              ),
-              subtitle: Text(
-                widget.player.userPointsUsed.toString(),
-                style: styleItalicBlueGrey,
-              ),
-              shape: shapePersoRoundedBorder(),
-            ),
+            PlayerUserPointsListTile(player: widget.player),
 
           /// Compare with a specific week to check progress
           moveHistoricDataListTile(),

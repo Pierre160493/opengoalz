@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
 import 'package:opengoalz/models/player/playerTransferBidDialogBox.dart';
-import 'package:opengoalz/models/player/player_embodied_offers_page.dart';
-import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/tickingTime.dart';
 
 class PlayerCardTransferWidget extends StatelessWidget {
@@ -17,72 +14,6 @@ class PlayerCardTransferWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Choose tile builder based on player.userName presence
-    return (player.userName != null)
-        ? _buildEmbodiedPlayerTile(context, player)
-        : _buildTransferListTile(context, player);
-  }
-
-  Widget _buildEmbodiedPlayerTile(BuildContext context, Player player) {
-    return ListTile(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Colors.blueGrey),
-      ),
-      leading: Icon(
-        iconUser,
-        size: iconSizeMedium,
-        color: Colors.blue,
-      ),
-      title: Row(
-        children: [
-          Text(
-            'Embodied player',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-      subtitle: Row(
-        children: [
-          Text(
-            'User: ',
-            style: styleItalicBlueGrey,
-          ),
-          getUserNameClickable(context, userName: player.userName),
-        ],
-      ),
-      trailing: IconButton(
-        tooltip: 'Embodied player offers',
-        icon: Icon(
-          iconTransfers,
-          size: iconSizeMedium,
-          color: player.isEmbodiedByCurrentUser? colorIsMine: Colors.green,
-        ),
-        onPressed: () {
-          if (player.isEmbodiedByCurrentUser) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) =>
-                    PlayerEmbodiedOffersPage(playerId: player.id),
-              ),
-            );
-          } else {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return PlayerEmbodiedOfferDialogBox(idPlayer: player.id);
-              },
-            );
-          }
-        },
-        iconSize: iconSizeMedium,
-        color: Colors.green,
-      ),
-    );
-  }
-
-  Widget _buildTransferListTile(BuildContext context, Player player) {
     return ListTile(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),

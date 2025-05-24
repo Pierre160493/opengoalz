@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/player_embodied_offers_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
@@ -42,21 +43,34 @@ class PlayerCardContractDurationListTile extends StatelessWidget {
       title: Row(
         children: [
           Text(
-            'Time left: ',
+            'Contract: ',
+          ),
+          Text(
+            calculateAge(
+              DateTime.now(),
+              player.multiverseSpeed,
+              dateEnd: player.dateEndContract,
+            ).toStringAsFixed(1),
             style: const TextStyle(
               fontWeight: FontWeight.bold,
             ),
           ),
+          Text(' seasons left'),
+        ],
+      ),
+      subtitle: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'End date: ${player.dateEndContract != null ? formatDate(player.dateEndContract!) : 'N/A'}',
+            style: styleItalicBlueGrey,
+          ),
           tickingTimeWidget(player.dateEndContract!)
         ],
       ),
-      subtitle: Text(
-        'Contract end date: ${player.dateEndContract != null ? formatDate(player.dateEndContract!) : 'N/A'}',
-        style: styleItalicBlueGrey,
-      ),
       trailing: player.isEmbodiedByCurrentUser
           ? IconButton(
-              tooltip: 'Embodied player offers',
+              tooltip: 'Embodied player contract',
               icon: Icon(
                 Icons.pending_actions_outlined,
                 size: iconSizeMedium,
@@ -70,27 +84,46 @@ class PlayerCardContractDurationListTile extends StatelessWidget {
                     title: Text('Manage ${player.getFullName()}\'s contract'),
                     content: Column(
                       children: [
+                        /// Contract end date
                         ListTile(
                           leading: Icon(
                             iconContract,
                             size: iconSizeMedium,
                             color: Colors.green,
                           ),
-                          title: Text('Contract end date'),
-                          subtitle: Text(
-                            'Date: ${player.dateEndContract != null ? formatDate(player.dateEndContract!) : 'N/A'}',
-                            style: styleItalicBlueGrey,
+                          title: Text(
+                            '${player.dateEndContract != null ? formatDate(player.dateEndContract!) : 'N/A'}',
                           ),
+                          subtitle: Text('Contract end date',
+                              style: styleItalicBlueGrey),
                           shape: shapePersoRoundedBorder(),
                         ),
+
+                        /// Time left
                         ListTile(
                           leading: Icon(
                             iconContract,
                             size: iconSizeMedium,
                             color: Colors.green,
                           ),
-                          title: Text('Time left'),
-                          subtitle: tickingTimeWidget(player.dateEndContract!),
+                          title: tickingTimeWidget(player.dateEndContract!),
+                          subtitle: Text('Time left before contract expires',
+                              style: styleItalicBlueGrey),
+                          shape: shapePersoRoundedBorder(),
+                        ),
+
+                        /// Number of seasons left
+                        ListTile(
+                          leading: Icon(
+                            iconContract,
+                            size: iconSizeMedium,
+                            color: Colors.green,
+                          ),
+                          title: Text(
+                            '${calculateAge(DateTime.now(), player.multiverseSpeed, dateEnd: player.dateEndContract!).toStringAsFixed(1)} seasons left',
+                          ),
+                          subtitle: Text('Number of seasons left',
+                              style: styleItalicBlueGrey),
                           shape: shapePersoRoundedBorder(),
                         ),
                       ],
@@ -107,35 +140,73 @@ class PlayerCardContractDurationListTile extends StatelessWidget {
                             child: persoCancelRow,
                           ),
 
-                          /// End contract button
-                          TextButton(
-                            onPressed: () async {
-                              await operationInDB(
-                                context,
-                                'UPDATE',
-                                'players',
-                                data: {
-                                  'date_end_contract':
-                                      DateTime.now().toUtc().toIso8601String()
-                                },
-                                matchCriteria: {'id': player.id},
-                                messageSuccess:
-                                    'The paperwork is in progress, you\'ll soon be a free agent to pursue your career elsewhere !',
-                              );
+                          /// End contract button for embodied players
+                          if (player.isEmbodiedByCurrentUser)
+                            TextButton(
+                              onPressed: () async {
+                                await operationInDB(
+                                  context,
+                                  'UPDATE',
+                                  'players',
+                                  data: {
+                                    'date_end_contract':
+                                        DateTime.now().toUtc().toIso8601String()
+                                  },
+                                  matchCriteria: {'id': player.id},
+                                  messageSuccess:
+                                      'The paperwork is in progress, you\'ll soon be a free agent to pursue your career elsewhere !',
+                                );
 
-                              Navigator.of(context).pop();
-                            },
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.cancel,
-                                  color: Colors.red,
-                                ),
-                                formSpacer3,
-                                Text('End contract'),
-                              ],
+                                Navigator.of(context).pop();
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.exit_to_app,
+                                    size: iconSizeSmall,
+                                    color: Colors.red,
+                                  ),
+                                  formSpacer3,
+                                  Text('End contract'),
+                                ],
+                              ),
                             ),
-                          ),
+
+                          // /// Club renewal button for embodied players
+                          // if (player.isPartOfClubOfCurrentUser)
+                          //   TextButton(
+                          //     onPressed: () async {
+                          //       await operationInDB(
+                          //         context,
+                          //         'UPDATE',
+                          //         'players',
+                          //         data: {
+                          //           'date_end_contract':
+                          //               player.dateEndContract!.add(
+                          //             Duration(
+                          //               days: 7 * 14 * 365,
+                          //             ),
+                          //           )
+                          //         },
+                          //         matchCriteria: {'id': player.id},
+                          //         messageSuccess:
+                          //             'The paperwork is in progress, you\'ll soon be a free agent to pursue your career elsewhere !',
+                          //       );
+
+                          //       Navigator.of(context).pop();
+                          //     },
+                          //     child: Row(
+                          //       children: [
+                          //         Icon(
+                          //           Icons.event_repeat,
+                          //           size: iconSizeSmall,
+                          //           color: Colors.green,
+                          //         ),
+                          //         formSpacer3,
+                          //         Text('Renew contract'),
+                          //       ],
+                          //     ),
+                          //   ),
                         ],
                       ),
                     ],
