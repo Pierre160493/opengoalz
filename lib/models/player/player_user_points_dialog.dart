@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 
 class PlayerUserPointsDialog extends StatefulWidget {
@@ -121,8 +122,9 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
                         IconButton(
                           icon: const Icon(Icons.remove, color: Colors.red),
                           onPressed: () {
+                            print('-1 to $statName');
                             setState(() {
-                              if (value > 0) {
+                              if (value + increase > 0) {
                                 playerStats[statName]!['increase'] =
                                     increase - 1; // Decrease stat by 1
                                 userPointsAvailable++;
@@ -137,6 +139,7 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
                         IconButton(
                           icon: const Icon(Icons.add, color: Colors.green),
                           onPressed: () {
+                            print('+1 to $statName');
                             setState(() {
                               if (widget.player.userPointsAvailable > 0) {
                                 playerStats[statName]!['increase'] =
@@ -180,11 +183,42 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             TextButton(
+              child: persoCancelRow,
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: persoCancelRow,
             ),
+            TextButton(
+              child: persoValidRow('Save'),
+              onPressed: userPointsUsed > 0
+                  ? () async {
+                      await operationInDB(context, 'UPDATE', 'players',
+                          data: {
+                            'keeper': playerStats['Keeper']!['value']! +
+                                playerStats['Keeper']!['increase']!,
+                            'defense': playerStats['Defense']!['value']! +
+                                playerStats['Defense']!['increase']!,
+                            'passes': playerStats['Passes']!['value']! +
+                                playerStats['Passes']!['increase']!,
+                            'playmaking': playerStats['Playmaking']!['value']! +
+                                playerStats['Playmaking']!['increase']!,
+                            'winger': playerStats['Winger']!['value']! +
+                                playerStats['Winger']!['increase']!,
+                            'scoring': playerStats['Scoring']!['value']! +
+                                playerStats['Scoring']!['increase']!,
+                            'freekick': playerStats['Freekick']!['value']! +
+                                playerStats['Freekick']!['increase']!,
+                            'user_points_available': userPointsAvailable,
+                            'user_points_used':
+                                widget.player.userPointsUsed + userPointsUsed,
+                          },
+                          matchCriteria: {'id': widget.player.id},
+                          messageSuccess:
+                              'Successfully updated the training coefficients for ${widget.player.getFullName()}');
+                      Navigator.of(context).pop();
+                    }
+                  : null,
+            )
           ],
         ),
       ],
