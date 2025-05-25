@@ -118,38 +118,44 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
                   Row(
                     children: [
                       /// Decrease button
-                      if (increase > 0)
-                        IconButton(
-                          icon: const Icon(Icons.remove, color: Colors.red),
-                          onPressed: () {
-                            print('-1 to $statName');
-                            setState(() {
-                              if (value + increase > 0) {
-                                playerStats[statName]!['increase'] =
-                                    increase - 1; // Decrease stat by 1
-                                userPointsAvailable++;
-                                userPointsUsed--;
+                      IconButton(
+                        icon: Icon(Icons.remove,
+                            color: increase > 0 ? Colors.red : Colors.grey),
+                        onPressed: increase > 0
+                            ? () {
+                                print('-1 to $statName');
+                                setState(() {
+                                  if (value + increase > 0) {
+                                    playerStats[statName]!['increase'] =
+                                        increase - 1; // Decrease stat by 1
+                                    userPointsAvailable++;
+                                    userPointsUsed--;
+                                  }
+                                });
                               }
-                            });
-                          },
-                        ),
+                            : null,
+                      ),
 
                       /// Increase button
-                      if (userPointsAvailable > 0)
-                        IconButton(
-                          icon: const Icon(Icons.add, color: Colors.green),
-                          onPressed: () {
-                            print('+1 to $statName');
-                            setState(() {
-                              if (widget.player.userPointsAvailable > 0) {
-                                playerStats[statName]!['increase'] =
-                                    increase + 1; // Increase stat by 1
-                                userPointsAvailable--;
-                                userPointsUsed++;
+                      IconButton(
+                        icon: Icon(Icons.add,
+                            color: userPointsAvailable > 0
+                                ? Colors.green
+                                : Colors.grey),
+                        onPressed: userPointsAvailable > 0
+                            ? () {
+                                print('+1 to $statName');
+                                setState(() {
+                                  if (widget.player.userPointsAvailable > 0) {
+                                    playerStats[statName]!['increase'] =
+                                        increase + 1; // Increase stat by 1
+                                    userPointsAvailable--;
+                                    userPointsUsed++;
+                                  }
+                                });
                               }
-                            });
-                          },
-                        ),
+                            : null,
+                      ),
                     ],
                   ),
                 ],
