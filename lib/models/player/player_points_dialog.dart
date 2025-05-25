@@ -3,37 +3,45 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 
-class PlayerPointsDialog extends StatefulWidget {
+class PlayerUserPointsDialog extends StatefulWidget {
   final Player player;
 
-  const PlayerPointsDialog({Key? key, required this.player}) : super(key: key);
+  const PlayerUserPointsDialog({Key? key, required this.player})
+      : super(key: key);
 
   @override
-  State<PlayerPointsDialog> createState() => _PlayerPointsDialogState();
+  State<PlayerUserPointsDialog> createState() => _PlayerUserPointsDialogState();
 }
 
-class _PlayerPointsDialogState extends State<PlayerPointsDialog> {
+class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
   Map<String, Map<String, double>> playerStats = {};
+  int userPointsAvailable = 0;
+  int userPointsUsed = 0;
 
   @override
   void initState() {
     super.initState();
     playerStats = {
-      'Keeper': {'stats': widget.player.keeper.toDouble(), 'increase': 0},
-      'Defense': {'stats': widget.player.defense.toDouble(), 'increase': 0},
-      'Passes': {'stats': widget.player.passes.toDouble(), 'increase': 0},
+      'Keeper': {'value': widget.player.keeper.toDouble(), 'increase': 0},
+      // 'Defense': {'value': widget.player.defense.toDouble(), 'increase': 0},
+      'Defense': {'value': 25.0, 'increase': 0},
+      'Passes': {'value': widget.player.passes.toDouble(), 'increase': 0},
       'Playmaking': {
-        'stats': widget.player.playmaking.toDouble(),
+        'value': widget.player.playmaking.toDouble(),
         'increase': 0
       },
-      'Winger': {'stats': widget.player.winger.toDouble(), 'increase': 0},
-      'Scoring': {'stats': widget.player.scoring.toDouble(), 'increase': 0},
-      'Freekick': {'stats': widget.player.freekick.toDouble(), 'increase': 0},
+      'Winger': {'value': widget.player.winger.toDouble(), 'increase': 0},
+      'Scoring': {'value': widget.player.scoring.toDouble(), 'increase': 0},
+      'Freekick': {'value': widget.player.freekick.toDouble(), 'increase': 0},
     };
+
+    userPointsAvailable = widget.player.userPointsAvailable.floor();
+    userPointsUsed = 0;
   }
 
   @override
   Widget build(BuildContext context) {
+    print('User points available2: $userPointsAvailable');
     return persoAlertDialogWithConstrainedContent(
       title: Text('Use training points for ${widget.player.getFullName()}'),
       content: Column(
@@ -45,11 +53,24 @@ class _PlayerPointsDialogState extends State<PlayerPointsDialog> {
               size: iconSizeMedium,
               color: Colors.blue,
             ),
-            title: Text(
-              widget.player.userPointsAvailable.toString(),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+            title: Row(
+              children: [
+                Text(
+                  userPointsAvailable.toString(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (userPointsUsed > 0)
+                  Text(
+                    ' (-$userPointsUsed)',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+              ],
             ),
             subtitle: Text(
               'Number of user training points available',
@@ -61,8 +82,8 @@ class _PlayerPointsDialogState extends State<PlayerPointsDialog> {
           /// Display the stats listtiles
           ...playerStats.entries.map((entry) {
             String statName = entry.key;
-            Map<String, double> statValues = entry.value;
-            double stats = statValues['stats']!;
+            double value = entry.value['value']!;
+            int increase = entry.value['increase']!.toInt();
 
             return ListTile(
               leading: Icon(
@@ -71,20 +92,83 @@ class _PlayerPointsDialogState extends State<PlayerPointsDialog> {
                 color: Colors.green,
               ),
               title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('$statName: '),
-                  Text(
-                    stats.toString(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Text('$statName: '),
+                      Text(
+                        value.toString(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (increase > 0)
+                        Text(
+                          ' (+$increase)',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      /// Decrease button
+                      if (increase > 0)
+                        IconButton(
+                          icon: const Icon(Icons.remove, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              if (value > 0) {
+                                playerStats[statName]!['increase'] =
+                                    increase - 1; // Decrease stat by 1
+                                userPointsAvailable++;
+                                userPointsUsed--;
+                              }
+                            });
+                          },
+                        ),
+
+                      /// Increase button
+                      if (userPointsAvailable > 0)
+                        IconButton(
+                          icon: const Icon(Icons.add, color: Colors.green),
+                          onPressed: () {
+                            setState(() {
+                              if (widget.player.userPointsAvailable > 0) {
+                                playerStats[statName]!['increase'] =
+                                    increase + 1; // Increase stat by 1
+                                userPointsAvailable--;
+                                userPointsUsed++;
+                              }
+                            });
+                          },
+                        ),
+                    ],
                   ),
                 ],
               ),
-              subtitle: LinearProgressIndicator(
-                value: stats / 100,
-                backgroundColor: Colors.grey[300],
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+              subtitle: Stack(
+                children: [
+                  /// Display the increased bar
+                  LinearProgressIndicator(
+                    value: (value + increase) / 100,
+                    backgroundColor: Colors.grey[300],
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.green),
+                  ),
+
+                  /// Display the current value bar
+                  LinearProgressIndicator(
+                    value: value / 100,
+                    backgroundColor: Colors.transparent,
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.blue),
+                  ),
+                ],
               ),
               shape: shapePersoRoundedBorder(),
             );

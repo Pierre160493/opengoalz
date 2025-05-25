@@ -76,39 +76,31 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
                     'Freekick'
                   ][i]}: ${widget.player.trainingCoef[i].toString()} [${(trainingRatioOld[i] * 100).toStringAsFixed(0)}%] ${_isModified ? ' --> ${(trainingRatioNew[i] * 100).toStringAsFixed(0)}%' : ''}',
                 ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                subtitle: Stack(
                   children: [
-                    Stack(
-                      children: [
-                        if (trainingRatioNew[i] != trainingRatioOld[i])
-                          Container(
-                            height: 20, // Set the desired height here
-                            child: LinearProgressIndicator(
-                              value:
-                                  max(trainingRatioNew[i], trainingRatioOld[i]),
-                              backgroundColor: Colors.grey,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  trainingRatioNew[i] > trainingRatioOld[i]
-                                      ? Colors.green
-                                      : Colors.red),
-                            ),
-                          ),
-                        Container(
-                          height: 20, // Set the desired height here
-                          child: LinearProgressIndicator(
-                            value:
-                                min(trainingRatioNew[i], trainingRatioOld[i]),
-                            backgroundColor:
-                                trainingRatioNew[i] != trainingRatioOld[i]
-                                    ? Colors.transparent
-                                    : Colors.grey,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.blue),
-                          ),
+                    if (trainingRatioNew[i] != trainingRatioOld[i])
+                      Container(
+                        height: 20, // Set the desired height here
+                        child: LinearProgressIndicator(
+                          value: max(trainingRatioNew[i], trainingRatioOld[i]),
+                          backgroundColor: Colors.grey,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              trainingRatioNew[i] > trainingRatioOld[i]
+                                  ? Colors.green
+                                  : Colors.red),
                         ),
-                      ],
-                    )
+                      ),
+                    Container(
+                      height: 20, // Set the desired height here
+                      child: LinearProgressIndicator(
+                        value: min(trainingRatioNew[i], trainingRatioOld[i]),
+                        backgroundColor:
+                            trainingRatioNew[i] != trainingRatioOld[i]
+                                ? Colors.transparent
+                                : Colors.grey,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                      ),
+                    ),
                   ],
                 ),
                 trailing: Row(

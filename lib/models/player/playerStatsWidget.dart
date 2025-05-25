@@ -154,14 +154,12 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
               style: styleItalicBlueGrey,
             ),
             onTap: () {
-              widget.player.isPartOfClubOfCurrentUser
-                  ? showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return PlayerTrainingDialog(player: widget.player);
-                      },
-                    )
-                  : null;
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return PlayerTrainingDialog(player: widget.player);
+                },
+              );
             },
             shape: shapePersoRoundedBorder(
               Colors.green,

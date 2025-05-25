@@ -75,7 +75,7 @@ class PlayerUserPointsListTile extends StatelessWidget {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return PlayerPointsDialog(player: player);
+              return PlayerUserPointsDialog(player: player);
             },
           );
         },
