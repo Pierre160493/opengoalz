@@ -5,7 +5,9 @@ import 'package:opengoalz/constants.dart';
 extension ShowSnackBar on BuildContext {
   void showSnackBar(String message,
       {Icon? icon = null, Color? backgroundColor = null}) {
+    print('showSnackBar called with message: $message');
     ScaffoldMessenger.of(this).showSnackBar(
+      // ScaffoldMessenger.of(this, rootNavigator: true).showSnackBar(
       SnackBar(
         content: Row(
           children: [

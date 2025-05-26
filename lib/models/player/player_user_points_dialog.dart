@@ -22,10 +22,13 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
   @override
   void initState() {
     super.initState();
+    _initializeStats();
+  }
+
+  void _initializeStats() {
     playerStats = {
       'Keeper': {'value': widget.player.keeper.toDouble(), 'increase': 0},
-      // 'Defense': {'value': widget.player.defense.toDouble(), 'increase': 0},
-      'Defense': {'value': 25.0, 'increase': 0},
+      'Defense': {'value': widget.player.defense.toDouble(), 'increase': 0},
       'Passes': {'value': widget.player.passes.toDouble(), 'increase': 0},
       'Playmaking': {
         'value': widget.player.playmaking.toDouble(),
@@ -40,9 +43,14 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
     userPointsUsed = 0;
   }
 
+  void resetStats() {
+    setState(() {
+      _initializeStats(); // Reuse the initialization logic
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    print('User points available2: $userPointsAvailable');
     return persoAlertDialogWithConstrainedContent(
       title: Text('Use training points for ${widget.player.getFullName()}'),
       content: Column(
@@ -99,7 +107,7 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
                     children: [
                       Text('$statName: '),
                       Text(
-                        value.toString(),
+                        value.toStringAsFixed(1),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
@@ -123,7 +131,6 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
                             color: increase > 0 ? Colors.red : Colors.grey),
                         onPressed: increase > 0
                             ? () {
-                                print('-1 to $statName');
                                 setState(() {
                                   if (value + increase > 0) {
                                     playerStats[statName]!['increase'] =
@@ -144,7 +151,6 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
                                 : Colors.grey),
                         onPressed: userPointsAvailable > 0
                             ? () {
-                                print('+1 to $statName');
                                 setState(() {
                                   if (widget.player.userPointsAvailable > 0) {
                                     playerStats[statName]!['increase'] =
@@ -188,40 +194,59 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            /// Cancel button
             TextButton(
               child: persoCancelRow,
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
+
+            /// Reset button
             TextButton(
-              child: persoValidRow('Save'),
+              child: persoRowWithIcon(
+                Icons.refresh,
+                'Reset',
+                color: Colors.orange,
+              ),
+              onPressed: userPointsUsed > 0
+                  ? () {
+                      setState(() {
+                        _initializeStats(); // Reset stats to initial values
+                      });
+                    }
+                  : null,
+            ),
+
+            /// Confirm button
+            TextButton(
+              child: persoValidRow('Confirm using $userPointsUsed points'),
               onPressed: userPointsUsed > 0
                   ? () async {
-                      await operationInDB(context, 'UPDATE', 'players',
-                          data: {
-                            'keeper': playerStats['Keeper']!['value']! +
-                                playerStats['Keeper']!['increase']!,
-                            'defense': playerStats['Defense']!['value']! +
-                                playerStats['Defense']!['increase']!,
-                            'passes': playerStats['Passes']!['value']! +
-                                playerStats['Passes']!['increase']!,
-                            'playmaking': playerStats['Playmaking']!['value']! +
-                                playerStats['Playmaking']!['increase']!,
-                            'winger': playerStats['Winger']!['value']! +
-                                playerStats['Winger']!['increase']!,
-                            'scoring': playerStats['Scoring']!['value']! +
-                                playerStats['Scoring']!['increase']!,
-                            'freekick': playerStats['Freekick']!['value']! +
-                                playerStats['Freekick']!['increase']!,
-                            'user_points_available': userPointsAvailable,
-                            'user_points_used':
-                                widget.player.userPointsUsed + userPointsUsed,
-                          },
-                          matchCriteria: {'id': widget.player.id},
-                          messageSuccess:
-                              'Successfully updated the training coefficients for ${widget.player.getFullName()}');
-                      Navigator.of(context).pop();
+                      // Prepare the array of increases in the correct order
+                      final List<int> increases = [
+                        playerStats['Keeper']!['increase']!.toInt(),
+                        playerStats['Defense']!['increase']!.toInt(),
+                        playerStats['Passes']!['increase']!.toInt(),
+                        playerStats['Playmaking']!['increase']!.toInt(),
+                        playerStats['Winger']!['increase']!.toInt(),
+                        playerStats['Scoring']!['increase']!.toInt(),
+                        playerStats['Freekick']!['increase']!.toInt(),
+                      ];
+
+                      bool isOk = await operationInDB(
+                        context,
+                        'FUNCTION',
+                        'players_increase_stats_from_training_points',
+                        data: {
+                          'inp_id_player': widget.player.id,
+                          'inp_increase_points': increases,
+                          'inp_user_uuid': supabase.auth.currentUser!.id,
+                        },
+                        messageSuccess:
+                            'Successfully used $userPointsUsed training points for ${widget.player.getFullName()}',
+                      );
+                      if (isOk) Navigator.of(context).pop();
                     }
                   : null,
             )

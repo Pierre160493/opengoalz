@@ -124,6 +124,16 @@ Row persoValidRow(String text) {
   );
 }
 
+Row persoRowWithIcon(IconData icon, String text, {Color? color}) {
+  return Row(
+    children: [
+      Icon(icon, color: color ?? Colors.blueGrey),
+      formSpacer3,
+      Text(text),
+    ],
+  );
+}
+
 RoundedRectangleBorder shapePersoRoundedBorder(
     [Color? borderColor, double borderWidth = 2]) {
   return RoundedRectangleBorder(
