@@ -88,6 +88,7 @@ BEGIN
                         id_club = NULL,
                         date_arrival = date_bid_end,
                         shirt_number = NULL,
+                        expenses_payed = 0,
                         expenses_missed = 0,
                         motivation = 60 + random() * 30,
                         transfer_price = 100,
@@ -317,7 +318,7 @@ BEGIN
             AND id_multiverse = inp_multiverse.id
     ) LOOP
 
-        ---- Insert a message to say that the player was not sold
+        ---- Insert a message to say that the embodied player has left the club
         INSERT INTO mails (
             id_club_to, created_at, sender_role, is_transfer_info, title, message)
         VALUES
@@ -341,6 +342,7 @@ BEGIN
             id_club = NULL,
             date_arrival = date_end_contract,
             date_end_contract = NULL,
+            expenses_payed = 0,
             expenses_missed = 0,
             motivation = 60 + random() * 30
         WHERE id = rec_player.id;

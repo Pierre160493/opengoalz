@@ -52,7 +52,7 @@ Widget getStaffCoefListTile(BuildContext context, Player player, String title) {
       await showDialog(
         context: context,
         builder: (BuildContext context) {
-          return getPlayerHistoryStreamGraph(
+          return getPlayerHistoryGraph(
               context,
               player.id,
               [title == 'Coach' ? 'coef_coach' : 'coef_scout'],

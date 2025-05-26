@@ -86,28 +86,21 @@ Widget playerSmallNotesIcon(BuildContext context, Player player) {
   );
 }
 
-Widget getPlayerHistoryStreamGraph(
+Widget getPlayerHistoryGraph(
     BuildContext context, int id, List<String> fieldsToPlot, String title) {
-  Stream<List<Map>> _historyStream = supabase
-      .from('players_history_stats')
-      .stream(primaryKey: ['id'])
-      .eq('id_player', id)
-      .order('created_at', ascending: true)
-      .map((maps) => maps
-          .map((map) => {
-                'created_at': map['created_at'],
-                for (var field in fieldsToPlot) field: map[field],
-              })
-          .toList());
-
-  return StreamBuilder<List<Map>>(
-    stream: _historyStream,
+  return FutureBuilder<List<Map>>(
+    future: supabase
+        .from('players_history_stats')
+        .select('created_at, ${fieldsToPlot.join(", ")}')
+        .eq('id_player', id)
+        .order('created_at', ascending: true)
+        .then((response) => response),
     builder: (context, snapshot) {
       if (snapshot.hasError) {
         return Text('Error: ${snapshot.error}');
       } else if (snapshot.connectionState == ConnectionState.waiting) {
         return loadingCircularAndText('Loading player history...');
-      } else if (!snapshot.hasData) {
+      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
         return Text('Error: No data');
       }
       final historyData = snapshot.data!;

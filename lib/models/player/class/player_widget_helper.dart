@@ -273,7 +273,7 @@ extension PlayerWidgetsHelper on Player {
       onTap: () => showDialog(
         context: context,
         builder: (BuildContext context) {
-          return getPlayerHistoryStreamGraph(
+          return getPlayerHistoryGraph(
             context,
             id,
             ['performance_score_real', 'performance_score_theoretical'],

@@ -129,7 +129,7 @@ Widget getExpensesWidget(BuildContext context, Player player) {
     onTap: () => showDialog(
       context: context,
       builder: (BuildContext context) {
-        return getPlayerHistoryStreamGraph(
+        return getPlayerHistoryGraph(
           context,
           player.id,
           ['expenses_expected', 'expenses_target'],
