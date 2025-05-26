@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/player_embodied_offers_button.dart';
+import 'package:opengoalz/models/player/player_user_points_button.dart';
 import 'package:opengoalz/models/player/players_sorting_function.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
@@ -247,9 +248,16 @@ class _PlayersPageState extends State<PlayersPage> {
                     color: Colors.green),
               ),
 
-            /// Button to place an offer for the player
-            if (players.length == 1)
-              PlayerEmbodiedOffersButton(player: players[0]),
+            /// If the page contains only one player, display additional buttons
+            if (players.length == 1) ...[
+              /// Button to increase the player's stats
+              if (players[0].isEmbodiedByCurrentUser)
+                PlayerUserPointsButton(player: players[0]),
+
+              /// Button to place an offer for an embodied player
+              if (players.length == 1 && players[0].userName != null)
+                PlayerEmbodiedOffersButton(player: players[0]),
+            ],
 
             /// Modify search criterias
             IconButton(

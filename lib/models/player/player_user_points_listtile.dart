@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/player_user_points_button.dart';
 import 'package:opengoalz/models/player/player_user_points_dialog.dart';
 
 class PlayerUserPointsListTile extends StatelessWidget {
@@ -64,24 +65,7 @@ class PlayerUserPointsListTile extends StatelessWidget {
           ),
         ],
       ),
-      trailing: IconButton(
-        tooltip: 'Use training points',
-        icon: Icon(
-          iconStats,
-          size: iconSizeMedium,
-          color: colorIsMine,
-        ),
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return PlayerUserPointsDialog(player: player);
-            },
-          );
-        },
-        iconSize: iconSizeMedium,
-        color: Colors.green,
-      ),
+      trailing: PlayerUserPointsButton(player: player),
     );
   }
 }
