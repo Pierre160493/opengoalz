@@ -15,8 +15,8 @@ class PlayerEmbodiedOffersButton extends StatelessWidget {
     return IconButton(
       tooltip: 'Embodied player offers',
       icon: Icon(
-        iconTransfers,
-        size: iconSizeMedium,
+        Icons.description,
+        // size: iconSizeMedium,
         color: player.isEmbodiedByCurrentUser ? colorIsMine : Colors.green,
       ),
       onPressed: () {
