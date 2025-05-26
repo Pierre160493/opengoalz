@@ -40,7 +40,7 @@ BEGIN
         END,
         expenses_won_total = expenses_won_total + expenses_payed,
         expenses_won_available = expenses_won_available + expenses_payed,
-        user_points_available = user_points_available + 2.0 + expenses_payed / expenses_target
+        user_points_available = user_points_available + 2.0 + expenses_payed::NUMERIC / expenses_target
     WHERE id_multiverse = inp_multiverse.id
     AND date_death IS NULL;
 
