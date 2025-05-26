@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
 import 'package:opengoalz/models/player/player_embodied_offers_page.dart';
+import 'package:opengoalz/provider_user.dart';
+import 'package:provider/provider.dart';
 
 class PlayerEmbodiedOffersButton extends StatelessWidget {
   final Player player;
@@ -20,6 +23,7 @@ class PlayerEmbodiedOffersButton extends StatelessWidget {
         color: player.isEmbodiedByCurrentUser ? colorIsMine : Colors.green,
       ),
       onPressed: () {
+        /// If the player is embodied by the current user, navigate to the offers page
         if (player.isEmbodiedByCurrentUser) {
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -27,6 +31,18 @@ class PlayerEmbodiedOffersButton extends StatelessWidget {
                   PlayerEmbodiedOffersPage(playerId: player.id),
             ),
           );
+
+          /// If the player's multiverse ID does not match the user's club multiverse ID,
+        } else if (player.idMultiverse !=
+            Provider.of<UserSessionProvider>(context, listen: false)
+                .user
+                .selectedClub!
+                .idMultiverse) {
+          context.showSnackBarError(
+            '${player.getFullName()} is not part of your club\'s multiverse ${Provider.of<UserSessionProvider>(context, listen: false).user.selectedClub!.name}.',
+          );
+
+          /// Otherwise, show the dialog box for embodied offers
         } else {
           showDialog(
             context: context,

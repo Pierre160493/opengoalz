@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/postgresql_requests.dart';
@@ -146,6 +144,19 @@ class _PlayerEmbodiedOfferDialogBoxState
         final Player player = snapshot.data!;
         _offerMin = (player.expensesTarget * 0.5).toInt();
         _offerMax = _offerMin * 3;
+
+        /// Check if the player is in the multiverse of the selected club
+        if (player.idMultiverse !=
+            Provider.of<UserSessionProvider>(context, listen: false)
+                .user
+                .selectedClub!
+                .idMultiverse) {
+          return Center(
+            child: Text(
+              'The player ${player.getPlayerNameString()} is not in the multiverse of your currenly selected club: ${Provider.of<UserSessionProvider>(context, listen: false).user.selectedClub!.name}',
+            ),
+          );
+        }
 
         // If there is an existing offer, initialize controllers/fields only once
         if (_existingClubOffer != null && !_initializedFromExistingOffer) {

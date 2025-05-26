@@ -93,8 +93,8 @@ class Player {
   final int coefCoach;
   final int coefScout;
   final bool isStaff;
-  final int userPointsAvailable;
-  final int userPointsUsed;
+  final double userPointsAvailable;
+  final double userPointsUsed;
 
   Player.fromMap(Map<String, dynamic> map, Profile user)
       : id = map['id'],
@@ -167,8 +167,8 @@ class Player {
         coefCoach = map['coef_coach'],
         coefScout = map['coef_scout'],
         isStaff = map['is_staff'],
-        userPointsAvailable = map['user_points_available'],
-        userPointsUsed = map['user_points_used'],
+        userPointsAvailable = (map['user_points_available'] as num).toDouble(),
+        userPointsUsed = (map['user_points_used'] as num).toDouble(),
         isPartOfClubOfCurrentUser = user.selectedClub?.id == map['id_club'],
         isEmbodiedByCurrentUser = user.username == map['username'];
 
