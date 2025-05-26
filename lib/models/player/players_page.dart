@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
+import 'package:opengoalz/models/player/player_embodied_offers_button.dart';
 import 'package:opengoalz/models/player/players_sorting_function.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
@@ -245,6 +246,10 @@ class _PlayersPageState extends State<PlayersPage> {
                         : Icons.visibility,
                     color: Colors.green),
               ),
+
+            /// Button to place an offer for the player
+            if (players.length == 1)
+              PlayerEmbodiedOffersButton(player: players[0]),
 
             /// Modify search criterias
             IconButton(
