@@ -22,7 +22,7 @@ BEGIN
     
         ---- Log user history
         INSERT INTO profile_events (uuid_user, description)
-        VALUES (OLD.username, 'Stopped managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
+        VALUES ((SELECT uuid_user FROM profiles WHERE username = OLD.username), 'Stopped managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
 
     ------ If the user is assigned to the club
     ELSE
@@ -54,7 +54,7 @@ BEGIN
 
     ---- Log user history
     INSERT INTO profile_events (uuid_user, description)
-    VALUES (NEW.username, 'Started managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
+    VALUES ((SELECT uuid_user FROM profiles WHERE username = NEW.username), 'Started managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
 
     -- Send an email
     INSERT INTO mails (id_club_to, created_at, sender_role, is_club_info, title, message)
