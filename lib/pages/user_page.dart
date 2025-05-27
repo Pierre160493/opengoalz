@@ -285,7 +285,7 @@ class _UserPageState extends State<UserPage> {
               builder: (BuildContext context) {
                 return FutureBuilder<List<dynamic>>(
                   future: supabase
-                      .from('profiles_events')
+                      .from('profile_events')
                       .select('created_at, description')
                       .eq('uuid_user', user.id)
                       .order('created_at', ascending: false),
@@ -341,7 +341,6 @@ class _UserPageState extends State<UserPage> {
                       content: Column(
                         children: [
                           ...events.map<Widget>((event) => ListTile(
-                                // title: Text(event['description']),
                                 title: RichText(
                                     text: stringParser(
                                         context, event['description'])),

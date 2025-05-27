@@ -16,10 +16,14 @@ BEGIN
     ------ If the user leaves the club
     IF NEW.username IS NULL THEN
 
-        -- Log history
+        ---- Log Club history
         INSERT INTO clubs_history (id_club, description)
-        VALUES (NEW.id, 'User {' || OLD.username || '} has left the club');
+        VALUES (NEW.id, 'User ' || string_parser(inp_entity_type := 'uuidUser', inp_uuid_user := OLD.username) || ' has left the club');
     
+        ---- Log user history
+        INSERT INTO profile_events (uuid_user, description)
+        VALUES (OLD.username, 'Stopped managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
+
     ------ If the user is assigned to the club
     ELSE
     
@@ -47,6 +51,10 @@ BEGIN
 --    THEN
 --        RAISE EXCEPTION 'You can not assign a user to a league that is not of the last level';
 --    END IF;
+
+    ---- Log user history
+    INSERT INTO profile_events (uuid_user, description)
+    VALUES (NEW.username, 'Started managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
 
     -- Send an email
     INSERT INTO mails (id_club_to, created_at, sender_role, is_club_info, title, message)

@@ -181,7 +181,7 @@ class PlayerActionsWidget extends StatelessWidget {
                     shape: shapePersoRoundedBorder(),
                   ),
 
-                if (player.idClub == null)
+                if (player.idClub == null && player.userName == null)
 
                   /// Embody the player
                   ListTile(

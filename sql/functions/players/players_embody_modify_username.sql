@@ -54,7 +54,7 @@ BEGIN
         WHERE id = inp_id_player;
 
         ---- Insert a new row in the user's history table
-        INSERT INTO profiles_events (uuid_user, description)
+        INSERT INTO profile_events (uuid_user, description)
             VALUES (rec_player.uuid_user, 'Stopped embodying ' || rec_player.player_special_string);
 
         ---- Store a new row in the player history table
@@ -87,7 +87,7 @@ BEGIN
         WHERE id = inp_id_player;
 
         ---- Insert a new row in the user's history table
-        INSERT INTO profiles_events (uuid_user, description)
+        INSERT INTO profile_events (uuid_user, description)
             VALUES (rec_player.uuid_user, 'Started Embodying ' || rec_player.player_special_string);
 
         ---- Store a new row in the player history table

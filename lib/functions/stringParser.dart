@@ -37,8 +37,9 @@ TextSpan stringParser(BuildContext context, String description,
       ),
       recognizer: TapGestureRecognizer()
         ..onTap = () {
+          print('Tapped on $type with id $id and text "$text"');
           switch (type) {
-            case 'player':
+            case 'idplayer':
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -49,19 +50,19 @@ TextSpan stringParser(BuildContext context, String description,
                 ),
               );
               break;
-            case 'club':
+            case 'idclub':
               Navigator.push(
                 context,
                 ClubPage.route(int.parse(id)),
               );
               break;
-            case 'league':
+            case 'idleague':
               Navigator.push(
                 context,
                 LeaguePage.route(int.parse(id)),
               );
               break;
-            case 'game':
+            case 'idgame':
               Navigator.push(
                 context,
                 GamePage.route(
@@ -72,19 +73,19 @@ TextSpan stringParser(BuildContext context, String description,
                         .id),
               );
               break;
-            case 'teamcomp':
+            case 'idteamcomp':
               Navigator.push(
                 context,
                 TeamCompPage.routeWithId(int.parse(id)),
               );
               break;
-            case 'country':
+            case 'idcountry':
               Navigator.push(
                 context,
                 CountryPage.route(int.parse(id), idMultiverse: null),
               );
               break;
-            case 'user':
+            case 'uuiduser':
               Navigator.push(
                 context,
                 UserPage.route(uuidUser: text),
