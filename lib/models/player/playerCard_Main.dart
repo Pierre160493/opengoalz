@@ -128,17 +128,19 @@ class _PlayerCardState extends State<PlayerCard>
 
                     /// Show the status row of the player
                     widget.player.getStatusRow(),
-                    if (widget.player.isEmbodiedByCurrentUser ||
-                        widget.player.isPartOfClubOfCurrentUser)
-                      Row(
-                        children: [
-                          formSpacer3,
-                          PlayerActionsWidget(
-                            player: widget.player,
-                            index: widget.index,
-                          ),
-                        ],
-                      ),
+
+                    /// Player actions widget
+                    // if (widget.player.isEmbodiedByCurrentUser ||
+                    //     widget.player.isPartOfClubOfCurrentUser)
+                    // Row(
+                    //   children: [
+                    //     formSpacer3,
+                    PlayerActionsWidget(
+                      player: widget.player,
+                      index: widget.index,
+                    ),
+                    //   ],
+                    // ),
 
                     /// Favorite icon button
                     PlayerFavoriteIconButton(player: widget.player, user: user),

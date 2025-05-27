@@ -13,22 +13,29 @@ BEGIN
 
     ------ Query to select rows to process (bids finished and player is not currently playing a game)
     FOR rec_player IN (
-        SELECT *, player_get_full_name(id) AS full_name,
-            string_parser(id, 'idPlayer') AS special_string_player,
-            string_parser(id_club, 'idClub') AS special_string_club
-            FROM players
-            WHERE date_bid_end < NOW()
-            AND is_playing = FALSE
-            AND id_multiverse = inp_multiverse.id
-            AND username IS NULL -- Exclude embodied players
+        SELECT *,
+            player_get_full_name(id) AS full_name,
+            string_parser(inp_entity_type := 'idPlayer', inp_id := id) AS special_string_player,
+            CASE WHEN id_club IS NULL THEN
+                'NO CLUB'
+            ELSE
+                string_parser(inp_entity_type := 'idClub', inp_id := id_club)
+            END AS special_string_club
+        FROM players
+        WHERE date_bid_end < NOW()
+        AND is_playing = FALSE
+        AND id_multiverse = inp_multiverse.id
+        AND username IS NULL -- Exclude embodied players
     ) LOOP
-
+    
         -- Get the last bid on the player
-        SELECT * INTO last_bid
-            FROM transfers_bids
-            WHERE id_player = rec_player.id
-            ORDER BY amount DESC
-            LIMIT 1;
+        SELECT *, 
+            string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS special_string_buying_club
+        INTO last_bid
+        FROM transfers_bids
+        WHERE id_player = rec_player.id
+        ORDER BY amount DESC
+        LIMIT 1;
 
         ------ If no bids are found
         IF NOT FOUND THEN
@@ -80,7 +87,7 @@ BEGIN
                         (id_player, id_club, is_transfer_description, description)
                         VALUES (
                             rec_player.id, rec_player.id_club, TRUE,
-                            'Left ' || string_parser(rec_player.id_club, 'idClub') || ' because no bids were made on him'
+                            'Left ' || rec_player.special_string_club || ' because no bids were made on him'
                     );
 
                     -- Update the player to set him as clubless
@@ -126,7 +133,7 @@ BEGIN
                             (id_club, description)
                         VALUES (
                             rec_player.id_club,
-                            string_parser(loc_tmp, 'idPlayer') || ' joined the squad because of a lack of players');
+                            string_parser(inp_entity_type := 'idPlayer', inp_id := loc_tmp) || ' joined the club because of a lack of players');
 
                     END IF;
 
@@ -157,7 +164,7 @@ BEGIN
                         (id_player, id_club, is_transfer_description, description)
                     VALUES (
                         rec_player.id, rec_player.id_club, TRUE,
-                        'Put on transfer list by ' || string_parser(rec_player.id_club, 'idClub') || ' but no bids were made'
+                        'Put on transfer list by ' || rec_player.special_string_club || ' but no bids were made'
                     );
 
                     -- Update the player to remove the date bid end
@@ -186,7 +193,7 @@ BEGIN
                 INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                 SELECT DISTINCT id_club, 'Scouts', TRUE,
                     rec_player.special_string_player || ' (followed) sold for ' || last_bid.amount,
-                    rec_player.special_string_player || ' (followed) who was clubless has been sold for ' || last_bid.amount || ' to ' || string_parser(last_bid.id_club, 'idClub') || '.'
+                    rec_player.special_string_player || ' (followed) who was clubless has been sold for ' || last_bid.amount || ' to ' || last_bid.special_string_buying_club || '.'
                 FROM (
                     SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                     UNION
@@ -201,16 +208,15 @@ BEGIN
                 VALUES
                     (rec_player.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
                         rec_player.special_string_player || ' sold for ' || last_bid.amount,
-                        rec_player.special_string_player || ' has been sold for ' || last_bid.amount || ' to ' || string_parser(last_bid.id_club, 'idClub') || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
+                        rec_player.special_string_player || ' has been sold for ' || last_bid.amount || ' to ' || last_bid.special_string_buying_club || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
                     (last_bid.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
-                        rec_player.special_string_player || ' bought for ' || last_bid.amount,
                         rec_player.special_string_player || ' has been bought for ' || last_bid.amount || '. I hope he will be a good addition to our team !');
 
                 -- Send mail to the clubs following the player
                 INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                 SELECT DISTINCT id_club, 'Scouts', TRUE,
                     rec_player.special_string_player || ' (followed) sold for ' || last_bid.amount,
-                    rec_player.special_string_player || ' (followed) has been sold for ' || last_bid.amount || ' from ' || rec_player.special_string_club || ' to ' || string_parser(last_bid.id_club, 'idClub') || '.'
+                    rec_player.special_string_player || ' (followed) has been sold for ' || last_bid.amount || ' from ' || rec_player.special_string_club || ' to ' || last_bid.special_string_buying_club || '.'
                 FROM (
                     SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                     UNION
@@ -257,7 +263,7 @@ BEGIN
                 (id_player, id_club, is_transfer_description, description)
                 VALUES (
                     rec_player.id, rec_player.id_club, TRUE,
-                    'Joined ' || string_parser(last_bid.id_club, 'idClub') || ' for ' || last_bid.amount
+                    'Joined ' || last_bid.special_string_buying_club || ' for ' || last_bid.amount
                 );
 
             -- Update the players from the clubs_poaching tables
@@ -296,7 +302,7 @@ BEGIN
                     (id_club, description)
                 VALUES (
                     rec_player.id_club,
-                    string_parser(loc_tmp, 'idPlayer') || ' joined the squad because of a lack of players');
+                    string_parser(inp_entity_type := 'idPlayer', inp_id := loc_tmp) || ' joined the squad because of a lack of players');
 
             END IF;
 
@@ -310,8 +316,8 @@ BEGIN
     ------ Handle players that have their contract ended
     FOR rec_player IN (
         SELECT *, player_get_full_name(id) AS full_name,
-            string_parser(id, 'idPlayer') AS special_string_player,
-            string_parser(id_club, 'idClub') AS special_string_club
+            string_parser(inp_entity_type := 'idPlayer', inp_id := id) AS special_string_player,
+            string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS special_string_club
             FROM players
             WHERE date_end_contract < NOW()
             AND is_playing = FALSE
@@ -352,7 +358,7 @@ BEGIN
             (id_player, id_club, is_transfer_description, description)
         VALUES (
             rec_player.id, rec_player.id_club, TRUE,
-            'Contract ended and left ' || string_parser(rec_player.id_club, 'idClub')
+            'Contract ended and left ' || rec_player.special_string_club
         );
 
     END LOOP;

@@ -230,12 +230,12 @@ BEGIN
     IF inp_id_club IS NULL THEN
         INSERT INTO players_history (id_player, id_club, description)
         VALUES (loc_new_player_id, NULL,
-        'New player from ' || string_parser(inp_id_country, 'idCountry'));
+        'New player from ' || string_parser(inp_entity_type := 'idCountry', inp_id := inp_id_country));
 
     ELSE
         INSERT INTO players_history (id_player, id_club, description)
         VALUES (loc_new_player_id, inp_id_club,
-        'Joined ' || string_parser(inp_id_club, 'idClub') ||
+        'Joined ' || string_parser(inp_entity_type := 'idClub', inp_id := inp_id_club) ||
         CASE
             WHEN inp_notes = 'Young Scouted' THEN ' as a young scouted player'
             WHEN inp_notes = 'Old Experienced player' THEN ' as an old experienced player'
@@ -249,8 +249,8 @@ BEGIN
         INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
             VALUES
                 (inp_id_club, 'Scout', TRUE,
-                'New Scouted Player: ' || string_parser(loc_new_player_id, 'idPlayer'),
-                string_parser(loc_new_player_id, 'idPlayer') || ' joined the squad, check him out, i''ve been keeping an eye on him for a while and given some good training he might be a future star !');
+                'New Scouted Player: ' || string_parser(inp_entity_type := 'idPlayer', inp_id := loc_new_player_id),
+                string_parser(inp_entity_type := 'idPlayer', inp_id := loc_new_player_id) || ' joined the squad, check him out, i''ve been keeping an eye on him for a while and given some good training he might be a future star !');
     END IF;
     
     ------ Return the new player's ID

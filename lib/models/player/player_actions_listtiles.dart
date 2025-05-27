@@ -5,7 +5,9 @@ import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
+import 'package:provider/provider.dart';
 
 class PlayerActionsWidget extends StatelessWidget {
   final Player player;
@@ -115,27 +117,135 @@ class PlayerActionsWidget extends StatelessWidget {
                 ], // End if player.isPartOfClubOfCurrentUser
 
                 /// Actions for players embodied by the current user
-                if (player.isEmbodiedByCurrentUser) ...[
+                if (player.isEmbodiedByCurrentUser)
+
                   /// Unembody the player
                   ListTile(
                     leading: Icon(Icons.cancel,
                         color: Colors.red, size: iconSizeMedium),
                     title: Text('Unembody'),
                     onTap: () async {
+                      /// Dialog prompting are you sure to unembody the player
+                      final confirmation = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: Text(
+                                'Are you sure you want to stop embodying ${player.getFullName()} ?'),
+                            actions: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  /// Cancel button
+                                  TextButton(
+                                    child: persoCancelRow,
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                  ),
+
+                                  /// Confirm button
+                                  TextButton(
+                                    child: persoValidRow('Confirm'),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      if (confirmation != true) {
+                        return; // User canceled the action
+                      }
+
                       Navigator.pop(context); // Close dialog
-                      await operationInDB(context, 'UPDATE', 'players',
+                      /// Proceed to unembody the player
+                      await operationInDB(
+                          context, 'FUNCTION', 'players_embody_modify_username',
                           data: {
-                            'id_user': null,
+                            'inp_id_player': player.id,
+                            'inp_username': Provider.of<UserSessionProvider>(
+                                    context,
+                                    listen: false)
+                                .user
+                                .username,
+                            'inp_stop_embodying': true,
                           },
-                          matchCriteria: {'id': player.id},
-                          messageSuccess:
-                              player.getFullName() + ' is glad to be free !');
+                          messageSuccess: 'You are no longer embodying ' +
+                              player.getFullName());
                     },
-                    subtitle:
-                        Text('Unembody ${player.getFullName()} from your club'),
+                    subtitle: Text('Stop embodying ${player.getFullName()}',
+                        style: styleItalicBlueGrey),
                     shape: shapePersoRoundedBorder(),
                   ),
-                ]
+
+                if (player.idClub == null)
+
+                  /// Embody the player
+                  ListTile(
+                    leading: Icon(iconUser,
+                        color: Colors.green, size: iconSizeMedium),
+                    title: Text('Embody'),
+                    onTap: () async {
+                      /// Dialog prompting are you sure to unembody the player
+                      final confirmation = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text(
+                                'Are you sure you want to mbody ${player.getFullName()}'),
+                            content: Text(
+                                'This will make you the player\'s user and you will be able to control his decisions and actions.'),
+                            actions: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  /// Cancel button
+                                  TextButton(
+                                    child: persoCancelRow,
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                  ),
+
+                                  /// Confirm button
+                                  TextButton(
+                                    child: persoValidRow('Confirm'),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      if (confirmation != true) {
+                        return; // User canceled the action
+                      }
+
+                      Navigator.pop(context); // Close dialog
+                      /// Proceed to embody the player
+                      await operationInDB(
+                          context, 'FUNCTION', 'players_embody_modify_username',
+                          data: {
+                            'inp_id_player': player.id,
+                            'inp_username': Provider.of<UserSessionProvider>(
+                                    context,
+                                    listen: false)
+                                .user
+                                .username,
+                            'inp_stop_embodying': false,
+                          },
+                          messageSuccess:
+                              'You are now embodying ' + player.getFullName());
+                    },
+                    subtitle: Text('Start embodying ${player.getFullName()}',
+                        style: styleItalicBlueGrey),
+                    shape: shapePersoRoundedBorder(),
+                  ),
               ],
             ),
           ),

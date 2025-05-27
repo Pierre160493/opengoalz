@@ -121,11 +121,11 @@ BEGIN
             INSERT INTO mails (id_club_to, created_at, sender_role, is_game_result, title, message)
             VALUES
                 (rec_game.id_club_left, rec_game.date_start, 'Referee', TRUE,
-                    'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
-                    'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' but they didnt either, we will see what the league decides but it might end with a draw'),
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' but they didnt either, we will see what the league decides but it might end with a draw'),
                 (rec_game.id_club_right, rec_game.date_start, 'Referee', TRUE,
-                    'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
-                    'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' but they didnt either, we will see what the league decides but it might end with a draw');
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' but they didnt either, we will see what the league decides but it might end with a draw');
 
         ---- If the left club is forfeit
         ELSEIF loc_score_left = -1 THEN
@@ -135,11 +135,11 @@ BEGIN
             INSERT INTO mails (id_club_to, created_at, sender_role, is_game_result, title, message)
             VALUES
                 (rec_game.id_club_left, rec_game.date_start, 'Referee', TRUE,
-                    'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
-                    'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat'),
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat'),
                 (rec_game.id_club_right, rec_game.date_start, 'Referee', TRUE,
-                    'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
-                    rec_game.name_club_left || ', our opponent for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory');
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    rec_game.name_club_left || ', our opponent for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory');
 
         ---- If the right club is forfeit
         ELSE
@@ -149,11 +149,11 @@ BEGIN
             INSERT INTO mails (id_club_to, created_at, sender_role, is_game_result, title, message)
             VALUES
                 (rec_game.id_club_left, rec_game.date_start, 'Referee', TRUE,
-                    string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Opponent has no valid teamcomp',
-                    rec_game.name_club_right || ', our opponent for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory'),
+                    string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Opponent has no valid teamcomp',
+                    rec_game.name_club_right || ', our opponent for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory'),
                 (rec_game.id_club_right, rec_game.date_start, 'Referee', TRUE,
-                    string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
-                    'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat');
+                    string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat');
 
         END IF;
 

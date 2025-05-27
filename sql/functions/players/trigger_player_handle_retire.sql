@@ -20,7 +20,7 @@ DECLARE
     player_string_parser TEXT;
 BEGIN
 
-    player_string_parser := string_parser(NEW.id, 'idPlayer');
+    player_string_parser := string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id);
 
     -- Select a random description from the array
     random_description := descriptions[floor(random() * array_length(descriptions, 1) + 1)::int];

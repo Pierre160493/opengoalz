@@ -254,8 +254,8 @@ BEGIN
                 id_club_to, sender_role, is_transfer_info, title, message)
             VALUES
                 (rec_player.id_club, 'Treasurer', TRUE,
-                string_parser(rec_player.id, 'idPlayer') || ' asked to leave the club !',
-                string_parser(rec_player.id, 'idPlayer') || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' asked to leave the club !',
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
 
             -- Loop through the list of clubs poaching this player
             FOR rec_poaching IN (
@@ -286,8 +286,8 @@ BEGIN
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     VALUES (
                         rec_poaching.id_club, 'Scouts', TRUE,
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub'),
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club (' || string_parser(rec_player.id_club, 'idClub') || ') and we made a bid to get him, his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || ' and the max price is ' || ROUND(rec_poaching.max_price::numeric, 1) || '.');
+                        string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (poached) asked to leave ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club),
+                        string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (poached) asked to leave his club (' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club) || ') and we made a bid to get him, his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || ' and the max price is ' || ROUND(rec_poaching.max_price::numeric, 1) || '.');
 
                 ELSE
 
@@ -295,8 +295,8 @@ BEGIN
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     VALUES (
                         rec_poaching.id_club, 'Scouts', TRUE,
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub'),
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub') || ', it''s time to make a move, knowing that his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || '.');
+                        string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (poached) asked to leave ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club),
+                        string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (poached) asked to leave ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club) || ', it''s time to make a move, knowing that his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || '.');
 
                 END IF;
 
@@ -308,8 +308,8 @@ BEGIN
             )
             SELECT 
                 id_club, 'Scouts', TRUE,
-                string_parser(rec_player.id, 'idPlayer') || ' (favorite) asked to leave his club',
-                string_parser(rec_player.id, 'idPlayer') || ' who is one of your favorite player has asked to leave ' || string_parser(rec_player.id_club, 'idClub') ||'. He will be leaving before next week because of low motivation: ' || rec_player.motivation || '. It''s time to make a move !'
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (favorite) asked to leave his club',
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' who is one of your favorite player has asked to leave ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club) ||'. He will be leaving before next week because of low motivation: ' || rec_player.motivation || '. It''s time to make a move !'
             FROM players_favorite
             WHERE id_player = rec_player.id;
 
@@ -322,8 +322,8 @@ BEGIN
                 id_club_to, sender_role, is_transfer_info, title, message)
             VALUES
                 (rec_player.id_club, 'Coach', TRUE,
-                string_parser(rec_player.id, 'idPlayer') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
-                string_parser(rec_player.id, 'idPlayer') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club');
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club');
 
         END IF;
     END LOOP;

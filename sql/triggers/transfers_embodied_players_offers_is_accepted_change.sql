@@ -15,8 +15,8 @@ BEGIN
         INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
         VALUES (
             NEW.id_club, 'Scouts', TRUE,
-            string_parser(NEW.id_player, 'idPlayer') || ' has accepted our offer',
-            'The embodied player ' || string_parser(NEW.id_player, 'idPlayer') || ' has accepted our offer of ' || NEW.expenses_offered || ' weekly expenses and is now ready to write a new page in the history of the club !');
+            string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id_player) || ' has accepted our offer',
+            'The embodied player ' || string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id_player) || ' has accepted our offer of ' || NEW.expenses_offered || ' weekly expenses and is now ready to write a new page in the history of the club !');
 
         ---- Automatically refuse the other pending offers
         UPDATE public.transfers_embodied_players_offers SET
@@ -41,7 +41,7 @@ BEGIN
         INSERT INTO players_history (id_player, id_club, is_transfer_description, description)
         VALUES (
             NEW.id_player, NEW.id_club, TRUE,
-            'Joined ' || string_parser(NEW.id_club, 'idClub') || ' for a ' || NEW.number_season || ' year contract'
+            'Joined ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id_club) || ' for a ' || NEW.number_season || ' year contract'
         );
 
     ------ Offer is refused
@@ -51,8 +51,8 @@ BEGIN
         INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
         VALUES (
             NEW.id_club, 'Scouts', TRUE,
-            string_parser(NEW.id_player, 'idPlayer') || ' has refused our offer',
-            'The embodied player ' || string_parser(NEW.id_player, 'idPlayer') || ' has refused our offer of ' || NEW.expenses_offered || ' weekly expenses !');
+            string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id_player) || ' has refused our offer',
+            'The embodied player ' || string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id_player) || ' has refused our offer of ' || NEW.expenses_offered || ' weekly expenses !');
 
     END IF;
 

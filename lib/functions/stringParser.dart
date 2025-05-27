@@ -7,13 +7,14 @@ import 'package:opengoalz/pages/country_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
+import 'package:opengoalz/pages/user_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 
 TextSpan stringParser(BuildContext context, String description,
     {Color colorDefaultText = Colors.white}) {
   final RegExp regex = RegExp(
-      r'\{id(Player|Club|League|Game|Teamcomp|Country):(-?\d+),([^}]+)\}');
+      r'\{(idPlayer|idClub|idLeague|idGame|idTeamcomp|idCountry|uuidUser):([a-fA-F0-9\-]+),([^}]+)\}');
   final List<TextSpan> spans = [];
   int start = 0;
 
@@ -81,6 +82,12 @@ TextSpan stringParser(BuildContext context, String description,
               Navigator.push(
                 context,
                 CountryPage.route(int.parse(id), idMultiverse: null),
+              );
+              break;
+            case 'user':
+              Navigator.push(
+                context,
+                UserPage.route(uuidUser: text),
               );
               break;
           }

@@ -12,12 +12,12 @@ DECLARE
     is_hired BOOLEAN;
 BEGIN
 
-    description_club := string_parser(NEW.id, 'idClub');
+    description_club := string_parser(inp_entity_type := 'idClub', inp_id := NEW.id);
 
     ------ If the coach has changed
     IF OLD.id_coach IS DISTINCT FROM NEW.id_coach THEN
         loc_id_player := COALESCE(NEW.id_coach, OLD.id_coach);
-        description_player := string_parser(loc_id_player, 'idPlayer');
+        description_player := string_parser(inp_entity_type := 'idPlayer', inp_id := loc_id_player);
         description_role := 'Coach';
         ---- If the coach arrived in the club
         IF NEW.id_coach IS NULL THEN
@@ -31,7 +31,7 @@ BEGIN
         END IF;
     ELSIF OLD.id_scout IS DISTINCT FROM NEW.id_scout THEN
         loc_id_player := COALESCE(NEW.id_scout, OLD.id_scout);
-        description_player := string_parser(loc_id_player, 'idPlayer');
+        description_player := string_parser(inp_entity_type := 'idPlayer', inp_id := loc_id_player);
         description_role := 'Scout';
         ---- If the scout has changed
         IF NEW.id_scout IS NULL THEN

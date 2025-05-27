@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
+import 'package:opengoalz/functions/stringParser.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
@@ -14,6 +15,7 @@ import 'package:opengoalz/models/mails/mailsWidget.dart';
 import 'package:opengoalz/widgets/creationDialogBox_Club.dart';
 import 'package:opengoalz/widgets/creationDialogBox_Player.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:opengoalz/widgets/userPageListOfClubs.dart';
@@ -23,11 +25,13 @@ import 'package:rxdart/rxdart.dart';
 
 class UserPage extends StatefulWidget {
   final String? userName;
-  const UserPage({Key? key, this.userName}) : super(key: key);
+  final String? uuidUser;
 
-  static Route<void> route({String? userName}) {
+  const UserPage({Key? key, this.userName, this.uuidUser}) : super(key: key);
+
+  static Route<void> route({String? userName, String? uuidUser}) {
     return MaterialPageRoute(
-      builder: (context) => UserPage(userName: userName),
+      builder: (context) => UserPage(userName: userName, uuidUser: uuidUser),
     );
   }
 
@@ -41,18 +45,20 @@ class _UserPageState extends State<UserPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.userName != null) {
+    if (widget.userName != null || widget.uuidUser != null) {
       final connectedUser =
           Provider.of<UserSessionProvider>(context, listen: false).user;
-      if (widget.userName == connectedUser.username) {
-        // Use the data from the provider if the username matches the connected user
+      if (widget.userName == connectedUser.username ||
+          widget.uuidUser == connectedUser.id) {
+        // Use the data from the provider if the username or UUID matches the connected user
         _userStream = Stream.value(connectedUser);
       } else {
-        // Fetch the data from the database if the username does not match the connected user
+        // Fetch the data from the database if the username or UUID does not match the connected user
         _userStream = supabase
             .from('profiles')
             .stream(primaryKey: ['id'])
-            .eq('username', widget.userName as Object)
+            .eq(widget.uuidUser != null ? 'uuid_user' : 'username',
+                widget.uuidUser ?? widget.userName as Object)
             .map((maps) => maps.map((map) => Profile.fromMap(map)).first)
             .switchMap((Profile user) {
               return supabase
@@ -84,7 +90,7 @@ class _UserPageState extends State<UserPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.userName != null) {
+    if (widget.userName != null || widget.uuidUser != null) {
       return StreamBuilder<Profile>(
         stream: _userStream,
         builder: (context, snapshot) {
@@ -251,6 +257,7 @@ class _UserPageState extends State<UserPage> {
         user.numberPlayersAvailable > user.playersIncarnated.length;
     return Column(
       children: [
+        /// User listtile
         ListTile(
           shape: shapePersoRoundedBorder(),
           leading: Icon(
@@ -272,6 +279,101 @@ class _UserPageState extends State<UserPage> {
               ),
             ],
           ),
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return FutureBuilder<List<dynamic>>(
+                  future: supabase
+                      .from('profiles_events')
+                      .select('created_at, description')
+                      .eq('uuid_user', user.id)
+                      .order('created_at', ascending: false),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return persoAlertDialogWithConstrainedContent(
+                        title: Text('Error'),
+                        content:
+                            Text('Failed to load events: ${snapshot.error}'),
+                        actions: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: persoRowWithIcon(Icons.close, 'Close',
+                                    color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return persoAlertDialogWithConstrainedContent(
+                        title: Text('List of events of ${user.username}'),
+                        content: Text('No events found for this user.'),
+                        actions: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: persoRowWithIcon(Icons.close, 'Close',
+                                    color: Colors.green),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    }
+
+                    final events = snapshot.data!;
+                    return persoAlertDialogWithConstrainedContent(
+                      title: Text('List of events of ${user.username}'),
+                      content: Column(
+                        children: [
+                          ...events.map<Widget>((event) => ListTile(
+                                // title: Text(event['description']),
+                                title: RichText(
+                                    text: stringParser(
+                                        context, event['description'])),
+                                subtitle: Text(
+                                  formatDate(
+                                      DateTime.parse(event['created_at'])),
+                                  style: styleItalicBlueGrey,
+                                ),
+                                shape: shapePersoRoundedBorder(),
+                              )),
+                        ],
+                      ),
+                      actions: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: persoRowWithIcon(Icons.close, 'Close',
+                                  color: Colors.green),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            );
+          },
         ),
 
         /// Credits tile
