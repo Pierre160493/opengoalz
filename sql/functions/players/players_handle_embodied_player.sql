@@ -87,7 +87,7 @@ BEGIN
 
         ---- Retire the player from embodying
         UPDATE players SET
-            is_retired = TRUE
+            date_retire = NOW()
         WHERE id = inp_id_player;
 
     END IF;
