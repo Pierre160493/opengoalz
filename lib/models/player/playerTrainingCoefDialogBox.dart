@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/provider_user.dart';
+import 'package:provider/provider.dart';
 
 class PlayerTrainingDialog extends StatefulWidget {
   final Player player;
@@ -20,6 +22,7 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
   late List<double> trainingRatioNew;
   late List<TextEditingController> controllers;
   late bool _isModified = false;
+  late bool _userCanModify;
 
   @override
   void initState() {
@@ -30,6 +33,21 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
     controllers = trainingCoefNew
         .map((value) => TextEditingController(text: value.toStringAsFixed(1)))
         .toList();
+
+    /// Check if the user can modify the training coefficients
+    /// Can modify if the player belongs to the user's club or if the player is the user and clubless
+    final userSession =
+        Provider.of<UserSessionProvider>(context, listen: false).user;
+    _userCanModify = false;
+
+    /// If the player is clubless, check if the player is the user
+    if (widget.player.idClub == null) {
+      _userCanModify = widget.player.userName == userSession.username;
+
+      /// If the player has a club, check if the player belongs to the user's club
+    } else {
+      _userCanModify = widget.player.idClub == userSession.selectedClub?.id;
+    }
   }
 
   @override
@@ -205,7 +223,7 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
           children: [
             /// Save button
             TextButton(
-              onPressed: _isModified
+              onPressed: _isModified && _userCanModify
                   ? () async {
                       await operationInDB(context, 'UPDATE', 'players',
                           data: {'training_coef': trainingCoefNew},
@@ -216,13 +234,7 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
                       Navigator.of(context).pop();
                     }
                   : null,
-              child: Row(
-                children: [
-                  Icon(Icons.save,
-                      color: _isModified ? Colors.green : Colors.grey),
-                  Text('Save'),
-                ],
-              ),
+              child: persoValidRow('Save'),
             ),
 
             /// Reset Button
@@ -240,12 +252,10 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
                       });
                     }
                   : null,
-              child: Row(
-                children: [
-                  Icon(Icons.arrow_back,
-                      color: _isModified ? Colors.red : Colors.grey),
-                  Text('Reset'),
-                ],
+              child: persoRowWithIcon(
+                Icons.refresh,
+                'Reset',
+                color: Colors.orange,
               ),
             ),
 
@@ -254,11 +264,10 @@ class _PlayerTrainingDialogState extends State<PlayerTrainingDialog> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Row(
-                children: [
-                  Icon(Icons.close, color: Colors.red),
-                  Text('Close'),
-                ],
+              child: persoRowWithIcon(
+                Icons.close,
+                'Close',
+                color: Colors.red,
               ),
             ),
           ],

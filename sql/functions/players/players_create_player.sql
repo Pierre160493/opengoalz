@@ -159,7 +159,7 @@ BEGIN
     ) VALUES (
         inp_id_multiverse, inp_id_club, inp_id_country, inp_username, inp_age * 3.0,
         inp_first_name, inp_last_name, players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age), 3.0 * (inp_age - 15.0),
-        CASE WHEN inp_id_club IS NULL THEN
+        CASE WHEN inp_id_club IS NULL AND inp_username IS NULL THEN
             (NOW() + (INTERVAL '7 day' / (SELECT speed FROM multiverses WHERE id = inp_id_multiverse)))
             ELSE NULL END,
         inp_stats[1], inp_stats[2], inp_stats[3], inp_stats[4], inp_stats[5], inp_stats[6], inp_stats[7],

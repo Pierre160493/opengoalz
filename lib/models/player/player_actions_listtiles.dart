@@ -117,8 +117,7 @@ class PlayerActionsWidget extends StatelessWidget {
                 ], // End if player.isPartOfClubOfCurrentUser
 
                 /// Actions for players embodied by the current user
-                if (player.isEmbodiedByCurrentUser)
-
+                if (player.isEmbodiedByCurrentUser) ...[
                   /// Unembody the player
                   ListTile(
                     leading: Icon(Icons.cancel,
@@ -163,7 +162,7 @@ class PlayerActionsWidget extends StatelessWidget {
                       Navigator.pop(context); // Close dialog
                       /// Proceed to unembody the player
                       await operationInDB(
-                          context, 'FUNCTION', 'players_embody_modify_username',
+                          context, 'FUNCTION', 'players_handle_embodied_player',
                           data: {
                             'inp_id_player': player.id,
                             'inp_username': Provider.of<UserSessionProvider>(
@@ -171,7 +170,7 @@ class PlayerActionsWidget extends StatelessWidget {
                                     listen: false)
                                 .user
                                 .username,
-                            'inp_stop_embodying': true,
+                            'inp_stop_embody': true,
                           },
                           messageSuccess: 'You are no longer embodying ' +
                               player.getFullName());
@@ -180,6 +179,69 @@ class PlayerActionsWidget extends StatelessWidget {
                         style: styleItalicBlueGrey),
                     shape: shapePersoRoundedBorder(),
                   ),
+
+                  /// Retire the player
+                  ListTile(
+                    leading: Icon(iconRetired,
+                        color: Colors.red, size: iconSizeMedium),
+                    title: Text('Retire'),
+                    onTap: () async {
+                      /// Dialog prompting are you sure to unembody the player
+                      final confirmation = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: Text(
+                                'Are you sure you want to retire ${player.getFullName()} ?'),
+                            actions: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  /// Cancel button
+                                  TextButton(
+                                    child: persoCancelRow,
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                  ),
+
+                                  /// Confirm button
+                                  TextButton(
+                                    child: persoValidRow('Confirm'),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      if (confirmation != true) {
+                        return; // User canceled the action
+                      }
+
+                      /// Proceed to unembody the player
+                      bool isOK = await operationInDB(
+                          context, 'FUNCTION', 'players_handle_embodied_player',
+                          data: {
+                            'inp_id_player': player.id,
+                            'inp_username': Provider.of<UserSessionProvider>(
+                                    context,
+                                    listen: false)
+                                .user
+                                .username,
+                            'inp_retire_embodied': true,
+                          },
+                          messageSuccess:
+                              '${player.getFullName()} is now retired !');
+                      if (isOK) Navigator.pop(context);
+                    },
+                    subtitle: Text('Retire ${player.getFullName()}',
+                        style: styleItalicBlueGrey),
+                    shape: shapePersoRoundedBorder(),
+                  ),
+                ],
 
                 if (player.idClub == null && player.userName == null)
 
@@ -229,7 +291,7 @@ class PlayerActionsWidget extends StatelessWidget {
                       Navigator.pop(context); // Close dialog
                       /// Proceed to embody the player
                       await operationInDB(
-                          context, 'FUNCTION', 'players_embody_modify_username',
+                          context, 'FUNCTION', 'players_handle_embodied_player',
                           data: {
                             'inp_id_player': player.id,
                             'inp_username': Provider.of<UserSessionProvider>(
@@ -237,7 +299,7 @@ class PlayerActionsWidget extends StatelessWidget {
                                     listen: false)
                                 .user
                                 .username,
-                            'inp_stop_embodying': false,
+                            'inp_start_embody': true,
                           },
                           messageSuccess:
                               'You are now embodying ' + player.getFullName());

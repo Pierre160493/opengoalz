@@ -115,12 +115,10 @@ const Row persoCancelRow = Row(
 );
 
 Row persoValidRow(String text) {
-  return Row(
-    children: [
-      Icon(iconSuccessfulOperation, color: Colors.green),
-      formSpacer3,
-      Text(text),
-    ],
+  return persoRowWithIcon(
+    iconSuccessfulOperation,
+    text,
+    color: Colors.green,
   );
 }
 
