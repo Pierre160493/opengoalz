@@ -91,6 +91,12 @@ BEGIN
         100, 100, NEW.experience, 100, 100]
     );
 
+    ------ Calculate the coefficients for coach and scout
+    NEW.coef_coach = FLOOR((
+        NEW.loyalty + 2 * NEW.leadership + 2 * NEW.discipline + 2 * NEW.communication + 2 * NEW.composure + NEW.teamwork) / 10);
+    NEW.coef_scout = FLOOR((
+        2 * NEW.loyalty + NEW.leadership + NEW.discipline + 3 * NEW.communication + 2 * NEW.composure + NEW.teamwork) / 10);
+
     -- Return the new record to proceed with the update
     RETURN NEW;
 END;
