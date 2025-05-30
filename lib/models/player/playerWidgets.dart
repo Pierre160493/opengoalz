@@ -96,13 +96,38 @@ Widget getPlayerHistoryGraph(
         .order('created_at', ascending: true)
         .then((response) => response),
     builder: (context, snapshot) {
-      if (snapshot.hasError) {
-        return Text('Error: ${snapshot.error}');
-      } else if (snapshot.connectionState == ConnectionState.waiting) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
         return loadingCircularAndText('Loading player history...');
+      } else if (snapshot.hasError) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(
+            'Failed to load player history: ${snapshot.error}',
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('OK'),
+            ),
+          ],
+        );
       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        return Text('Error: No data');
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(
+            'No data available for player history.',
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('OK'),
+            ),
+          ],
+        );
       }
+
       final historyData = snapshot.data!;
 
       // Check for null values in the required fields
