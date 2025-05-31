@@ -206,27 +206,6 @@ BEGIN
     FROM final_data
     WHERE players.id = final_data.id;
 
-    ------ Calculate player performance score
-    UPDATE players SET
-        performance_score_real = players_calculate_player_best_weight(
-            ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
-            -- motivation, form, experience, energy, stamina]),
-            motivation, form, experience, 100, stamina]),
-        performance_score_theoretical = players_calculate_player_best_weight(
-            ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
-            100, 100, experience, 100, 100]),
-        expenses_target = FLOOR(50 +
-            1 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) +
-            GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2 +
-            (keeper + defense + passes + playmaking + winger + scoring + freekick) / 4
-            + (coef_coach + coef_scout) / 2),
-        coef_coach = FLOOR((
-            loyalty + 2 * leadership + 2 * discipline + 2 * communication + 2 * composure + teamwork) / 10),
-        coef_scout = FLOOR((
-            2 * loyalty + leadership + discipline + 3 * communication + 2 * composure + teamwork) / 10)
-    WHERE id_multiverse = inp_multiverse.id
-    AND date_death IS NULL;
-
     ------ If player's motivation is too low, risk of leaving club
     FOR rec_player IN (
         SELECT *,

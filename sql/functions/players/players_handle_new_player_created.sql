@@ -80,23 +80,6 @@ BEGIN
         NEW.experience = 2 * (calculate_age(inp_multiverse_speed := NEW.multiverse_speed, inp_date_birth := NEW.date_birth) - 10);
     END IF;
 
-    ------ Calculate the performance score
-    NEW.performance_score_real = players_calculate_player_best_weight(
-        ARRAY[NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.scoring, NEW.freekick, NEW.winger,
-        -- NEW.motivation, NEW.form, NEW.experience, NEW.energy, NEW.stamina]
-        NEW.motivation, NEW.form, NEW.experience, 100, NEW.stamina]
-    );
-    NEW.performance_score_theoretical = players_calculate_player_best_weight(
-        ARRAY[NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.scoring, NEW.freekick, NEW.winger,
-        100, 100, NEW.experience, 100, 100]
-    );
-
-    ------ Calculate the coefficients for coach and scout
-    NEW.coef_coach = FLOOR((
-        NEW.loyalty + 2 * NEW.leadership + 2 * NEW.discipline + 2 * NEW.communication + 2 * NEW.composure + NEW.teamwork) / 10);
-    NEW.coef_scout = FLOOR((
-        2 * NEW.loyalty + NEW.leadership + NEW.discipline + 3 * NEW.communication + 2 * NEW.composure + NEW.teamwork) / 10);
-
     -- Return the new record to proceed with the update
     RETURN NEW;
 END;
