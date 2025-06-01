@@ -39,11 +39,6 @@ BEGIN
         RAISE EXCEPTION 'You need 500 credits to manage an additional club';
     END IF;
 
-    ------ Set default club if it's the only club
-    IF (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) = 0 THEN
-        UPDATE profiles SET id_default_club = NEW.id WHERE username = NEW.username;
-    END IF;
-
     ------ Check that it's the last level league of the continent
 --    IF (
 --        SELECT level FROM leagues WHERE id = NEW.id_league) <>
@@ -51,6 +46,19 @@ BEGIN
 --    THEN
 --        RAISE EXCEPTION 'You can not assign a user to a league that is not of the last level';
 --    END IF;
+
+    -- Update the user profile
+    UPDATE profiles SET
+        id_default_club = COALESCE(id_default_club, NEW.id),
+        credits_available = credits_available - CASE 
+            WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN 500 
+            ELSE 0 
+        END,
+        credits_used = credits_used + CASE 
+            WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN 500 
+            ELSE 0 
+        END
+    WHERE username = NEW.username;
 
     ---- Log user history
     INSERT INTO profile_events (uuid_user, description)
@@ -88,15 +96,6 @@ BEGIN
 
     -- Generate the new team of the club
     PERFORM club_create_players(inp_id_club := NEW.id);
-
-    -- Update the user profile
-    UPDATE profiles SET
-        id_default_club = CASE
-            WHEN id_default_club IS NULL THEN NEW.id
-            ELSE id_default_club END,
-        credits_available = credits_available - 500,
-        credits_used = credits_used + 500
-    WHERE username = NEW.username;
 
     -- If the league has no more free clubs, generate new lower leagues
     IF ((SELECT count(*)
