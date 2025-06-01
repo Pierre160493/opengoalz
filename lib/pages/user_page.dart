@@ -252,9 +252,8 @@ class _UserPageState extends State<UserPage> {
   }
 
   Widget _getUserWidget(Profile user) {
-    bool canCreateClub = user.numberClubsAvailable > user.clubs.length;
-    bool canCreatePlayer =
-        user.numberPlayersAvailable > user.playersIncarnated.length;
+    bool canCreateClub = user.creditsAvailable > 500;
+    bool canCreatePlayer = user.creditsAvailable > 500;
     return Column(
       children: [
         /// User listtile
@@ -383,8 +382,51 @@ class _UserPageState extends State<UserPage> {
             color: Colors.green,
             size: iconSizeMedium,
           ),
-          title: Text('Credits: ${user.creditsAvailable}'),
-          subtitle: const Text('Available credits', style: styleItalicBlueGrey),
+          title: Row(
+            children: [
+              Text('Available Credits: '),
+              Text(user.creditsAvailable.toString(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  )),
+            ],
+          ),
+          subtitle: const Text(
+              'Use credits to manage more clubs and players and more',
+              style: styleItalicBlueGrey),
+          trailing: IconButton(
+            icon:
+                Icon(Icons.add_card, size: iconSizeMedium, color: Colors.green),
+            tooltip: 'Add Credits',
+            onPressed: () {
+              /// Show a dialog with the user's credits to add more credits
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return persoAlertDialogWithConstrainedContent(
+                    title: Text('${user.creditsAvailable} credits available'),
+                    content: Column(
+                      children: [
+                        Text('Not yet implemented'),
+                      ],
+                    ),
+                    actions: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: persoCancelRow),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         ),
 
         /// Club tile
@@ -396,26 +438,43 @@ class _UserPageState extends State<UserPage> {
             color: canCreateClub ? Colors.green : Colors.orange,
             size: iconSizeMedium,
           ),
-          title: Text(
-              'Number of Club${user.clubs.length > 1 ? 's' : ''}: ${user.clubs.length} / ${user.numberClubsAvailable}'),
-          subtitle: Text(
-              canCreateClub
-                  ? 'You can ceate ${user.numberClubsAvailable - user.clubs.length} additional club${user.numberClubsAvailable - user.clubs.length > 1 ? 's' : ''}'
-                  : 'You cannot have any additional club',
+          title: Row(
+            children: [
+              Text('Number of Club${user.clubs.length > 1 ? 's' : ''}: '),
+              Text(user.clubs.length.toString(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  )),
+            ],
+          ),
+          subtitle: Text('You need 500 credits to handle another club',
               style: styleItalicBlueGrey),
-          onTap: canCreateClub
-              ? () {
-                  /// If the user has less clubs than the number of clubs available, show the dialog
-                  if (user.numberClubsAvailable > user.clubs.length) {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return CreationDialogBox_Club();
-                      },
-                    );
-                  }
-                }
-              : null,
+          trailing: IconButton(
+            icon: Icon(Icons.add_home_work,
+                size: iconSizeMedium,
+                color: canCreateClub ? Colors.green : Colors.orange),
+            tooltip: 'Add Club',
+            onPressed: () {
+              if (canCreateClub) {
+                /// If the user has less clubs than the number of clubs available, show the dialog
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return CreationDialogBox_Club();
+                  },
+                );
+              } else {
+                context.showSnackBarError(
+                  'You cannot create any additional club, missing credits',
+                  icon: Icon(
+                    Icons.warning,
+                    color: Colors.orange,
+                    size: iconSizeMedium,
+                  ),
+                );
+              }
+            },
+          ),
         ),
 
         /// Player tile
@@ -427,25 +486,48 @@ class _UserPageState extends State<UserPage> {
               color: canCreatePlayer ? Colors.green : Colors.orange,
               size: iconSizeMedium,
             ),
-            title: Text(
-                'Number of Player${user.playersIncarnated.length > 1 ? 's' : ''}: ${user.playersIncarnated.length} / ${user.numberPlayersAvailable}'),
+            title: Row(
+              children: [
+                Text(
+                    'Number of Player${user.playersIncarnated.length > 1 ? 's' : ''}: '),
+                Text(
+                  user.playersIncarnated.length.toString(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
             subtitle: Text(
-              canCreatePlayer
-                  ? 'You can ceate ${user.numberPlayersAvailable - user.playersIncarnated.length} additional player${user.numberPlayersAvailable - user.playersIncarnated.length > 1 ? 's' : ''}'
-                  : 'You cannot have any additional player',
+              'You need 500 credits to handle another player',
               style: styleItalicBlueGrey,
             ),
-            onTap: canCreatePlayer
-                ? () {
-                    /// If the user has less clubs than the number of players available, show the dialog
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return CreationDialogBox_Player();
-                      },
-                    );
-                  }
-                : null),
+            trailing: IconButton(
+              icon: Icon(Icons.person_add_alt_1,
+                  size: iconSizeMedium,
+                  color: canCreatePlayer ? Colors.green : Colors.orange),
+              tooltip: 'Add Player',
+              onPressed: () {
+                if (canCreatePlayer) {
+                  /// If the user has less players than the number of players available, show the dialog
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return CreationDialogBox_Player();
+                    },
+                  );
+                } else {
+                  context.showSnackBarError(
+                    'You cannot create any additional player, missing credits',
+                    icon: Icon(
+                      Icons.warning,
+                      color: Colors.orange,
+                      size: iconSizeMedium,
+                    ),
+                  );
+                }
+              },
+            )),
       ],
     );
   }

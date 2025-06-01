@@ -12,10 +12,8 @@ BEGIN
 
     ------ Check that the user can have an additional club
     IF (NEW.username <> NULL) THEN
-        IF ((SELECT COUNT(*) FROM players WHERE username = NEW.username) >
-        (SELECT max_number_players FROM profiles WHERE username = NEW.username)
-        ) THEN
-            RAISE EXCEPTION 'You can not have an additional player assigned to you';
+        IF (SELECT credits_available FROM profiles WHERE username = NEW.username) < 500 THEN
+            RAISE EXCEPTION 'You need 500 credits to manage an additional player';
         END IF;
     END IF;
 

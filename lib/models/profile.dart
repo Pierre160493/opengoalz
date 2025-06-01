@@ -23,8 +23,6 @@ class Profile {
     required this.createdAt,
     required this.idDefaultClub,
     required this.lastUsernameUpdate,
-    required this.numberClubsAvailable,
-    required this.numberPlayersAvailable,
     required this.creditsAvailable,
   });
 
@@ -33,9 +31,7 @@ class Profile {
   final DateTime createdAt;
   final DateTime? lastUsernameUpdate;
   final int? idDefaultClub;
-  final int numberClubsAvailable;
-  final int numberPlayersAvailable;
-  final double creditsAvailable;
+  final int creditsAvailable;
 
   Profile.fromMap(Map<String, dynamic> map, {String? connectedUserId})
       : id = map['uuid_user'],
@@ -47,9 +43,7 @@ class Profile {
         lastUsernameUpdate = map['last_username_update'] != null
             ? DateTime.parse(map['last_username_update']).toLocal()
             : null,
-        creditsAvailable = map['credits_available'].toDouble(),
-        numberClubsAvailable = map['max_number_clubs'] ?? 1,
-        numberPlayersAvailable = map['max_number_players'] ?? 1;
+        creditsAvailable = map['credits_available'];
 
   Map<String, dynamic> toMap() {
     return {
@@ -58,8 +52,6 @@ class Profile {
       'created_at': createdAt.toIso8601String(),
       'id_default_club': idDefaultClub,
       'last_username_update': lastUsernameUpdate?.toIso8601String(),
-      'max_number_clubs': numberClubsAvailable,
-      'max_number_players': numberPlayersAvailable,
     };
   }
 

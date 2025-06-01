@@ -30,7 +30,7 @@ BEGIN
                 SELECT id_club FROM players_poaching WHERE id_player = players.id
             ) AS clubs
         ) AS following_clubs,
-        profiles.max_number_players, profiles.uuid_user,
+        profiles.credits_available, profiles.uuid_user,
         string_parser(inp_entity_type := 'uuidUser', inp_uuid_user := profiles.uuid_user) AS uuid_user_special_string
     INTO rec_player
     FROM players
@@ -51,9 +51,15 @@ BEGIN
         END IF;
 
         ---- Check that the user can have an additional embodied player
-        IF (SELECT COUNT(*) FROM players WHERE username = inp_username) >= rec_player.max_number_players THEN
-            RAISE EXCEPTION 'You can not have more than % player(s) assigned to you', rec_player.max_number_players;
+        IF rec_player.credits_available < 500 THEN
+            RAISE EXCEPTION 'You dont have enough credits (%) to embody a new player (needed: 500)', rec_player.credits_available;
         END IF;
+
+        ---- Update the user's credits
+        UPDATE profiles SET
+            credits_available = credits_available - 500,
+            credits_used = credits_used + 500
+        WHERE uuid_user = rec_player.uuid_user;
 
         ---- Update the player to embody the new username
         UPDATE players SET

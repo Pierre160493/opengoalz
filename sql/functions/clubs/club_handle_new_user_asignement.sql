@@ -33,10 +33,10 @@ BEGIN
     END IF;
 
     ------ Check that the user can have an additional club
-    IF ((SELECT COUNT(*) FROM clubs WHERE username = NEW.username) >
-        (SELECT max_number_clubs FROM profiles WHERE username = NEW.username))
+    IF ((SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 1 AND
+        (SELECT credits_available FROM profiles WHERE username = NEW.username) < 500)
     THEN
-        RAISE EXCEPTION 'You can not have an additional club assigned to you';
+        RAISE EXCEPTION 'You need 500 credits to manage an additional club';
     END IF;
 
     ------ Set default club if it's the only club
@@ -89,10 +89,14 @@ BEGIN
     -- Generate the new team of the club
     PERFORM club_create_players(inp_id_club := NEW.id);
 
-    -- If its the only club of the user set default club
-    IF (SELECT id_default_club FROM profiles WHERE username = NEW.username) IS NULL THEN
-        UPDATE profiles SET id_default_club = NEW.id WHERE username = NEW.username;
-    END IF;
+    -- Update the user profile
+    UPDATE profiles SET
+        id_default_club = CASE
+            WHEN id_default_club IS NULL THEN NEW.id
+            ELSE id_default_club END,
+        credits_available = credits_available - 500,
+        credits_used = credits_used + 500
+    WHERE username = NEW.username;
 
     -- If the league has no more free clubs, generate new lower leagues
     IF ((SELECT count(*)

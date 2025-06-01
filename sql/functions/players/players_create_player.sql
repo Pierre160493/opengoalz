@@ -35,9 +35,9 @@ BEGIN
         END IF;
 
         ---- Check if the user can have an additional player
-        IF (SELECT COUNT(*) FROM players WHERE username = inp_username) >= loc_record.max_number_players THEN
-            RAISE EXCEPTION 'The username {%} can not have an additional player (max: %)', inp_username, loc_record.max_number_players;
-        END IF;        
+        IF loc_record.credits_available < 500 THEN
+            RAISE EXCEPTION 'The username {%} can not have an additional player (credits: %)', inp_username, loc_record.credits_available;
+        END IF;
 
     END IF;
 

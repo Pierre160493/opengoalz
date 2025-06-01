@@ -41,27 +41,26 @@ Widget userPlayerListWidget(BuildContext context, Profile user) {
           },
         ),
       ),
-      if (user.numberPlayersAvailable > user.playersIncarnated.length)
-        ListTile(
-          shape: shapePersoRoundedBorder(Colors.green),
-          leading: Icon(
-              user.playersIncarnated.length > 1
-                  ? Icons.person_add_alt_1
-                  : Icons.group_add,
-              color: Colors.green),
-          title: Text(user.playersIncarnated.length == 0
-              ? 'You dont have any players yet'
-              : 'Get an additional player'),
-          subtitle: const Text('Create a player and start an amazing career !',
-              style: TextStyle(
-                  color: Colors.blueGrey, fontStyle: FontStyle.italic)),
-          onTap: () => showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return CreationDialogBox_Player();
-            },
-          ),
+      ListTile(
+        shape: shapePersoRoundedBorder(Colors.green),
+        leading: Icon(
+            user.playersIncarnated.length > 1
+                ? Icons.person_add_alt_1
+                : Icons.group_add,
+            color: Colors.green),
+        title: Text(user.playersIncarnated.length == 0
+            ? 'You dont have any players yet'
+            : 'Get an additional player'),
+        subtitle: const Text('Create a player and start an amazing career !',
+            style:
+                TextStyle(color: Colors.blueGrey, fontStyle: FontStyle.italic)),
+        onTap: () => showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CreationDialogBox_Player();
+          },
         ),
+      ),
     ],
   );
 }
