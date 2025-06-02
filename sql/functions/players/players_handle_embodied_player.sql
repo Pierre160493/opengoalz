@@ -13,6 +13,7 @@ CREATE OR REPLACE FUNCTION public.players_handle_embodied_player(
 AS $function$
 DECLARE
     rec_player RECORD;
+    credits_for_player INTEGER := 500; -- Credits required to embody a player
 BEGIN
 
     ------ Fetch the player record
@@ -51,14 +52,14 @@ BEGIN
         END IF;
 
         ---- Check that the user can have an additional embodied player
-        IF rec_player.credits_available < 500 THEN
-            RAISE EXCEPTION 'You dont have enough credits (%) to embody a new player (needed: 500)', rec_player.credits_available;
+        IF rec_player.credits_available < credits_for_player THEN
+            RAISE EXCEPTION 'You dont have enough credits (%) to embody a new player (needed: %)', rec_player.credits_available, credits_for_player;
         END IF;
 
         ---- Update the user's credits
         UPDATE profiles SET
-            credits_available = credits_available - 500,
-            credits_used = credits_used + 500
+            credits_available = credits_available - credits_for_player,
+            credits_used = credits_used + credits_for_player
         WHERE uuid_user = rec_player.uuid_user;
 
         ---- Update the player to embody the new username

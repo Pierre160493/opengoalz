@@ -22,6 +22,7 @@ DECLARE
     loc_top_two_stats double precision[];
     loc_training_coef double precision[];
     loc_tmp double precision; -- Temporary variable for calculations
+    credits_for_player INTEGER := 500; -- Credits required to embody a player
 BEGIN
 
     ------ Check if the username exists and can have an additional player
@@ -35,8 +36,8 @@ BEGIN
         END IF;
 
         ---- Check if the user can have an additional player
-        IF loc_record.credits_available < 500 THEN
-            RAISE EXCEPTION 'The username {%} can not have an additional player (credits: %)', inp_username, loc_record.credits_available;
+        IF loc_record.credits_available < credits_for_player THEN
+            RAISE EXCEPTION 'The username {%} can not have an additional player (missing % credits)', inp_username, credits_for_player - loc_record.credits_available;
         END IF;
 
     END IF;

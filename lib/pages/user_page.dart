@@ -12,14 +12,14 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/models/mails/mailsWidget.dart';
-import 'package:opengoalz/widgets/creationDialogBox_Club.dart';
-import 'package:opengoalz/widgets/creationDialogBox_Player.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:opengoalz/widgets/userClubsTileWidget.dart';
 import 'package:opengoalz/widgets/userPageListOfClubs.dart';
 import 'package:opengoalz/widgets/userPageListOfPlayers.dart';
+import 'package:opengoalz/widgets/userPlayersTileWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -252,8 +252,6 @@ class _UserPageState extends State<UserPage> {
   }
 
   Widget _getUserWidget(Profile user) {
-    bool canCreateClub = user.creditsAvailable > 500;
-    bool canCreatePlayer = user.creditsAvailable > 500;
     return Column(
       children: [
         /// User listtile
@@ -430,104 +428,10 @@ class _UserPageState extends State<UserPage> {
         ),
 
         /// Club tile
-        ListTile(
-          shape: shapePersoRoundedBorder(
-              canCreateClub ? Colors.green : Colors.orange),
-          leading: Icon(
-            iconClub,
-            color: canCreateClub ? Colors.green : Colors.orange,
-            size: iconSizeMedium,
-          ),
-          title: Row(
-            children: [
-              Text('Number of Club${user.clubs.length > 1 ? 's' : ''}: '),
-              Text(user.clubs.length.toString(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  )),
-            ],
-          ),
-          subtitle: Text('You need 500 credits to handle another club',
-              style: styleItalicBlueGrey),
-          trailing: IconButton(
-            icon: Icon(Icons.add_home_work,
-                size: iconSizeMedium,
-                color: canCreateClub ? Colors.green : Colors.orange),
-            tooltip: 'Add Club',
-            onPressed: () {
-              if (canCreateClub) {
-                /// If the user has less clubs than the number of clubs available, show the dialog
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return CreationDialogBox_Club();
-                  },
-                );
-              } else {
-                context.showSnackBarError(
-                  'You cannot create any additional club, missing credits',
-                  icon: Icon(
-                    Icons.warning,
-                    color: Colors.orange,
-                    size: iconSizeMedium,
-                  ),
-                );
-              }
-            },
-          ),
-        ),
+        UserClubsTileWidget(user: user),
 
         /// Player tile
-        ListTile(
-            shape: shapePersoRoundedBorder(
-                canCreatePlayer ? Colors.green : Colors.orange),
-            leading: Icon(
-              iconPlayers,
-              color: canCreatePlayer ? Colors.green : Colors.orange,
-              size: iconSizeMedium,
-            ),
-            title: Row(
-              children: [
-                Text(
-                    'Number of Player${user.playersIncarnated.length > 1 ? 's' : ''}: '),
-                Text(
-                  user.playersIncarnated.length.toString(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            subtitle: Text(
-              'You need 500 credits to handle another player',
-              style: styleItalicBlueGrey,
-            ),
-            trailing: IconButton(
-              icon: Icon(Icons.person_add_alt_1,
-                  size: iconSizeMedium,
-                  color: canCreatePlayer ? Colors.green : Colors.orange),
-              tooltip: 'Add Player',
-              onPressed: () {
-                if (canCreatePlayer) {
-                  /// If the user has less players than the number of players available, show the dialog
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return CreationDialogBox_Player();
-                    },
-                  );
-                } else {
-                  context.showSnackBarError(
-                    'You cannot create any additional player, missing credits',
-                    icon: Icon(
-                      Icons.warning,
-                      color: Colors.orange,
-                      size: iconSizeMedium,
-                    ),
-                  );
-                }
-              },
-            )),
+        UserPlayersTileWidget(user: user),
       ],
     );
   }

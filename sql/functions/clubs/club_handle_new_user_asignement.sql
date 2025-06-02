@@ -8,6 +8,7 @@ AS $function$
 DECLARE
   teamcomp RECORD;
   league RECORD;
+  credits_for_club INTEGER := 500; -- Credits required to manage a club
 BEGIN
 
     ------ Clean the mails of the club
@@ -34,28 +35,20 @@ BEGIN
 
     ------ Check that the user can have an additional club
     IF ((SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 1 AND
-        (SELECT credits_available FROM profiles WHERE username = NEW.username) < 500)
+        (SELECT credits_available FROM profiles WHERE username = NEW.username) < credits_for_club)
     THEN
-        RAISE EXCEPTION 'You need 500 credits to manage an additional club';
+        RAISE EXCEPTION 'You need % credits to manage an additional club', credits_for_club;
     END IF;
-
-    ------ Check that it's the last level league of the continent
---    IF (
---        SELECT level FROM leagues WHERE id = NEW.id_league) <>
---        (SELECT max(LEVEL) FROM leagues WHERE continent = NEW.continent AND id_multiverse = NEW.id_multiverse)
---    THEN
---        RAISE EXCEPTION 'You can not assign a user to a league that is not of the last level';
---    END IF;
 
     -- Update the user profile
     UPDATE profiles SET
         id_default_club = COALESCE(id_default_club, NEW.id),
         credits_available = credits_available - CASE 
-            WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN 500 
+            WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN credits_for_club 
             ELSE 0 
         END,
         credits_used = credits_used + CASE 
-            WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN 500 
+            WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN credits_for_club 
             ELSE 0 
         END
     WHERE username = NEW.username;

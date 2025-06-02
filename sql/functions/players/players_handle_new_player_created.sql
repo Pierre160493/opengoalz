@@ -8,12 +8,13 @@ AS $function$
 DECLARE
     loc_first_name TEXT;
     loc_last_name TEXT;
+    credits_for_player INTEGER := 500; -- Credits required to manage an additional player
 BEGIN
 
     ------ Check that the user can have an additional club
     IF (NEW.username <> NULL) THEN
-        IF (SELECT credits_available FROM profiles WHERE username = NEW.username) < 500 THEN
-            RAISE EXCEPTION 'You need 500 credits to manage an additional player';
+        IF (SELECT credits_available FROM profiles WHERE username = NEW.username) < credits_for_player THEN
+            RAISE EXCEPTION 'You need % credits to manage an additional player', credits_for_player;
         END IF;
     END IF;
 

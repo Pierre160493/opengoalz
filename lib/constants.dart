@@ -160,3 +160,7 @@ String persoDateFormat = 'EEE dd MMM HH:mm';
 double iconSizeSmall = 24.0;
 double iconSizeMedium = 30.0;
 double iconSizeLarge = 36.0;
+
+/// Credits required for managing additional entities
+const int creditsRequiredForClub = 500;
+const int creditsRequiredForPlayer = 500;
