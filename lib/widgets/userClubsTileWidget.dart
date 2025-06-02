@@ -15,7 +15,8 @@ class UserClubsTileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int clubCount = user.clubs.length;
-    final bool canCreateClub = user.creditsAvailable >= creditsRequiredForClub;
+    final bool canCreateClub =
+        clubCount == 0 || user.creditsAvailable >= creditsRequiredForClub;
     final Color clubColor = canCreateClub ? Colors.green : Colors.orange;
 
     return ListTile(

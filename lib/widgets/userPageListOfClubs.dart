@@ -9,21 +9,8 @@ Widget userClubListWidget(BuildContext context, Profile user) {
   return Column(
     children: [
       formSpacer6,
-      Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icon(Icons.list, color: Colors.green),
-          SizedBox(width: 8),
-          Text(
-            'Here is the list of your clubs:',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-      formSpacer6,
+
+      /// List of clubs
       Flexible(
         child: ListView.builder(
           shrinkWrap: true,
@@ -34,6 +21,8 @@ Widget userClubListWidget(BuildContext context, Profile user) {
           },
         ),
       ),
+
+      /// Add club list tile
       ListTile(
         shape: shapePersoRoundedBorder(Colors.green),
         leading: const Icon(Icons.add_home_work, color: Colors.green),

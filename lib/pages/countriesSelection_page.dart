@@ -143,10 +143,12 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
               actions: [
                 _isSearching
                     ? IconButton(
+                        tooltip: 'Clear Search',
                         icon: Icon(Icons.clear),
                         onPressed: _stopSearch,
                       )
                     : IconButton(
+                        tooltip: 'Search Countries',
                         icon: Icon(Icons.search),
                         onPressed: _startSearch,
                       ),

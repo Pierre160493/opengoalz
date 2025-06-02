@@ -13,7 +13,6 @@ import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
-import 'package:rxdart/rxdart.dart';
 import 'dart:async';
 
 class ContinentPage extends StatefulWidget {
@@ -51,55 +50,34 @@ class _ContinentPageState extends State<ContinentPage>
 
   Future<void> fetchCountries(String nameContinent) async {
     _countriesStream = supabase
-        .from('countries')
-        .stream(primaryKey: ['id'])
-        .eq('continent', nameContinent)
-        .map((maps) => maps.map((map) => Country.fromMap(map)).toList())
-        .switchMap((List<Country> countries) {
-          return supabase
-                  .from('clubs')
-                  .stream(primaryKey: ['id'])
-                  .inFilter(
-                      'id_country',
-                      countries
-                          .map((country) => country.id)
-                          .toSet()
-                          .toList()
-                          .cast<Object>())
-                  .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
-                  .map((List<Club> clubs) {
-                    return countries.map((country) {
-                      country.clubsAll = clubs
-                          .where((club) => club.idCountry == country.id)
-                          .toList();
-                      return country;
-                    }).toList();
-                  })
-              // .switchMap((List<Country> countries) {
-              //   return supabase
-              //       .from('players')
-              //       .stream(primaryKey: ['id'])
-              //       .inFilter(
-              //           'id_country',
-              //           countries
-              //               .map((country) => country.id)
-              //               .toSet()
-              //               .toList()
-              //               .cast<Object>())
-              //       .map((maps) =>
-              //           maps.map((map) => Player.fromMap(map)).toList())
-              //       .map((List<Player> players) {
-              //         return countries.map((country) {
-              //           country.playersAll = players
-              //               .where((Player player) =>
-              //                   player.idCountry == country.id)
-              //               .toList();
-              //           return country;
-              //         }).toList();
-              //       });
-              // })
-              ;
-        });
+            .from('countries')
+            .stream(primaryKey: ['id'])
+            .eq('continent', nameContinent)
+            .map((maps) => maps.map((map) => Country.fromMap(map)).toList())
+        // .switchMap(
+        //   (List<Country> countries) {
+        //     return supabase
+        //         .from('clubs')
+        //         .stream(primaryKey: ['id'])
+        //         .inFilter(
+        //             'id_country',
+        //             countries
+        //                 .map((country) => country.id)
+        //                 .toSet()
+        //                 .toList()
+        //                 .cast<Object>())
+        //         .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+        //         .map((List<Club> clubs) {
+        //           return countries.map((country) {
+        //             country.clubsAll = clubs
+        //                 .where((club) => club.idCountry == country.id)
+        //                 .toList();
+        //             return country;
+        //           }).toList();
+        //         });
+        //   },
+        // )
+        ;
   }
 
   Future<void> setMultiverse(int? idMultiverse) async {

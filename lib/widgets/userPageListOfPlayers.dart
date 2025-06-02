@@ -12,7 +12,9 @@ Widget userPlayerListWidget(BuildContext context, Profile user) {
 
   return Column(
     children: [
-      const SizedBox(height: 12),
+      formSpacer6,
+
+      /// List of players
       Flexible(
         child: ListView.builder(
           shrinkWrap: true,
@@ -41,6 +43,8 @@ Widget userPlayerListWidget(BuildContext context, Profile user) {
           },
         ),
       ),
+
+      /// Add player list tile
       ListTile(
         shape: shapePersoRoundedBorder(Colors.green),
         leading: Icon(
