@@ -11,9 +11,6 @@ DECLARE
   credits_for_club INTEGER := 500; -- Credits required to manage a club
 BEGIN
 
-    ------ Clean the mails of the club
-    DELETE FROM mails WHERE id_club_to = NEW.id;
-
     ------ If the user leaves the club
     IF NEW.username IS NULL THEN
 
@@ -56,13 +53,6 @@ BEGIN
     ---- Log user history
     INSERT INTO profile_events (uuid_user, description)
     VALUES ((SELECT uuid_user FROM profiles WHERE username = NEW.username), 'Started managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
-
-    -- Send an email
-    INSERT INTO mails (id_club_to, created_at, sender_role, is_club_info, title, message)
-    VALUES
-        (NEW.id, now(), 'Secretary', TRUE,
-        'Welcome to ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id),
-        'Hi, I''m the club''s secretary on behalf of all the staff I would like to welcome you as the new owner of ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id) || '. I hope you will enjoy your time here and that you will be able to lead the club to success !');
 
     -- Log the history of the players
     INSERT INTO players_history (id_player, id_club, description)
@@ -124,7 +114,29 @@ BEGIN
 
     END IF;
 
-    -- Return the new record to proceed with the update
+    ------ Update the clubs table
+    UPDATE clubs SET
+        number_fans = DEFAULT,
+        can_update_name = TRUE,
+        user_since = now(),
+        cash = DEFAULT,
+        expenses_transfers_done = 0,
+        expenses_transfers_expected = 0,
+        revenues_transfers_done = 0,
+        revenues_transfers_expected = 0
+    WHERE id = NEW.id;
+
+    ------ Clean the mails of the club
+    DELETE FROM mails WHERE id_club_to = NEW.id;
+
+    -- Send an email
+    INSERT INTO mails (id_club_to, created_at, sender_role, is_club_info, title, message)
+    VALUES
+        (NEW.id, now(), 'Secretary', TRUE,
+        'Welcome to ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id),
+        'Hi, I''m the club''s secretary on behalf of all the staff I would like to welcome you as the new owner of ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id) || '. I hope you will enjoy your time here and that you will be able to lead the club to success !');
+
+    ------ Return the new record to proceed with the update
     RETURN NEW;
 END;
 $function$
