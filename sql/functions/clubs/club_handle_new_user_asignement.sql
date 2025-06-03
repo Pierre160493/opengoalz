@@ -16,7 +16,7 @@ BEGIN
 
         ---- Log Club history
         INSERT INTO clubs_history (id_club, description)
-        VALUES (NEW.id, 'User ' || string_parser(inp_entity_type := 'uuidUser', inp_uuid_user := OLD.username) || ' has left the club');
+        VALUES (NEW.id, 'User ' || string_parser(inp_entity_type := 'uuidUser', inp_uuid_user := (SELECT uuid_user FROM profiles WHERE username = OLD.username)) || ' has left the club');
     
         ---- Log user history
         INSERT INTO profile_events (uuid_user, description)
@@ -25,92 +25,92 @@ BEGIN
     ------ If the user is assigned to the club
     ELSE
     
-    ------ Check that the club is available
-    IF (OLD.username IS NOT NULL) THEN
-        RAISE EXCEPTION 'This club already belongs to: %', OLD.username;
-    END IF;
-
-    ------ Check that the user can have an additional club
-    IF ((SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 1 AND
-        (SELECT credits_available FROM profiles WHERE username = NEW.username) < credits_for_club)
-    THEN
-        RAISE EXCEPTION 'You need % credits to manage an additional club', credits_for_club;
-    END IF;
-
-    -- Update the user profile
-    UPDATE profiles SET
-        id_default_club = COALESCE(id_default_club, NEW.id),
-        credits_available = credits_available - CASE 
-            WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN credits_for_club 
-            ELSE 0 
-        END,
-        credits_used = credits_used + CASE 
-            WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN credits_for_club 
-            ELSE 0 
-        END
-    WHERE username = NEW.username;
-
-    ---- Log user history
-    INSERT INTO profile_events (uuid_user, description)
-    VALUES ((SELECT uuid_user FROM profiles WHERE username = NEW.username), 'Started managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
-
-    -- Log the history of the players
-    INSERT INTO players_history (id_player, id_club, description)
-        SELECT id, id_club, 'Left ' || string_parser(inp_entity_type := 'idClub', inp_id := id_club) || ' because a new owner took control'
-        FROM players WHERE id_club = NEW.id;
-  
-    -- Release the players
-    UPDATE players SET
-        id_club = NULL,
-        date_arrival = NOW(),
-        shirt_number = NULL,
-        expenses_missed = 0,
-        motivation = 60 + random() * 30,
-        transfer_price = 100,
-        date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse))
-        WHERE id_club = NEW.id;
-
-    -- Reset the default teamcomps of the club to NULL everywhere
-    FOR teamcomp IN
-        SELECT * FROM games_teamcomp WHERE id_club = NEW.id AND season_number = 0
-    LOOP
-        PERFORM teamcomp_copy_previous(inp_id_teamcomp := teamcomp.id, INP_SEASON_NUMBER := - 999);
-    END LOOP;
-
-    -- Generate the new team of the club
-    PERFORM club_create_players(inp_id_club := NEW.id);
-
-    -- If the league has no more free clubs, generate new lower leagues
-    IF ((SELECT count(*)
-        FROM clubs
-        JOIN leagues ON clubs.id_league = leagues.id
-        WHERE clubs.id_multiverse = 1
-        AND leagues.continent = NEW.continent
-        AND leagues.level = (
-            SELECT MAX(level)
-            FROM leagues
-            WHERE leagues.id_multiverse = NEW.id_multiverse
-            )
-        AND clubs.username IS NULL) = 0)
-    THEN
--- Generate new lower leagues from the current lowest level leagues
-        FOR league IN (
-            SELECT * FROM leagues WHERE
-                id_multiverse = NEW.id_multiverse AND
-                level > 0 AND
-                id NOT IN (SELECT id_upper_league FROM leagues WHERE id_multiverse = NEW.id_multiverse
-                    AND id_upper_league IS NOT NULL))
+        ------ Check that the club is available
+        IF (OLD.username IS NOT NULL) THEN
+            RAISE EXCEPTION 'This club already belongs to: %', OLD.username;
+        END IF;
+    
+        ------ Check that the user can have an additional club
+        IF ((SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 1 AND
+            (SELECT credits_available FROM profiles WHERE username = NEW.username) < credits_for_club)
+        THEN
+            RAISE EXCEPTION 'You need % credits to manage an additional club', credits_for_club;
+        END IF;
+    
+        -- Update the user profile
+        UPDATE profiles SET
+            id_default_club = COALESCE(id_default_club, NEW.id),
+            credits_available = credits_available - CASE 
+                WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN credits_for_club 
+                ELSE 0 
+            END,
+            credits_used = credits_used + CASE 
+                WHEN (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) > 0 THEN credits_for_club 
+                ELSE 0 
+            END
+        WHERE username = NEW.username;
+    
+        ---- Log user history
+        INSERT INTO profile_events (uuid_user, description)
+        VALUES ((SELECT uuid_user FROM profiles WHERE username = NEW.username), 'Started managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
+    
+        -- Log the history of the players
+        INSERT INTO players_history (id_player, id_club, description)
+            SELECT id, id_club, 'Left ' || string_parser(inp_entity_type := 'idClub', inp_id := id_club) || ' because a new owner took control'
+            FROM players WHERE id_club = NEW.id;
+    
+        -- Release the players
+        UPDATE players SET
+            id_club = NULL,
+            date_arrival = NOW(),
+            shirt_number = NULL,
+            expenses_missed = 0,
+            motivation = 60 + random() * 30,
+            transfer_price = 100,
+            date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse))
+            WHERE id_club = NEW.id;
+    
+        -- Reset the default teamcomps of the club to NULL everywhere
+        FOR teamcomp IN
+            SELECT * FROM games_teamcomp WHERE id_club = NEW.id AND season_number = 0
         LOOP
-            PERFORM leagues_create_lower_leagues(
-                inp_id_upper_league := league.id, inp_max_level := league.level + 1);
+            PERFORM teamcomp_copy_previous(inp_id_teamcomp := teamcomp.id, INP_SEASON_NUMBER := - 999);
         END LOOP;
-
-        -- Reset the week number of the multiverse to simulate the games
-        UPDATE multiverses SET week_number = 1 WHERE id = NEW.id_multiverse;
-
-        -- Handle the season by simulating the games
-        PERFORM handle_season_main();
-    END IF;
+    
+        -- Generate the new team of the club
+        PERFORM club_create_players(inp_id_club := NEW.id);
+    
+        -- If the league has no more free clubs, generate new lower leagues
+        IF ((SELECT count(*)
+            FROM clubs
+            JOIN leagues ON clubs.id_league = leagues.id
+            WHERE clubs.id_multiverse = 1
+            AND leagues.continent = NEW.continent
+            AND leagues.level = (
+                SELECT MAX(level)
+                FROM leagues
+                WHERE leagues.id_multiverse = NEW.id_multiverse
+                )
+            AND clubs.username IS NULL) = 0)
+        THEN
+    -- Generate new lower leagues from the current lowest level leagues
+            FOR league IN (
+                SELECT * FROM leagues WHERE
+                    id_multiverse = NEW.id_multiverse AND
+                    level > 0 AND
+                    id NOT IN (SELECT id_upper_league FROM leagues WHERE id_multiverse = NEW.id_multiverse
+                        AND id_upper_league IS NOT NULL))
+            LOOP
+                PERFORM leagues_create_lower_leagues(
+                    inp_id_upper_league := league.id, inp_max_level := league.level + 1);
+            END LOOP;
+    
+            -- Reset the week number of the multiverse to simulate the games
+            UPDATE multiverses SET week_number = 1 WHERE id = NEW.id_multiverse;
+    
+            -- Handle the season by simulating the games
+            PERFORM handle_season_main();
+        END IF;
 
     END IF;
 

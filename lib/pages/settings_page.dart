@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/pages/login_page.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -34,12 +35,13 @@ class SettingsPage extends StatelessWidget {
       body: MaxWidthContainer(
         child: ListView(
           children: <Widget>[
+            /// ListTile for changing the theme
             ListTile(
-              leading: Icon(Icons.brightness_6),
-              title: Tooltip(
-                message: 'Switch between light and dark theme',
-                child: Text('Dark Theme'),
-              ),
+              leading: Icon(Icons.brightness_6,
+                  color: Colors.yellow, size: iconSizeMedium),
+              title: Text('Dark Theme'),
+              subtitle: Text('Switch between light and dark theme',
+                  style: styleItalicBlueGrey),
               trailing: Switch(
                 value: Provider.of<ThemeProvider>(context).isDarkTheme,
                 onChanged: (value) {
@@ -49,38 +51,11 @@ class SettingsPage extends StatelessWidget {
               ),
               shape: shapePersoRoundedBorder(),
             ),
-            FutureBuilder<String>(
-              future: _readVersion(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return ListTile(
-                    title: Tooltip(
-                      message: 'Release version',
-                      child: Text('Loading version...'),
-                    ),
-                    shape: shapePersoRoundedBorder(),
-                  );
-                } else if (snapshot.hasError) {
-                  return ListTile(
-                    title: Tooltip(
-                      message: 'Release version',
-                      child: Text('Error loading version'),
-                    ),
-                    shape: shapePersoRoundedBorder(),
-                  );
-                } else {
-                  return ListTile(
-                    title: Tooltip(
-                      message: 'Release version',
-                      child: Text('Version ${snapshot.data}'),
-                    ),
-                    shape: shapePersoRoundedBorder(),
-                  );
-                }
-              },
-            ),
+
+            /// ListTile for inviting someone to create an account
             ListTile(
-              leading: Icon(Icons.local_activity),
+              leading: Icon(Icons.local_activity,
+                  color: Colors.green, size: iconSizeMedium),
               title: Text('Invite someone to create his account'),
               onTap: () async {
                 // Show a dialog box to enter an email address
@@ -128,6 +103,43 @@ class SettingsPage extends StatelessWidget {
               },
               shape: shapePersoRoundedBorder(),
             ),
+
+            /// ListTile for version information
+            FutureBuilder<String>(
+              future: _readVersion(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return ListTile(
+                    title: Tooltip(
+                      message: 'Release version',
+                      child: Text('Loading version...'),
+                    ),
+                    shape: shapePersoRoundedBorder(),
+                  );
+                } else if (snapshot.hasError) {
+                  return ListTile(
+                    title: Tooltip(
+                      message: 'Release version',
+                      child: Text('Error loading version'),
+                    ),
+                    shape: shapePersoRoundedBorder(),
+                  );
+                } else {
+                  return ListTile(
+                    leading: Icon(Icons.info,
+                        color: Colors.blue, size: iconSizeMedium),
+                    title: Text('Version ${snapshot.data}'),
+                    subtitle: Text(
+                      'Version of the app you are currently using.',
+                      style: styleItalicBlueGrey,
+                    ),
+                    shape: shapePersoRoundedBorder(),
+                  );
+                }
+              },
+            ),
+
+            /// ListTile for displaying app information
             FutureBuilder<String>(
               future: _readVersion(),
               builder: (context, snapshot) {
@@ -153,12 +165,35 @@ class SettingsPage extends StatelessWidget {
                 );
               },
             ),
+
+            /// ListTile for changing the language
+            ListTile(
+              leading: Icon(Icons.language,
+                  color: Colors.green, size: iconSizeMedium),
+              title: Text('Change Language'),
+              subtitle: Text('Select your preferred language',
+                  style: styleItalicBlueGrey),
+              onTap: () {
+                context.showSnackBarError(
+                  'Language selection is not implemented yet.',
+                  icon: Icon(Icons.language, color: Colors.orange),
+                );
+              },
+              shape: shapePersoRoundedBorder(Colors.orange),
+            ),
+
+            /// ListTile for deleting the account
             ListTile(
               leading: Icon(
                 Icons.delete_forever,
                 color: Colors.red,
+                size: iconSizeMedium,
               ),
               title: Text('Delete your account'),
+              subtitle: Text(
+                'Permanently delete your account and all associated data.',
+                style: styleItalicBlueGrey,
+              ),
               onTap: () async {
                 // Prompt confirmation dialog before deleting the account
                 bool? isConfirmed = await context.showConfirmationDialog(
@@ -166,17 +201,30 @@ class SettingsPage extends StatelessWidget {
 
                 if (isConfirmed) {
                   try {
-                    // Delete the user account
-                    await supabase.auth.admin
-                        .deleteUser(supabase.auth.currentUser!.id);
-                    context.showSnackBar('Account deleted',
-                        icon: Icon(Icons.delete_forever, color: Colors.red));
+                    /// Delete the user account
+                    await operationInDB(context, 'UPDATE', 'profiles',
+                        data: {
+                          'date_delete': DateTime.now()
+                              // .add(Duration(days: 30))
+                              .add(Duration(
+                                  days:
+                                      -1)) // Set to yesterday to delete immediately
+                              .toIso8601String(),
+                        },
+                        matchCriteria: {
+                          'uuid_user': supabase.auth.currentUser!.id
+                        },
+                        messageSuccess:
+                            'Your account will be deleted in 30 days. You can still log in to cancel the deletion.');
+
+                    await supabase.auth.signOut(); // Sign out the user
                     Navigator.of(context).pushAndRemoveUntil(
                       LoginPage.route(),
                       (route) => false,
                     );
                   } catch (error) {
-                    context.showSnackBarError('Error deleting the account');
+                    context.showSnackBarError(
+                        'Error deleting the account: ${error.toString()}');
                   }
                 }
               },

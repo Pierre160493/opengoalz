@@ -8,6 +8,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/pages/settings_page.dart';
+import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
@@ -16,6 +17,7 @@ import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:opengoalz/widgets/sendMail.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:opengoalz/widgets/tickingTime.dart';
 import 'package:opengoalz/widgets/userClubsTileWidget.dart';
 import 'package:opengoalz/widgets/userPageListOfClubs.dart';
 import 'package:opengoalz/widgets/userPageListOfPlayers.dart';
@@ -41,6 +43,8 @@ class UserPage extends StatefulWidget {
 
 class _UserPageState extends State<UserPage> {
   late Stream<Profile> _userStream;
+  bool _hasShownDeletionDialog =
+      false; // Flag to ensure the dialog is shown only once
 
   @override
   void initState() {
@@ -137,38 +141,60 @@ class _UserPageState extends State<UserPage> {
         ),
       );
     }
+
+    // Show dialog if the connected user's account is marked for deletion
+    if (user.isConnectedUser &&
+        user.dateDelete != null &&
+        !_hasShownDeletionDialog) {
+      _hasShownDeletionDialog = true; // Set the flag to true
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          _showAccountDeletionDialog(context, user);
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: user.getUserName(context),
         actions: [
-          Tooltip(
-            message: 'Open Settings Page',
-            child: IconButton(
+          /// Account deletion notice
+          if (user.dateDelete != null)
+            IconButton(
+              tooltip: 'Account scheduled for deletion',
+              icon:
+                  Icon(Icons.warning, size: iconSizeMedium, color: Colors.red),
               onPressed: () {
-                Navigator.of(context).push(SettingsPage.route());
+                _showAccountDeletionDialog(context, user);
               },
-              icon: Icon(Icons.settings,
-                  size: iconSizeMedium, color: Colors.green),
             ),
+
+          /// Settings button
+          IconButton(
+            tooltip: 'Open Settings Page',
+            onPressed: () {
+              Navigator.of(context).push(SettingsPage.route());
+            },
+            icon:
+                Icon(Icons.settings, size: iconSizeMedium, color: Colors.green),
           ),
 
-          /// Reload pae button
-          Tooltip(
-            message: 'Reload page',
-            child: IconButton(
-              onPressed: () async {
-                // Refetch the user
-                await Provider.of<UserSessionProvider>(context, listen: false)
-                    .providerFetchUser(context,
-                        userId: supabase.auth.currentUser!.id);
-// Reload the UserPage
-                Navigator.of(context)
-                    .pushAndRemoveUntil(UserPage.route(), (route) => false);
-                context.showSnackBarSuccess('User and Page reloaded');
-              },
-              icon: Icon(Icons.refresh,
-                  size: iconSizeMedium, color: Colors.green),
-            ),
+          /// Reload page button
+          IconButton(
+            tooltip: 'Reload User Page',
+            onPressed: () async {
+              // Refetch the user
+              await Provider.of<UserSessionProvider>(context, listen: false)
+                  .providerFetchUser(context,
+                      userId: supabase.auth.currentUser!.id);
+
+              /// Reload the UserPage
+              Navigator.of(context)
+                  .pushAndRemoveUntil(UserPage.route(), (route) => false);
+              context.showSnackBarSuccess('User and Page reloaded');
+            },
+            icon:
+                Icon(Icons.refresh, size: iconSizeMedium, color: Colors.green),
           ),
           user.isConnectedUser
               ? mailToolTip(context, user)
@@ -248,6 +274,74 @@ class _UserPageState extends State<UserPage> {
           ],
         ),
       )),
+    );
+  }
+
+  void _showAccountDeletionDialog(BuildContext context, Profile user) {
+    /// If the account is not scheduled for deletion, show an error message
+    if (user.dateDelete == null)
+      context.showSnackBarError('Account is not scheduled for deletion.');
+
+    /// Show a dialog with the date scheduled for deletion
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return persoAlertDialogWithConstrainedContent(
+          title: ListTile(
+            leading: Icon(Icons.warning, color: Colors.red),
+            title: Text(
+                'Account scheduled for deletion on ${formatDate(user.dateDelete!)}.'),
+            subtitle: tickingTimeWidget(user.dateDelete!),
+            shape: shapePersoRoundedBorder(),
+          ),
+          content: formSpacer3,
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                /// Button to close the dialog
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: persoValidRow('Ok'),
+                ),
+
+                /// Button to cancel the account deletion
+                TextButton(
+                  onPressed: () async {
+                    bool cancelConfirmed = await context.showConfirmationDialog(
+                        'Are you sure you want to cancel the account deletion?');
+                    if (cancelConfirmed == true) {
+                      /// Cancel deletion by setting date_delete to null
+                      await operationInDB(context, 'UPDATE', 'profiles',
+                          data: {
+                            'date_delete': null, // Cancel the deletion
+                          },
+                          matchCriteria: {
+                            'uuid_user': supabase.auth.currentUser!.id
+                          },
+                          messageSuccess:
+                              'Account deletion cancelled successfully. Glad to have you back!');
+
+                      Navigator.of(context).pop();
+
+                      /// Reload the UserPage
+                      Navigator.of(context).pushAndRemoveUntil(
+                          UserPage.route(), (route) => false);
+                    }
+                  },
+                  child: persoRowWithIcon(
+                    Icons.cancel,
+                    'Cancel Deletion',
+                    color: Colors.orange,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 

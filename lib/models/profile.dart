@@ -24,6 +24,7 @@ class Profile {
     required this.idDefaultClub,
     required this.lastUsernameUpdate,
     required this.creditsAvailable,
+    this.dateDelete,
   });
 
   final String id; // User ID of the profile stored in the auth.users table
@@ -32,6 +33,7 @@ class Profile {
   final DateTime? lastUsernameUpdate;
   final int? idDefaultClub;
   final int creditsAvailable;
+  final DateTime? dateDelete; // Date when the profile is marked for deletion
 
   Profile.fromMap(Map<String, dynamic> map, {String? connectedUserId})
       : id = map['uuid_user'],
@@ -43,7 +45,10 @@ class Profile {
         lastUsernameUpdate = map['last_username_update'] != null
             ? DateTime.parse(map['last_username_update']).toLocal()
             : null,
-        creditsAvailable = map['credits_available'];
+        creditsAvailable = map['credits_available'],
+        dateDelete = map['date_delete'] != null
+            ? DateTime.parse(map['date_delete']).toLocal()
+            : null;
 
   Map<String, dynamic> toMap() {
     return {
@@ -52,6 +57,7 @@ class Profile {
       'created_at': createdAt.toIso8601String(),
       'id_default_club': idDefaultClub,
       'last_username_update': lastUsernameUpdate?.toIso8601String(),
+      'date_delete': dateDelete?.toIso8601String(),
     };
   }
 
