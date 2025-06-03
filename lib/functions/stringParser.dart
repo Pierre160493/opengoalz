@@ -88,7 +88,7 @@ TextSpan stringParser(BuildContext context, String description,
             case 'uuiduser':
               Navigator.push(
                 context,
-                UserPage.route(uuidUser: text),
+                UserPage.route(uuidUser: id),
               );
               break;
           }
