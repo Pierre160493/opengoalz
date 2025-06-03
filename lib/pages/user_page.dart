@@ -101,7 +101,21 @@ class _UserPageState extends State<UserPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return loadingCircularAndText('Loading user...');
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Error: ${snapshot.error}'),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pop(); // Return to the previous page
+                    },
+                    child: const Text('Go Back'),
+                  ),
+                ],
+              ),
+            );
           } else if (!snapshot.hasData) {
             return Center(child: Text('User not found'));
           }
