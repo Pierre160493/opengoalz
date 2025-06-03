@@ -501,7 +501,43 @@ class _UserPageState extends State<UserPage> {
                     title: Text('${user.creditsAvailable} credits available'),
                     content: Column(
                       children: [
-                        Text('Not yet implemented'),
+                        ListTile(
+                          leading: Icon(Icons.add_card,
+                              size: iconSizeMedium, color: Colors.green),
+                          title: Row(
+                            children: [
+                              Text('Add '),
+                              Text('100',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  )),
+                              Text(' Credits'),
+                            ],
+                          ),
+                          shape: shapePersoRoundedBorder(),
+                          subtitle: const Text(
+                            'Add credits to your account.',
+                            style: styleItalicBlueGrey,
+                          ),
+                          onTap: () async {
+                            await operationInDB(
+                              context,
+                              'UPDATE',
+                              'profiles',
+                              data: {
+                                'credits_available':
+                                    user.creditsAvailable + 100,
+                              },
+                              matchCriteria: {
+                                'uuid_user': supabase.auth.currentUser!.id
+                              },
+                              messageSuccess:
+                                  '100 credits added successfully to your account.',
+                            );
+
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                        ),
                       ],
                     ),
                     actions: [
