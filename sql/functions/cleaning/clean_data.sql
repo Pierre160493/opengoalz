@@ -48,10 +48,18 @@ BEGIN
         WHERE rn > 900
     );    
 
-    -- Delete the players poaching
+    ------ Delete the players poaching
     DELETE FROM players_poaching
     WHERE to_delete = TRUE
     AND affinity < 0;
+
+    ------ Delete users scheduled for deletion
+    DELETE FROM auth.users
+    WHERE id IN (
+        SELECT uuid_user
+        FROM public.profiles
+        WHERE NOW() >= date_delete
+    );
 
 END;
 $procedure$;

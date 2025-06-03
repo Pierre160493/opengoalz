@@ -299,43 +299,44 @@ class _UserPageState extends State<UserPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                /// Button to cancel the account deletion
+                if (user.isConnectedUser)
+                  TextButton(
+                    onPressed: () async {
+                      bool cancelConfirmed = await context.showConfirmationDialog(
+                          'Are you sure you want to cancel the account deletion?');
+                      if (cancelConfirmed == true) {
+                        /// Cancel deletion by setting date_delete to null
+                        await operationInDB(context, 'UPDATE', 'profiles',
+                            data: {
+                              'date_delete': null, // Cancel the deletion
+                            },
+                            matchCriteria: {
+                              'uuid_user': supabase.auth.currentUser!.id
+                            },
+                            messageSuccess:
+                                'Account deletion cancelled successfully. Glad to have you back!');
+
+                        await supabase.auth.signOut(); // Sign out the user
+                        Navigator.of(context).pushAndRemoveUntil(
+                          LoginPage.route(),
+                          (route) => false,
+                        );
+                      }
+                    },
+                    child: persoRowWithIcon(
+                      Icons.cancel,
+                      'Cancel Deletion',
+                      color: Colors.orange,
+                    ),
+                  ),
+
                 /// Button to close the dialog
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                   child: persoValidRow('Ok'),
-                ),
-
-                /// Button to cancel the account deletion
-                TextButton(
-                  onPressed: () async {
-                    bool cancelConfirmed = await context.showConfirmationDialog(
-                        'Are you sure you want to cancel the account deletion?');
-                    if (cancelConfirmed == true) {
-                      /// Cancel deletion by setting date_delete to null
-                      await operationInDB(context, 'UPDATE', 'profiles',
-                          data: {
-                            'date_delete': null, // Cancel the deletion
-                          },
-                          matchCriteria: {
-                            'uuid_user': supabase.auth.currentUser!.id
-                          },
-                          messageSuccess:
-                              'Account deletion cancelled successfully. Glad to have you back!');
-
-                      Navigator.of(context).pop();
-
-                      /// Reload the UserPage
-                      Navigator.of(context).pushAndRemoveUntil(
-                          UserPage.route(), (route) => false);
-                    }
-                  },
-                  child: persoRowWithIcon(
-                    Icons.cancel,
-                    'Cancel Deletion',
-                    color: Colors.orange,
-                  ),
                 ),
               ],
             ),
