@@ -7,10 +7,10 @@ import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class CalendarPage extends StatefulWidget {
   final int idClub;
@@ -103,7 +103,7 @@ class _CalendarPageState extends State<CalendarPage> {
       stream: _clubStream,
       builder: (context, AsyncSnapshot<Club> snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error occurred: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
           return loadingCircularAndText('Loading club...');
         } else {

@@ -18,6 +18,7 @@ import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/widgets/staff_detail_tab.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class StaffPage extends StatefulWidget {
   final int idClub;
@@ -85,7 +86,7 @@ class _StaffPageState extends State<StaffPage> {
       stream: _clubStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error occurred: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
           return loadingCircularAndText('Loading club...');
         } else {

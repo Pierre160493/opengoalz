@@ -3,6 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -48,7 +49,7 @@ class _FansPageState extends State<FansPage> {
     return Scaffold(
       appBar: AppBar(
           title: Text(Provider.of<UserSessionProvider>(context, listen: false)
-              .user!
+              .user
               .selectedClub!
               .name)),
       // CustomAppBar(clubStream: _clubStream),
@@ -81,7 +82,8 @@ class _FansPageState extends State<FansPage> {
                       // style: const TextStyle(fontSize: 18),
                     );
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return ErrorWithBackButton(
+                        errorMessage: snapshot.error.toString());
                   } else {
                     return loadingCircularAndText('Loading fans...');
                   }

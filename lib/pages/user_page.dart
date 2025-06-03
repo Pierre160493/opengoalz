@@ -24,6 +24,7 @@ import 'package:opengoalz/widgets/userPageListOfPlayers.dart';
 import 'package:opengoalz/widgets/userPlayersTileWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class UserPage extends StatefulWidget {
   final String? userName;
@@ -101,23 +102,9 @@ class _UserPageState extends State<UserPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return loadingCircularAndText('Loading user...');
           } else if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Error: ${snapshot.error}'),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context)
-                          .pop(); // Return to the previous page
-                    },
-                    child: const Text('Go Back'),
-                  ),
-                ],
-              ),
-            );
+            return ErrorWithBackButton(errorMessage: snapshot.error.toString());
           } else if (!snapshot.hasData) {
-            return Center(child: Text('User not found'));
+            return ErrorWithBackButton(errorMessage: 'User not found');
           }
           Profile user = snapshot.data!;
           return _buildUserWidget(user);

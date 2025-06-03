@@ -69,9 +69,9 @@ extension LeagueStatsTab on League {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return loadingCircularAndText('Loading top scorers and assists');
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return ErrorWithBackButton(errorMessage: snapshot.error.toString());
           } else if (!snapshot.hasData) {
-            return Center(child: Text('No data available'));
+            return ErrorWithBackButton(errorMessage: 'No data available');
           } else {
             Map<int, Player> players = Map.fromIterable(snapshot.data!,
                 key: (player) => player.id, value: (player) => player);
@@ -108,7 +108,7 @@ extension LeagueStatsTab on League {
   Widget _displayPlayers(BuildContext context,
       List<MapEntry<int, int>> sortedPlayers, Map<int, Player> players) {
     if (sortedPlayers.isEmpty) {
-      return Center(child: Text('No data available'));
+      return ErrorWithBackButton(errorMessage: 'No data available');
     }
     return ListView.builder(
       itemCount: sortedPlayers.length,

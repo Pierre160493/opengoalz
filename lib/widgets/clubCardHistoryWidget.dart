@@ -4,6 +4,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/functions/stringParser.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class ClubCardHistoryWidget extends StatefulWidget {
   final Club club;
@@ -40,9 +41,9 @@ class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return loadingCircularAndText('Loading club history...');
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return ErrorWithBackButton(errorMessage: snapshot.error.toString());
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No data available'));
+            return ErrorWithBackButton(errorMessage: 'No data available');
           } else {
             List<Map> listClubHistory = snapshot.data!;
             return ListView.builder(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 Widget getClubNameListTile(BuildContext context, Club club) {
   return ListTile(
@@ -32,11 +33,11 @@ Widget getClubNameFromId(BuildContext context, int idClub) {
           ),
         );
       } else if (snapshot.hasError) {
-        return Center(child: Text('Error: ${snapshot.error}'));
+        return ErrorWithBackButton(errorMessage: snapshot.error.toString());
       } else if (snapshot.hasData && snapshot.data != null) {
         return getClubNameListTile(context, snapshot.data!);
       } else {
-        return Center(child: Text('No data available'));
+        return ErrorWithBackButton(errorMessage: 'No data available');
       }
     },
   );

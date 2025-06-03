@@ -21,6 +21,7 @@ import 'package:opengoalz/widgets/clubCardHistoryWidget.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -89,7 +90,7 @@ class _ClubPageState extends State<ClubPage> {
       stream: _clubStream,
       builder: (context, AsyncSnapshot<Club> snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error occurred: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
           return loadingCircularAndText('Loading club');
         } else {

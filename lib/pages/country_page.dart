@@ -19,6 +19,7 @@ import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'dart:async';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class CountryPage extends StatefulWidget {
   final int idCountry;
@@ -119,7 +120,7 @@ class _CountryPageState extends State<CountryPage>
       stream: _countryStream,
       builder: (context, AsyncSnapshot<Country> snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error occurred: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
           return loadingCircularAndText('Loading country...');
         } else {
@@ -255,7 +256,8 @@ class _CountryPageState extends State<CountryPage>
   _getClubsWidget(BuildContext context, Country country) {
     if (country.clubsSelected.isEmpty) {
       return const Center(
-        child: Text('No clubs found for this country'),
+        child: ErrorWithBackButton(
+            errorMessage: 'No clubs found for this country'),
       );
     }
     return ListView.builder(
@@ -291,7 +293,8 @@ class _CountryPageState extends State<CountryPage>
   _getPlayersWidget(BuildContext context, Country country) {
     if (country.playersSelected.isEmpty) {
       return const Center(
-        child: Text('No players found for this country'),
+        child: ErrorWithBackButton(
+            errorMessage: 'No players found for this country'),
       );
     }
     return ListView.builder(

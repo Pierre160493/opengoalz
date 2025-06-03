@@ -7,6 +7,7 @@ import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/models/playerPoaching/playersPoachingTab.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
@@ -63,7 +64,8 @@ class _ScoutsPageState extends State<ScoutsPage> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return loadingCircularAndText('Loading players...');
             } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return ErrorWithBackButton(
+                  errorMessage: snapshot.error.toString());
             } else {
               print(
                   'ScoutsPage: _user.selectedClub!.playersFavorite: ${_user.selectedClub!.playersFavorite.length}');
@@ -187,7 +189,8 @@ class _ScoutsPageState extends State<ScoutsPage> {
               children: [
                 /// Favorites
                 playersFavorite.length == 0
-                    ? Center(child: Text('No favorite players found'))
+                    ? ErrorWithBackButton(
+                        errorMessage: 'No favorite players found')
                     : ListView.builder(
                         itemCount: playersFavorite.length,
                         itemBuilder: (context, index) {

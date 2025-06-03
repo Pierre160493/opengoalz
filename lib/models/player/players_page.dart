@@ -18,6 +18,7 @@ import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'class/player.dart';
 import '../../constants.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class PlayersPage extends StatefulWidget {
   final PlayerSearchCriterias playerSearchCriterias;
@@ -175,7 +176,8 @@ class _PlayersPageState extends State<PlayersPage> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return loadingCircularAndText('Loading players...');
             } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return ErrorWithBackButton(
+                  errorMessage: snapshot.error.toString());
             } else {
               return StreamBuilder<List<Player>>(
                 stream: _playerStream,
@@ -184,8 +186,8 @@ class _PlayersPageState extends State<PlayersPage> {
                       ConnectionState.waiting) {
                     return loadingCircularAndText('Loading players...');
                   } else if (streamSnapshot.hasError) {
-                    return Center(
-                        child: Text('Error: ${streamSnapshot.error}'));
+                    return ErrorWithBackButton(
+                        errorMessage: streamSnapshot.error.toString());
                   } else {
                     final List<Player> players = streamSnapshot.data ?? [];
                     if (widget

@@ -11,6 +11,7 @@ import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:quiver/iterables.dart' as quiver;
 
 class FinancesPage extends StatefulWidget {
@@ -126,9 +127,9 @@ class _FinancesPageState extends State<FinancesPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return loadingCircularAndText('Loading club history...');
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No data available'));
+          return ErrorWithBackButton(errorMessage: 'No data available');
         } else {
           List<ClubData> clubDataHistory = snapshot.data!;
 

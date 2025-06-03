@@ -6,6 +6,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class CountriesSelectionPage extends StatefulWidget {
   const CountriesSelectionPage({Key? key}) : super(key: key);
@@ -75,7 +76,7 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
       stream: _countriesStream,
       builder: (context, AsyncSnapshot<List<Country>> snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error occurred: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
           return loadingCircularAndText('Loading countries...');
         } else {

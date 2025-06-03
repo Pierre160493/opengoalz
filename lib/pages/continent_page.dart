@@ -13,6 +13,7 @@ import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'dart:async';
 
 class ContinentPage extends StatefulWidget {
@@ -101,7 +102,7 @@ class _ContinentPageState extends State<ContinentPage>
       stream: _countriesStream,
       builder: (context, AsyncSnapshot<List<Country>> snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error occurred: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
           return loadingCircularAndText('Loading countries...');
         } else {

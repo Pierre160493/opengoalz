@@ -7,6 +7,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -136,9 +137,9 @@ class _PlayerEmbodiedOfferDialogBoxState
         if (snapshot.connectionState == ConnectionState.waiting) {
           return loadingCircularAndText('Loading player data...');
         } else if (snapshot.hasError) {
-          return Center(child: Text('ERROR: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
-          return Center(child: Text('No player data available'));
+          return ErrorWithBackButton(errorMessage: 'No player data available');
         }
 
         final Player player = snapshot.data!;
@@ -152,8 +153,9 @@ class _PlayerEmbodiedOfferDialogBoxState
                 .selectedClub!
                 .idMultiverse) {
           return Center(
-            child: Text(
-              'The player ${player.getPlayerNameString()} is not in the multiverse of your currenly selected club: ${Provider.of<UserSessionProvider>(context, listen: false).user.selectedClub!.name}',
+            child: ErrorWithBackButton(
+              errorMessage:
+                  'The player ${player.getPlayerNameString()} is not in the multiverse of your currently selected club: ${Provider.of<UserSessionProvider>(context, listen: false).user.selectedClub!.name}',
             ),
           );
         }

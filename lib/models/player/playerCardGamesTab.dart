@@ -9,6 +9,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:rxdart/rxdart.dart';
 
 class PlayerGamesTab extends StatefulWidget {
@@ -141,9 +142,9 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return loadingCircularAndText('Loading Games Played...');
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
-          return Center(child: Text('No games found'));
+          return ErrorWithBackButton(errorMessage: 'No games found');
         } else {
           List<Game> games = snapshot.data!;
           List<Game> filteredGames = games
@@ -305,7 +306,8 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
               ),
               Expanded(
                 child: filteredGames.isEmpty
-                    ? Center(child: Text('No games available for this season'))
+                    ? ErrorWithBackButton(
+                        errorMessage: 'No games available for this season')
                     : ListView.builder(
                         itemCount: filteredGames.length,
                         itemBuilder: (context, index) {

@@ -4,6 +4,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsTab.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class GamePlayerStatsDialog extends StatelessWidget {
   final Game game;
@@ -21,10 +22,10 @@ class GamePlayerStatsDialog extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return loadingCircularAndText('Loading game player stats...');
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return ErrorWithBackButton(errorMessage: snapshot.error.toString());
           } else if (!snapshot.hasData) {
-            return Center(
-                child: Text('No game stats available for this player'));
+            return ErrorWithBackButton(
+                errorMessage: 'No game stats available for this player');
           } else {
             final List<GamePlayerStat> gameStats =
                 snapshot.data as List<GamePlayerStat>;

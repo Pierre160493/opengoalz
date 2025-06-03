@@ -14,6 +14,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class PlayerTransferBidDialogBox extends StatefulWidget {
   final int idPlayer;
@@ -150,9 +151,9 @@ class _PlayerTransferBidDialogBoxState
         if (snapshot.connectionState == ConnectionState.waiting) {
           return loadingCircularAndText('Loading player data...');
         } else if (snapshot.hasError) {
-          return Center(child: Text('ERROR: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
-          return Center(child: Text('No player data available'));
+          return ErrorWithBackButton(errorMessage: 'No player data available');
         }
 
         final Player player = snapshot.data!;

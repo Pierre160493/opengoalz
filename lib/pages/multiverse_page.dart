@@ -9,6 +9,7 @@ import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart'; // Add this import
 import 'dart:async';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class MultiversePage extends StatefulWidget {
   final int? idMultiverse;
@@ -125,7 +126,7 @@ class _MultiversePageState extends State<MultiversePage>
       stream: _multiverseStream,
       builder: (context, AsyncSnapshot<List<Multiverse>> snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error occurred: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData) {
           return loadingCircularAndText('Loading multiverses...');
         } else {
@@ -269,7 +270,8 @@ class _MultiversePageState extends State<MultiversePage>
                         // Selected multiverse
                         _selectedMultiverse == null
                             ? const Center(
-                                child: Text('No multiverse selected'))
+                                child: ErrorWithBackButton(
+                                    errorMessage: 'No multiverse selected'))
                             : DefaultTabController(
                                 length: 2, // The number of inner tabs
                                 child: Column(

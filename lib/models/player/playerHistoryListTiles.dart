@@ -5,6 +5,7 @@ import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/functions/stringParser.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class PlayerHistoryListTiles extends StatefulWidget {
   final Player player;
@@ -38,9 +39,9 @@ class _PlayerHistoryListTilesState extends State<PlayerHistoryListTiles> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return loadingCircularAndText('Loading player history');
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return ErrorWithBackButton(errorMessage: snapshot.error.toString());
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No data available'));
+          return ErrorWithBackButton(errorMessage: 'No data available');
         } else {
           List<Map> listPlayerHistory = snapshot.data!;
           return Column(

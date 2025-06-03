@@ -3,6 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:intl/intl.dart';
 
 Color getMultiverseSyncColor(Multiverse multiverse) {
@@ -74,12 +75,12 @@ Widget getMultiverseIconFromId_Clickable(
           ),
         );
       } else if (snapshot.hasError) {
-        return Center(child: Text('Error: ${snapshot.error}'));
+        return ErrorWithBackButton(errorMessage: snapshot.error.toString());
       } else if (snapshot.hasData && snapshot.data != null) {
         return getMultiverseIconFromMultiverse_Clickable(
             context, snapshot.data!); // Display the multiverse widget
       } else {
-        return Center(child: Text('No data available'));
+        return ErrorWithBackButton(errorMessage: 'No data available');
       }
     },
   );
@@ -143,12 +144,12 @@ Widget getMultiverseListTileFromId(BuildContext context, int idMultiverse) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return loadingCircularAndText('Loading Multiverse...');
       } else if (snapshot.hasError) {
-        return Center(child: Text('Error: ${snapshot.error}'));
+        return ErrorWithBackButton(errorMessage: snapshot.error.toString());
       } else if (snapshot.hasData && snapshot.data != null) {
         return getMultiverseListTileFromMultiverse(
             context, snapshot.data!); // Display the multiverse widget
       } else {
-        return Center(child: Text('No data available'));
+        return ErrorWithBackButton(errorMessage: 'No data available');
       }
     },
   );
