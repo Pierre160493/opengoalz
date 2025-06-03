@@ -196,7 +196,7 @@ class _ClubPageState extends State<ClubPage> {
                           ),
                         ),
                         Text(
-                          '${DateFormat.yMMMMd('en_US').format(club.createdAt)}',
+                          '${formatDate(club.createdAt)}',
                         ),
                       ],
                     ),
