@@ -15,7 +15,7 @@ import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerFavorite/playerFavoriteIconButton.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
-import 'package:opengoalz/pages/user_page.dart';
+import 'package:opengoalz/pages/user_page/user_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';

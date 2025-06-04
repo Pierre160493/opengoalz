@@ -4,10 +4,10 @@ import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/creationDialogBox_Player.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 
-class UserPlayersTileWidget extends StatelessWidget {
+class UserPageAddPlayerTile extends StatelessWidget {
   final Profile user;
 
-  const UserPlayersTileWidget({
+  const UserPageAddPlayerTile({
     Key? key,
     required this.user,
   }) : super(key: key);
@@ -20,10 +20,10 @@ class UserPlayersTileWidget extends StatelessWidget {
     final Color playerColor = canCreatePlayer ? Colors.green : Colors.orange;
 
     return ListTile(
-      shape: shapePersoRoundedBorder(playerColor),
+      shape: shapePersoRoundedBorder(),
       leading: Icon(
         iconPlayers,
-        color: playerColor,
+        color: Colors.green,
         size: iconSizeMedium,
       ),
       title: Row(
@@ -36,7 +36,9 @@ class UserPlayersTileWidget extends StatelessWidget {
         ],
       ),
       subtitle: Text(
-          'You need ${creditsRequiredForPlayer} credits to handle another player',
+          canCreatePlayer
+              ? 'You can handle another player for ${creditsRequiredForPlayer} credits !'
+              : 'Missing ${creditsRequiredForPlayer - user.creditsAvailable} credits to handle another player',
           style: styleItalicBlueGrey),
       trailing: IconButton(
         icon: Icon(Icons.person_add_alt_1,
@@ -52,7 +54,7 @@ class UserPlayersTileWidget extends StatelessWidget {
             );
           } else {
             context.showSnackBarError(
-              'You cannot create any additional player, missing ${creditsRequiredForPlayer - user.creditsAvailable} credits',
+              'You cannot create an additional player, missing ${creditsRequiredForPlayer - user.creditsAvailable} credits',
               icon: Icon(
                 Icons.warning,
                 color: playerColor,

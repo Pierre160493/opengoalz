@@ -3,7 +3,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
-import 'user_page.dart';
+import 'user_page/user_page.dart';
 import 'register_page.dart';
 import '../constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

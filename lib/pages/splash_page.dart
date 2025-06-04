@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/pages/user_page.dart';
+import 'package:opengoalz/pages/user_page/user_page.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/pages/offline_page.dart'; // Import the offline page
 import 'package:provider/provider.dart';

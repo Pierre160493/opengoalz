@@ -4,10 +4,10 @@ import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/creationDialogBox_Club.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 
-class UserClubsTileWidget extends StatelessWidget {
+class UserPageAddClubTile extends StatelessWidget {
   final Profile user;
 
-  const UserClubsTileWidget({
+  const UserPageAddClubTile({
     Key? key,
     required this.user,
   }) : super(key: key);
@@ -20,10 +20,10 @@ class UserClubsTileWidget extends StatelessWidget {
     final Color clubColor = canCreateClub ? Colors.green : Colors.orange;
 
     return ListTile(
-      shape: shapePersoRoundedBorder(clubColor),
+      shape: shapePersoRoundedBorder(),
       leading: Icon(
         iconClub,
-        color: clubColor,
+        color: Colors.green,
         size: iconSizeMedium,
       ),
       title: Row(
@@ -36,7 +36,11 @@ class UserClubsTileWidget extends StatelessWidget {
         ],
       ),
       subtitle: Text(
-          'You need ${creditsRequiredForClub} credits to handle another club',
+          clubCount == 0
+              ? 'First club is free, click the button to select it and start your career'
+              : canCreateClub
+                  ? 'You can manage another club for ${creditsRequiredForClub} credits !'
+                  : 'Missing ${creditsRequiredForClub - user.creditsAvailable} credits to manage another club',
           style: styleItalicBlueGrey),
       trailing: IconButton(
         icon: Icon(Icons.add_home_work, size: iconSizeMedium, color: clubColor),
@@ -51,7 +55,7 @@ class UserClubsTileWidget extends StatelessWidget {
             );
           } else {
             context.showSnackBarError(
-              'You cannot create any additional club, missing ${creditsRequiredForClub - user.creditsAvailable} credits',
+              'You cannot manage an additional club, missing ${creditsRequiredForClub - user.creditsAvailable} credits',
               icon: Icon(
                 Icons.warning,
                 color: clubColor,

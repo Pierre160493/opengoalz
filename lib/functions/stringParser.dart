@@ -7,7 +7,7 @@ import 'package:opengoalz/pages/country_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/league_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
-import 'package:opengoalz/pages/user_page.dart';
+import 'package:opengoalz/pages/user_page/user_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 
