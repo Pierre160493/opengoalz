@@ -58,12 +58,12 @@ BEGIN
         UPDATE profiles SET
             id_default_club = COALESCE(id_default_club, NEW.id),
             credits_available = credits_available - CASE 
-                WHEN rec_profile.number_of_clubs > 1 THEN credits_for_club 
-                ELSE 0 
+                WHEN rec_profile.number_of_clubs = 0 THEN 0
+                ELSE credits_for_club
             END,
             credits_used = credits_used + CASE 
-                WHEN rec_profile.number_of_clubs > 1 THEN credits_for_club 
-                ELSE 0 
+                WHEN rec_profile.number_of_clubs = 0 THEN 0 
+                ELSE credits_for_club
             END
         WHERE username = NEW.username;
     
