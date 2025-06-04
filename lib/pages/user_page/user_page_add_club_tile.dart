@@ -37,7 +37,7 @@ class UserPageAddClubTile extends StatelessWidget {
       ),
       subtitle: Text(
           clubCount == 0
-              ? 'First club is free, click the button to select it and start your career'
+              ? 'First club is free, click the button to select one !'
               : canCreateClub
                   ? 'You can manage another club for ${creditsRequiredForClub} credits !'
                   : 'Missing ${creditsRequiredForClub - user.creditsAvailable} credits to manage another club',

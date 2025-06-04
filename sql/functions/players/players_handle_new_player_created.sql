@@ -12,10 +12,23 @@ DECLARE
 BEGIN
 
     ------ Check that the user can have an additional club
-    IF (NEW.username <> NULL) THEN
+    IF (NEW.username IS NOT NULL) THEN
+
+        ---- Check that the user exists
+        IF NOT EXISTS (SELECT 1 FROM profiles WHERE username = NEW.username) THEN
+            RAISE EXCEPTION 'User with username % does not exist in the profiles table', NEW.username;
+        END IF;
+
+        ---- Check that the user has enough credits
         IF (SELECT credits_available FROM profiles WHERE username = NEW.username) < credits_for_player THEN
             RAISE EXCEPTION 'You need % credits to manage an additional player', credits_for_player;
         END IF;
+
+        ---- Update the user profile
+        UPDATE profiles SET
+            credits_available = credits_available - credits_for_player,
+            credits_used = credits_used + credits_for_player
+        WHERE username = NEW.username;
     END IF;
 
     ------ Generate player name

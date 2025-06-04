@@ -5,7 +5,7 @@ import 'package:opengoalz/functions/stringParser.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/user_page/user_page_add_club_tile.dart';
 import 'package:opengoalz/pages/user_page/user_page_add_player_tile.dart';
-import 'package:opengoalz/postgresql_requests.dart';
+import 'package:opengoalz/widgets/add_credits_tile.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 
 class UserPageUserTab extends StatelessWidget {
@@ -165,46 +165,26 @@ class UserPageUserTab extends StatelessWidget {
                 context: context,
                 builder: (BuildContext context) {
                   return persoAlertDialogWithConstrainedContent(
-                    title: Text('${user.creditsAvailable} credits available'),
+                    title: Text(
+                        '${user.creditsAvailable} credits available, get more !'),
                     content: Column(
                       children: [
-                        ListTile(
-                          leading: Icon(Icons.add_card,
-                              size: iconSizeMedium, color: Colors.green),
-                          title: Row(
-                            children: const [
-                              Text('Add '),
-                              Text('100',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  )),
-                              Text(' Credits'),
-                            ],
-                          ),
-                          shape: shapePersoRoundedBorder(),
-                          subtitle: const Text(
-                            'Add credits to your account.',
-                            style: styleItalicBlueGrey,
-                          ),
-                          onTap: () async {
-                            await operationInDB(
-                              context,
-                              'UPDATE',
-                              'profiles',
-                              data: {
-                                'credits_available':
-                                    user.creditsAvailable + 100,
-                              },
-                              matchCriteria: {
-                                'uuid_user': supabase.auth.currentUser!.id
-                              },
-                              messageSuccess:
-                                  '100 credits added successfully to your account.',
-                            );
-
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                        ),
+                        AddCreditsTile(
+                            user: user,
+                            creditsToAdd: 100,
+                            creditsGiftedPercentage: 0),
+                        AddCreditsTile(
+                            user: user,
+                            creditsToAdd: 500,
+                            creditsGiftedPercentage: 10),
+                        AddCreditsTile(
+                            user: user,
+                            creditsToAdd: 1000,
+                            creditsGiftedPercentage: 15),
+                        AddCreditsTile(
+                            user: user,
+                            creditsToAdd: 2000,
+                            creditsGiftedPercentage: 20),
                       ],
                     ),
                     actions: [

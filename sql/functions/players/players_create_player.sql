@@ -17,30 +17,11 @@ CREATE OR REPLACE FUNCTION public.players_create_player(
  SECURITY DEFINER
 AS $function$
 DECLARE
-    loc_record RECORD; -- Record variable
     loc_new_player_id bigint; -- Variable to store the inserted player's ID
     loc_top_two_stats double precision[];
     loc_training_coef double precision[];
     loc_tmp double precision; -- Temporary variable for calculations
-    credits_for_player INTEGER := 500; -- Credits required to embody a player
 BEGIN
-
-    ------ Check if the username exists and can have an additional player
-    IF inp_username IS NOT NULL THEN
-
-        ---- Checks on the username
-        SELECT * INTO loc_record FROM profiles WHERE username = inp_username;
-        ---- Check if the user exists
-        IF NOT FOUND THEN
-            RAISE EXCEPTION 'The username {%} does not exist', inp_username;
-        END IF;
-
-        ---- Check if the user can have an additional player
-        IF loc_record.credits_available < credits_for_player THEN
-            RAISE EXCEPTION 'The username {%} can not have an additional player (missing % credits)', inp_username, credits_for_player - loc_record.credits_available;
-        END IF;
-
-    END IF;
 
     ------ Check if the player creation is from scouts
     IF inp_notes = 'Young Scouted' THEN
