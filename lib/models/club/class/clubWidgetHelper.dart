@@ -95,7 +95,7 @@ extension ClubWidgetHelper on Club {
       },
       child: Row(children: [
         Icon(iconLeague, color: Colors.green),
-        SizedBox(width: 3),
+        formSpacer3,
         Text(
             positionWithIndex(clubData.posLeague) +
                 ' with ${clubData.leaguePoints} points',

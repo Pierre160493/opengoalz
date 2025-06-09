@@ -1,12 +1,31 @@
-part of 'league.dart';
+import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
+import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/getClubNameWidget.dart';
+import 'package:opengoalz/models/events/event.dart';
+import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/league/league.dart';
+import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/profile.dart';
+import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
-extension LeagueStatsTab on League {
-  Widget leagueStatsTab(BuildContext context) {
+class LeaguePageStatsTab extends StatelessWidget {
+  final League league;
+
+  const LeaguePageStatsTab({Key? key, required this.league}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     Map<int, int> playerGoals = {}; // Map of player IDs to goals
     Map<int, int> playerAssists = {}; // Map of player IDs to assists
 
     // Count the goals and assists by each player
-    for (Game game in games.where((game) => game.dateEnd != null)) {
+    for (Game game in league.games.where((game) => game.dateEnd != null)) {
       for (GameEvent event in game.events
           .where((event) => event.eventType.toUpperCase() == 'GOAL')) {
         if (event.idPlayer != null) {

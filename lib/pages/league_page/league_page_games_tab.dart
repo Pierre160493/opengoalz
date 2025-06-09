@@ -1,12 +1,23 @@
-part of 'league.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/league/league.dart';
+import 'package:opengoalz/pages/game_page.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
-extension LeagueGamesTab on League {
-  Widget leagueGamesTab(BuildContext context) {
+class LeaguePageGamesTab extends StatelessWidget {
+  final League league;
+
+  const LeaguePageGamesTab({Key? key, required this.league}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     final List<Game> gamesCurrent = [];
     final List<Game> gamesIncoming = [];
     final List<Game> gamesPlayed = [];
 
-    for (Game game in games) {
+    for (Game game in league.games) {
       if (game.isPlaying == true) {
         gamesCurrent.add(game);
       } else if (game.isPlaying == false) {
@@ -17,14 +28,14 @@ extension LeagueGamesTab on League {
     }
 
     return DefaultTabController(
-      length: gamesCurrent.length == 0 ? 2 : 3, // Number of tabs
+      length: gamesCurrent.isEmpty ? 2 : 3,
       child: Column(
         children: [
           TabBar(
             tabs: [
               buildTabWithIcon(
                   icon: iconGamePlayed, text: 'Played (${gamesPlayed.length})'),
-              if (gamesCurrent.length > 0)
+              if (gamesCurrent.isNotEmpty)
                 buildTabWithIcon(
                     icon: Icons.notifications_active,
                     text: 'Current (${gamesCurrent.length})'),
@@ -37,7 +48,7 @@ extension LeagueGamesTab on League {
             child: TabBarView(
               children: [
                 buildGameListByRound(gamesPlayed),
-                if (gamesCurrent.length > 0) buildGameListByRound(gamesCurrent),
+                if (gamesCurrent.isNotEmpty) buildGameListByRound(gamesCurrent),
                 buildGameListByRound(gamesIncoming),
               ],
             ),

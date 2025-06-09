@@ -1,28 +1,9 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/functions/loadingCircularAndText.dart';
-import 'package:opengoalz/models/club/getClubNameWidget.dart';
-import 'package:opengoalz/models/profile.dart';
-import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/error_with_back_button.dart';
-import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
-import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:collection/collection.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/game/class/game.dart';
-import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/pages/game_page.dart';
-import 'package:opengoalz/pages/league_page.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:opengoalz/pages/league_page/league_page.dart';
 
 part 'leagueWidgetHelper.dart';
-part 'leagueMainTab.dart';
-part 'leagueGamesTab.dart';
-part 'leagueStatsTab.dart';
 
 class League {
   List<Game> games = []; // List of games in the league

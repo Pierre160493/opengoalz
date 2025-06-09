@@ -7,7 +7,7 @@ import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseChoiceListTile.dart';
 import 'package:opengoalz/pages/countriesSelection_page.dart';
-import 'package:opengoalz/pages/league_page.dart';
+import 'package:opengoalz/pages/league_page/league_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';

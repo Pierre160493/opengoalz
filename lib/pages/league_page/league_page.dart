@@ -5,12 +5,15 @@ import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/league/league.dart';
+import 'package:opengoalz/pages/league_page/league_page_games_tab.dart';
+import 'package:opengoalz/pages/league_page/league_page_main_tab.dart';
+import 'package:opengoalz/pages/league_page/league_page_stats_tab.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
-import '../constants.dart';
+import '../../constants.dart';
 
 class LeaguePage extends StatefulWidget {
   final int idLeague;
@@ -316,11 +319,17 @@ class _RankingPageState extends State<LeaguePage> {
                           Expanded(
                             child: TabBarView(
                               children: [
-                                league.leagueMainTab(context,
+                                /// League main tab
+                                LeaguePageMainTab(
+                                    league: league,
                                     isReturningBotClub:
                                         widget.isReturningBotClub),
-                                league.leagueGamesTab(context),
-                                league.leagueStatsTab(context),
+
+                                /// Games tab
+                                LeaguePageGamesTab(league: league),
+
+                                /// Stats tab
+                                LeaguePageStatsTab(league: league),
                               ],
                             ),
                           ),

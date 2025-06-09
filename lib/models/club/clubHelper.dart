@@ -3,7 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
-import 'package:opengoalz/pages/league_page.dart';
+import 'package:opengoalz/pages/league_page/league_page.dart';
 
 Widget clubLeagueAndRankingListTile(BuildContext context, Club club) {
   return ListTile(
