@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
@@ -8,7 +9,9 @@ import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/pages/league_page/league_page_games_tab.dart';
 import 'package:opengoalz/pages/league_page/league_page_main_tab.dart';
 import 'package:opengoalz/pages/league_page/league_page_stats_tab.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
@@ -239,6 +242,51 @@ class _RankingPageState extends State<LeaguePage> {
     });
   }
 
+  Future<void> _showSeasonInputDialog() async {
+    final TextEditingController seasonController = TextEditingController();
+    final int currentSeason = _selectedSeason ?? 1;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return persoAlertDialogWithConstrainedContent(
+          title: const Text('Enter Season Number'),
+          content: TextField(
+            controller: seasonController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'Current season: $currentSeason',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final int? enteredSeason = int.tryParse(seasonController.text);
+                if (enteredSeason != null && enteredSeason > 0) {
+                  setState(() {
+                    _selectedSeason = enteredSeason;
+                    _fetchLeagueData();
+                  });
+                  Navigator.of(context).pop(); // Close the dialog
+                } else {
+                  context
+                      .showSnackBarError('Please enter a valid season number.');
+                }
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<void>(
@@ -257,55 +305,80 @@ class _RankingPageState extends State<LeaguePage> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return loadingCircularAndText('Loading League...');
               } else if (snapshot.hasError) {
-                return Center(
-                  child: Text('ERROR: ${snapshot.error}'),
+                return ErrorWithBackButton(
+                  errorMessage: 'Error loading league: ${snapshot.error}',
                 );
               } else if (!snapshot.hasData) {
-                return const Center(
-                  child: CircularProgressIndicator(),
+                return ErrorWithBackButton(
+                  errorMessage: 'No league data available',
                 );
               } else {
                 League league = snapshot.data!;
                 return Scaffold(
                   appBar: AppBar(
-                    title: Tooltip(
-                        message:
-                            '${positionWithIndex(league.number)} league of ${positionWithIndex(league.level)} division of ${league.continent}',
-                        child: Text('League ${league.name.toString()}')),
+                    title: Row(
+                      children: [
+                        Tooltip(
+                            message:
+                                '${positionWithIndex(league.number)} league of ${positionWithIndex(league.level)} division of ${league.continent}',
+                            child: Text('League ${league.name.toString()}')),
+                        TextButton(
+                          onPressed: () {
+                            _showSeasonInputDialog();
+                          },
+                          child: Text('Season ${league.seasonNumber}',
+                              style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
                     leading: goBackIconButton(context),
+                    actions: [
+                      /// Refresh button to reload the league data
+                      IconButton(
+                        icon: Icon(Icons.refresh,
+                            size: iconSizeMedium, color: Colors.green),
+                        onPressed: () {
+                          setState(() {
+                            _fetchLeagueData();
+                          });
+                        },
+                      ),
+
+                      /// Change season button
+                      IconButton(
+                        icon: Icon(Icons.arrow_back,
+                            size: iconSizeMedium, color: Colors.green),
+                        onPressed: () {
+                          setState(() {
+                            if (_selectedSeason != null) {
+                              _selectedSeason = (_selectedSeason! - 1)
+                                  .clamp(1, _selectedSeason!);
+                              _fetchLeagueData();
+                            }
+                          });
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.arrow_forward,
+                            size: iconSizeMedium, color: Colors.green),
+                        onPressed: () {
+                          setState(() {
+                            if (_selectedSeason != null) {
+                              _selectedSeason = _selectedSeason! + 1;
+                              _fetchLeagueData();
+                            }
+                          });
+                        },
+                      ),
+                    ],
                   ),
-                  // drawer: const AppDrawer(),
                   body: MaxWidthContainer(
                     child: DefaultTabController(
                       length: 3,
                       child: Column(
                         children: [
-                          ListTile(
-                            leading: IconButton(
-                              icon: Icon(Icons.arrow_back),
-                              onPressed: () {
-                                setState(() {
-                                  if (_selectedSeason != null) {
-                                    _selectedSeason = (_selectedSeason! - 1)
-                                        .clamp(1, _selectedSeason!);
-                                    _fetchLeagueData();
-                                  }
-                                });
-                              },
-                            ),
-                            title: Text('Season ${_selectedSeason ?? 'N/A'}'),
-                            trailing: IconButton(
-                              icon: Icon(Icons.arrow_forward),
-                              onPressed: () {
-                                setState(() {
-                                  if (_selectedSeason != null) {
-                                    _selectedSeason = _selectedSeason! + 1;
-                                    _fetchLeagueData();
-                                  }
-                                });
-                              },
-                            ),
-                          ),
                           TabBar(
                             tabs: [
                               buildTabWithIcon(
