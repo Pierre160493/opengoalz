@@ -8,6 +8,7 @@ import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/pages/league_page/league_page_games_tab.dart';
 import 'package:opengoalz/pages/league_page/league_page_main_tab.dart';
+import 'package:opengoalz/pages/league_page/league_page_open_related_leagues.dart';
 import 'package:opengoalz/pages/league_page/league_page_stats_tab.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
@@ -295,8 +296,8 @@ class _RankingPageState extends State<LeaguePage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return loadingCircularAndText('Loading League...');
         } else if (snapshot.hasError) {
-          return Center(
-            child: Text('ERROR: ${snapshot.error}'),
+          return ErrorWithBackButton(
+            errorMessage: 'Error loading league data: ${snapshot.error}',
           );
         } else {
           return StreamBuilder<League>(
@@ -337,6 +338,7 @@ class _RankingPageState extends State<LeaguePage> {
                     actions: [
                       /// Refresh button to reload the league data
                       IconButton(
+                        tooltip: 'Refresh Page',
                         icon: Icon(Icons.refresh,
                             size: iconSizeMedium, color: Colors.green),
                         onPressed: () {
@@ -348,6 +350,7 @@ class _RankingPageState extends State<LeaguePage> {
 
                       /// Change season button
                       IconButton(
+                        tooltip: 'Previous Season',
                         icon: Icon(Icons.arrow_back,
                             size: iconSizeMedium, color: Colors.green),
                         onPressed: () {
@@ -361,6 +364,7 @@ class _RankingPageState extends State<LeaguePage> {
                         },
                       ),
                       IconButton(
+                        tooltip: 'Next Season',
                         icon: Icon(Icons.arrow_forward,
                             size: iconSizeMedium, color: Colors.green),
                         onPressed: () {
@@ -370,6 +374,50 @@ class _RankingPageState extends State<LeaguePage> {
                               _fetchLeagueData();
                             }
                           });
+                        },
+                      ),
+
+                      /// Open other related leagues
+                      IconButton(
+                        tooltip: 'Open related leagues',
+                        icon: Icon(Icons.dataset_linked,
+                            size: iconSizeMedium, color: Colors.green),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return persoAlertDialogWithConstrainedContent(
+                                title: Text(
+                                  'Related Leagues',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20),
+                                ),
+                                content: LeagueOtherLeaguesSelectionWidget(
+                                    league: league),
+                                actions: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.close,
+                                                color: Colors.red,
+                                                size: iconSizeSmall),
+                                            Text('Close'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         },
                       ),
                     ],

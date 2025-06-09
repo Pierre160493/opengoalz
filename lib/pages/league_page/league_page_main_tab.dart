@@ -1,13 +1,9 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
-import 'package:opengoalz/pages/league_page/league_page.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LeaguePageMainTab extends StatelessWidget {
   final League league;
@@ -23,12 +19,33 @@ class LeaguePageMainTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(height: 6),
+        /// League presentation
+        ListTile(
+          leading: Icon(
+            iconLeague,
+            size: iconSizeMedium,
+            color: Colors.green,
+          ),
+          shape: shapePersoRoundedBorder(Colors.green, 3),
+          title: Text(
+            league.getLeagueDescription(),
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Row(
+            children: [
+              Icon(
+                Icons.calendar_month,
+                color: Colors.green,
+              ),
+              Text(
+                'Season ${league.seasonNumber}',
+                style: styleItalicBlueGrey,
+              ),
+            ],
+          ),
+        ),
 
-        /// Other leagues selection widget
-        league.otherLeaguesSelectionWidget(context),
-
-        /// Rankings
+        /// Separator with league percentage of advancement
         Container(
           margin: EdgeInsets.symmetric(vertical: 16),
           child: Row(
@@ -58,12 +75,6 @@ class LeaguePageMainTab extends StatelessWidget {
 
         /// Rankings
         Container(
-          // decoration: BoxDecoration(
-          //   border: Border.all(
-          //     color: Colors.grey,
-          //     width: 3,
-          //   ),
-          // ),
           child: Expanded(
             child: ListView.builder(
               itemCount: league.clubsLeague.length,
@@ -241,345 +252,6 @@ class LeaguePageMainTab extends StatelessWidget {
               },
             ),
           ),
-        )
-      ],
-    );
-  }
-}
-
-extension LeagueOtherLeaguesSelectionWidget on League {
-  Widget otherLeaguesSelectionWidget(BuildContext context) {
-    return Column(
-      /// Upper League
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            InkWell(
-              onTap: () {
-                if (idUpperLeague != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LeaguePage(
-                        idLeague: idUpperLeague!,
-                      ),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content:
-                          Text('No upper league for first division leagues'),
-                    ),
-                  );
-                }
-              },
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.arrow_circle_up, // Changed the icon
-                    color: idUpperLeague == null
-                        ? Colors.blueGrey
-                        : Colors.green, // Changed the icon color
-                  ),
-                  Text('Upper League'),
-                  Icon(
-                    Icons.arrow_circle_up, // Changed the icon
-                    color: idUpperLeague == null
-                        ? Colors.blueGrey
-                        : Colors.green, // Changed the icon color
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        /// Opposite and same level league button
-        if (level != 0)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              /// Same level league button (left)
-              Container(
-                // width: 160,
-                child: Row(
-                  children: [
-                    InkWell(
-                      onTap: () async {
-                        if (level == 1) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  'No same level league for first division leagues'),
-                            ),
-                          );
-                        } else {
-                          int leagueNumber = number == 1
-                              ? (pow(2, level - 1)).toInt()
-                              : number - 1;
-                          try {
-                            final response = await supabase
-                                .from('leagues')
-                                .select('id')
-                                .eq('id_multiverse', idMultiverse)
-                                .eq('season_number', seasonNumber)
-                                .eq('continent', continent!)
-                                .eq('level', level)
-                                .eq('number', leagueNumber)
-                                .limit(1)
-                                .single();
-
-                            if (response['error'] != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'Error fetching league: ${response['error']['message']}'),
-                                ),
-                              );
-                            } else if (response['id'] != null) {
-                              final idLowerLeague = response['id'];
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => LeaguePage(
-                                    idLeague: idLowerLeague,
-                                  ),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('No lower league found'),
-                                ),
-                              );
-                            }
-                          } on PostgrestException catch (error) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    'Error fetching league: ${error.message}'),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      child: Row(
-                        children: [
-                          Text(
-                              'Left (${number - 1 == 0 ? pow(2, level - 1) : number - 1}/${pow(2, level - 1)})'),
-                          Icon(
-                            Icons.arrow_circle_left, // Changed the icon
-                            color: level == 1
-                                ? Colors.blueGrey
-                                : Colors.green, // Changed the icon color
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              /// Opposite league button
-              InkWell(
-                onTap: () {
-                  if (level > 1) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LeaguePage(
-                          idLeague: -id,
-                        ),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'No opposite league for first division leagues'),
-                      ),
-                    );
-                  }
-                },
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.compare_arrows, // Changed the icon
-                      color: level == 1
-                          ? Colors.blueGrey
-                          : Colors.green, // Changed the icon color
-                    ),
-                    Text('Opposite'),
-                    Icon(
-                      Icons.compare_arrows, // Changed the icon
-                      color: level == 1
-                          ? Colors.blueGrey
-                          : Colors.green, // Changed the icon color
-                    ),
-                  ],
-                ),
-              ),
-
-              /// Same level league button (right)
-              Container(
-                // width: 160,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    InkWell(
-                      onTap: () async {
-                        if (level == 1) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  'No same level league for first division leagues'),
-                            ),
-                          );
-                        } else {
-                          int leagueNumber =
-                              number == pow(2, level - 1) ? 1 : number + 1;
-                          try {
-                            final response = await supabase
-                                .from('leagues')
-                                .select('id')
-                                .eq('id_multiverse', idMultiverse)
-                                .eq('season_number', seasonNumber)
-                                .eq('continent', continent!)
-                                .eq('level', level)
-                                .eq('number', leagueNumber)
-                                .limit(1)
-                                .single();
-
-                            if (response['error'] != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'Error fetching league: ${response['error']['message']}'),
-                                ),
-                              );
-                            } else if (response['id'] != null) {
-                              final idLowerLeague = response['id'];
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => LeaguePage(
-                                    idLeague: idLowerLeague,
-                                  ),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('No lower league found'),
-                                ),
-                              );
-                            }
-                          } on PostgrestException catch (error) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    'Error fetching league: ${error.message}'),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Icon(
-                            Icons.arrow_circle_right, // Changed the icon
-                            color: level == 1
-                                ? Colors.blueGrey
-                                : Colors.green, // Changed the icon color
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                              'Right (${number + 1 > pow(2, level - 1) ? 1 : number + 1}/${pow(2, level - 1)})'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-        /// Lower Leagues
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            InkWell(
-              onTap: () async {
-                if (idLowerLeague != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LeaguePage(
-                        idLeague: idLowerLeague!,
-                      ),
-                    ),
-                  );
-                } else {
-                  context.showSnackBarError(
-                      'No lower league for a last division league');
-                }
-              },
-              child: Row(
-                children: [
-                  Text(
-                    'Lower Left',
-                    style: TextStyle(
-                      color: idLowerLeague != null ? null : Colors.grey,
-                    ),
-                  ),
-                  SizedBox(width: 3),
-                  Icon(
-                    Icons.arrow_circle_down, // Changed the icon
-                    color: idLowerLeague != null
-                        ? Colors.green
-                        : Colors.grey, // Changed the icon color
-                  ),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () async {
-                if (idLowerLeague != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LeaguePage(
-                        idLeague: -idLowerLeague!,
-                      ),
-                    ),
-                  );
-                } else {
-                  context.showSnackBarError(
-                      'No lower league for a last division league');
-                }
-              },
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.arrow_circle_down, // Changed the icon
-                    color: idLowerLeague != null
-                        ? Colors.green
-                        : Colors.grey, // Changed the icon color
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Lower Right',
-                    style: TextStyle(
-                      color: idLowerLeague != null ? null : Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         )
       ],
     );
