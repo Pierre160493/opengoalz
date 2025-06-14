@@ -139,7 +139,7 @@ class _ClubPageState extends State<ClubPage> {
                                                 MainAxisAlignment.end,
                                             children: [
                                               TextButton(
-                                                child: persoCancelRow,
+                                                child: persoCancelRow(),
                                                 onPressed: () {
                                                   Navigator.of(context).pop();
                                                 },

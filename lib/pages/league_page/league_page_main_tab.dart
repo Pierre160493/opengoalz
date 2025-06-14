@@ -4,19 +4,31 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
+import 'package:opengoalz/widgets/continent_display_widget.dart'; // Import the new widget
 
 class LeaguePageMainTab extends StatelessWidget {
   final League league;
+  final int? selectedSeason;
   final bool isReturningBotClub;
 
   const LeaguePageMainTab({
     Key? key,
     required this.league,
+    this.selectedSeason,
     this.isReturningBotClub = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final int playedGamesCount =
+        league.games.where((Game game) => game.dateEnd != null).length;
+    final int totalGamesInSeason =
+        30; // Assuming 30 games per season based on the division
+    final int percentagePlayed =
+        (100 * playedGamesCount / totalGamesInSeason).round();
+    final String percentageText =
+        percentagePlayed > 100 ? 'Fully played' : '$percentagePlayed % played';
+
     return Column(
       children: [
         /// League presentation
@@ -31,15 +43,28 @@ class LeaguePageMainTab extends StatelessWidget {
             league.getLeagueDescription(),
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
+
+          /// Season number and continent
           subtitle: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(
-                Icons.calendar_month,
-                color: Colors.green,
+              Row(
+                children: [
+                  Icon(
+                    Icons.calendar_month,
+                    color: Colors.green,
+                  ),
+                  Text(
+                    'Season ${selectedSeason ?? league.seasonNumber}: $percentageText',
+                    style: styleItalicBlueGrey,
+                  ),
+                ],
               ),
-              Text(
-                'Season ${league.seasonNumber}',
-                style: styleItalicBlueGrey,
+
+              /// Continent
+              ContinentRowWidget(
+                continentName: league.continent,
+                idMultiverse: league.idMultiverse,
               ),
             ],
           ),
@@ -57,9 +82,9 @@ class LeaguePageMainTab extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
+                padding: EdgeInsets.symmetric(horizontal: 6),
                 child: Text(
-                  'League ${(100 * league.games.where((Game game) => game.dateEnd != null).length / 30).round() > 100 ? 'Fully played' : (100 * league.games.where((Game game) => game.dateEnd != null).length / 30).round().toString() + ' % played'}',
+                  'Rankings',
                   style: TextStyle(color: Colors.grey),
                 ),
               ),

@@ -480,7 +480,7 @@ class _PlayerEmbodiedOfferDialogBoxState
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: persoCancelRow,
+                  child: persoCancelRow(),
                 ),
                 if (_offerAmount != null)
                   TextButton(

@@ -85,7 +85,7 @@ Future<void> showMailFilterDialog(
                                           onPressed: () {
                                             Navigator.of(context).pop(false);
                                           },
-                                          child: persoCancelRow),
+                                          child: persoCancelRow()),
                                       TextButton(
                                         onPressed: () {
                                           Navigator.of(context).pop(true);
@@ -174,7 +174,7 @@ Future<void> showMailFilterDialog(
                                           onPressed: () {
                                             Navigator.of(context).pop(false);
                                           },
-                                          child: persoCancelRow),
+                                          child: persoCancelRow()),
                                       TextButton(
                                         onPressed: () {
                                           Navigator.of(context).pop(true);
@@ -263,7 +263,7 @@ Future<void> showMailFilterDialog(
                                           onPressed: () {
                                             Navigator.of(context).pop(false);
                                           },
-                                          child: persoCancelRow),
+                                          child: persoCancelRow()),
                                       TextButton(
                                         onPressed: () {
                                           Navigator.of(context).pop(true);
@@ -351,7 +351,7 @@ Future<void> showMailFilterDialog(
                                           onPressed: () {
                                             Navigator.of(context).pop(false);
                                           },
-                                          child: persoCancelRow),
+                                          child: persoCancelRow()),
                                       TextButton(
                                         onPressed: () {
                                           Navigator.of(context).pop(true);

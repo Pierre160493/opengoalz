@@ -33,7 +33,7 @@ extension LeagueWidgetHelper on League {
     } else if (level == 1) {
       return 'First league of $continent';
     } else {
-      return 'Level $level league of $continent [${positionWithIndex(number)}/${1 << (level - 1)}]';
+      return 'Division $level league of $continent [${positionWithIndex(number)}/${1 << (level - 1)}]';
     }
   }
 }

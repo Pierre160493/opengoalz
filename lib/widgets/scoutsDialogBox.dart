@@ -153,7 +153,7 @@ class _ScoutsDialogState extends State<ScoutsDialog> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: persoCancelRow),
+                    child: persoCancelRow()),
                 if (_pointsToDistribute == 0)
                   TextButton(
                     onPressed: _isLoading

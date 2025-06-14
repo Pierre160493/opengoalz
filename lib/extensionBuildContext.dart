@@ -73,7 +73,7 @@ extension ConfirmationDialog on BuildContext {
                   },
                 ),
                 TextButton(
-                  child: persoCancelRow,
+                  child: persoCancelRow(),
                   onPressed: () {
                     Navigator.of(context).pop(false); // Return false
                   },

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/models/game/gameCard.dart';
+import 'package:opengoalz/models/game/game_card.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
@@ -379,7 +379,7 @@ class _HomePageState extends State<GamesPage> {
                   Navigator.of(context)
                       .push(GamePage.route(game.id, widget.idClub));
                 },
-                child: getGameCardWidget(context, game),
+                child: GameCardWidget(game),
               );
             },
           ),

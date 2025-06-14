@@ -188,7 +188,7 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: persoCancelRow),
+                    child: persoCancelRow()),
                 TextButton(
                   onPressed: isLoading
                       ? null

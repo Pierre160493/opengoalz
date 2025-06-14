@@ -196,7 +196,7 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
           children: [
             /// Cancel button
             TextButton(
-              child: persoCancelRow,
+              child: persoCancelRow(),
               onPressed: () {
                 Navigator.of(context).pop();
               },

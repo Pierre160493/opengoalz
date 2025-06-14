@@ -198,7 +198,7 @@ class _PlayerNotesDialogBoxState extends State<PlayerNotesDialogBox> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: persoCancelRow,
+                  child: persoCancelRow(),
                 ),
                 if (_isNotesModified())
                   TextButton(

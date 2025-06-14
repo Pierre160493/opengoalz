@@ -156,7 +156,7 @@ class _PoachingDialogState extends State<PoachingDialog> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
             TextButton(
-              child: persoCancelRow,
+              child: persoCancelRow(),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -174,8 +174,7 @@ class _PoachingDialogState extends State<PoachingDialog> {
                   ],
                 ),
                 onPressed: () async {
-                  await operationInDB(
-                      context, 'UPDATE', 'players_poaching',
+                  await operationInDB(context, 'UPDATE', 'players_poaching',
                       matchCriteria: {
                         'id': widget.player.id,
                       },

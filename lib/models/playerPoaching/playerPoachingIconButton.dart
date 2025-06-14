@@ -289,7 +289,7 @@ class _PlayerPoachingIconButtonState extends State<PlayerPoachingIconButton> {
 
   Widget _cancelButton() {
     return TextButton(
-      child: persoCancelRow,
+      child: persoCancelRow(),
       onPressed: () {
         Navigator.of(context).pop(false);
       },

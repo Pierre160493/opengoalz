@@ -195,7 +195,7 @@ class UserPageUserTab extends StatelessWidget {
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
-                              child: persoCancelRow),
+                              child: persoCancelRow()),
                         ],
                       ),
                     ],

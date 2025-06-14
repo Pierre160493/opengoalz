@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
@@ -245,47 +244,90 @@ class _RankingPageState extends State<LeaguePage> {
 
   Future<void> _showSeasonInputDialog() async {
     final TextEditingController seasonController = TextEditingController();
-    final int currentSeason = _selectedSeason ?? 1;
+    final int? currentSeason = _selectedSeason;
 
     await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return persoAlertDialogWithConstrainedContent(
-          title: const Text('Enter Season Number'),
-          content: TextField(
-            controller: seasonController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              hintText: 'Current season: $currentSeason',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final int? enteredSeason = int.tryParse(seasonController.text);
-                if (enteredSeason != null && enteredSeason > 0) {
-                  setState(() {
-                    _selectedSeason = enteredSeason;
-                    _fetchLeagueData();
-                  });
-                  Navigator.of(context).pop(); // Close the dialog
-                } else {
-                  context
-                      .showSnackBarError('Please enter a valid season number.');
-                }
-              },
-              child: const Text('OK'),
-            ),
-          ],
+        // Use StatefulBuilder to manage the state of the dialog's content
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setStateDialog) {
+            // Calculate validity inside the builder so it re-evaluates on setStateDialog
+            final int? parsedSeason = int.tryParse(seasonController.text);
+            final bool isSeasonInputValid = parsedSeason != null &&
+                parsedSeason > 0 &&
+                parsedSeason != currentSeason;
+
+            return persoAlertDialogWithConstrainedContent(
+              title: const Text('Modify Selected Season',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                children: [
+                  ListTile(
+                      leading: Icon(Icons.info,
+                          color: Colors.green, size: iconSizeMedium),
+                      title: Text(
+                        currentSeason.toString(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Currently selected season',
+                        style: styleItalicBlueGrey,
+                      ),
+                      shape: shapePersoRoundedBorder(Colors.green)),
+                  TextField(
+                    controller: seasonController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: 'Select a season number',
+                    ),
+                    onChanged: (value) {
+                      // Trigger a rebuild of the dialog's state when text changes
+                      setStateDialog(() {});
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
+                      child: persoCancelRow(),
+                    ),
+                    TextButton(
+                      onPressed: isSeasonInputValid
+                          ? () {
+                              // parsedSeason is already calculated and validated
+                              setState(() {
+                                // This is the main page's setState
+                                _selectedSeason = parsedSeason;
+                                _fetchLeagueData();
+                              });
+                              Navigator.of(context).pop(); // Close the dialog
+                            }
+                          : null, // Button is disabled if input is not valid
+                      child: persoValidRow(
+                        isSeasonInputValid
+                            ? 'Open Season ${parsedSeason}'
+                            : 'Invalid Season',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
         );
       },
     );
+    // Dispose the controller after the dialog is closed
+    seasonController.dispose();
   }
 
   @override
@@ -323,15 +365,6 @@ class _RankingPageState extends State<LeaguePage> {
                             message:
                                 '${positionWithIndex(league.number)} league of ${positionWithIndex(league.level)} division of ${league.continent}',
                             child: Text('League ${league.name.toString()}')),
-                        TextButton(
-                          onPressed: () {
-                            _showSeasonInputDialog();
-                          },
-                          child: Text('Season ${league.seasonNumber}',
-                              style: TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold)),
-                        ),
                       ],
                     ),
                     leading: goBackIconButton(context),
@@ -363,6 +396,22 @@ class _RankingPageState extends State<LeaguePage> {
                           });
                         },
                       ),
+                      TextButton(
+                        onPressed: () {
+                          _showSeasonInputDialog();
+                        },
+                        child: Tooltip(
+                          message: 'Season Number',
+                          waitDuration: Duration(milliseconds: 500),
+                          child: Text(
+                              'S${_selectedSeason ?? league.seasonNumber}',
+                              style: TextStyle(
+                                  fontSize: iconSizeSmall,
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+
                       IconButton(
                         tooltip: 'Next Season',
                         icon: Icon(Icons.arrow_forward,
@@ -422,42 +471,49 @@ class _RankingPageState extends State<LeaguePage> {
                       ),
                     ],
                   ),
-                  body: MaxWidthContainer(
-                    child: DefaultTabController(
-                      length: 3,
-                      child: Column(
-                        children: [
-                          TabBar(
-                            tabs: [
-                              buildTabWithIcon(
-                                  icon: Icons.format_list_numbered,
-                                  text: 'Rankings'),
-                              buildTabWithIcon(
-                                  icon: Icons.event, text: 'Games'),
-                              buildTabWithIcon(icon: iconStats, text: 'Stats'),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
+                  body: _selectedSeason != null &&
+                          _selectedSeason! > league.seasonNumber
+                      ? ErrorWithBackButton(
+                          errorMessage:
+                              'Selected season ${_selectedSeason} is greater than the current season ${league.seasonNumber}. Please select a valid season.',
+                        )
+                      : MaxWidthContainer(
+                          child: DefaultTabController(
+                            length: 3,
+                            child: Column(
                               children: [
-                                /// League main tab
-                                LeaguePageMainTab(
-                                    league: league,
-                                    isReturningBotClub:
-                                        widget.isReturningBotClub),
+                                TabBar(
+                                  tabs: [
+                                    buildTabWithIcon(
+                                        icon: Icons.format_list_numbered,
+                                        text: 'Rankings'),
+                                    buildTabWithIcon(
+                                        icon: Icons.event, text: 'Games'),
+                                    buildTabWithIcon(
+                                        icon: iconStats, text: 'Stats'),
+                                  ],
+                                ),
+                                Expanded(
+                                  child: TabBarView(
+                                    children: [
+                                      /// League main tab
+                                      LeaguePageMainTab(
+                                          league: league,
+                                          isReturningBotClub:
+                                              widget.isReturningBotClub),
 
-                                /// Games tab
-                                LeaguePageGamesTab(league: league),
+                                      /// Games tab
+                                      LeaguePageGamesTab(league: league),
 
-                                /// Stats tab
-                                LeaguePageStatsTab(league: league),
+                                      /// Stats tab
+                                      LeaguePageStatsTab(league: league),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
+                        ),
                 );
               }
             },

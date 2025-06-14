@@ -67,19 +67,17 @@ void sendMailDialog(BuildContext context, {int? idClub, String? username}) {
 
               Navigator.of(context).pop();
             },
-            child: Row(
-              children: [
-                Icon(Icons.send, color: Colors.green),
-                formSpacer3,
-                Text('Send'),
-              ],
+            child: persoRowWithIcon(
+              Icons.send,
+              'Send',
+              color: Colors.green,
             ),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: persoCancelRow,
+            child: persoCancelRow(),
           ),
         ],
       );

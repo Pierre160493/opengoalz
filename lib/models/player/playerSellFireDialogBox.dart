@@ -359,7 +359,7 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: persoCancelRow,
+                child: persoCancelRow(),
               ),
 
               /// Confirm button

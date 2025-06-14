@@ -224,7 +224,7 @@ void showSortingOptions(
                                       Navigator.of(context)
                                           .pop(); // Close the dialog
                                     },
-                                    child: persoCancelRow,
+                                    child: persoCancelRow(),
                                   ),
                                 ],
                               );

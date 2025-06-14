@@ -274,7 +274,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             TextButton(
-                              child: persoCancelRow,
+                              child: persoCancelRow(),
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },

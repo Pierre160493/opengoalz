@@ -106,7 +106,7 @@ class AddCreditsTile extends StatelessWidget {
                       children: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
-                          child: persoCancelRow,
+                          child: persoCancelRow(),
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(true),

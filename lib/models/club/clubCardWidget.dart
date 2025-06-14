@@ -76,7 +76,7 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
                                     TextButton(
-                                      child: persoCancelRow,
+                                      child: persoCancelRow(),
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                       },

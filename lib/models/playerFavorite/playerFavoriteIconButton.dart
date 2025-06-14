@@ -181,7 +181,7 @@ class _PlayerFavoriteIconButtonState extends State<PlayerFavoriteIconButton> {
 
   Widget _cancelButton() {
     return TextButton(
-      child: persoCancelRow,
+      child: persoCancelRow(),
       onPressed: () {
         Navigator.of(context).pop(false);
       },

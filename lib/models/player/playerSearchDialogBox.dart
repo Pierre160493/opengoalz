@@ -520,7 +520,7 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: persoCancelRow,
+                child: persoCancelRow(),
               ),
               FutureBuilder<List<int>>(
                 future: playerSearchCriterias.fetchPlayerIds(),

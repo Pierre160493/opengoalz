@@ -259,7 +259,7 @@ class _PlayerTransferBidDialogBoxState
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: persoCancelRow,
+                      child: persoCancelRow(),
                     ),
                     if (_bidAmount != null)
                       TextButton(

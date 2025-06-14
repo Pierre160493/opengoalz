@@ -161,6 +161,4 @@ class Game {
         eloRight: map['elo_right'],
         eloExchangedPoints: map['elo_exchanged_points']);
   }
-
-  getGameCardWidget(BuildContext context, Game game) {}
 }

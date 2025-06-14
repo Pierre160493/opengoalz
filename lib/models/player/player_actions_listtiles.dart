@@ -137,7 +137,7 @@ class PlayerActionsWidget extends StatelessWidget {
                                 children: [
                                   /// Cancel button
                                   TextButton(
-                                    child: persoCancelRow,
+                                    child: persoCancelRow(),
                                     onPressed: () =>
                                         Navigator.pop(context, false),
                                   ),
@@ -199,7 +199,7 @@ class PlayerActionsWidget extends StatelessWidget {
                                 children: [
                                   /// Cancel button
                                   TextButton(
-                                    child: persoCancelRow,
+                                    child: persoCancelRow(),
                                     onPressed: () =>
                                         Navigator.pop(context, false),
                                   ),
@@ -266,7 +266,7 @@ class PlayerActionsWidget extends StatelessWidget {
                                 children: [
                                   /// Cancel button
                                   TextButton(
-                                    child: persoCancelRow,
+                                    child: persoCancelRow(),
                                     onPressed: () =>
                                         Navigator.pop(context, false),
                                   ),

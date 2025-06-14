@@ -230,7 +230,7 @@ class StaffOverviewTab extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 TextButton(
-                                  child: persoCancelRow,
+                                  child: persoCancelRow(),
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
@@ -334,7 +334,7 @@ class StaffOverviewTab extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 TextButton(
-                                  child: persoCancelRow,
+                                  child: persoCancelRow(),
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },

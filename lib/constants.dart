@@ -106,13 +106,21 @@ const TextStyle styleItalicBlueGrey = TextStyle(
   color: Colors.blueGrey,
 );
 
-const Row persoCancelRow = Row(
-  children: [
-    Icon(iconCancel, color: Colors.red),
-    formSpacer3,
-    Text('Cancel'),
-  ],
-);
+// const Row persoCancelRow() = Row(
+//   children: [
+//     Icon(iconCancel, color: Colors.red),
+//     formSpacer3,
+//     Text('Cancel'),
+//   ],
+// );
+
+Row persoCancelRow({String text = 'Cancel'}) {
+  return persoRowWithIcon(
+    iconCancel,
+    text,
+    color: Colors.red,
+  );
+}
 
 Row persoValidRow(String text) {
   return persoRowWithIcon(

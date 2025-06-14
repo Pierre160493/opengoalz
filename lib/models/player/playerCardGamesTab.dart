@@ -4,7 +4,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
-import 'package:opengoalz/models/game/gameCard.dart';
+import 'package:opengoalz/models/game/game_card.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/pages/game_page.dart';
@@ -317,7 +317,7 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                               Navigator.of(context)
                                   .push(GamePage.route(game.id, 0));
                             },
-                            child: getGameCardWidget(context, game),
+                            child: GameCardWidget(game),
                           );
                         },
                       ),

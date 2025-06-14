@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/game/class/game.dart';
+import 'package:opengoalz/models/game/game_card.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
@@ -62,7 +63,6 @@ class LeaguePageGamesTab extends StatelessWidget {
     // Group the games by round
     List<List<Game>> gamesByRound =
         groupBy(games, (Game game) => game.weekNumber).values.toList();
-
     return DefaultTabController(
       length: gamesByRound.length, // Number of tabs
       child: Column(
@@ -87,24 +87,18 @@ class LeaguePageGamesTab extends StatelessWidget {
   }
 
   Widget buildGameList(List<Game> games) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: games.length,
-            itemBuilder: (context, index) {
-              final Game game = games[index];
-              return InkWell(
-                onTap: () {
-                  Navigator.of(context).push(GamePage.route(game.id, 0));
-                },
-                child: game.getGameCardWidget(context, game),
-              );
-            },
-          ),
-        ),
-      ],
+    return ListView.builder(
+      itemCount: games.length,
+      itemBuilder: (context, index) {
+        final Game game = games[index];
+        return InkWell(
+          onTap: () {
+            Navigator.of(context).push(GamePage.route(game.id, 0));
+          },
+          child: GameCardWidget(game),
+          // child: Text('test ${game.id}'), // Placeholder for game card widget
+        );
+      },
     );
   }
 }

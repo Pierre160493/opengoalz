@@ -4,6 +4,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/pages/continent_page.dart';
 import 'package:opengoalz/pages/country_page.dart';
+import 'package:opengoalz/widgets/continent_display_widget.dart';
 
 // Widget getCountryListTile(BuildContext context, int? idCountry) {
 //   return ListTile(
@@ -73,25 +74,9 @@ Widget getCountryListTileFromCountry(
       ),
       overflow: TextOverflow.ellipsis,
     ),
-    subtitle: Row(
-      children: [
-        Icon(Icons.public, size: iconSizeSmall, color: Colors.green),
-        formSpacer3,
-        InkWell(
-          onTap: country.continents.first == null
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    ContinentPage.route(country.continents.first!,
-                        idMultiverse: idMultiverse),
-                  );
-                },
-          child: Text(country.continents.first ?? 'Unknown',
-              style: TextStyle(
-                  fontStyle: FontStyle.italic, color: Colors.blueGrey)),
-        ),
-      ],
+    subtitle: ContinentRowWidget(
+      continentName: country.continents.first,
+      idMultiverse: idMultiverse,
     ),
     onTap: isClickable == false
         ? null

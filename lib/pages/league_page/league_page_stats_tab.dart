@@ -68,6 +68,7 @@ class LeaguePageStatsTab extends StatelessWidget {
               .inFilter(
                   'id',
                   players
+                      .where((player) => player.idClub != null)
                       .map((player) => player.idClub)
                       .toSet()
                       .toList()
@@ -75,8 +76,8 @@ class LeaguePageStatsTab extends StatelessWidget {
               .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
               .map((List<Club> clubs) {
                 return players.map((player) {
-                  player.club =
-                      clubs.firstWhere((club) => club.id == player.idClub);
+                  // player.club =
+                  //     clubs.firstWhere((club) => club.id == player.idClub);
                   return player;
                 }).toList();
               });

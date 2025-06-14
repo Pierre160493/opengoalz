@@ -200,7 +200,7 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: persoCancelRow),
+                    child: persoCancelRow()),
                 TextButton(
                   onPressed: isLoading
                       ? null

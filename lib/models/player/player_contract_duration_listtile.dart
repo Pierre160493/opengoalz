@@ -137,7 +137,7 @@ class PlayerCardContractDurationListTile extends StatelessWidget {
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            child: persoCancelRow,
+                            child: persoCancelRow(),
                           ),
 
                           /// End contract button for embodied players
