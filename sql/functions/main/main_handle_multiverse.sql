@@ -24,11 +24,13 @@ BEGIN
             inp_multiverse := rec_multiverse
         );
 
+        -- Simulate the week games
+        PERFORM main_simulate_week_games(rec_multiverse);
+
         IF now() >= rec_multiverse.date_handling THEN
+
             -- Handle weekly and seasonal updates if it's the end of the week (match day)
             IF rec_multiverse.day_number = 7 THEN
-                -- Simulate the week games
-                PERFORM main_simulate_week_games(rec_multiverse);
 
                 -- Exit the loop if there are games from the current week that are not finished
                 IF (
