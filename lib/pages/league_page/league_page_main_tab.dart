@@ -27,7 +27,7 @@ class LeaguePageMainTab extends StatelessWidget {
         children: [
           TabBar(
             tabs: [
-              buildTabWithIcon(icon: iconBot, text: ''),
+              buildTabWithIcon(icon: Icons.more_time, text: 'Current'),
               buildTabWithIcon(icon: Icons.ssid_chart, text: 'Evolution'),
             ],
           ),
@@ -54,8 +54,7 @@ class LeaguePageMainTab extends StatelessWidget {
   Widget _mainTabMainTab() {
     final int playedGamesCount =
         league.games.where((Game game) => game.dateEnd != null).length;
-    final int totalGamesInSeason =
-        30; // Assuming 30 games per season based on the division
+    final int totalGamesInSeason = 30;
     final int percentagePlayed =
         (100 * playedGamesCount / totalGamesInSeason).round();
     final String percentageText =
