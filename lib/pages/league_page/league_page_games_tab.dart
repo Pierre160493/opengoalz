@@ -48,9 +48,10 @@ class LeaguePageGamesTab extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                buildGameListByRound(gamesPlayed),
-                if (gamesCurrent.isNotEmpty) buildGameListByRound(gamesCurrent),
-                buildGameListByRound(gamesIncoming),
+                _buildGameListByRound(gamesPlayed),
+                if (gamesCurrent.isNotEmpty)
+                  _buildGameListByRound(gamesCurrent),
+                _buildGameListByRound(gamesIncoming),
               ],
             ),
           ),
@@ -59,7 +60,7 @@ class LeaguePageGamesTab extends StatelessWidget {
     );
   }
 
-  Widget buildGameListByRound(List<Game> games) {
+  Widget _buildGameListByRound(List<Game> games) {
     // Group the games by round
     List<List<Game>> gamesByRound =
         groupBy(games, (Game game) => game.weekNumber).values.toList();
@@ -77,7 +78,7 @@ class LeaguePageGamesTab extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: gamesByRound.map((List<Game> games) {
-                return buildGameList(games);
+                return _buildGameList(games);
               }).toList(),
             ),
           ),
@@ -86,7 +87,7 @@ class LeaguePageGamesTab extends StatelessWidget {
     );
   }
 
-  Widget buildGameList(List<Game> games) {
+  Widget _buildGameList(List<Game> games) {
     return ListView.builder(
       itemCount: games.length,
       itemBuilder: (context, index) {

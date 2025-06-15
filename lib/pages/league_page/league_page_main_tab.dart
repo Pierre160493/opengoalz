@@ -4,7 +4,8 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
-import 'package:opengoalz/widgets/continent_display_widget.dart'; // Import the new widget
+import 'package:opengoalz/widgets/continent_display_widget.dart';
+import 'package:opengoalz/widgets/tab_widget_with_icon.dart'; // Import the new widget
 
 class LeaguePageMainTab extends StatelessWidget {
   final League league;
@@ -20,6 +21,37 @@ class LeaguePageMainTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          TabBar(
+            tabs: [
+              buildTabWithIcon(icon: iconBot, text: ''),
+              buildTabWithIcon(icon: Icons.ssid_chart, text: 'Evolution'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _mainTabMainTab(),
+                Placeholder(
+                  child: Center(
+                    child: Text(
+                      'Evolution tab is under construction',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mainTabMainTab() {
     final int playedGamesCount =
         league.games.where((Game game) => game.dateEnd != null).length;
     final int totalGamesInSeason =
