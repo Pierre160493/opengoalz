@@ -284,7 +284,7 @@ class StaffOverviewTab extends StatelessWidget {
                   icon: Icon(Icons.currency_exchange, color: Colors.orange),
                 ),
                 onTap: () async {
-                  ClubData.showClubHistoryChartDialog(
+                  ClubData.showClubDataHistoryChartDialog(
                     context,
                     club.id,
                     'expenses_training_applied',
@@ -388,7 +388,7 @@ class StaffOverviewTab extends StatelessWidget {
                   icon: Icon(Icons.currency_exchange, color: Colors.orange),
                 ),
                 onTap: () async {
-                  ClubData.showClubHistoryChartDialog(
+                  ClubData.showClubDataHistoryChartDialog(
                     context,
                     club.id,
                     'expenses_scouts_applied',
@@ -425,7 +425,7 @@ class StaffOverviewTab extends StatelessWidget {
           ),
           shape: shapePersoRoundedBorder(),
           onTap: () async {
-            ClubData.showClubHistoryChartDialog(
+            ClubData.showClubDataHistoryChartDialog(
               context,
               club.id,
               'training_weight',

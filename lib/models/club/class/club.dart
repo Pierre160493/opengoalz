@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
+import 'package:opengoalz/models/club/class/club_history.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/models/mails/mail.dart';
@@ -27,6 +28,7 @@ part 'clubWidgetHelper.dart';
 class Club {
   List<TeamComp> teamComps = []; // List of the teamcomps of the club
   List<TeamComp> defaultTeamComps = []; // List of the teamcomps of the club
+  List<ClubDataHistory> lisClubDataHistory = []; // History of the club data
   TeamComp? selectedTeamComp; // List of the teamcomps of the club
   List<Game> games = []; // Games of this club
   List<Player> players = []; // List of players of the club
@@ -94,9 +96,7 @@ class Club {
         expensesTransfersExpected = map['expenses_transfers_expected'],
         continent = map['continent'],
         idCoach = map['id_coach'],
-        idScout = map['id_scout'] {
-    // print(map);
-  }
+        idScout = map['id_scout'] {}
 
   /// Fetch the club from its id
   static Future<Club?> fromId(int id) async {

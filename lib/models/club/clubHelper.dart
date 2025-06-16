@@ -35,7 +35,7 @@ Widget clubEloRow(BuildContext context, int? idClub, int? eloValue) {
   if (idClub == null) return Container();
   return InkWell(
     onTap: () {
-      ClubData.showClubHistoryChartDialog(
+      ClubData.showClubDataHistoryChartDialog(
           context, idClub, 'elo_points', 'Elo Points Evolution');
     },
     child: Row(

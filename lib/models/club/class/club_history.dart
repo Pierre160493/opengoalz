@@ -1,7 +1,7 @@
 import 'package:opengoalz/models/club/class/club_data.dart';
 
-class ClubHistory {
-  ClubHistory({
+class ClubDataHistory {
+  ClubDataHistory({
     required this.id,
     required this.createdAt,
     required this.numberSeason,
@@ -17,11 +17,18 @@ class ClubHistory {
   final int numberWeak;
   final int idClub;
 
-  ClubHistory.fromMap(Map<String, dynamic> map)
+  ClubDataHistory.fromMap(Map<String, dynamic> map)
       : id = map['id'],
         createdAt = DateTime.parse(map['created_at']).toLocal(),
-        numberSeason = map['number_season'],
+        numberSeason = map['number_season'] ??
+            map['season_number'] ??
+            (throw Exception(
+                "Missing 'number_season'/'season_number' in map: $map")),
         clubData = ClubData.fromMap(map),
-        numberWeak = map['number_weak'],
-        idClub = map['id_club'];
+        numberWeak = map['number_weak'] ??
+            map['week_number'] ??
+            (throw Exception(
+                "Missing 'number_weak'/'week_number' in map: $map")),
+        idClub = map['id_club'] ??
+            (throw Exception("Missing 'id_club' in map: $map"));
 }

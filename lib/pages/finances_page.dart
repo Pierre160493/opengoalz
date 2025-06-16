@@ -30,7 +30,7 @@ class FinancesPage extends StatefulWidget {
 }
 
 class _FinancesPageState extends State<FinancesPage> {
-  late Stream<List<ClubData>> _clubHistoryStream;
+  late Stream<List<ClubData>> _ClubDataHistoryStream;
   bool _showCashCurve = true;
   bool _showRevenuesCurve = true;
   bool _showExpensesCurve = true;
@@ -51,7 +51,7 @@ class _FinancesPageState extends State<FinancesPage> {
 
   @override
   void initState() {
-    _clubHistoryStream =
+    _ClubDataHistoryStream =
         ClubData.streamClubDataHistory(widget.club.id).map((data) {
       _clubDataHistory = [
         ...data,
@@ -122,7 +122,7 @@ class _FinancesPageState extends State<FinancesPage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<ClubData>>(
-      stream: _clubHistoryStream,
+      stream: _ClubDataHistoryStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return loadingCircularAndText('Loading club history...');

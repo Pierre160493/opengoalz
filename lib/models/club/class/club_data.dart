@@ -97,7 +97,7 @@ class ClubData {
   }
 
   // Method to show club history dialog box
-  static Future<void> showClubHistoryChartDialog(
+  static Future<void> showClubDataHistoryChartDialog(
       BuildContext context, int idClub, String columnName, String titleName,
       {var dataToAppend = null}) async {
     final List<num>? dataHistory =
@@ -145,5 +145,63 @@ class ClubData {
       context.showSnackBarError('Unknown ERROR: $error');
     }
     return null;
+  }
+
+  // Add this operator to allow property access by string key
+  dynamic operator [](String key) {
+    switch (key) {
+      case 'number_fans':
+        return numberFans;
+      case 'pos_league':
+        return posLeague;
+      case 'training_weight':
+        return staffWeight;
+      case 'cash':
+        return cash;
+      case 'expenses_training_applied':
+        return expensesTrainingApplied;
+      case 'expenses_players':
+        return expensesPlayers;
+      case 'expenses_staff':
+        return expensesStaff;
+      case 'expenses_total':
+        return expensesTotal;
+      case 'revenues_sponsors':
+        return revenuesSponsors;
+      case 'revenues_total':
+        return revenuesTotal;
+      case 'expenses_tax':
+        return expensesTax;
+      case 'league_points':
+        return leaguePoints;
+      case 'league_goals_for':
+        return leagueGoalsFor;
+      case 'league_goals_against':
+        return leagueGoalsAgainst;
+      case 'scouts_weight':
+        return scoutsWeight;
+      case 'expenses_scouts_applied':
+        return expensesScoutsApplied;
+      case 'expenses_transfers_done':
+        return expensesTransfersDone;
+      case 'revenues_transfers_done':
+        return revenuesTransfersDone;
+      case 'elo_points':
+        return eloPoints;
+      case 'expenses_players_ratio_target':
+        return expensesPlayersRatioTarget;
+      case 'expenses_players_ratio':
+        return expensesPlayersRatio;
+      case 'expenses_training_target':
+        return expensesTrainingTarget;
+      case 'expenses_scouts_target':
+        return expensesScoutsTarget;
+      case 'week_number':
+        return null;
+      case 'id_club':
+        return null;
+      default:
+        return null;
+    }
   }
 }

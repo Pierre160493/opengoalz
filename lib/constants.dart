@@ -103,6 +103,15 @@ const Color colorGold = Color(0xFFFFD700); // Gold color
 const Color colorSilver = Color(0xFFC0C0C0); // Silver color
 const Color colorBronze = Color(0xFFCD7F32); // Bronze color
 
+const List<Color> rankingColors = [
+  colorGold, // 1st
+  colorSilver, // 2nd
+  colorBronze, // 3rd (bronze)
+  Colors.green,
+  Colors.blue,
+  Colors.red,
+];
+
 /// Text Styles
 const TextStyle styleItalicBlueGrey = TextStyle(
   fontStyle: FontStyle.italic,

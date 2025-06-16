@@ -286,7 +286,7 @@ class _ClubPageState extends State<ClubPage> {
                   /// Fans
                   ListTile(
                     onTap: () async {
-                      ClubData.showClubHistoryChartDialog(
+                      ClubData.showClubDataHistoryChartDialog(
                         context,
                         club.id,
                         'number_fans',

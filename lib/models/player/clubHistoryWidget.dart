@@ -16,13 +16,13 @@ class ClubCardHistoryWidget extends StatefulWidget {
 }
 
 class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
-  late Stream<List<Map>> _clubHistoryStream;
+  late Stream<List<Map>> _ClubDataHistoryStream;
 
   @override
   void initState() {
     super.initState();
 
-    _clubHistoryStream = supabase
+    _ClubDataHistoryStream = supabase
         .from('clubs_history')
         .stream(primaryKey: ['id'])
         .eq('id_club', widget.club.id)
@@ -32,7 +32,7 @@ class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Map>>(
-      stream: _clubHistoryStream,
+      stream: _ClubDataHistoryStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return loadingCircularAndText('Loading club history');
@@ -41,12 +41,12 @@ class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return ErrorWithBackButton(errorMessage: 'No data available');
         } else {
-          List<Map> listClubHistory = snapshot.data!;
+          List<Map> listClubDataHistory = snapshot.data!;
           return Expanded(
             child: ListView.builder(
-              itemCount: listClubHistory.length,
+              itemCount: listClubDataHistory.length,
               itemBuilder: (context, index) {
-                final history = listClubHistory[index];
+                final history = listClubDataHistory[index];
                 return ListTile(
                   leading: Icon(iconHistory,
                       color: Colors.green, size: iconSizeMedium),

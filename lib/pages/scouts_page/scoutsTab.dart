@@ -103,7 +103,7 @@ class ScoutsMainTab extends StatelessWidget {
               },
               icon: Icon(Icons.currency_exchange, color: Colors.orange)),
           onTap: () async {
-            ClubData.showClubHistoryChartDialog(
+            ClubData.showClubDataHistoryChartDialog(
               context,
               club.id,
               'expenses_scouts_applied',
@@ -159,7 +159,7 @@ class ScoutsMainTab extends StatelessWidget {
           ),
           shape: shapePersoRoundedBorder(),
           onTap: () async {
-            ClubData.showClubHistoryChartDialog(
+            ClubData.showClubDataHistoryChartDialog(
               context,
               club.id,
               'scouts_weight',
