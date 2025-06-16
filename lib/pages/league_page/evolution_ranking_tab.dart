@@ -4,7 +4,7 @@ import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'dart:math';
 
 class EvolutionRankingTab extends StatefulWidget {
@@ -27,6 +27,16 @@ class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
   String? _errorMessage;
   Map<int, Color> _clubColors = {};
   int _maxWeeks = 0;
+
+  // Add a list of colors for the lines (expand as needed)
+  final List<Color> _lineColors = [
+    colorGold, // 1st
+    colorSilver, // 2nd
+    colorBronze, // 3rd (bronze)
+    Colors.green,
+    Colors.blue,
+    Colors.red,
+  ];
 
   @override
   void initState() {
@@ -92,48 +102,6 @@ class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
     }
   }
 
-  List<List<num>> _prepareChartData() {
-    Map<int, List<int>> clubPositionsByWeek = {};
-
-    // Initialize data structure for each club
-    for (var club in widget.league.clubsLeague) {
-      clubPositionsByWeek[club.id] = List.filled(_maxWeeks + 1, 0);
-    }
-
-    // Fill in position data
-    for (var record in _clubsHistoryData) {
-      int clubId = record['id_club'];
-      int week = record['week_number'];
-      int position = record['pos_league'];
-
-      if (clubPositionsByWeek.containsKey(clubId) && week <= _maxWeeks) {
-        clubPositionsByWeek[clubId]![week] = position;
-      }
-    }
-
-    // Convert to format needed for chart
-    List<List<num>> chartData = [];
-    for (var club in widget.league.clubsLeague) {
-      List<num> positions = List<num>.from(clubPositionsByWeek[club.id]!);
-
-      // Fill in missing values at the beginning (week 0 positions)
-      if (positions[0] == 0) {
-        positions[0] = club.clubData.posLeague;
-      }
-
-      // Fill in any other zeros with the previous week's position
-      for (int i = 1; i < positions.length; i++) {
-        if (positions[i] == 0) {
-          positions[i] = positions[i - 1];
-        }
-      }
-
-      chartData.add(positions);
-    }
-
-    return chartData;
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -156,44 +124,162 @@ class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
       );
     }
 
-    // Prepare data for chart
-    final chartData = ChartData(
-      title: 'League Position Evolution',
-      yValues: _prepareChartData(),
-      typeXAxis: XAxisType.weekHistory,
-      // For positions, lower is better, so we invert min/max
-      minY: 1, // Top position
-      // maxY: widget.league.clubsLeague.length, // Bottom position
-      maxY: 6, // Bottom position
-    );
+    // Prepare chart data: each club's positions over weeks
+    final List<List<int>> clubPositions = [];
+    final List<String> clubNames = [];
+    final List<int> clubIds = [];
+    final int clubCount = widget.league.clubsLeague.length;
 
-    return Column(
-      children: [
-        Expanded(
-          child: ChartDialogBox(chartData: chartData),
-        ),
+    // Map clubId to index for color assignment
+    final Map<int, int> clubIdToIndex = {};
+    for (int i = 0; i < widget.league.clubsLeague.length; i++) {
+      clubIdToIndex[widget.league.clubsLeague[i].id] = i;
+      clubNames.add(widget.league.clubsLeague[i].name);
+      clubIds.add(widget.league.clubsLeague[i].id);
+    }
 
-        // Legend for clubs
-        Container(
-          height: 60,
-          child: ListView.builder(
+    // Find the max week number
+    int maxWeek = 0;
+    if (_clubsHistoryData.isNotEmpty) {
+      maxWeek = _clubsHistoryData
+          .map((rec) => rec['week_number'] as int)
+          .reduce((a, b) => a > b ? a : b);
+    }
+
+    // Build a map: clubId -> [positions by week]
+    Map<int, List<int>> clubIdToPositions = {};
+    for (var clubId in clubIds) {
+      clubIdToPositions[clubId] = List.filled(maxWeek + 1, 0);
+    }
+    for (var rec in _clubsHistoryData) {
+      int clubId = rec['id_club'];
+      int week = rec['week_number'];
+      int pos = rec['pos_league'];
+      clubIdToPositions[clubId]![week] = pos;
+    }
+    // Fill missing with previous
+    for (var clubId in clubIds) {
+      for (int w = 1; w <= maxWeek; w++) {
+        if (clubIdToPositions[clubId]![w] == 0) {
+          clubIdToPositions[clubId]![w] = clubIdToPositions[clubId]![w - 1];
+        }
+      }
+      clubPositions.add(clubIdToPositions[clubId]!);
+    }
+
+    // Medal color assignment for last week
+    Map<int, Color> clubIdToMedalColor = {};
+    if (maxWeek > 0) {
+      // Get all clubs' last positions
+      List<MapEntry<int, int>> lastWeekPositions = clubIdToPositions.entries
+          .map((e) => MapEntry(e.key, e.value[maxWeek]))
+          .toList();
+      lastWeekPositions.sort((a, b) => a.value.compareTo(b.value));
+      for (int i = 0; i < lastWeekPositions.length; i++) {
+        if (i == 0) {
+          clubIdToMedalColor[lastWeekPositions[i].key] = Colors.amber;
+        } else if (i == 1) {
+          clubIdToMedalColor[lastWeekPositions[i].key] = Colors.grey;
+        } else if (i == 2) {
+          clubIdToMedalColor[lastWeekPositions[i].key] = Color(0xFFcd7f32);
+        }
+      }
+    }
+
+    // Build the chart lines
+    List<LineChartBarData> lines = [];
+    for (int i = 0; i < clubPositions.length; i++) {
+      final clubId = clubIds[i];
+      final color =
+          clubIdToMedalColor[clubId] ?? _lineColors[i % _lineColors.length];
+      // Only include weeks 1..maxWeek (skip week 0)
+      final spots = List.generate(
+        clubPositions[i].length - 1,
+        (w) {
+          final week = w + 1; // shift index to start at week 1
+          final invertedY = (clubCount + 1) - clubPositions[i][week];
+          return FlSpot(week.toDouble(), invertedY.toDouble());
+        },
+      );
+      lines.add(LineChartBarData(
+        spots: spots,
+        isCurved: false,
+        dotData: FlDotData(show: true),
+        aboveBarData: BarAreaData(show: false),
+        color: color,
+        barWidth: 3,
+      ));
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          formSpacer3,
+          AspectRatio(
+            aspectRatio: 1.7,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: LineChart(
+                LineChartData(
+                  lineBarsData: lines,
+                  minY: 1,
+                  maxY: clubCount.toDouble(),
+                  titlesData: FlTitlesData(
+                    leftTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          if (value == 0) return Text('W0');
+                          if (value == maxWeek.toDouble())
+                            return Text('W$maxWeek');
+                          if (value % 2 == 0) return Text('W${value.toInt()}');
+                          return Container();
+                        },
+                        reservedSize: 32,
+                      ),
+                    ),
+                    rightTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  gridData: FlGridData(show: true),
+                  borderData: FlBorderData(show: true),
+                  lineTouchData: LineTouchData(enabled: true),
+                ),
+              ),
+            ),
+          ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
             itemCount: widget.league.clubsLeague.length,
             itemBuilder: (context, index) {
               final club = widget.league.clubsLeague[index];
+              final clubId = club.id;
+              final color = clubIdToMedalColor[clubId] ??
+                  _lineColors[index % _lineColors.length];
+              int? lastPos = clubIdToPositions[clubId] != null &&
+                      clubIdToPositions[clubId]!.isNotEmpty
+                  ? clubIdToPositions[clubId]![maxWeek]
+                  : null;
               return ListTile(
-                leading: Container(
-                  width: 16,
-                  height: 16,
-                  color: _clubColors[club.id],
-                ),
-                title: club.getClubNameClickable(context),
-                dense: true,
-                visualDensity: VisualDensity.compact,
-              );
+                  leading: Container(
+                    width: 16,
+                    height: 16,
+                    color: color,
+                  ),
+                  title: club.getClubNameClickable(context),
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  trailing: lastPos != null ? Text('#$lastPos') : null,
+                  shape: shapePersoRoundedBorder());
             },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
