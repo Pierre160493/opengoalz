@@ -99,6 +99,9 @@ const iconDead = Icons.sentiment_very_dissatisfied_outlined;
 const Color colorDefault = Colors.blueGrey;
 const Color colorIsMine = Colors.pink;
 const Color colorIsSelected = Colors.purple;
+const Color colorGold = Color(0xFFFFD700); // Gold color
+const Color colorSilver = Color(0xFFC0C0C0); // Silver color
+const Color colorBronze = Color(0xFFCD7F32); // Bronze color
 
 /// Text Styles
 const TextStyle styleItalicBlueGrey = TextStyle(

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
-import 'package:opengoalz/widgets/continent_display_widget.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'dart:math';
@@ -80,9 +77,9 @@ class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
   void _assignClubColors() {
     // Define a list of distinct colors
     final List<Color> colors = [
-      Colors.yellow,
-      Colors.grey,
-      Colors.brown,
+      colorGold, // True gold color (hex for gold)
+      colorSilver, // Silver color
+      colorBronze, // Bronze color
       Colors.green,
       Colors.orange,
       Colors.red
@@ -180,24 +177,18 @@ class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
         Container(
           height: 60,
           child: ListView.builder(
-            scrollDirection: Axis.horizontal,
             itemCount: widget.league.clubsLeague.length,
             itemBuilder: (context, index) {
               final club = widget.league.clubsLeague[index];
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 16,
-                      height: 16,
-                      color: _clubColors[club.id],
-                    ),
-                    SizedBox(width: 4),
-                    club.getClubNameClickable(context),
-                  ],
+              return ListTile(
+                leading: Container(
+                  width: 16,
+                  height: 16,
+                  color: _clubColors[club.id],
                 ),
+                title: club.getClubNameClickable(context),
+                dense: true,
+                visualDensity: VisualDensity.compact,
               );
             },
           ),

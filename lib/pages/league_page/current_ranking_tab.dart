@@ -140,11 +140,11 @@ class CurrentRankingTab extends StatelessWidget {
                   })(),
                   child: CircleAvatar(
                     backgroundColor: index == 0
-                        ? Colors.yellow
+                        ? colorGold
                         : index == 1
-                            ? Colors.grey
+                            ? colorSilver
                             : index == 2
-                                ? Colors.amber
+                                ? colorBronze
                                 : Colors.blue,
                     child: Text(
                       '${index + 1}',
