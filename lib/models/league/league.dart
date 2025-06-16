@@ -12,6 +12,7 @@ class League {
       []; // All clubs that played in the league + qualification games
   List<Club> clubsLeague = []; // All 6 clubs in the league
   int? idSelectedClub; // id of the club selected in the club tab
+  int? selectedSeasonNumber; // Season number selected in the club tab
 
   League({
     required this.id,
@@ -38,7 +39,7 @@ class League {
   final bool? isFinished;
 
   League.fromMap(Map<String, dynamic> map,
-      {this.idSelectedClub}) // Add idSelectedClub as an optional parameter
+      {this.idSelectedClub, this.selectedSeasonNumber})
       : id = map['id'],
         idMultiverse = map['id_multiverse'],
         seasonNumber = map['season_number'],

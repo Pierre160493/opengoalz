@@ -49,202 +49,226 @@ class LeaguePage extends StatefulWidget {
 
 class _RankingPageState extends State<LeaguePage> {
   late Stream<League> _leagueStream;
-  int? _selectedSeason;
+  late int _selectedSeason;
   List<int> _gamesId = [];
 
   @override
   void initState() {
     super.initState();
-    _selectedSeason = widget.seasonNumber;
     _fetchSeasonNumberAndGamesIds();
   }
 
   Future<void> _fetchSeasonNumberAndGamesIds() async {
-    if (_selectedSeason == null) {
+    if (widget.seasonNumber == null) {
       _selectedSeason = await supabase
           .from('leagues')
           .select('season_number')
           .eq('id', widget.idLeague)
           .then((value) => value.first['season_number'] as int);
+    } else {
+      _selectedSeason = widget.seasonNumber!;
     }
 
     _gamesId = await supabase
         .from('games')
         .select('id')
         .eq('id_league', widget.idLeague)
-        .eq('season_number', _selectedSeason!)
+        .eq('season_number', _selectedSeason)
         .then((value) => value.map((e) => e['id'] as int).toList());
-    print('_gamesId: $_gamesId');
     _fetchLeagueData();
   }
 
   Future<void> _fetchLeagueData() async {
     _leagueStream = supabase
-        .from('leagues')
-        .stream(primaryKey: ['id'])
-        .eq('id', widget.idLeague)
-        .map((maps) {
-          if (maps.isEmpty) {
-            throw StateError('No league found with id ${widget.idLeague}');
-          }
-          print('maps: $maps');
-          return maps
-              .map((map) =>
-                  League.fromMap(map, idSelectedClub: widget.idSelectedClub))
-              .first;
-        })
-        .switchMap((League league) {
-          return supabase
-              .from('games')
-              .stream(primaryKey: ['id'])
-              .inFilter('id', _gamesId)
-              .order('date_start', ascending: true)
-              .map((maps) => maps
-                  .map((map) => Game.fromMap(map, widget.idSelectedClub))
-                  .toList())
-              .map((List<Game> games) {
-                league.games = games;
-                return league;
-              });
-        })
-        .switchMap((League league) {
-          List<int> clubsIds = league.games
-              .map((game) => [game.idClubLeft, game.idClubRight])
-              .expand((element) => element)
-              .where((element) => element != null)
-              .toSet()
-              .toList()
-              .cast<int>();
-          return supabase
-              .from('clubs')
-              .stream(primaryKey: ['id'])
-              .inFilter('id', clubsIds)
-              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
-              .map((clubs) {
-                league.clubsAll = clubs;
-                league.clubsLeague = clubs
-                    .where((Club club) => league.games
-                        .where((game) => game.weekNumber == 1)
-                        .expand((game) => [game.idClubLeft, game.idClubRight])
-                        .contains(club.id))
-                    .toList();
-                for (Game game in league.games) {
-                  if (game.idClubLeft != null) {
-                    game.leftClub = league.clubsAll.firstWhere(
-                      (club) => club.id == game.idClubLeft,
-                      orElse: () => throw Exception(
-                          'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'),
-                    );
-                  }
-                  if (game.idClubRight != null) {
-                    game.rightClub = league.clubsAll.firstWhere(
-                        (club) => club.id == game.idClubRight,
-                        orElse: () => throw Exception(
-                            'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
-                  }
-                }
-                return league;
-              });
-        })
-        .switchMap((League league) {
-          return supabase
-              .from('games_description')
-              .stream(primaryKey: ['id'])
-              .inFilter(
-                  'id',
-                  league.games
-                      .map((game) => game.idDescription)
-                      .map((id) => id)
-                      .toSet()
+            .from('leagues')
+            .stream(primaryKey: ['id'])
+            .eq('id', widget.idLeague)
+            .map((maps) {
+              if (maps.isEmpty) {
+                throw StateError('No league found with id ${widget.idLeague}');
+              }
+              return maps
+                  .map((map) => League.fromMap(map,
+                      idSelectedClub: widget.idSelectedClub,
+                      selectedSeasonNumber: _selectedSeason))
+                  .first;
+            })
+            .switchMap((League league) {
+              return supabase
+                  .from('games')
+                  .stream(primaryKey: ['id'])
+                  .inFilter('id', _gamesId)
+                  .order('date_start', ascending: true)
+                  .map((maps) => maps
+                      .map((map) => Game.fromMap(map, widget.idSelectedClub))
                       .toList())
-              .map((maps) => maps)
-              .map((map) {
-                for (Game game in league.games) {
-                  game.description = map.firstWhere(
-                          (map) => map['id'] == game.idDescription,
-                          orElse: () => throw StateError(
-                              'No description found for game with id ${game.idDescription}'))[
-                      'description'];
-                }
-                return league;
-              });
-        })
-        .switchMap((League league) {
-          return supabase
-              .from('game_events')
-              .stream(primaryKey: ['id'])
-              .inFilter('id_game', league.games.map((game) => game.id).toList())
-              .map((maps) => maps.map((map) => GameEvent.fromMap(map)).toList())
-              .map((List<GameEvent> events) {
-                for (Game game in league.games) {
-                  game.events = events
-                      .where((GameEvent event) => event.idGame == game.id)
-                      .toList();
-                }
-                return league;
-              });
-        })
-        .switchMap((League league) async* {
-          await _updateClubStatistics(league);
-          yield league;
-        });
+                  .map((List<Game> games) {
+                    league.games = games;
+                    return league;
+                  });
+            })
+            .switchMap((League league) {
+              List<int> clubsIds = league.games
+                  .map((game) => [game.idClubLeft, game.idClubRight])
+                  .expand((element) => element)
+                  .where((element) => element != null)
+                  .toSet()
+                  .toList()
+                  .cast<int>();
+              return supabase
+                  .from('clubs')
+                  .stream(primaryKey: ['id'])
+                  .inFilter('id', clubsIds)
+                  .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+                  .map((List<Club> clubs) {
+                    clubs.sort((a, b) =>
+                        a.clubData.posLeague.compareTo(b.clubData.posLeague));
+                    league.clubsAll = clubs;
+                    league.clubsLeague = clubs
+                        .where((Club club) => league.games
+                            .where((game) => game.weekNumber == 1)
+                            .expand(
+                                (game) => [game.idClubLeft, game.idClubRight])
+                            .contains(club.id))
+                        .toList();
+                    for (Game game in league.games) {
+                      if (game.idClubLeft != null) {
+                        game.leftClub = league.clubsAll.firstWhere(
+                          (club) => club.id == game.idClubLeft,
+                          orElse: () => throw Exception(
+                              'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'),
+                        );
+                      }
+                      if (game.idClubRight != null) {
+                        game.rightClub = league.clubsAll.firstWhere(
+                            (club) => club.id == game.idClubRight,
+                            orElse: () => throw Exception(
+                                'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'));
+                      }
+                    }
+                    return league;
+                  });
+            })
+            .switchMap((League league) {
+              return supabase
+                  .from('games_description')
+                  .stream(primaryKey: ['id'])
+                  .inFilter(
+                      'id',
+                      league.games
+                          .map((game) => game.idDescription)
+                          .map((id) => id)
+                          .toSet()
+                          .toList())
+                  .map((maps) => maps)
+                  .map((map) {
+                    for (Game game in league.games) {
+                      game.description = map.firstWhere(
+                              (map) => map['id'] == game.idDescription,
+                              orElse: () => throw StateError(
+                                  'No description found for game with id ${game.idDescription}'))[
+                          'description'];
+                    }
+                    return league;
+                  });
+            })
+            .switchMap((League league) {
+              return supabase
+                  .from('game_events')
+                  .stream(primaryKey: ['id'])
+                  .inFilter(
+                      'id_game', league.games.map((game) => game.id).toList())
+                  .map((maps) =>
+                      maps.map((map) => GameEvent.fromMap(map)).toList())
+                  .map((List<GameEvent> events) {
+                    for (Game game in league.games) {
+                      game.events = events
+                          .where((GameEvent event) => event.idGame == game.id)
+                          .toList();
+                    }
+                    return league;
+                  });
+            })
+        // .switchMap((League league) async* {
+        //   await _updateClubStatistics(league);
+        //   yield league;
+        // })
+        ;
   }
 
-  Future<void> _updateClubStatistics(League league) async {
-    for (Game game
-        in league.games.where((Game game) => game.weekNumber <= 10)) {
-      if (game.isPlaying == false) {
-        print(
-            'Club IDs: ${league.clubsLeague.map((club) => club.id).toList()}');
-        print(
-            'game: ${game.id}: ${game.idClubLeft} vs ${game.idClubRight} [${game.scoreLeft} - ${game.scoreRight}]');
-        Club leftClub = league.clubsLeague.firstWhere(
-          (Club club) => club.id == game.idClubLeft,
-          orElse: () => throw Exception(
-              'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'),
-        );
-        Club rightClub = league.clubsLeague.firstWhere(
-          (Club club) => club.id == game.idClubRight,
-          orElse: () => throw Exception(
-              'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'),
-        );
+  // Future<void> _updateClubStatistics(League league) async {
+  //   /// Clear previous statistics
 
-        leftClub.goalsScored += game.scoreLeft!;
-        rightClub.goalsTaken += game.scoreLeft!;
-        leftClub.goalsTaken += game.scoreRight!;
-        rightClub.goalsScored += game.scoreRight!;
+  //   league.clubsLeague.forEach((club) {
+  //     club.goalsScored = 0;
+  //     club.goalsTaken = 0;
+  //     club.points = 0;
+  //     club.victories = 0;
+  //     club.draws = 0;
+  //     club.defeats = 0;
+  //     club.lisPoints = [0];
+  //   });
 
-        if (game.scoreLeft! > game.scoreRight!) {
-          leftClub.points += 3;
-          leftClub.victories += 1;
-          rightClub.defeats += 1;
-        } else if (game.scoreLeft! < game.scoreRight!) {
-          leftClub.defeats += 1;
-          rightClub.victories += 1;
-          rightClub.points += 3;
-        } else {
-          leftClub.draws += 1;
-          leftClub.points += 1;
-          rightClub.draws += 1;
-          rightClub.points += 1;
-        }
-      }
-    }
+  //   /// Loop through each week of the league
+  //   for (int i = 1; i <= 10; i++) {
+  //     league.clubsLeague.forEach((club) {
+  //       club.lisPoints.add(-1);
+  //     });
 
-    league.clubsLeague.sort((a, b) {
-      int compare = b.points.compareTo(a.points);
-      if (compare != 0) {
-        return compare;
-      } else {
-        return (b.goalsScored - b.goalsTaken)
-            .compareTo(a.goalsScored - a.goalsTaken);
-      }
-    });
-  }
+  //     /// Loop through each game of the week
+  //     for (Game game
+  //         in league.games.where((Game game) => game.weekNumber == i)) {
+  //       if (game.isPlaying == false) {
+  //         print(
+  //             'Club IDs: ${league.clubsLeague.map((club) => club.id).toList()}');
+  //         print(
+  //             'game: ${game.id}: ${game.idClubLeft} vs ${game.idClubRight} [${game.scoreLeft} - ${game.scoreRight}]');
+  //         Club leftClub = league.clubsLeague.firstWhere(
+  //           (Club club) => club.id == game.idClubLeft,
+  //           orElse: () => throw Exception(
+  //               'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'),
+  //         );
+  //         Club rightClub = league.clubsLeague.firstWhere(
+  //           (Club club) => club.id == game.idClubRight,
+  //           orElse: () => throw Exception(
+  //               'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'),
+  //         );
 
-  Future<void> _showSeasonInputDialog() async {
+  //         leftClub.goalsScored += game.scoreLeft!;
+  //         rightClub.goalsTaken += game.scoreLeft!;
+  //         leftClub.goalsTaken += game.scoreRight!;
+  //         rightClub.goalsScored += game.scoreRight!;
+
+  //         if (game.scoreLeft! > game.scoreRight!) {
+  //           leftClub.points += 3;
+  //           leftClub.victories += 1;
+  //           rightClub.defeats += 1;
+  //         } else if (game.scoreLeft! < game.scoreRight!) {
+  //           leftClub.defeats += 1;
+  //           rightClub.victories += 1;
+  //           rightClub.points += 3;
+  //         } else {
+  //           leftClub.draws += 1;
+  //           leftClub.points += 1;
+  //           rightClub.draws += 1;
+  //           rightClub.points += 1;
+  //         }
+  //       }
+  //     }
+  //   }
+  //   league.clubsLeague.sort((a, b) {
+  //     int compare = b.points.compareTo(a.points);
+  //     if (compare != 0) {
+  //       return compare;
+  //     } else {
+  //       return (b.goalsScored - b.goalsTaken)
+  //           .compareTo(a.goalsScored - a.goalsTaken);
+  //     }
+  //   });
+  // }
+
+  Future<void> _showSeasonInputDialog(League league) async {
     final TextEditingController seasonController = TextEditingController();
-    final int? currentSeason = _selectedSeason;
 
     await showDialog(
       context: context,
@@ -256,7 +280,7 @@ class _RankingPageState extends State<LeaguePage> {
             final int? parsedSeason = int.tryParse(seasonController.text);
             final bool isSeasonInputValid = parsedSeason != null &&
                 parsedSeason > 0 &&
-                parsedSeason != currentSeason;
+                parsedSeason != league.selectedSeasonNumber;
 
             return persoAlertDialogWithConstrainedContent(
               title: const Text('Modify Selected Season',
@@ -267,7 +291,7 @@ class _RankingPageState extends State<LeaguePage> {
                       leading: Icon(Icons.info,
                           color: Colors.green, size: iconSizeMedium),
                       title: Text(
-                        currentSeason.toString(),
+                        league.selectedSeasonNumber.toString(),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
@@ -388,23 +412,20 @@ class _RankingPageState extends State<LeaguePage> {
                             size: iconSizeMedium, color: Colors.green),
                         onPressed: () {
                           setState(() {
-                            if (_selectedSeason != null) {
-                              _selectedSeason = (_selectedSeason! - 1)
-                                  .clamp(1, _selectedSeason!);
-                              _fetchLeagueData();
-                            }
+                            _selectedSeason =
+                                (_selectedSeason - 1).clamp(1, _selectedSeason);
+                            _fetchLeagueData();
                           });
                         },
                       ),
                       TextButton(
                         onPressed: () {
-                          _showSeasonInputDialog();
+                          _showSeasonInputDialog(league);
                         },
                         child: Tooltip(
                           message: 'Season Number',
                           waitDuration: Duration(milliseconds: 500),
-                          child: Text(
-                              'S${_selectedSeason ?? league.seasonNumber}',
+                          child: Text('S${league.selectedSeasonNumber}',
                               style: TextStyle(
                                   fontSize: iconSizeSmall,
                                   color: Colors.green,
@@ -418,10 +439,8 @@ class _RankingPageState extends State<LeaguePage> {
                             size: iconSizeMedium, color: Colors.green),
                         onPressed: () {
                           setState(() {
-                            if (_selectedSeason != null) {
-                              _selectedSeason = _selectedSeason! + 1;
-                              _fetchLeagueData();
-                            }
+                            _selectedSeason = _selectedSeason + 1;
+                            _fetchLeagueData();
                           });
                         },
                       ),
@@ -471,8 +490,7 @@ class _RankingPageState extends State<LeaguePage> {
                       ),
                     ],
                   ),
-                  body: _selectedSeason != null &&
-                          _selectedSeason! > league.seasonNumber
+                  body: _selectedSeason > league.seasonNumber
                       ? ErrorWithBackButton(
                           errorMessage:
                               'Selected season ${_selectedSeason} is greater than the current season ${league.seasonNumber}. Please select a valid season.',

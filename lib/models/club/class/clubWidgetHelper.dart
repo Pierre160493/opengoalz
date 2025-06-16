@@ -146,6 +146,97 @@ extension ClubWidgetHelper on Club {
     );
   }
 
+  Widget getClubResultsVDLRow() {
+    int victories = 0;
+    int draws = 0;
+    int losses = 0;
+
+    for (final result in lisLastResults.take(10)) {
+      switch (result) {
+        case 3:
+          victories++;
+          break;
+        case 1:
+          draws++;
+          break;
+        case 0:
+          losses++;
+          break;
+        default:
+          // If an invalid result is found, throw an exception.
+          // Consider if this is the desired behavior or if errors should be logged/ignored.
+          throw Exception(
+              'Invalid result value: $result. Expected 0, 1, or 3.');
+      }
+    }
+
+    const boldTextStyle = TextStyle(fontWeight: FontWeight.bold);
+
+    return Row(
+      children: [
+        Icon(Icons.emoji_events, color: Colors.yellow),
+        formSpacer3, // Assuming formSpacer3 is defined elsewhere
+        Text(
+          victories.toString(),
+          style: boldTextStyle.copyWith(color: Colors.green),
+        ),
+        Text(' / '),
+        Text(
+          draws.toString(),
+          style: boldTextStyle.copyWith(color: Colors.grey),
+        ),
+        Text(' / '),
+        Text(
+          losses.toString(),
+          style: boldTextStyle.copyWith(color: Colors.red),
+        ),
+      ],
+    );
+  }
+
+  Widget getClubGoalsForAndAgainstRow() {
+    final int goalsFor = clubData.leagueGoalsFor;
+    final int goalsAgainst = clubData.leagueGoalsAgainst;
+    final int goalDifference = goalsFor - goalsAgainst;
+
+    return Tooltip(
+      message: 'Goal Difference (Goals For / Against)',
+      child: Row(
+        children: [
+          Text(
+            '${goalDifference > 0 ? '+' : ''}$goalDifference',
+            style: TextStyle(
+              color: goalDifference > 0
+                  ? Colors.green
+                  : goalDifference == 0
+                      ? Colors.blueGrey
+                      : Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(' ('), // Preserving original spacing
+          Text(
+            goalsFor.toString(),
+            style: TextStyle(
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text('/'),
+          Text(
+            goalsAgainst.toString(),
+            style: TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(') '), // Preserving original spacing
+          Icon(Icons.sports_soccer, color: Colors.blueGrey),
+        ],
+      ),
+    );
+  }
+
   Widget getQuickAccessWidget(BuildContext context, Profile user) {
     double containerWidth = 80;
     double containerImgRadius = 24;

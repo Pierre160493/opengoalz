@@ -37,12 +37,6 @@ class Club {
   List<Mail> mails = []; // List of mails for the club
   Multiverse? multiverse; // Multiverse of the club
   League? league; // League of the club
-  int points = 0; // Points of the club
-  int victories = 0; // Victories of the club
-  int draws = 0; // Draws of the club
-  int defeats = 0; // Defeats of the club
-  int goalsScored = 0; // Goals scored of the club
-  int goalsTaken = 0; // Goals taken of the club
 
   bool isBelongingToConnectedUser =
       false; // If the club belongs to the current user
