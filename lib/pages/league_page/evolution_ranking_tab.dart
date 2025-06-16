@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
+import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/widgets/continent_display_widget.dart';
+import 'package:opengoalz/widgets/error_with_back_button.dart';
+import 'package:opengoalz/widgets/graphWidget.dart';
+import 'dart:math';
 
-class EvolutionRankingTab extends StatelessWidget {
+class EvolutionRankingTab extends StatefulWidget {
   final League league;
   final bool isReturningBotClub;
 
@@ -17,184 +21,187 @@ class EvolutionRankingTab extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _EvolutionRankingTabState createState() => _EvolutionRankingTabState();
+}
+
+class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _clubsHistoryData = [];
+  String? _errorMessage;
+  Map<int, Color> _clubColors = {};
+  int _maxWeeks = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClubsHistory();
+  }
+
+  void _loadClubsHistory() {
+    final clubIds = widget.league.clubsLeague.map((club) => club.id).toList();
+
+    if (clubIds.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'No clubs found in this league';
+      });
+      return;
+    }
+
+    // Generate distinct colors for each club
+    _assignClubColors();
+
+    supabase
+        .from('clubs_history_weekly')
+        .select()
+        .eq('season_number', widget.league.selectedSeasonNumber!)
+        .inFilter('id_club', clubIds)
+        .order('week_number', ascending: true)
+        .then((data) {
+      setState(() {
+        print(data);
+        _clubsHistoryData = data;
+        _isLoading = false;
+
+        // Calculate the max week number for x-axis
+        if (data.isNotEmpty) {
+          _maxWeeks =
+              data.map((record) => record['week_number'] as int).reduce(max);
+        }
+      });
+    }).catchError((error) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Error loading ranking data: $error';
+      });
+    });
+  }
+
+  void _assignClubColors() {
+    // Define a list of distinct colors
+    final List<Color> colors = [
+      Colors.yellow,
+      Colors.grey,
+      Colors.brown,
+      Colors.green,
+      Colors.orange,
+      Colors.red
+    ];
+
+    int colorIndex = 0;
+    for (var club in widget.league.clubsLeague) {
+      _clubColors[club.id] = colors[colorIndex % colors.length];
+      colorIndex++;
+    }
+  }
+
+  List<List<num>> _prepareChartData() {
+    Map<int, List<int>> clubPositionsByWeek = {};
+
+    // Initialize data structure for each club
+    for (var club in widget.league.clubsLeague) {
+      clubPositionsByWeek[club.id] = List.filled(_maxWeeks + 1, 0);
+    }
+
+    // Fill in position data
+    for (var record in _clubsHistoryData) {
+      int clubId = record['id_club'];
+      int week = record['week_number'];
+      int position = record['pos_league'];
+
+      if (clubPositionsByWeek.containsKey(clubId) && week <= _maxWeeks) {
+        clubPositionsByWeek[clubId]![week] = position;
+      }
+    }
+
+    // Convert to format needed for chart
+    List<List<num>> chartData = [];
+    for (var club in widget.league.clubsLeague) {
+      List<num> positions = List<num>.from(clubPositionsByWeek[club.id]!);
+
+      // Fill in missing values at the beginning (week 0 positions)
+      if (positions[0] == 0) {
+        positions[0] = club.clubData.posLeague;
+      }
+
+      // Fill in any other zeros with the previous week's position
+      for (int i = 1; i < positions.length; i++) {
+        if (positions[i] == 0) {
+          positions[i] = positions[i - 1];
+        }
+      }
+
+      chartData.add(positions);
+    }
+
+    return chartData;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final int playedGamesCount =
-        league.games.where((Game game) => game.dateEnd != null).length;
-    // Consider making totalGamesInSeason a property of League or a global constant
-    final int totalGamesInSeason = 30;
-    final int percentagePlayed = totalGamesInSeason == 0
-        ? 0
-        : (100 * playedGamesCount / totalGamesInSeason).round();
-    final String percentageText =
-        percentagePlayed >= 100 ? 'Fully played' : '$percentagePlayed % played';
+    if (_isLoading) {
+      return loadingCircularAndText('Loading ranking evolution data...');
+    }
+
+    if (_errorMessage != null) {
+      return ErrorWithBackButton(errorMessage: _errorMessage!);
+    }
+
+    if (_clubsHistoryData.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.warning, size: iconSizeLarge, color: Colors.orange),
+            Text('No ranking history data available for this league'),
+          ],
+        ),
+      );
+    }
+
+    // Prepare data for chart
+    final chartData = ChartData(
+      title: 'League Position Evolution',
+      yValues: _prepareChartData(),
+      typeXAxis: XAxisType.weekHistory,
+      // For positions, lower is better, so we invert min/max
+      minY: 1, // Top position
+      // maxY: widget.league.clubsLeague.length, // Bottom position
+      maxY: 6, // Bottom position
+    );
 
     return Column(
       children: [
-        /// League presentation
-        ListTile(
-          leading: Icon(
-            iconLeague,
-            size: iconSizeMedium,
-            color: Colors.green,
-          ),
-          shape: shapePersoRoundedBorder(Colors.green, 3),
-          title: Text(
-            league.getLeagueDescription(),
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-
-          /// Season number and continent
-          subtitle: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_month,
-                    color: Colors.green,
-                  ),
-                  Text(
-                    'Season ${league.selectedSeasonNumber}: $percentageText',
-                    style: styleItalicBlueGrey,
-                  ),
-                ],
-              ),
-
-              /// Continent
-              ContinentRowWidget(
-                continentName: league.continent,
-                idMultiverse: league.idMultiverse,
-              ),
-            ],
-          ),
-        ),
-
-        /// Separator with league percentage of advancement
-        Container(
-          margin: EdgeInsets.symmetric(vertical: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Divider(
-                  color: Colors.grey,
-                  height: 1,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6),
-                child: Text(
-                  'Rankings',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-              Expanded(
-                child: Divider(
-                  color: Colors.grey,
-                  height: 1,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        /// Rankings
         Expanded(
-          // Removed redundant Container
-          child: ListView.builder(
-            itemCount: league.clubsLeague.length,
-            itemBuilder: (context, index) {
-              Club club = league.clubsLeague[index];
+          child: ChartDialogBox(chartData: chartData),
+        ),
 
-              return ListTile(
-                shape: shapePersoRoundedBorder(),
-                leading: Tooltip(
-                  message: (() {
-                    switch (index) {
-                      case 0:
-                        return league.level == 1
-                            ? 'Plays International League'
-                            : 'Plays First Barrage Games';
-                      case 1:
-                        return league.level == 1
-                            ? 'Plays Second International League'
-                            : 'Plays Second Barrage Game against 3rd of the opposite league';
-                      case 2:
-                        return league.level == 1
-                            ? 'Plays Third International League'
-                            : 'Plays Second Barrage Game against 2nd of the opposite league';
-                      case 3:
-                        return league.idLowerLeague == null
-                            ? 'Plays Friendly Games Against Symetric League'
-                            : 'Plays Against Winner of Second Barrage Games of lower leagues';
-                      case 4:
-                        return league.idLowerLeague == null
-                            ? 'Plays Friendly Games Against Symetric League'
-                            : 'Plays Against Loser of First Barrage Games of lower leagues';
-                      case 5:
-                        return league.idLowerLeague == null
-                            ? 'Plays Friendly Games Against Symetric League'
-                            : 'Plays Against Winner of First Barrage Games of lower leagues';
-                      default:
-                        return 'Rank ${index + 1}'; // Default message for other ranks
-                    }
-                  })(),
-                  child: CircleAvatar(
-                    backgroundColor: index == 0
-                        ? Colors.yellow
-                        : index == 1
-                            ? Colors.grey
-                            : index == 2
-                                ? Colors.amber
-                                : Colors.blue,
-                    child: Text(
-                      '${index + 1}',
-                      style: TextStyle(color: Colors.black),
+        // Legend for clubs
+        Container(
+          height: 60,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: widget.league.clubsLeague.length,
+            itemBuilder: (context, index) {
+              final club = widget.league.clubsLeague[index];
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 16,
+                      height: 16,
+                      color: _clubColors[club.id],
                     ),
-                  ),
-                ),
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                    SizedBox(width: 4),
                     club.getClubNameClickable(context),
-                    club.getLastResultsWidget(context),
                   ],
-                ),
-                subtitle: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    club.getClubResultsVDLRow(),
-                    club.getClubGoalsForAndAgainstRow()
-                  ],
-                ),
-                onTap: () async {
-                  if (isReturningBotClub) {
-                    if (club.userName != null) {
-                      context.showSnackBarError(
-                          'The club already belongs to a user: ${club.userName}');
-                    } else if (await context.showConfirmationDialog(
-                            'Are you sure you want to select ${club.name} ?') ==
-                        true) {
-                      Navigator.pop(context, club);
-                      return;
-                    }
-                  }
-                  // else
-                  //   Navigator.push(
-                  //     context,
-                  //     ClubPage.route(club.id), // Ensure ClubPage.route is accessible
-                  //   );
-                },
-                trailing: CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: Text(
-                    '${club.clubData.leaguePoints.toString()}',
-                    style: TextStyle(color: Colors.black),
-                  ),
                 ),
               );
             },
           ),
-        )
+        ),
       ],
     );
   }
