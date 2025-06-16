@@ -216,7 +216,7 @@ class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
                           return Transform.rotate(
-                            angle: -30 *
+                            angle: -20 *
                                 (math.pi /
                                     180), // Rotate text by -30 degrees for better readability
                             child: Text(
