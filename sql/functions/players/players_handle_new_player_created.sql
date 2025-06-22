@@ -31,49 +31,32 @@ BEGIN
         WHERE username = NEW.username;
     END IF;
 
-    ------ Generate player name
-    WITH country_query AS (
-        SELECT first_name, last_name
-        FROM players_names
-        WHERE id_country = NEW.id_country
-        LIMIT 100
-    ),
-    other_country_query AS (
-        SELECT first_name, last_name
-        FROM players_names 
-        WHERE id_country != NEW.id_country 
-        LIMIT (100 - (SELECT COUNT(*) FROM country_query))
-    ),
-    combined_query AS (
-        SELECT * FROM country_query
-        UNION ALL
-        SELECT * FROM other_country_query
-    )
-    SELECT first_name INTO loc_first_name FROM combined_query ORDER BY RANDOM() LIMIT 1; -- Fetch a random first name  
-        WITH country_query AS (
-        SELECT first_name, last_name
-        FROM players_names 
-        WHERE id_country = NEW.id_country 
-        LIMIT 100
-    ),
-    other_country_query AS (
-        SELECT first_name, last_name
-        FROM players_names 
-        WHERE id_country != NEW.id_country 
-        LIMIT (100 - (SELECT COUNT(*) FROM country_query))
-    ),
-    combined_query AS (
-        SELECT * FROM country_query
-        UNION ALL
-        SELECT * FROM other_country_query
-    )
-    SELECT last_name INTO loc_last_name FROM combined_query ORDER BY RANDOM() LIMIT 1; -- Fetch a random last name
+    ------ Fetch the player name
+    
     -- Store the name in the player row
     IF (NEW.first_name IS NULL OR NEW.first_name = '') THEN
-        NEW.first_name = loc_first_name;
+        NEW.first_name = 
+            COALESCE(
+                -- Attempt 1: Get a random name from country
+                (SELECT name FROM players_generation.first_names
+                WHERE id_country = NEW.id_country
+                ORDER BY RANDOM() LIMIT 1),
+                -- Fallback: If no name found from country, get a random name from anywhere
+                (SELECT name FROM players_generation.first_names
+                ORDER BY RANDOM() LIMIT 1)
+            );
     END IF;
     IF (NEW.last_name IS NULL OR NEW.last_name = '') THEN
-        NEW.last_name = loc_last_name;
+        NEW.last_name =
+            COALESCE(
+                -- Attempt 1: Get a random name from country
+                (SELECT name FROM players_generation.last_names
+                WHERE id_country = NEW.id_country
+                ORDER BY RANDOM() LIMIT 1),
+                -- Fallback: If no name found from country, get a random name from anywhere
+                (SELECT name FROM players_generation.last_names
+                ORDER BY RANDOM() LIMIT 1)
+            );
     END IF;
 
     ------ Store the multiverse speed
