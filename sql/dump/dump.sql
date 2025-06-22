@@ -100,6 +100,15 @@ COMMENT ON EXTENSION pgsodium IS 'Pgsodium is a modern cryptography library for 
 
 
 --
+-- Name: players_generation; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA players_generation;
+
+
+ALTER SCHEMA players_generation OWNER TO postgres;
+
+--
 -- Name: realtime; Type: SCHEMA; Schema: -; Owner: supabase_admin
 --
 
@@ -786,23 +795,29 @@ COMMENT ON FUNCTION extensions.set_graphql_placeholder() IS 'Reintroduces placeh
 
 
 --
--- Name: get_auth(text); Type: FUNCTION; Schema: pgbouncer; Owner: postgres
+-- Name: get_auth(text); Type: FUNCTION; Schema: pgbouncer; Owner: supabase_admin
 --
 
 CREATE FUNCTION pgbouncer.get_auth(p_usename text) RETURNS TABLE(username text, password text)
     LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-    RAISE WARNING 'PgBouncer auth request: %', p_usename;
+    AS $_$
+  BEGIN
+      RAISE DEBUG 'PgBouncer auth request: %', p_usename;
 
-    RETURN QUERY
-    SELECT usename::TEXT, passwd::TEXT FROM pg_catalog.pg_shadow
-    WHERE usename = p_usename;
-END;
-$$;
+      RETURN QUERY
+      SELECT
+          rolname::text,
+          CASE WHEN rolvaliduntil < now()
+              THEN null
+              ELSE rolpassword::text
+          END
+      FROM pg_authid
+      WHERE rolname=$1 and rolcanlogin;
+  END;
+  $_$;
 
 
-ALTER FUNCTION pgbouncer.get_auth(p_usename text) OWNER TO postgres;
+ALTER FUNCTION pgbouncer.get_auth(p_usename text) OWNER TO supabase_admin;
 
 --
 -- Name: calculate_age(bigint, timestamp with time zone, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: postgres
@@ -812,12 +827,29 @@ CREATE FUNCTION public.calculate_age(inp_multiverse_speed bigint, inp_date_birth
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  RETURN EXTRACT(EPOCH FROM (inp_date_now - inp_date_birth)) / (14 * 7 * 24 * 60 * 60 / inp_multiverse_speed::double precision);
+  -- 60 seconds/minute * 60 minutes/hour * 24 hours/day * 7 days/week * 14 weeks/season = 8 467 200 seconds/season
+  -- RETURN EXTRACT(EPOCH FROM (inp_date_now - inp_date_birth)) / (8467200 / inp_multiverse_speed::double precision);
+  RETURN EXTRACT(EPOCH FROM (inp_date_now - inp_date_birth)) * inp_multiverse_speed / 8467200;
 END;
 $$;
 
 
 ALTER FUNCTION public.calculate_age(inp_multiverse_speed bigint, inp_date_birth timestamp with time zone, inp_date_now timestamp with time zone) OWNER TO postgres;
+
+--
+-- Name: clamp(double precision, double precision, double precision); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.clamp(value double precision, min_value double precision, max_value double precision) RETURNS double precision
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN LEAST(max_value, GREATEST(min_value, value));
+END;
+$$;
+
+
+ALTER FUNCTION public.clamp(value double precision, min_value double precision, max_value double precision) OWNER TO postgres;
 
 --
 -- Name: clean_data(); Type: PROCEDURE; Schema: public; Owner: postgres
@@ -873,10 +905,18 @@ BEGIN
         WHERE rn > 900
     );    
 
-    -- Delete the players poaching
+    ------ Delete the players poaching
     DELETE FROM players_poaching
     WHERE to_delete = TRUE
     AND affinity < 0;
+
+    ------ Delete users scheduled for deletion
+    DELETE FROM auth.users
+    WHERE id IN (
+        SELECT uuid_user
+        FROM public.profiles
+        WHERE NOW() >= date_delete
+    );
 
 END;
 $$;
@@ -1242,110 +1282,158 @@ CREATE FUNCTION public.club_handle_new_user_asignement() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     AS $$
 DECLARE
-  teamcomp RECORD;
-  league RECORD;
+    rec_profile RECORD;
+    teamcomp RECORD;
+    league RECORD;
+    credits_for_club INTEGER := 500; -- Credits required to manage a club
 BEGIN
 
-    ------ Check that the club is available
-    IF (OLD.username IS NOT NULL) THEN
-        RAISE EXCEPTION 'This club already belongs to: %', OLD.username;
-    END IF;
+    ------ If the user leaves the club
+    IF NEW.username IS NULL THEN
 
-    ------ Check that the user can have an additional club
-    IF ((SELECT COUNT(*) FROM clubs WHERE username = NEW.username) >
-        (SELECT number_clubs_available FROM profiles WHERE username = NEW.username))
-    THEN
-        RAISE EXCEPTION 'You can not have an additional club assigned to you';
-    END IF;
+        ---- Log Club history
+        INSERT INTO clubs_history (id_club, description)
+        VALUES (NEW.id, 'User ' || string_parser(inp_entity_type := 'uuidUser', inp_uuid_user := (SELECT uuid_user FROM profiles WHERE username = OLD.username)) || ' has left the club');
+    
+        ---- Log user history
+        INSERT INTO profile_events (uuid_user, description)
+        VALUES ((SELECT uuid_user FROM profiles WHERE username = OLD.username), 'Stopped managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
 
-    ------ Set default club if it's the only club
-    IF (SELECT COUNT(*) FROM clubs WHERE username = NEW.username) = 0 THEN
-        UPDATE profiles SET id_default_club = NEW.id WHERE username = NEW.username;
-    END IF;
+    ------ If the user is assigned to the club
+    ELSE
+    
+        ------ Select the user record
+        SELECT
+            profiles.*,
+            string_parser(inp_entity_type := 'uuidUser', inp_uuid_user := profiles.uuid_user) AS uuid_user_special_string,
+            COUNT(clubs.id) AS number_of_clubs
+        INTO rec_profile
+        FROM profiles
+        LEFT JOIN clubs ON clubs.username = profiles.username
+        WHERE profiles.username = NEW.username
+        GROUP BY profiles.username, profiles.uuid_user, profiles.id_default_club, profiles.credits_available, profiles.credits_used;
 
-    ------ Check that it's the last level league of the continent
---    IF (
---        SELECT level FROM leagues WHERE id = NEW.id_league) <>
---        (SELECT max(LEVEL) FROM leagues WHERE continent = NEW.continent AND id_multiverse = NEW.id_multiverse)
---    THEN
---        RAISE EXCEPTION 'You can not assign a user to a league that is not of the last level';
---    END IF;
+        ------ Ensure rec_profile is assigned
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'No profile found for username: %', NEW.username;
+        END IF;
 
-    -- Delete the old mails
-    DELETE FROM mails WHERE id_club_to = NEW.id;
+        ------ Check that the club is available
+        IF (OLD.username IS NOT NULL) THEN
+            RAISE EXCEPTION 'This club already belongs to: %', OLD.username;
+        END IF;
+    
+        ------ Check that the user can have an additional club
+        IF (rec_profile.number_of_clubs > 1 AND
+            rec_profile.credits_available < credits_for_club)
+        THEN
+            RAISE EXCEPTION 'You need % credits to manage an additional club', credits_for_club;
+        END IF;
+    
+        -- Update the user profile
+        UPDATE profiles SET
+            id_default_club = COALESCE(id_default_club, NEW.id),
+            credits_available = credits_available - CASE 
+                WHEN rec_profile.number_of_clubs = 0 THEN 0
+                ELSE credits_for_club
+            END,
+            credits_used = credits_used + CASE 
+                WHEN rec_profile.number_of_clubs = 0 THEN 0 
+                ELSE credits_for_club
+            END
+        WHERE username = NEW.username;
+    
+        ---- Log user history
+        INSERT INTO profile_events (uuid_user, description)
+        VALUES (rec_profile.uuid_user, 'Started managing ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id));
 
-    -- Log history
-    INSERT INTO clubs_history (id_club, description)
-    VALUES (NEW.id, 'User {' || NEW.username || '} has been assigned to the club');
-
-    -- Update the club row
-    UPDATE clubs SET can_update_name = TRUE, user_since = Now() WHERE id = NEW.id;
-
-    ------ The players of the old club become free players
-    -- Log the history of the players
-    INSERT INTO players_history (id_player, id_club, description)
-        SELECT id, id_club, 'Left ' || string_parser(id_club, 'idClub') || ' because a new owner took control'
-        FROM players WHERE id_club = NEW.id;
-  
-    -- Release the players
-    UPDATE players SET
-        id_club = NULL,
-        date_arrival = NOW(),
-        shirt_number = NULL,
-        expenses_missed = 0,
-        motivation = 60 + random() * 30,
-        transfer_price = 100,
-        date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse))
-        WHERE id_club = NEW.id;
-
-    -- Reset the default teamcomps of the club to NULL everywhere
-    FOR teamcomp IN
-        SELECT * FROM games_teamcomp WHERE id_club = NEW.id AND season_number = 0
-    LOOP
-        PERFORM teamcomp_copy_previous(inp_id_teamcomp := teamcomp.id, INP_SEASON_NUMBER := - 999);
-    END LOOP;
-
-    -- Generate the new team of the club
-    PERFORM club_create_players(inp_id_club := NEW.id);
-
-    -- If its the only club of the user set default club
-    IF (SELECT id_default_club FROM profiles WHERE username = NEW.username) IS NULL THEN
-        UPDATE profiles SET id_default_club = NEW.id WHERE username = NEW.username;
-    END IF;
-
-    -- If the league has no more free clubs, generate new lower leagues
-    IF ((SELECT count(*)
-        FROM clubs
-        JOIN leagues ON clubs.id_league = leagues.id
-        WHERE clubs.id_multiverse = 1
-        AND leagues.continent = NEW.continent
-        AND leagues.level = (
-            SELECT MAX(level)
-            FROM leagues
-            WHERE leagues.id_multiverse = NEW.id_multiverse
-            )
-        AND clubs.username IS NULL) = 0)
-    THEN
--- Generate new lower leagues from the current lowest level leagues
-        FOR league IN (
-            SELECT * FROM leagues WHERE
-                id_multiverse = NEW.id_multiverse AND
-                level > 0 AND
-                id NOT IN (SELECT id_upper_league FROM leagues WHERE id_multiverse = NEW.id_multiverse
-                    AND id_upper_league IS NOT NULL))
+        ---- Log Club history
+        INSERT INTO clubs_history (id_club, description)
+        VALUES (NEW.id, 'User ' || rec_profile.uuid_user_special_string || ' started managing the club');
+    
+        -- Log the history of the players
+        INSERT INTO players_history (id_player, id_club, description)
+            SELECT id, id_club, 'Left ' || string_parser(inp_entity_type := 'idClub', inp_id := id_club) || ' because a new owner took control'
+            FROM players WHERE id_club = NEW.id;
+    
+        -- Release the players
+        UPDATE players SET
+            id_club = NULL,
+            date_arrival = NOW(),
+            shirt_number = NULL,
+            expenses_missed = 0,
+            motivation = 60 + random() * 30,
+            transfer_price = 100,
+            date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse))
+            WHERE id_club = NEW.id;
+    
+        -- Reset the default teamcomps of the club to NULL everywhere
+        FOR teamcomp IN
+            SELECT * FROM games_teamcomp WHERE id_club = NEW.id AND season_number = 0
         LOOP
-            PERFORM leagues_create_lower_leagues(
-                inp_id_upper_league := league.id, inp_max_level := league.level + 1);
+            PERFORM teamcomp_copy_previous(inp_id_teamcomp := teamcomp.id, INP_SEASON_NUMBER := - 999);
         END LOOP;
+    
+        -- Generate the new team of the club
+        PERFORM club_create_players(inp_id_club := NEW.id);
+    
+        -- If the league has no more free clubs, generate new lower leagues
+        IF ((SELECT count(*)
+            FROM clubs
+            JOIN leagues ON clubs.id_league = leagues.id
+            WHERE clubs.id_multiverse = 1
+            AND leagues.continent = NEW.continent
+            AND leagues.level = (
+                SELECT MAX(level)
+                FROM leagues
+                WHERE leagues.id_multiverse = NEW.id_multiverse
+                )
+            AND clubs.username IS NULL) = 0)
+        THEN
+    -- Generate new lower leagues from the current lowest level leagues
+            FOR league IN (
+                SELECT * FROM leagues WHERE
+                    id_multiverse = NEW.id_multiverse AND
+                    level > 0 AND
+                    id NOT IN (SELECT id_upper_league FROM leagues WHERE id_multiverse = NEW.id_multiverse
+                        AND id_upper_league IS NOT NULL))
+            LOOP
+                PERFORM leagues_create_lower_leagues(
+                    inp_id_upper_league := league.id, inp_max_level := league.level + 1);
+            END LOOP;
+    
+            -- Reset the week number of the multiverse to simulate the games
+            UPDATE multiverses SET week_number = 1 WHERE id = NEW.id_multiverse;
+    
+            -- Handle the season by simulating the games
+            PERFORM handle_season_main();
+        END IF;
 
-        -- Reset the week number of the multiverse to simulate the games
-        UPDATE multiverses SET week_number = 1 WHERE id = NEW.id_multiverse;
+        ------ Update the clubs table
+        UPDATE clubs SET
+            number_fans = DEFAULT,
+            can_update_name = TRUE,
+            user_since = now(),
+            cash = DEFAULT,
+            expenses_transfers_done = 0,
+            expenses_transfers_expected = 0,
+            revenues_transfers_done = 0,
+            revenues_transfers_expected = 0
+        WHERE id = NEW.id;
 
-        -- Handle the season by simulating the games
-        PERFORM handle_season_main();
+        ------ Clean the mails of the club
+        DELETE FROM mails WHERE id_club_to = NEW.id;
+
+        -- Send an email
+        INSERT INTO mails (id_club_to, created_at, sender_role, is_club_info, title, message)
+        VALUES
+            (NEW.id, now(), 'Secretary', TRUE,
+            'Welcome to ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id),
+            'Hi ' || rec_profile.uuid_user_special_string || ', I''m the club''s secretary on behalf of all the staff I would like to welcome you as the new owner of ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id) || '. I hope you will enjoy your time here and that you will be able to lead the club to success !');
+
     END IF;
 
-    -- Return the new record to proceed with the update
+    ------ Return the new record to proceed with the update
     RETURN NEW;
 END;
 $$;
@@ -1379,7 +1467,7 @@ BEGIN
         RETURNING id INTO loc_id_club; -- Get the newly created id for the club
 
     ------ Generate name of the club
-    UPDATE clubs SET name = 'Bot ' || loc_id_club WHERE clubs.id = loc_id_club;
+    UPDATE clubs SET name = 'Club ' || loc_id_club WHERE clubs.id = loc_id_club;
 
     ------ INSERT Init finance for this new club
     INSERT INTO finances (id_club, amount, description) VALUES (loc_id_club, 250000, 'Club Initialisation');
@@ -1415,12 +1503,38 @@ CREATE FUNCTION public.handle_new_user() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     AS $$
 DECLARE
-begin
-    insert into public.profiles(uuid_user, username, email)
-    values(new.id, new.raw_user_meta_data->>'username', new.email);
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        -- Handle user creation
+        INSERT INTO public.profiles(uuid_user, username, email)
+        VALUES (NEW.id, NEW.raw_user_meta_data->>'username', NEW.email);
 
-    return new;
-end;
+        ---- Log user history
+        INSERT INTO public.profile_events (uuid_user, description)
+        VALUES (NEW.id, 'User created with username: ' || NEW.raw_user_meta_data->>'username');
+
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+
+        ---- Remove the user from the clubs and players table
+        -- UPDATE public.clubs
+        -- SET username = NULL
+        -- WHERE username = SELECT username FROM public.profiles WHERE uuid_user = OLD.id;
+
+        -- UPDATE public.players
+        -- SET username = NULL
+        -- WHERE username = SELECT username FROM public.profiles WHERE uuid_user = OLD.id;
+
+        ---- Handle user deletion
+        DELETE FROM public.profiles WHERE uuid_user = OLD.id;
+
+        ---- Log user history
+        INSERT INTO public.profile_events (uuid_user, description)
+        VALUES (OLD.id, 'User deleted with username: ' || (SELECT username FROM public.profiles WHERE uuid_user = OLD.id));
+
+        RETURN OLD;
+    END IF;
+END;
 $$;
 
 
@@ -2080,7 +2194,6 @@ BEGIN
         INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
     SELECT 
         id_club AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_club_info,
-        --inp_multiverse.date_handling + INTERVAL '1 second' * EXTRACT(SECOND FROM CURRENT_TIMESTAMP) + INTERVAL '1 millisecond' * EXTRACT(MILLISECOND FROM CURRENT_TIMESTAMP),
         clubs_finances.total_expenses_missed_to_pay || 'Missed Expenses Paid' AS title,
         'The previous missed expenses (' || clubs_finances.total_expenses_missed_to_pay || ') have been paid for week ' || inp_multiverse.week_number || '. The club now has available cash: ' || cash || '.' AS message
     FROM clubs_finances
@@ -2177,62 +2290,82 @@ DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
 BEGIN
 
-    -- Acquire a SHARE lock on the multiverses table to allow reads but prevent writes
-    -- LOCK TABLE multiverses IN SHARE MODE;
-
     RAISE NOTICE '****** START: main_handle_multiverse !';
-    ------------------------------------------------------------------------------------------------------------------------------------------------
-    ------------------------------------------------------------------------------------------------------------------------------------------------
-    ------ Loop through all multiverses
+
+    -- Loop through all multiverses that need handling
     FOR rec_multiverse IN (
-        SELECT * FROM multiverses
+        SELECT *
+        FROM multiverses
         WHERE id = ANY(id_multiverses)
-        AND is_active = TRUE -- Only run active multiverses
+        AND is_active = TRUE
     )
     LOOP
-        ------ Loop while the current date is before the next handling date
-        LOOP
-            ------ Refresh the multiverse record to get the updated week_number and date_handling
-            SELECT *,
-                date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number) / speed)
-                    AS date_handling
-            INTO rec_multiverse
-            FROM multiverses
-            WHERE id = rec_multiverse.id;
+        RAISE NOTICE '*** Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
 
-            ------ Calculate the time of the next handling of the multiverse
-            -- loc_time_of_next_handling := rec_multiverse.date_handling - now();
+        -- Handle the transfers
+        PERFORM transfers_handle_transfers(
+            inp_multiverse := rec_multiverse
+        );
 
-            ------ If it's in the future, exit the loop and wait for the next handling
-            IF (rec_multiverse.date_handling - now()) > INTERVAL '0 seconds' THEN
-                RAISE NOTICE '*** %: Multiverse [%]: S%W%D%: date_handling= % (NOW()=%) ==> NOT YET', clock_timestamp() - statement_timestamp(), rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
-                EXIT;
-            ELSE
-                RAISE NOTICE '*** %: Multiverse [%]: S%W%D%: date_handling= % (NOW()=%) ==> YES SIMULATE', clock_timestamp() - statement_timestamp(), rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
-            END IF;
+                -- Simulate the week games
+                PERFORM main_simulate_week_games(rec_multiverse);
 
-            ------ Handle the transfers
-            PERFORM transfers_handle_transfers(
-                inp_multiverse := rec_multiverse
-            );
+RAISE NOTICE 'PG1 *** Multiverse [%]: Handling date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.date_handling, now();
+        IF now() >= rec_multiverse.date_handling THEN
+RAISE NOTICE 'PG2 *** Multiverse [%]: Handling date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.date_handling, now();
 
-            ------ Check if we can pass to the next day
-            IF main_simulate_day(inp_multiverse := rec_multiverse) = FALSE THEN
-                EXIT;
-            END IF;
-
+            -- Handle weekly and seasonal updates if it's the end of the week (match day)
             IF rec_multiverse.day_number = 7 THEN
 
-                ------ Handle the clubs (weekly finances etc...)
-                PERFORM main_handle_clubs(rec_multiverse);
-                ------ Handle the players (stats increase etc...)
-                PERFORM main_handle_players(rec_multiverse);
-                ------ Handle season (promotions, relegations etc...)
-                PERFORM main_handle_season(rec_multiverse);
+                -- Exit the loop if there are games from the current week that are not finished
+                IF (
+                    SELECT COUNT(id)
+                    FROM games
+                    WHERE id_multiverse = rec_multiverse.id
+                    AND is_playing <> FALSE
+                    AND season_number = rec_multiverse.season_number
+                    AND week_number = rec_multiverse.week_number
+                ) > 0
+                THEN
+                    EXIT; -- Exit the loop
+                END IF;
 
+                -- Handle clubs, players, and season updates
+                PERFORM main_handle_clubs(rec_multiverse);
+                PERFORM main_handle_players(rec_multiverse);
+                PERFORM main_handle_season(rec_multiverse);
             END IF;
 
-            ------ Update the week number of the multiverse
+            ---- Increase players energy
+            UPDATE players
+                SET energy = LEAST(100,
+                    energy + (100 - energy) / 5.0)
+            WHERE id_multiverse = rec_multiverse.id
+            AND date_death IS NULL;
+
+            WITH players1 AS (
+                SELECT 
+                    players.id,
+                    player_get_full_name(players.id) AS full_name,
+                    calculate_age(multiverses.speed, players.date_birth) AS age,
+                    players.id_club
+                FROM players
+                JOIN multiverses ON multiverses.id = players.id_multiverse
+                LEFT JOIN clubs ON clubs.id = players.id_club 
+                WHERE players.id_multiverse = rec_multiverse.id
+                AND players.date_death IS NULL
+                GROUP BY players.id, multiverses.speed, players.id_club, clubs.username
+            )
+            UPDATE players SET
+                -- Randomly kill old players
+                date_death = CASE
+                    WHEN random() < ((age - 70) / 100.0) THEN rec_multiverse.date_handling
+                    ELSE NULL END
+            FROM players1
+            WHERE players.id = players1.id
+            AND players.id NOT IN (SELECT id_player FROM transfers_bids); -- Don't kill players that have bids on them (TO OPTIMIZE)
+
+            -- Update the multiverse's day and week
             UPDATE multiverses SET
                 day_number = CASE
                     WHEN day_number = 7 THEN 1
@@ -2244,27 +2377,21 @@ BEGIN
                     END
             WHERE id = rec_multiverse.id;
 
-            ------ Avoid handling more than a full week in one run
-            IF rec_multiverse.day_number = 1 THEN
-                EXIT;
-            END IF;
-        END LOOP; -- End of the LOOP
+        END IF; -- End of the weekly and seasonal updates
 
-        ------ Handle the transfers
-        PERFORM transfers_handle_transfers(
-            inp_multiverse := rec_multiverse
-        );
-
-        ------ Store the last run date of the multiverse
+        -- Update the multiverse's day and week
         UPDATE multiverses SET
+            date_handling = date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number + 1) / speed),
+            -- date_handling =
+            --     GREATEST(
+            --         date_season_start + (INTERVAL '24 hours' * (7 * (week_number - 1) + day_number + 1) / speed),
+            --         date_trunc('minute', now()) + INTERVAL '1 minute'),
             last_run = now(),
-            date_next_handling = GREATEST(
-                rec_multiverse.date_handling,
-                date_trunc('minute', now()) + INTERVAL '1 minute'), -- Remove all the functions in queues from cron
             error = NULL
         WHERE id = rec_multiverse.id;
-        
-    END LOOP; -- End of the loop through the multiverses
+
+        RAISE NOTICE '*** Multiverse [%]: Successfully processed.', rec_multiverse.name;
+    END LOOP;
 
     RAISE NOTICE '****** END: main_handle_multiverse !';
 END;
@@ -2287,19 +2414,21 @@ BEGIN
 
     ------ Store player's stats in the history
     INSERT INTO players_history_stats
-        (created_at, id_player, performance_score,
-        expenses_payed, expenses_expected, expenses_missed, expenses_target,
+        (created_at, id_player, performance_score_real, performance_score_theoretical, 
+        expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience,
         loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
-        training_points_used)
+        coef_coach, coef_scout,
+        training_points_used, user_points_available, user_points_used)
     SELECT
-        inp_multiverse.date_handling, id, performance_score,
-        expenses_payed, expenses_expected, expenses_missed, expenses_target,
+        inp_multiverse.date_handling, id, performance_score_real, performance_score_theoretical,
+        expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience,
         loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
-        training_points_used
+        coef_coach, coef_scout,
+        training_points_used, user_points_available, user_points_used
     FROM players
     WHERE id_multiverse = inp_multiverse.id
     AND date_death IS NULL;
@@ -2311,7 +2440,10 @@ BEGIN
             ELSE GREATEST(
                 0,
                 expenses_missed - expenses_payed + expenses_expected)
-        END
+        END,
+        expenses_won_total = expenses_won_total + expenses_payed,
+        expenses_won_available = expenses_won_available + expenses_payed,
+        user_points_available = user_points_available + 2.0 + expenses_payed::NUMERIC / expenses_target
     WHERE id_multiverse = inp_multiverse.id
     AND date_death IS NULL;
 
@@ -2347,6 +2479,7 @@ BEGIN
             players.id,
             player_get_full_name(players.id) AS full_name,
             calculate_age(multiverses.speed, players.date_birth) AS age,
+            players.username,
             players.id_club,
             players.date_retire,
             COUNT(players_poaching.id_player) AS poaching_count,
@@ -2368,8 +2501,11 @@ BEGIN
             - players1.affinity_max * (0.1 + RANDOM()) -- Reduce motivation based on the max affinity
             - (players1.poaching_count ^ 0.5) -- Reduce motivation for each poaching attempt
             ------ Lower motivation based on age for bot clubs from 30 years old
-            - CASE WHEN players1.date_retire IS NOT NULL THEN 0 -- If player is retired => 0
-                ELSE GREATEST(0, players1.age - 30) * RANDOM() END
+            - CASE
+            ---- Not for retired players nor embodied players
+                WHEN players1.date_retire IS NOT NULL OR players1.username IS NOT NULL THEN 0
+                ELSE GREATEST(0, players1.age - 30) * RANDOM()
+            END
             )
         ),
         form = LEAST(100, GREATEST(0,
@@ -2378,109 +2514,17 @@ BEGIN
         stamina = LEAST(100, GREATEST(0,
             stamina + (random() * 20 - 10) + ((70 - stamina) / 10)
             )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
-        experience = experience + 0.05
+        experience = experience + 0.05,
+        loyalty = clamp(loyalty + random() - 0.5, 0, 100),
+        leadership = clamp(leadership + random() - 0.5, 0, 100),
+        discipline = clamp(discipline + random() - 0.5, 0, 100),
+        communication = clamp(communication + random() - 0.5, 0, 100),
+        aggressivity = clamp(aggressivity + random() - 0.5, 0, 100),
+        composure = clamp(composure + random() - 0.5, 0, 100),
+        teamwork = clamp(teamwork + random() - 0.5, 0, 100)
     FROM players1
     WHERE players.id_multiverse = inp_multiverse.id
     AND players.id = players1.id;
-
-    ------ If player's motivation is too low, risk of leaving club
-    FOR rec_player IN (
-        SELECT *, player_get_full_name(id) AS full_name
-        FROM players
-        WHERE id_multiverse = inp_multiverse.id
-        AND id_club IS NOT NULL
-        AND date_bid_end IS NULL
-        AND motivation < 20
-        AND date_death IS NULL
-    ) LOOP
-    
-        -- If motivation = 0 ==> 100% chance of leaving, if motivation = 20 ==> 0% chance of leaving
-        IF random() < (20 - rec_player.motivation) / 20 THEN
-        
-            -- Set date_bid_end for the demotivated players
-            UPDATE players SET
-                date_bid_end = inp_multiverse.date_handling + (INTERVAL '30 days' / inp_multiverse.speed),
-                transfer_price = - 100
-            WHERE id = rec_player.id;
-
-            -- Create a new mail warning saying that the player is leaving club
-            INSERT INTO mails (
-                id_club_to, sender_role, is_transfer_info, title, message)
-            VALUES
-                (rec_player.id_club, 'Treasurer', TRUE,
-                string_parser(rec_player.id, 'idPlayer') || ' asked to leave the club !',
-                string_parser(rec_player.id, 'idPlayer') || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
-
-            -- Loop through the list of clubs poaching this player
-            FOR rec_poaching IN (
-                SELECT *, ROW_NUMBER() OVER (ORDER BY max_price DESC, created_at ASC) AS row_num
-                FROM players_poaching 
-                WHERE id_player = rec_player.id
-                ORDER BY max_price DESC, created_at ASC
-            ) LOOP
-
-                -- Handle the first row
-                IF rec_poaching.row_num = 1 AND rec_poaching.max_price >= 100 THEN
-
-                    -- Return the cash to the bidding club
-                    UPDATE clubs SET
-                        cash = cash + rec_poaching.max_price,
-                        expenses_transfers_expected = expenses_transfers_expected - 100
-                    WHERE id = rec_poaching.id_club;
-
-                    -- Call the transfers_handle_new_bid function to insert the first bid
-                    PERFORM transfers_handle_new_bid(
-                        rec_player.id,
-                        rec_poaching.id_club,
-                        100,
-                        rec_poaching.max_price,
-                        TRUE);
-
-                    -- Send message to the club
-                    INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
-                    VALUES (
-                        rec_poaching.id_club, 'Scouts', TRUE,
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
-                         string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club (' || string_parser(rec_player.id_club, 'idClub') || ') and we made a bid to get him, his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || ' and the max price is ' || ROUND(rec_poaching.max_price::numeric, 1) || '.');
-
-                ELSE
-
-                    -- Send message to interested clubs
-                    INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
-                    VALUES (
-                        rec_poaching.id_club, 'Scouts', TRUE,
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave his club',
-                        string_parser(rec_player.id, 'idPlayer') || ' (poached) asked to leave ' || string_parser(rec_player.id_club, 'idClub') || ', it''s time to make a move, knowing that his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || '.');
-
-                END IF;
-
-            END LOOP;
-
-            -- Send mails to clubs following the player
-            INSERT INTO mails (
-                id_club_to, sender_role, is_transfer_info, title, message
-            )
-            SELECT 
-                id_club, 'Scouts', TRUE,
-                string_parser(rec_player.id, 'idPlayer') || ' (favorite) asked to leave his club',
-                string_parser(rec_player.id, 'idPlayer') || ' who is one of your favorite player has asked to leave ' || string_parser(rec_player.id_club, 'idClub') ||'. He will be leaving before next week because of low motivation: ' || rec_player.motivation || '. It''s time to make a move !'
-            FROM players_favorite
-            WHERE id_player = rec_player.id;
-
---RAISE NOTICE '==> RageQuit => % (%) has asked to leave club [%]', rec_player.full_name, rec_player.id, rec_player.id_club;
-
-        ELSE
-
-            -- Create a new mail warning saying that the player is at risk leaving club
-            INSERT INTO mails (
-                id_club_to, sender_role, is_transfer_info, title, message)
-            VALUES
-                (rec_player.id_club, 'Coach', TRUE,
-                string_parser(rec_player.id, 'idPlayer') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
-                string_parser(rec_player.id, 'idPlayer') || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club');
-
-        END IF;
-    END LOOP;
 
     ------ Update players stats based on training points
     WITH player_data AS (
@@ -2565,25 +2609,106 @@ BEGIN
     FROM final_data
     WHERE players.id = final_data.id;
 
-    ------ Calculate player performance score
-    UPDATE players SET
-        performance_score = players_calculate_player_best_weight(
-            ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
-            motivation, form, experience, energy, stamina]
-        ),
-        expenses_target = FLOOR((50 +
-            1 * calculate_age(inp_multiverse.speed, date_birth, inp_multiverse.date_handling) +
-            GREATEST(keeper, defense, playmaking, passes, winger, scoring, freekick) / 2 +
-            (keeper + defense + passes + playmaking + winger + scoring + freekick) / 4
-            + (coef_coach + coef_scout) / 2
+    ------ If player's motivation is too low, risk of leaving club
+    FOR rec_player IN (
+        SELECT *,
+            player_get_full_name(id) AS full_name
+        FROM players
+        WHERE id_multiverse = inp_multiverse.id
+        AND id_club IS NOT NULL -- Not for players without club
+        AND date_bid_end IS NULL -- Not for players already on the market
+        AND motivation < 20 -- Motivation < 20
+        AND date_death IS NULL -- Not for dead players
+        AND username IS NULL -- Not for embodied players
+    ) LOOP
+    
+        -- If motivation = 0 ==> 100% chance of leaving, if motivation = 20 ==> 0% chance of leaving
+        IF random() < (20 - rec_player.motivation) / 20 THEN
+        
+            -- Set date_bid_end for the demotivated players
+            UPDATE players SET
+                date_bid_end = inp_multiverse.date_handling + (INTERVAL '30 days' / inp_multiverse.speed),
+                transfer_price = - 100
+            WHERE id = rec_player.id;
+
+            -- Create a new mail warning saying that the player is leaving club
+            INSERT INTO mails (
+                id_club_to, sender_role, is_transfer_info, title, message)
+            VALUES
+                (rec_player.id_club, 'Treasurer', TRUE,
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' asked to leave the club !',
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' will be leaving the club before next week because of low motivation: ' || rec_player.motivation || '.');
+
+            -- Loop through the list of clubs poaching this player
+            FOR rec_poaching IN (
+                SELECT *, ROW_NUMBER() OVER (ORDER BY max_price DESC, created_at ASC) AS row_num
+                FROM players_poaching 
+                WHERE id_player = rec_player.id
+                ORDER BY max_price DESC, created_at ASC
+            ) LOOP
+
+                -- Handle the first row
+                IF rec_poaching.row_num = 1 AND rec_poaching.max_price >= 100 THEN
+
+                    -- Return the cash to the bidding club
+                    UPDATE clubs SET
+                        cash = cash + rec_poaching.max_price,
+                        expenses_transfers_expected = expenses_transfers_expected - 100
+                    WHERE id = rec_poaching.id_club;
+
+                    -- Call the transfers_handle_new_bid function to insert the first bid
+                    PERFORM transfers_handle_new_bid(
+                        rec_player.id,
+                        rec_poaching.id_club,
+                        100,
+                        rec_poaching.max_price,
+                        TRUE);
+
+                    -- Send message to the club
+                    INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
+                    VALUES (
+                        rec_poaching.id_club, 'Scouts', TRUE,
+                        string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (poached) asked to leave ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club),
+                        string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (poached) asked to leave his club (' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club) || ') and we made a bid to get him, his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || ' and the max price is ' || ROUND(rec_poaching.max_price::numeric, 1) || '.');
+
+                ELSE
+
+                    -- Send message to interested clubs
+                    INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
+                    VALUES (
+                        rec_poaching.id_club, 'Scouts', TRUE,
+                        string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (poached) asked to leave ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club),
+                        string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (poached) asked to leave ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club) || ', it''s time to make a move, knowing that his affinity towards our club is ' || ROUND(rec_poaching.affinity::numeric, 1) || '.');
+
+                END IF;
+
+            END LOOP;
+
+            -- Send mails to clubs following the player
+            INSERT INTO mails (
+                id_club_to, sender_role, is_transfer_info, title, message
             )
-        ),
-        coef_coach = FLOOR((
-            loyalty + 2 * leadership + 2 * discipline + 2 * communication + 2 * composure + teamwork) / 10),
-        coef_scout = FLOOR((
-            2 * loyalty + leadership + discipline + 3 * communication + 2 * composure + teamwork) / 10)
-    WHERE id_multiverse = inp_multiverse.id
-    AND date_death IS NULL;
+            SELECT 
+                id_club, 'Scouts', TRUE,
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' (favorite) asked to leave his club',
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' who is one of your favorite player has asked to leave ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club) ||'. He will be leaving before next week because of low motivation: ' || rec_player.motivation || '. It''s time to make a move !'
+            FROM players_favorite
+            WHERE id_player = rec_player.id;
+
+--RAISE NOTICE '==> RageQuit => % (%) has asked to leave club [%]', rec_player.full_name, rec_player.id, rec_player.id_club;
+
+        ELSE
+
+            -- Create a new mail warning saying that the player is at risk leaving club
+            INSERT INTO mails (
+                id_club_to, sender_role, is_transfer_info, title, message)
+            VALUES
+                (rec_player.id_club, 'Coach', TRUE,
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1),
+                string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' has low motivation: ' || ROUND(rec_player.motivation::numeric, 1) || ' and is at risk of leaving your club');
+
+        END IF;
+    END LOOP;
 
 END;
 $$;
@@ -2650,7 +2775,6 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
             INSERT INTO mails (id_club_to, sender_role, is_season_info, title, message)
             SELECT 
                 id AS id_club_to, 'Coach' AS sender_role, TRUE AS is_season_info,
-                -- inp_multiverse.date_handling + INTERVAL '1 second' * EXTRACT(SECOND FROM CURRENT_TIMESTAMP) + INTERVAL '1 millisecond' * EXTRACT(MILLISECOND FROM CURRENT_TIMESTAMP),
                 'Finished ' || 
                 CASE 
                     WHEN pos_league = 1 THEN '1st'
@@ -2658,56 +2782,56 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
                     WHEN pos_league = 3 THEN '3rd'
                     ELSE pos_league || 'th'
                 END
-                || ' of ' || string_parser(id_league, 'idLeague') || ' in season ' || inp_multiverse.season_number AS title,
+                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' in season ' || inp_multiverse.season_number AS title,
                 CASE
                     -- 1st place
                     WHEN pos_league = 1 THEN
                         -- Highest league plays international games
                         CASE WHEN id_upper_league IS NULL THEN
-                            'We are the champions of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 1st international league during the interseason ! That''s fantastic !'
+                            'We are the champions of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play the 1st international league during the interseason ! That''s fantastic !'
                         -- Other leagues play barrages to win promotion
                         ELSE
-                            'We are the champions of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 1st barrage to try and win our promotion to the upper league ! Let''s do it !'
+                            'We are the champions of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play the 1st barrage to try and win our promotion to the upper league ! Let''s do it !'
                         END
                     WHEN pos_league = 2 THEN
                         -- Highest league plays international games
                         CASE WHEN id_upper_league IS NULL THEN
-                            'We finished 2nd of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 2nd international league during the interseason ! That''s fantastic !'
+                            'We finished 2nd of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play the 2nd international league during the interseason ! That''s fantastic !'
                         -- Other leagues play barrages to win promotion
                         ELSE
-                            'We finished 2nd of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
+                            'We finished 2nd of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
                         END
                     WHEN pos_league = 3 THEN
                         -- Highest league plays international games
                         CASE WHEN id_upper_league IS NULL THEN
-                            'We finished 3rd of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 3rd international league during the interseason ! That''s fantastic !'
+                            'We finished 3rd of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play the 3rd international league during the interseason ! That''s fantastic !'
                         -- Other leagues play barrages to win promotion
                         ELSE
-                            'We finished 3rd of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
+                            'We finished 3rd of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play the 2nd barrage to try and win our promotion to the upper league ! Let''s do it !'
                         END
                     WHEN pos_league = 4 THEN
                         -- Lowest league plays friendly games during interseason
                         CASE WHEN id_lower_league IS NULL THEN
-                            'We finished 4th of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
+                            'We finished 4th of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
                         -- Other leagues play barrages to avoid relegation
                         ELSE
-                            'We finished 4th of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play against the winner of the 2nd barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
+                            'We finished 4th of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play against the winner of the 2nd barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
                         END
                     WHEN pos_league = 5 THEN
                         -- Lowest league plays friendly games during interseason
                         CASE WHEN id_lower_league IS NULL THEN
-                            'We finished 5th of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
+                            'We finished 5th of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
                         -- Other leagues play barrages to avoid relegation
                         ELSE
-                            'We finished 5th of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play against the team from the 1st barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
+                            'We finished 5th of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play against the team from the 1st barrage in order to avoid demotion ! The season is not over yet, keep the players focused !'
                         END
                     WHEN pos_league = 6 THEN
                         -- Lowest league plays friendly games during interseason
                         CASE WHEN id_lower_league IS NULL THEN
-                            'Rough season... We finished last of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
+                            'Rough season... We finished last of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will play some friendly games during the interseason ! It''s a good opportunity to test new tactics for the next season !'
                         -- Other leagues play barrages to avoid relegation
                         ELSE
-                            'Rough season... We finished last of ' || string_parser(id_league, 'idLeague') || ' for season ' || inp_multiverse.season_number || ' ! We will be demoted to the lower league... But don''t give up, we will come back stronger next season !'
+                            'Rough season... We finished last of ' || string_parser(inp_entity_type := 'idLeague', inp_id := id_league) || ' for season ' || inp_multiverse.season_number || ' ! We will be demoted to the lower league... But don''t give up, we will come back stronger next season !'
                         END
                 END AS message
             FROM club_league_info;
@@ -2723,7 +2847,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
                     WHEN pos_league = 3 THEN '3rd'
                     ELSE pos_league || 'th'
                 END
-                || ' of ' || string_parser(leagues.id, 'idLeague') || ' of ' || leagues.continent AS description
+                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := leagues.id) || ' of ' || leagues.continent AS description
             FROM clubs
             JOIN leagues ON clubs.id_league = leagues.id
             WHERE clubs.id_multiverse = inp_multiverse.id;
@@ -2741,8 +2865,8 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
                     WHEN clubs.pos_league = 5 THEN '5th'
                     WHEN clubs.pos_league = 6 THEN '6th'
                 END
-                || ' of ' || string_parser(clubs.id_league, 'idLeague') || '
-                with ' || string_parser(clubs.id, 'idClub') || ' in ' || clubs.continent AS description,
+                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := clubs.id_league) || '
+                with ' || string_parser(inp_entity_type := 'idClub', inp_id := clubs.id) || ' in ' || clubs.continent AS description,
                 TRUE AS is_ranking_description
             FROM players
             JOIN clubs ON players.id_club = clubs.id
@@ -2835,8 +2959,8 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                 SELECT 
                     id AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_season_info,
                     -- inp_multiverse.date_season_start + (INTERVAL '7 days' * inp_multiverse.week_number / inp_multiverse.speed),
-                    'New season ' || inp_multiverse.season_number + 1 || ' starts for league ' || string_parser(clubs.id_league, 'idLeague') AS title,
-                    string_parser(clubs.id_league, 'idLeague') || ' season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(club_expenses.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_training_target AS message
+                    'New season ' || inp_multiverse.season_number + 1 || ' starts for league ' || string_parser(inp_entity_type := 'idLeague', inp_id := clubs.id_league) AS title,
+                    string_parser(inp_entity_type := 'idLeague', inp_id := clubs.id_league) || ' season ' || inp_multiverse.season_number + 1 || ' is ready to start. This season we managed to secure ' || revenues_sponsors || ' per week from sponsors (this season we had ' || revenues_sponsors_last_season || '). The players salary will amount for ' || COALESCE(club_expenses.total_player_expenses, 0) || ' per week and the targeted staff expenses is ' || expenses_training_target AS message
                 FROM clubs
                 LEFT JOIN club_expenses ON club_expenses.id_club = clubs.id
             WHERE clubs.id_multiverse = inp_multiverse.id;
@@ -2845,12 +2969,11 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
             UPDATE players SET
                 -- Calculate the new salary based on the target
                 expenses_expected = CASE
-                    -- If the player has no club, do not modify the expected expenses
-                    WHEN id_club IS NULL THEN expenses_expected
+                    -- If the player has no club and is not embodied
+                    WHEN id_club IS NULL AND username IS NULL THEN expenses_expected
                     -- If the player has a club, calculate the new expected expenses
-                    ELSE FLOOR(
-                        (expenses_expected * 0.75 + 
-                        expenses_target * 0.25))
+                    ELSE LEAST(expenses_target,
+                        FLOOR((expenses_expected * 0.75 + expenses_target * 0.25)))
                     END,
                 -- Reset the training points used
                 training_points_used = 0
@@ -2872,7 +2995,8 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                     inp_id_country := loc_record.id_country,
                     inp_age := 15 + RANDOM() * 1,
                     inp_shirt_number := loc_record.random_shirt_number,
-                    inp_notes := 'New player from ' || string_parser(loc_record.id_country, 'idCountry') || ' for the new season'
+                    inp_notes := 'New player from ' || string_parser(inp_entity_type := 'idCountry', inp_id := loc_record.id_country) || ' for the new season',
+                    inp_stats_better_player := 0.5
                 );
 
             END LOOP;
@@ -3140,150 +3264,92 @@ $$;
 ALTER FUNCTION public.main_populate_game(rec_game record) OWNER TO postgres;
 
 --
--- Name: main_simulate_day(record); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: main_simulate_week_games(record); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.main_simulate_day(inp_multiverse record) RETURNS boolean
+CREATE FUNCTION public.main_simulate_week_games(inp_multiverse record) RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    league RECORD; -- Record for the leagues loop
-    club RECORD; -- Record for the clubs loop
-    game RECORD; -- Record for the game loop
-    is_league_game_finished bool; -- If a game from the league was played, recalculate the rankings
-    pos integer; -- Position in the league
+    league RECORD;
+    game RECORD;
+    club RECORD;
+    pos INT;
+    is_league_game_finished BOOLEAN;
 BEGIN
-
-    ---- Increase players energy
-    UPDATE players
-        SET energy = LEAST(100,
-            energy + (100 - energy) / 5.0)
-    WHERE id_multiverse = inp_multiverse.id
-    AND date_death IS NULL;
-
-    WITH players1 AS (
-        SELECT 
-            players.id,
-            player_get_full_name(players.id) AS full_name,
-            calculate_age(multiverses.speed, players.date_birth) AS age,
-            players.id_club
-        FROM players
-        JOIN multiverses ON multiverses.id = players.id_multiverse
-        LEFT JOIN clubs ON clubs.id = players.id_club 
-        -- LEFT JOIN players_poaching ON players_poaching.id_player = players.id
-        WHERE players.id_multiverse = inp_multiverse.id
-        AND players.date_death IS NULL
-        GROUP BY players.id, multiverses.speed, players.id_club, clubs.username
-    )
-    UPDATE players SET
-        -- Randomly kill old players
-        date_death = CASE
-            WHEN random() < ((age - 70) / 100.0) THEN inp_multiverse.date_handling
-            ELSE NULL END
-    FROM players1
-    WHERE players.id = players1.id
-    AND players.id NOT IN (SELECT id_player FROM transfers_bids); -- Don't kill players that have bids on them (TO OPTIMIZE)
-
-    ------ Handling of the day 7 ==> Game day
-    IF inp_multiverse.day_number = 7 THEN
-
-        ------------ Loop through all leagues of the multiverse
-        FOR league IN (
-            SELECT * FROM leagues WHERE id_multiverse = inp_multiverse.id)
+    -- Loop through all leagues of the multiverse
+    FOR league IN (
+        SELECT * FROM leagues WHERE id_multiverse = inp_multiverse.id)
+    LOOP
+        -- Loop through the games that need to be played for the current week of the current league
+        FOR game IN (
+            SELECT id FROM games
+            WHERE id_league = league.id
+            AND date_end IS NULL
+            AND season_number <= inp_multiverse.season_number
+            AND week_number <= inp_multiverse.week_number
+            AND now() > date_start
+            ORDER BY season_number, week_number, id)
         LOOP
+            -- Simulate the game
+            PERFORM simulate_game_main(inp_id_game := game.id);
+        END LOOP;
 
-            ------ Loop through the games that need to be played for the current week of the current league
-            FOR game IN
-                (SELECT id FROM games
+        -- Set to FALSE by default
+        is_league_game_finished := FALSE;
+
+        -- Loop through the games that are finished for the current week of the current league
+        FOR game IN (
+            SELECT id FROM games
+            WHERE id_league = league.id
+            AND now() >= date_end
+            AND is_playing = TRUE
+            AND season_number <= inp_multiverse.season_number
+            AND week_number <= inp_multiverse.week_number
+            ORDER BY id)
+        LOOP
+            PERFORM simulate_game_set_is_played(inp_id_game := game.id);
+
+            -- Say that a game from the league was finished
+            is_league_game_finished := TRUE;
+        END LOOP;
+
+        -- If a game from the league was played, recalculate the rankings
+        IF is_league_game_finished = TRUE THEN
+            -- Calculate rankings for normal leagues
+            IF league.LEVEL > 0 AND inp_multiverse.week_number <= 10 THEN
+                -- Calculate rankings for each club in the league
+                pos := 1;
+                FOR club IN (
+                    SELECT * FROM clubs
                     WHERE id_league = league.id
-                    AND date_end IS NULL
-                    AND season_number <= inp_multiverse.season_number
-                    AND week_number <= inp_multiverse.week_number
-                    AND now() > date_start
-                    ORDER BY season_number, week_number, id)
-            LOOP
+                    ORDER BY league_points DESC,
+                        (league_goals_for - league_goals_against) DESC,
+                        pos_last_season,
+                        created_at ASC)
+                LOOP
+                    -- Update the position in the league of this club
+                    UPDATE clubs
+                    SET pos_league = pos
+                    WHERE id = club.id;
 
-                -- Simulate the game
-                PERFORM simulate_game_main(inp_id_game := game.id);
+                    -- Update the leagues rankings
+                    UPDATE leagues
+                    SET id_clubs[pos] = club.id,
+                        points[pos] = club.league_points
+                    WHERE id = league.id;
 
-            END LOOP; -- End of the loop of the games simulation
-
-            -- Set to FALSE by default
-            is_league_game_finished := FALSE;
-
-            ------ Loop through the games that are finished for the current week of the current league
-            FOR game IN
-                (SELECT id FROM games
-                    WHERE id_league = league.id
-                    AND now() >= date_end
-                    AND is_playing = TRUE
-                    AND season_number <= inp_multiverse.season_number
-                    AND week_number <= inp_multiverse.week_number
-                    ORDER BY id)
-            LOOP
-                PERFORM simulate_game_set_is_played(inp_id_game := game.id);
-
-                -- Say that a game from the league was finished
-                is_league_game_finished := TRUE;
-
-            END LOOP; -- End of the loop of the games simulation
-
-            -- If a game from the league was played, recalculate the rankings
-            IF is_league_game_finished = TRUE THEN
-                -- Calculate rankings for normal leagues
-                IF league.LEVEL > 0 AND inp_multiverse.week_number <= 10 THEN
-                    -- Calculate rankings for each clubs in the league
-                    pos := 1;
-                    FOR club IN
-                        (SELECT * FROM clubs
-                            WHERE id_league = league.id
-                            ORDER BY league_points DESC,
-                                (league_goals_for - league_goals_against) DESC,
-                                pos_last_season,
-                                created_at ASC)
-                    LOOP
-                        -- Update the position in the league of this club
-                        UPDATE clubs
-                            SET pos_league = pos
-                            WHERE id = club.id;
-
-                        -- Update the leagues rankings
-                        UPDATE leagues
-                            SET id_clubs[pos] = club.id,
-                            points[pos] = club.league_points
-                            WHERE id = league.id;
-
-                        -- Update the position
-                        pos := pos + 1;
-
-                    END LOOP; -- End of the loop through clubs
-                END IF; -- End of the calculation of the rankings of the normal leagues
-            END IF; -- End of the check if a game from the league was played
-        END LOOP; -- End of the loop through leagues
-
-        ------ If all games of the week are finished, return TRUE
-        IF (
-            -- Check if there are games from the current week that are not finished
-            SELECT COUNT(id)
-            FROM games
-            WHERE id_multiverse = inp_multiverse.id
-            AND is_playing <> FALSE
-            AND season_number = inp_multiverse.season_number
-            AND week_number = inp_multiverse.week_number) > 0
-        THEN
-            RETURN FALSE;
-        ELSE
-            RETURN TRUE;
+                    -- Update the position
+                    pos := pos + 1;
+                END LOOP;
+            END IF;
         END IF;
-    END IF; -- End of the handling of week 7
-
-    RETURN TRUE; -- Return TRUE to say that we can pass to the next day
-    
+    END LOOP;
 END;
 $$;
 
 
-ALTER FUNCTION public.main_simulate_day(inp_multiverse record) OWNER TO postgres;
+ALTER FUNCTION public.main_simulate_week_games(inp_multiverse record) OWNER TO postgres;
 
 --
 -- Name: multiverse_before_delete(); Type: FUNCTION; Schema: public; Owner: postgres
@@ -3591,30 +3657,6 @@ $$;
 ALTER FUNCTION public.players_calculate_date_birth(inp_id_multiverse bigint, inp_age double precision) OWNER TO postgres;
 
 --
--- Name: players_calculate_performance_score(bigint); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.players_calculate_performance_score(inp_id_player bigint) RETURNS void
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    performance_score FLOAT4; -- Player performance score
-BEGIN
-    -- Calculate player performance score and update the player record
-    UPDATE players
-    SET performance_score = players_calculate_player_best_weight(
-        ARRAY[keeper, defense, playmaking, passes, scoring, freekick, winger,
-        motivation, form, experience, energy, stamina]
-    )
-    WHERE id = inp_id_player;
-
-END;
-$$;
-
-
-ALTER FUNCTION public.players_calculate_performance_score(inp_id_player bigint) OWNER TO postgres;
-
---
 -- Name: players_calculate_player_best_weight(real[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -3725,10 +3767,10 @@ $$;
 ALTER FUNCTION public.players_check_club_players_count_no_less_than_16() OWNER TO postgres;
 
 --
--- Name: players_create_player(bigint, bigint, bigint, double precision, bigint, text, double precision[]); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: players_create_player(bigint, bigint, bigint, double precision, text, bigint, text, double precision, double precision[], text, text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_shirt_number bigint DEFAULT NULL::bigint, inp_notes text DEFAULT NULL::text, inp_stats double precision[] DEFAULT NULL::double precision[]) RETURNS bigint
+CREATE FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_username text DEFAULT NULL::text, inp_shirt_number bigint DEFAULT NULL::bigint, inp_notes text DEFAULT NULL::text, inp_stats_better_player double precision DEFAULT 0.0, inp_stats double precision[] DEFAULT NULL::double precision[], inp_first_name text DEFAULT NULL::text, inp_last_name text DEFAULT NULL::text) RETURNS bigint
     LANGUAGE plpgsql SECURITY DEFINER
     AS $$
 DECLARE
@@ -3749,73 +3791,75 @@ BEGIN
 
     ------ If the inp_stats array is NULL, generate random stats based on the player's age and inp_notes
     IF inp_stats IS NULL THEN
-        loc_tmp := 3.0 * (inp_age - 15); -- Age: (15 ==> 35) ==> Value: [0 ==> 60]
-        ---- Goalkeepers
-        IF inp_shirt_number IN (1, 12) THEN
-            inp_stats := ARRAY[
+
+        IF inp_stats_better_player < 0.0 OR inp_stats_better_player > 1.0 THEN
+            RAISE EXCEPTION 'The inp_stats_better_player value must be between 0.0 and 1.0, found %', inp_stats_better_player;
+        END IF;
+
+        loc_tmp := 3.0 * ((inp_age - 10) + (5 * inp_stats_better_player)); -- Age: (15 ==> 35) ==> Value: [15 ==> 75] + [0 ==> 15]
+        inp_stats := CASE
+            ---- Goalkeepers
+            WHEN inp_shirt_number IN (1, 12) THEN ARRAY[
                 loc_tmp + 10 * (1 + random()), -- Keeper: BaseValue(age) + Random(10 ==> 20)
                 loc_tmp + 10 * random(), -- Defense: BaseValue(age) + Random(0 ==> 5)
                 loc_tmp + 10 * random(), -- Passes: BaseValue(age) + Random(0 ==> 5)
                 loc_tmp * random(), -- Playmaking: Random(0 ==> BaseValue(age))
                 loc_tmp * random(), -- Winger: Random(0 ==> BaseValue(age))
                 loc_tmp * random(), -- Scoring: Random(0 ==> BaseValue(age))
-                loc_tmp + 10 * random()]; -- Freekick
-        ---- Back Wingers
-        ELSIF inp_shirt_number IN (2, 3, 13) THEN
-            inp_stats := ARRAY[
+                loc_tmp + 10 * random()] -- Freekick
+            ---- Back Wingers
+            WHEN inp_shirt_number IN (2, 3, 13) THEN ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * (1 + random()), -- Defense
                 loc_tmp + 10 * random(), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * (1 + random()), -- Winger
                 0, -- Scoring
-                0]; -- Freekick
-        ---- Central Backs
-        ELSIF inp_shirt_number IN (4, 5, 14) THEN
-            inp_stats := ARRAY[
+                0] -- Freekick
+            ---- Central Backs
+            WHEN inp_shirt_number IN (4, 5, 14) THEN ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * (1 + random()), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp * 10 * random(), -- Playmaking
                 0, -- Winger
                 0, -- Scoring
-                0]; -- Freekick
-        ---- Midfielders
-        ELSIF inp_shirt_number IN (6, 10, 15) THEN
-            inp_stats := ARRAY[
+                0] -- Freekick
+            ---- Midfielders
+            WHEN inp_shirt_number IN (6, 10, 15) THEN ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * (1 + random()), -- Playmaking
                 0, -- Winger
                 0, -- Scoring
-                0]; -- Freekick
-        ---- Wingers
-        ELSIF inp_shirt_number IN (7, 8, 16) THEN
-            inp_stats := ARRAY[
+                0] -- Freekick
+            ---- Wingers
+            WHEN inp_shirt_number IN (7, 8, 16) THEN ARRAY[
                 0, -- Keeper
                 loc_tmp + 10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * (1 + random()), -- Winger
                 loc_tmp + 10 * random(), -- Scoring
-                0]; -- Freekick
-        ---- Strikers
-        ELSIF inp_shirt_number IN (9, 11, 17) THEN
-            inp_stats := ARRAY[
+                0] -- Freekick
+            ---- Strikers
+            WHEN inp_shirt_number IN (9, 11, 17) THEN ARRAY[
                 0, -- Keeper
                 0, -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * random(), -- Winger
                 loc_tmp + 10 * (1 + random()), -- Scoring
-                0]; -- Freekick
-        ELSE
-            IF inp_notes = 'Coach' THEN -- Coach
-                inp_stats := ARRAY[0, 0, 0, 0, 0, 0, 0];
-            ELSE
-                RAISE EXCEPTION 'Invalid shirt_number when creating a player with no stats given (must be between 1 and 17)';
-            END IF;
+                0] -- Freekick
+            ---- Coach
+            WHEN inp_notes = 'Coach' THEN ARRAY[0, 0, 0, 0, 0, 0, 0]
+            ELSE NULL -- Placeholder for invalid shirt_number
+        END;
+
+        -- Raise an exception if the stats array is still NULL (invalid shirt_number)
+        IF inp_stats IS NULL THEN
+            RAISE EXCEPTION 'Invalid shirt_number when creating a player with no stats given (must be between 1 and 17)';
         END IF;
     END IF;
 
@@ -3844,28 +3888,28 @@ BEGIN
     ------------------------------------------------------------------------
     ------ Create player
     INSERT INTO players (
-        id_multiverse, id_club, id_country,
-        date_birth, experience,
+        id_multiverse, id_club, id_country, username, user_points_available,
+        first_name, last_name, date_birth, experience,
         date_bid_end,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         size, loyalty, leadership, discipline, communication, aggressivity, composure, teamWork,
         training_coef, coef_coach, coef_scout,
         shirt_number, notes, notes_small
     ) VALUES (
-        inp_id_multiverse, inp_id_club, inp_id_country,
-        players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age), 3.0 * (inp_age - 15.0),
-        CASE WHEN inp_id_club IS NULL THEN
-            (NOW() + (INTERVAL '6 day' / (SELECT speed FROM multiverses WHERE id = inp_id_multiverse)))
+        inp_id_multiverse, inp_id_club, inp_id_country, inp_username, inp_age * 3.0,
+        inp_first_name, inp_last_name, players_calculate_date_birth(inp_id_multiverse := inp_id_multiverse, inp_age := inp_age), 3.0 * (inp_age - 15.0),
+        CASE WHEN inp_id_club IS NULL AND inp_username IS NULL THEN
+            (NOW() + (INTERVAL '7 day' / (SELECT speed FROM multiverses WHERE id = inp_id_multiverse)))
             ELSE NULL END,
         inp_stats[1], inp_stats[2], inp_stats[3], inp_stats[4], inp_stats[5], inp_stats[6], inp_stats[7],
         ROUND(160 + 40 * (random() + random() + random() + random() + random()) / 5), -- Size
-        random() * 100, -- Loyalty
-        random() * 100, -- Leadership
-        random() * 100, -- Discipline
-        random() * 100, -- Communication
-        random() * 100, -- Aggressivity
-        random() * 100, -- Composure
-        random() * 100, -- Teamwork
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Loyalty
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Leadership
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Discipline
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Communication
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Aggressivity
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Composure
+        CASE WHEN inp_username IS NULL THEN random() * 100 ELSE 80 END, -- Teamwork
         loc_training_coef, 0, 0,
         inp_shirt_number,
         -- Notes (if not given use the shirt number to determine the player's position)
@@ -3883,6 +3927,8 @@ BEGIN
         CASE
             WHEN inp_notes IS NOT NULL THEN
             CASE
+                WHEN inp_notes LIKE 'New player from %' THEN 'NEW1' -- New player from country (from main_handle_season)
+                WHEN inp_notes LIKE 'New player replacing %' THEN 'NEW2' -- New player replacing one who left (from transfers_handle_transfers)
                 WHEN inp_notes = 'Experienced GoalKeeper' THEN 'GK1'
                 WHEN inp_notes = 'Young GoalKeeper' THEN 'GK2'
                 WHEN inp_notes = 'Experienced Back Winger' THEN 'BW1'
@@ -3923,12 +3969,12 @@ BEGIN
     IF inp_id_club IS NULL THEN
         INSERT INTO players_history (id_player, id_club, description)
         VALUES (loc_new_player_id, NULL,
-        'New player from COUNTRY ' || string_parser(inp_id_country, 'idCountry'));
+        'New player from ' || string_parser(inp_entity_type := 'idCountry', inp_id := inp_id_country));
 
     ELSE
         INSERT INTO players_history (id_player, id_club, description)
         VALUES (loc_new_player_id, inp_id_club,
-        'Joined ' || string_parser(inp_id_club, 'idClub') ||
+        'Joined ' || string_parser(inp_entity_type := 'idClub', inp_id := inp_id_club) ||
         CASE
             WHEN inp_notes = 'Young Scouted' THEN ' as a young scouted player'
             WHEN inp_notes = 'Old Experienced player' THEN ' as an old experienced player'
@@ -3942,8 +3988,8 @@ BEGIN
         INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
             VALUES
                 (inp_id_club, 'Scout', TRUE,
-                'New Scouted Player: ' || string_parser(loc_new_player_id, 'idPlayer'),
-                string_parser(loc_new_player_id, 'idPlayer') || ' joined the squad, check him out, i''ve been keeping an eye on him for a while and given some good training he might be a future star !');
+                'New Scouted Player: ' || string_parser(inp_entity_type := 'idPlayer', inp_id := loc_new_player_id),
+                string_parser(inp_entity_type := 'idPlayer', inp_id := loc_new_player_id) || ' joined the squad, check him out, i''ve been keeping an eye on him for a while and given some good training he might be a future star !');
     END IF;
     
     ------ Return the new player's ID
@@ -3952,7 +3998,139 @@ END;
 $$;
 
 
-ALTER FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_shirt_number bigint, inp_notes text, inp_stats double precision[]) OWNER TO postgres;
+ALTER FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_username text, inp_shirt_number bigint, inp_notes text, inp_stats_better_player double precision, inp_stats double precision[], inp_first_name text, inp_last_name text) OWNER TO postgres;
+
+--
+-- Name: players_handle_embodied_player(bigint, text, boolean, boolean, boolean); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.players_handle_embodied_player(inp_id_player bigint, inp_username text, inp_start_embody boolean DEFAULT false, inp_stop_embody boolean DEFAULT false, inp_retire_embodied boolean DEFAULT false) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+    rec_player RECORD;
+    credits_for_player INTEGER := 500; -- Credits required to embody a player
+BEGIN
+
+    ------ Fetch the player record
+    SELECT
+        players.id, players.username, players.user_points_available,
+        string_parser(inp_entity_type := 'idPlayer', inp_id := players.id) AS player_special_string,
+        players.id_club,
+        ARRAY(
+            SELECT id_club
+            FROM (
+                SELECT players.id_club AS id_club
+                UNION
+                SELECT id_club FROM players_favorite WHERE id_player = players.id
+                UNION
+                SELECT id_club FROM players_poaching WHERE id_player = players.id
+            ) AS clubs
+        ) AS following_clubs,
+        profiles.credits_available, profiles.uuid_user,
+        string_parser(inp_entity_type := 'uuidUser', inp_uuid_user := profiles.uuid_user) AS uuid_user_special_string
+    INTO rec_player
+    FROM players
+    JOIN profiles ON profiles.username = inp_username
+    WHERE players.id = inp_id_player;
+    
+    ------ Check if the player exists
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Player with ID % does not exist', inp_id_player;
+    END IF;
+
+    ------ Start embodying the player
+    IF inp_start_embody IS TRUE THEN
+
+        ---- Check that the player is not already embodied
+        IF rec_player.username IS NOT NULL THEN
+            RAISE EXCEPTION 'Player with ID % is already embodied by user %', inp_id_player, rec_player.username;
+        END IF;
+
+        ---- Check that the user can have an additional embodied player
+        IF rec_player.credits_available < credits_for_player THEN
+            RAISE EXCEPTION 'You dont have enough credits (%) to embody a new player (needed: %)', rec_player.credits_available, credits_for_player;
+        END IF;
+
+        ---- Update the user's credits
+        UPDATE profiles SET
+            credits_available = credits_available - credits_for_player,
+            credits_used = credits_used + credits_for_player
+        WHERE uuid_user = rec_player.uuid_user;
+
+        ---- Update the player to embody the new username
+        UPDATE players SET
+            username = inp_username
+        WHERE id = inp_id_player;
+
+        ---- Insert a new row in the user's history table
+        INSERT INTO profile_events (uuid_user, description)
+            VALUES (rec_player.uuid_user, 'Started Embodying ' || rec_player.player_special_string);
+
+        ---- Store a new row in the player history table
+        INSERT INTO players_history (id_player, id_club, is_transfer_description, description)
+            VALUES (rec_player.id, rec_player.id_club, TRUE,
+            'Started being embodied by ' || rec_player.uuid_user_special_string);
+
+        ---- Send mails to the club and the clubs following the player
+        INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
+        SELECT DISTINCT unnest(rec_player.following_clubs), 'Scouts', TRUE,
+            rec_player.player_special_string || ' is now embodied by ' || rec_player.uuid_user_special_string,
+            rec_player.player_special_string || ' is now embodied by ' || rec_player.uuid_user_special_string;
+
+    END IF;
+
+    ------ Retire the embodied player
+    IF inp_retire_embodied IS TRUE THEN
+
+        ---- Check to ensure that the user calling the function is embodying the player
+        IF inp_username != rec_player.username THEN
+            RAISE EXCEPTION 'User calling the function (%) does not match the user embodying the player (%)', inp_user_uuid, rec_player.username;
+        END IF;
+
+        ---- Retire the player from embodying
+        UPDATE players SET
+            date_retire = NOW()
+        WHERE id = inp_id_player;
+
+    END IF;
+    
+    ------ Stop embodying the player
+    IF inp_stop_embody IS TRUE THEN
+
+        ---- Check to ensure that the user calling the function is embodying the player
+        IF inp_username != rec_player.username THEN
+            RAISE EXCEPTION 'User calling the function (%) does not match the user embodying the player (%)', inp_user_uuid, rec_player.uuid_user;
+        END IF;
+
+        ---- Stop embodying the player
+        UPDATE players SET
+            username = NULL
+        WHERE id = inp_id_player;
+
+        ---- Insert a new row in the user's history table
+        INSERT INTO profile_events (uuid_user, description)
+            VALUES (rec_player.uuid_user, 'Stopped embodying ' || rec_player.player_special_string);
+
+        ---- Store a new row in the player history table
+        INSERT INTO players_history (id_player, id_club, is_transfer_description, description)
+            VALUES (rec_player.id, rec_player.id_club, TRUE,
+            'Stopped being embodied by ' || rec_player.uuid_user_special_string);
+
+        ---- Send mails to the club and the clubs following the player
+        INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
+        SELECT DISTINCT unnest(rec_player.following_clubs), 'Scouts', TRUE,
+            rec_player.player_special_string || ' is no longer embodied by ' || rec_player.uuid_user_special_string,
+            rec_player.player_special_string || ' is no longer embodied by ' || rec_player.uuid_user_special_string;
+
+    END IF;
+
+    RETURN;
+END;
+$$;
+
+
+ALTER FUNCTION public.players_handle_embodied_player(inp_id_player bigint, inp_username text, inp_start_embody boolean, inp_stop_embody boolean, inp_retire_embodied boolean) OWNER TO postgres;
 
 --
 -- Name: players_handle_new_player_created(); Type: FUNCTION; Schema: public; Owner: postgres
@@ -3964,82 +4142,72 @@ CREATE FUNCTION public.players_handle_new_player_created() RETURNS trigger
 DECLARE
     loc_first_name TEXT;
     loc_last_name TEXT;
+    credits_for_player INTEGER := 500; -- Credits required to manage an additional player
 BEGIN
 
     ------ Check that the user can have an additional club
-    IF (NEW.username <> NULL) THEN
-        IF ((SELECT COUNT(*) FROM players WHERE username = NEW.username) >
-        (SELECT number_players_available FROM profiles WHERE username = NEW.username)
-        ) THEN
-            RAISE EXCEPTION 'You can not have an additional player assigned to you';
+    IF (NEW.username IS NOT NULL) THEN
+
+        ---- Check that the user exists
+        IF NOT EXISTS (SELECT 1 FROM profiles WHERE username = NEW.username) THEN
+            RAISE EXCEPTION 'User with username % does not exist in the profiles table', NEW.username;
         END IF;
+
+        ---- Check that the user has enough credits
+        IF (SELECT credits_available FROM profiles WHERE username = NEW.username) < credits_for_player THEN
+            RAISE EXCEPTION 'You need % credits to manage an additional player', credits_for_player;
+        END IF;
+
+        ---- Update the user profile
+        UPDATE profiles SET
+            credits_available = credits_available - credits_for_player,
+            credits_used = credits_used + credits_for_player
+        WHERE username = NEW.username;
     END IF;
 
-    ------ Generate player name
-    WITH country_query AS (
-        SELECT first_name, last_name
-        FROM players_names
-        WHERE id_country = NEW.id_country
-        LIMIT 100
-    ),
-    other_country_query AS (
-        SELECT first_name, last_name
-        FROM players_names 
-        WHERE id_country != NEW.id_country 
-        LIMIT (100 - (SELECT COUNT(*) FROM country_query))
-    ),
-    combined_query AS (
-        SELECT * FROM country_query
-        UNION ALL
-        SELECT * FROM other_country_query
-    )
-    SELECT first_name INTO loc_first_name FROM combined_query ORDER BY RANDOM() LIMIT 1; -- Fetch a random first name  
-        WITH country_query AS (
-        SELECT first_name, last_name
-        FROM players_names 
-        WHERE id_country = NEW.id_country 
-        LIMIT 100
-    ),
-    other_country_query AS (
-        SELECT first_name, last_name
-        FROM players_names 
-        WHERE id_country != NEW.id_country 
-        LIMIT (100 - (SELECT COUNT(*) FROM country_query))
-    ),
-    combined_query AS (
-        SELECT * FROM country_query
-        UNION ALL
-        SELECT * FROM other_country_query
-    )
-    SELECT last_name INTO loc_last_name FROM combined_query ORDER BY RANDOM() LIMIT 1; -- Fetch a random last name
+    ------ Fetch the player name
+    
     -- Store the name in the player row
     IF (NEW.first_name IS NULL OR NEW.first_name = '') THEN
-        NEW.first_name = loc_first_name;
+        NEW.first_name = 
+            COALESCE(
+                -- Attempt 1: Get a random name from country
+                (SELECT name FROM players_generation.first_names
+                WHERE id_country = NEW.id_country
+                ORDER BY RANDOM() LIMIT 1),
+                -- Fallback: If no name found from country, get a random name from anywhere
+                (SELECT name FROM players_generation.first_names
+                ORDER BY RANDOM() LIMIT 1)
+            );
     END IF;
     IF (NEW.last_name IS NULL OR NEW.last_name = '') THEN
-        NEW.last_name = loc_last_name;
+        NEW.last_name =
+            COALESCE(
+                -- Attempt 1: Get a random name from country
+                (SELECT name FROM players_generation.last_names
+                WHERE id_country = NEW.id_country
+                ORDER BY RANDOM() LIMIT 1),
+                -- Fallback: If no name found from country, get a random name from anywhere
+                (SELECT name FROM players_generation.last_names
+                ORDER BY RANDOM() LIMIT 1)
+            );
     END IF;
 
     ------ Store the multiverse speed
     NEW.multiverse_speed = (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse);
 
     ------ Calculate the expected expenses
-    NEW.expenses_target = FLOOR((50 + 1 * calculate_age(inp_multiverse_speed := NEW.multiverse_speed, inp_date_birth := NEW.date_birth) +
+    NEW.expenses_target = FLOOR(50 +
+        1 * calculate_age(inp_multiverse_speed := NEW.multiverse_speed, inp_date_birth := NEW.date_birth) +
         GREATEST(NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.winger, NEW.scoring, NEW.freekick) / 2 +
-        (NEW.keeper + NEW.defense + NEW.passes + NEW.playmaking + NEW.winger + NEW.scoring + NEW.freekick) / 4
-        ));
+        (NEW.keeper + NEW.defense + NEW.passes + NEW.playmaking + NEW.winger + NEW.scoring + NEW.freekick) / 4 +
+        (NEW.coef_coach + NEW.coef_scout) / 2);
     NEW.expenses_expected = FLOOR(NEW.expenses_target * 0.75);
 
     ------ Calculate experience
     IF NEW.experience IS NULL THEN
         NEW.experience = 2 * (calculate_age(inp_multiverse_speed := NEW.multiverse_speed, inp_date_birth := NEW.date_birth) - 10);
     END IF;
-
-    ------ Calculate the performance score
-    NEW.performance_score = players_calculate_player_best_weight(
-        ARRAY[NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.scoring, NEW.freekick, NEW.winger,
-        NEW.motivation, NEW.form, NEW.experience, NEW.energy, NEW.stamina]
-    );
 
     -- Return the new record to proceed with the update
     RETURN NEW;
@@ -4048,6 +4216,68 @@ $$;
 
 
 ALTER FUNCTION public.players_handle_new_player_created() OWNER TO postgres;
+
+--
+-- Name: players_increase_stats_from_training_points(bigint, integer[], uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.players_increase_stats_from_training_points(inp_id_player bigint, inp_increase_points integer[], inp_user_uuid uuid) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    rec_player RECORD;
+    loc_training_points_used INTEGER := 0; -- Local variable to hold the total number of points
+BEGIN
+
+    ------ Fetch the player record
+    SELECT
+        players.id, players.username, players.user_points_available, profiles.uuid_user
+    INTO rec_player
+    FROM players
+    JOIN profiles ON players.username = profiles.username
+    WHERE players.id = inp_id_player;
+    
+    ------ Check if the player exists
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Player with ID % does not exist', inp_id_player;
+    END IF;
+
+    ------ Check to ensure that the user calling the function is the owner of the player
+    IF inp_user_uuid != rec_player.uuid_user THEN
+        RAISE EXCEPTION 'User calling the function (%) does not match the user embodying the player (%)', inp_user_uuid, rec_player.uuid_user;
+    END IF;
+
+    ------ Check that inp_increase_points is an array of 7 integers
+    IF array_length(inp_increase_points, 1) IS DISTINCT FROM 7 THEN
+        RAISE EXCEPTION 'inp_increase_points must be an array of 7 integers. Got array of length %', array_length(inp_increase_points, 1);
+    END IF;
+    ------ Calculate the total number of points used for training
+    SELECT SUM(inp_value) INTO loc_training_points_used FROM unnest(inp_increase_points) AS inp_value;
+    IF loc_training_points_used <= 0 THEN
+        RAISE EXCEPTION 'No training points provided or all points are zero';
+    ELSEIF loc_training_points_used > rec_player.user_points_available THEN
+        RAISE EXCEPTION 'Not enough training points available. Available: %, Required: %', rec_player.user_points_available, loc_training_points_used;
+    END IF;
+
+    ------ Update the stats of the player
+    UPDATE players SET
+        keeper = LEAST(keeper + inp_increase_points[1], 100),
+        defense = LEAST(defense + inp_increase_points[2], 100),
+        passes = LEAST(passes + inp_increase_points[3], 100),
+        playmaking = LEAST(playmaking + inp_increase_points[4], 100),
+        winger = LEAST(winger + inp_increase_points[5], 100),
+        scoring = LEAST(scoring + inp_increase_points[6], 100),
+        freekick = LEAST(freekick + inp_increase_points[7], 100),
+        user_points_available = user_points_available - loc_training_points_used,
+        user_points_used = user_points_used + loc_training_points_used
+    WHERE id = inp_id_player;
+
+    RETURN;
+END;
+$$;
+
+
+ALTER FUNCTION public.players_increase_stats_from_training_points(inp_id_player bigint, inp_increase_points integer[], inp_user_uuid uuid) OWNER TO postgres;
 
 --
 -- Name: players_pay_expenses_missed(); Type: FUNCTION; Schema: public; Owner: postgres
@@ -4709,11 +4939,11 @@ BEGIN
             INSERT INTO mails (id_club_to, created_at, sender_role, is_game_result, title, message)
             VALUES
                 (rec_game.id_club_left, rec_game.date_start, 'Referee', TRUE,
-                    'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
-                    'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' but they didnt either, we will see what the league decides but it might end with a draw'),
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' but they didnt either, we will see what the league decides but it might end with a draw'),
                 (rec_game.id_club_right, rec_game.date_start, 'Referee', TRUE,
-                    'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
-                    'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' but they didnt either, we will see what the league decides but it might end with a draw');
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' but they didnt either, we will see what the league decides but it might end with a draw');
 
         ---- If the left club is forfeit
         ELSEIF loc_score_left = -1 THEN
@@ -4723,11 +4953,11 @@ BEGIN
             INSERT INTO mails (id_club_to, created_at, sender_role, is_game_result, title, message)
             VALUES
                 (rec_game.id_club_left, rec_game.date_start, 'Referee', TRUE,
-                    'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
-                    'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat'),
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat'),
                 (rec_game.id_club_right, rec_game.date_start, 'Referee', TRUE,
-                    'ERROR TEAMCOMP: For ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
-                    rec_game.name_club_left || ', our opponent for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory');
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    rec_game.name_club_left || ', our opponent for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory');
 
         ---- If the right club is forfeit
         ELSE
@@ -4737,11 +4967,11 @@ BEGIN
             INSERT INTO mails (id_club_to, created_at, sender_role, is_game_result, title, message)
             VALUES
                 (rec_game.id_club_left, rec_game.date_start, 'Referee', TRUE,
-                    string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Opponent has no valid teamcomp',
-                    rec_game.name_club_right || ', our opponent for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory'),
+                    string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Opponent has no valid teamcomp',
+                    rec_game.name_club_right || ', our opponent for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory'),
                 (rec_game.id_club_right, rec_game.date_start, 'Referee', TRUE,
-                    string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
-                    'We were not able to give a valid teamcomp for the ' || string_parser(rec_game.id, 'idGame') || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat');
+                    string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat');
 
         END IF;
 
@@ -4794,9 +5024,10 @@ BEGIN
                 loc_score_left_previous := COALESCE(rec_game.score_previous_left, 0);
                 loc_score_right_previous := COALESCE(rec_game.score_previous_right, 0);
                 -- Check if the game is over already (e.g., if the game is not a cup game or if the scores are different)
-                IF rec_game.is_cup = FALSE
-                    AND (loc_score_left + loc_score_left_previous) <> (loc_score_right + loc_score_right_previous) THEN
-                    EXIT; -- If the game is over, then exit the loop
+                IF rec_game.is_cup = FALSE THEN
+                    EXIT; -- If the game is not a cup game, then exit the loop
+                ELSIF (loc_score_left + loc_score_left_previous) <> (loc_score_right + loc_score_right_previous) THEN
+                    EXIT; -- If the cup game is not a draw, then exit the loop
                 END IF;
                 loc_date_start_period := loc_date_start_period + (45 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the first prolongation is the start date of the second half plus 45 minutes + extra time
                 loc_minute_period_start := 90; -- Start minute of the first period
@@ -5037,9 +5268,8 @@ BEGIN
     ------------ Store the results
     ------ Store the score
     UPDATE games SET
-        -- date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
-        date_end = date_start + INTERVAL '5 minutes',
-        -- date_end = NOW(),
+        date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
+        -- date_end = date_start + INTERVAL '5 minutes', -- For testing purposes, set the end date to 5 minutes after the start date
         ---- Score of the game
         score_left = CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END,
         score_right = CASE WHEN loc_score_right = -1 THEN 0 ELSE loc_score_right END,
@@ -5299,7 +5529,7 @@ BEGIN
             WHEN is_cup THEN 'cup '
             WHEN is_league THEN ''
             ELSE 'ERROR '
-        END || string_parser(games.id, 'idGame') || ' of ' || string_parser(games.id_league, 'idLeague') AS game_presentation,
+        END || string_parser(inp_entity_type := 'idGame', inp_id := games.id) || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := games.id_league) AS game_presentation,
         ---- Score of the game
         score_left::TEXT || CASE WHEN is_left_forfeit = TRUE THEN 'F' ELSE '' END ||
         CASE WHEN score_penalty_left IS NOT NULL THEN '[' || score_penalty_left || ']' ELSE '' END ||
@@ -5348,10 +5578,10 @@ BEGIN
     tmp_text1 := rec_game.text_score_game || ' in ' ||  rec_game.game_presentation || ' against ';
     text_title_winner := rec_game.overall_text || CASE
             WHEN rec_game.score_cumul_with_penalty_left = rec_game.score_cumul_with_penalty_right THEN ' Draw '
-            ELSE 'Victory ' END || tmp_text1 || string_parser(rec_game.id_club_overall_loser, 'idClub');
+            ELSE 'Victory ' END || tmp_text1 || string_parser(inp_entity_type := 'idClub', inp_id := rec_game.id_club_overall_loser);
     text_title_loser := rec_game.overall_text || CASE
             WHEN rec_game.score_cumul_with_penalty_left = rec_game.score_cumul_with_penalty_right THEN ' Draw '
-            ELSE 'Defeat ' END || tmp_text1 || string_parser(rec_game.id_club_overall_winner, 'idClub');
+            ELSE 'Defeat ' END || tmp_text1 || string_parser(inp_entity_type := 'idClub', inp_id := rec_game.id_club_overall_winner);
     text_message_winner := text_title_winner || ' for the game: ' || rec_game.game_description;
     text_message_loser := text_title_loser || ' for the game: ' || rec_game.game_description;
 
@@ -5369,17 +5599,17 @@ BEGIN
         INSERT INTO clubs_history (id_club, is_ranking_description, description)
         VALUES (
             rec_game.id_club_overall_winner, TRUE,
-            'Season ' || rec_game.season_number || ': Finished 1st of ' || string_parser(rec_game.id_league, 'idLeague')),
+            'Season ' || rec_game.season_number || ': Finished 1st of ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league)),
         (
             rec_game.id_club_overall_loser, TRUE,
-            'Season ' || rec_game.season_number || 'Finished 2nd of ' || string_parser(rec_game.id_league, 'idLeague'));
+            'Season ' || rec_game.season_number || 'Finished 2nd of ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league));
 
         ---- Insert into the players_history table for winning club
         INSERT INTO players_history (id_player, id_club, description, is_ranking_description)
             SELECT
                 id AS id_player, id_club AS id_club,
                 'Season ' || rec_game.season_number || ': Victory in International League'
-                || ' of ' || string_parser(rec_game.id_league, 'idLeague') || ' with ' || string_parser(id_club, 'idClub'),
+                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league) || ' with ' || string_parser(inp_entity_type := 'idClub', inp_id := id_club),
                 TRUE AS is_ranking_description
             FROM players
             WHERE id_club = rec_game.id_club_overall_winner;
@@ -5389,7 +5619,7 @@ BEGIN
             SELECT
                 id AS id_player, id_club AS id_club,
                 'Season ' || rec_game.season_number || ': 2nd Place in International League'
-                || ' of ' || string_parser(rec_game.id_league, 'idLeague') || ' with ' || string_parser(id_club, 'idClub'),
+                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league) || ' with ' || string_parser(inp_entity_type := 'idClub', inp_id := id_club),
                 TRUE AS is_ranking_description
             FROM players
             WHERE players.id_club = rec_game.id_club_overall_loser;
@@ -5416,17 +5646,17 @@ BEGIN
         ---- Insert into clubs_history table
         INSERT INTO clubs_history (id_club, is_ranking_description, description)
         VALUES (rec_game.id_club_overall_winner, TRUE,
-            'Season ' || rec_game.season_number || ': Finished 3rd of ' || string_parser(rec_game.id_league, 'idLeague')),
+            'Season ' || rec_game.season_number || ': Finished 3rd of ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league)),
         (
             rec_game.id_club_overall_loser, TRUE,
-            'Season ' || rec_game.season_number || 'Finished 4th of ' || string_parser(rec_game.id_league, 'idLeague'));
+            'Season ' || rec_game.season_number || 'Finished 4th of ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league));
 
         ---- Insert into the players_history table for winning club
         INSERT INTO players_history (id_player, id_club, is_ranking_description, description)
             SELECT
                 id AS id_player, id_club AS id_club, TRUE AS is_ranking_description,
                 'Season ' || rec_game.season_number || ': Victory in ' || tmp_text1
-                || ' of ' || string_parser(rec_game.id_league, 'idLeague') || ' with ' || string_parser(id_club, 'idClub')
+                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league) || ' with ' || string_parser(inp_entity_type := 'idClub', inp_id := id_club)
             FROM players
             WHERE id_club = rec_game.id_club_overall_winner;
 
@@ -5435,7 +5665,7 @@ BEGIN
             SELECT
                 id AS id_player, id_club AS id_club, TRUE AS is_ranking_description,
                 'Season ' || rec_game.season_number || ': Defeat in ' || tmp_text1
-                || ' of ' || string_parser(rec_game.id_league, 'idLeague') || ' with ' || string_parser(id_club, 'idClub')
+                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league) || ' with ' || string_parser(inp_entity_type := 'idClub', inp_id := id_club)
             FROM players
             WHERE id_club = rec_game.id_club_overall_loser;
 
@@ -5458,10 +5688,10 @@ BEGIN
     ELSIF rec_game.id_games_description = 212 THEN
 
         -- Send messages
-        text_title_winner := text_title_winner || ': promotion to ' || string_parser(rec_game.id_league, 'idLeague');
-        text_title_loser := text_title_loser || ': no direct promotion to ' || string_parser(rec_game.id_league, 'idLeague');
-        text_message_winner := text_message_winner || '. This overall victory means that we will be playing in the upper league ' || string_parser(rec_game.id_league, 'idLeague') || ' next season. Congratulations to you and all the players, it''s time to party !';
-        text_message_loser := text_message_loser || '. This overall defeat means that we will have to play another barrage against the 5th of the upper league ' || string_parser(rec_game.id_league, 'idLeague') || ' in order to take his place. We can do it, let''s go !';
+        text_title_winner := text_title_winner || ': promotion to ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league);
+        text_title_loser := text_title_loser || ': no direct promotion to ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league);
+        text_message_winner := text_message_winner || '. This overall victory means that we will be playing in the upper league ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league) || ' next season. Congratulations to you and all the players, it''s time to party !';
+        text_message_loser := text_message_loser || '. This overall defeat means that we will have to play another barrage against the 5th of the upper league ' || string_parser(inp_entity_type := 'idLeague', inp_id := rec_game.id_league) || ' in order to take his place. We can do it, let''s go !';
 
         -- Winner of the barrage 1 is promoted to the upper league
         UPDATE clubs SET
@@ -5480,9 +5710,9 @@ BEGIN
         VALUES
             ((SELECT id FROM clubs WHERE id_league = rec_game.id_league AND pos_league = 6), 'Coach', TRUE,
             rec_game.game_presentation || ' of barrage 1 played ==> DEMOTED to ' ||
-                string_parser((SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner),'idLeague'),
-            string_parser(rec_game.id_club_overall_winner, 'idClub') || ' won the barrage 1 ' || rec_game.game_presentation || ' against ' || string_parser(rec_game.id_club_overall_loser, 'idClub') ||
-            '. Next season we will play in ' || string_parser((SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner),'idLeague'));
+                string_parser(inp_entity_type := 'idLeague', inp_id := (SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner)),
+            string_parser(inp_entity_type := 'idClub', inp_id := rec_game.id_club_overall_winner) || ' won the barrage 1 ' || rec_game.game_presentation || ' against ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_game.id_club_overall_loser) ||
+            '. Next season we will play in ' || string_parser(inp_entity_type := 'idLeague', inp_id := (SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner)));
 
 
     -- First leg games of barrage 1 games
@@ -5790,50 +6020,64 @@ $$;
 ALTER FUNCTION public.simulate_week_games(multiverse record, inp_season_number bigint, inp_week_number bigint) OWNER TO postgres;
 
 --
--- Name: string_parser(bigint, text, text); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: string_parser(text, bigint, uuid, text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.string_parser(inp_id bigint, inp_entity_type text, inp_text text DEFAULT NULL::text) RETURNS text
+CREATE FUNCTION public.string_parser(inp_entity_type text, inp_id bigint DEFAULT NULL::bigint, inp_uuid_user uuid DEFAULT NULL::uuid, inp_text text DEFAULT NULL::text) RETURNS text
     LANGUAGE plpgsql
     AS $$
 DECLARE
     loc_record RECORD;
     loc_name TEXT;
 BEGIN
+    -- Validate input based on entity type
     CASE inp_entity_type
-        WHEN 'idPlayer' THEN
-            SELECT id, player_get_full_name(id) AS full_name INTO loc_record FROM players WHERE id = inp_id;
-            loc_name := COALESCE(inp_text, loc_record.full_name);
-        WHEN 'idClub' THEN
-            SELECT id, name INTO loc_record FROM clubs WHERE id = inp_id;
-            loc_name := COALESCE(inp_text, loc_record.name);
-        WHEN 'idLeague' THEN
-            SELECT id, name INTO loc_record FROM leagues WHERE id = inp_id;
-            loc_name := COALESCE(inp_text, loc_record.name);
-        WHEN 'idGame' THEN
-            SELECT id, 'S' || season_number || 'W' || week_number || ' game' AS name INTO loc_record FROM games WHERE id = inp_id;
-            loc_name := COALESCE(inp_text, loc_record.name);
-        WHEN 'idTeamcomp' THEN
-            SELECT id, 'S' || season_number || 'W'  || week_number || ' teamcomp' AS name INTO loc_record FROM teamcomps WHERE id = inp_id;
-            loc_name := COALESCE(inp_text, loc_record.name);
-        WHEN 'idCountry' THEN
-            SELECT id, name INTO loc_record FROM countries WHERE id = inp_id;
-            loc_name := COALESCE(inp_text, loc_record.name);
-        -- WHEN 'user' THEN
-        --     SELECT id, 'league' || level || '.' || number AS name INTO loc_record FROM leagues WHERE id = inp_id;
-        --     RETURN '{idUser:' || id || '}';
-        -- WHEN 'continent' THEN
-        --     -- ...existing code...
-        --     RETURN '{continent:' || id || '}';
+        WHEN 'idPlayer', 'idClub', 'idLeague', 'idGame', 'idTeamcomp', 'idCountry' THEN
+            IF inp_id IS NULL THEN
+                -- RAISE EXCEPTION 'inp_id must be provided for entity type %', inp_entity_type;
+                RETURN 'NOT FOUND';
+            END IF;
+        WHEN 'uuidUser' THEN
+            IF inp_uuid_user IS NULL THEN
+                RAISE EXCEPTION 'inp_uuid_user must be provided for entity type uuidUser';
+            END IF;
         ELSE
             RAISE EXCEPTION 'Invalid entity type: %', inp_entity_type;
     END CASE;
+
+    -- Process based on entity type
+    CASE inp_entity_type
+        WHEN 'idPlayer' THEN
+            SELECT id::TEXT, player_get_full_name(id) AS full_name INTO loc_record FROM players WHERE id = inp_id;
+            loc_name := COALESCE(inp_text, loc_record.full_name);
+        WHEN 'idClub' THEN
+            SELECT id::TEXT, name INTO loc_record FROM clubs WHERE id = inp_id;
+            loc_name := COALESCE(inp_text, loc_record.name);
+        WHEN 'idLeague' THEN
+            SELECT id::TEXT, name INTO loc_record FROM leagues WHERE id = inp_id;
+            loc_name := COALESCE(inp_text, loc_record.name);
+        WHEN 'idGame' THEN
+            SELECT id::TEXT, 'S' || season_number || 'W' || week_number || ' game' AS name INTO loc_record FROM games WHERE id = inp_id;
+            loc_name := COALESCE(inp_text, loc_record.name);
+        WHEN 'idTeamcomp' THEN
+            SELECT id::TEXT, 'S' || season_number || 'W'  || week_number || ' teamcomp' AS name INTO loc_record FROM teamcomps WHERE id = inp_id;
+            loc_name := COALESCE(inp_text, loc_record.name);
+        WHEN 'idCountry' THEN
+            SELECT id::TEXT, name INTO loc_record FROM countries WHERE id = inp_id;
+            loc_name := COALESCE(inp_text, loc_record.name);
+        WHEN 'uuidUser' THEN
+            SELECT uuid_user::TEXT AS id, username AS name INTO loc_record FROM profiles WHERE uuid_user = inp_uuid_user;
+            loc_name := COALESCE(inp_text, loc_record.name);
+        ELSE
+            RAISE EXCEPTION 'Invalid entity type: %', inp_entity_type;
+    END CASE;
+
     RETURN '{' || inp_entity_type || ':' || loc_record.id || ',' || loc_name || '}';
 END;
 $$;
 
 
-ALTER FUNCTION public.string_parser(inp_id bigint, inp_entity_type text, inp_text text) OWNER TO postgres;
+ALTER FUNCTION public.string_parser(inp_entity_type text, inp_id bigint, inp_uuid_user uuid, inp_text text) OWNER TO postgres;
 
 --
 -- Name: teamcomp_check_and_try_populate_if_error(bigint); Type: FUNCTION; Schema: public; Owner: postgres
@@ -6025,7 +6269,7 @@ BEGIN
         ------------------------------------------------------------------------------------------------------------------------
         ------------ Add players to the teamcomp if there are less than 11 players
         ------ Select the players from the club that are not in the starting positions
-        SELECT array_agg(id ORDER BY performance_score DESC) INTO array_id_players_tmp FROM players
+        SELECT array_agg(id ORDER BY performance_score_real DESC) INTO array_id_players_tmp FROM players
         WHERE id NOT IN (
             SELECT unnest(array_remove(array_id_players[1:14], NULL))
         )
@@ -6077,7 +6321,7 @@ BEGIN
         ------------------------------------------------------------------------------------------------------------------------
         ------------ Finally try to populate the subs positions
         ------ Select the players from the club that are not in the starting positions
-        SELECT array_agg(id ORDER BY performance_score DESC) INTO array_id_players_tmp FROM players
+        SELECT array_agg(id ORDER BY performance_score_real DESC) INTO array_id_players_tmp FROM players
         WHERE id NOT IN (SELECT unnest(array_remove(array_id_players, NULL)))
         AND id_club = rec_teamcomp.id_club;
 
@@ -6155,7 +6399,7 @@ BEGIN
                         (rec_teamcomp.id_club, 'Coach', TRUE,
                         -- (SELECT date_now FROM multiverses WHERE id = (SELECT id_multiverse FROM clubs WHERE id = rec_teamcomp.id_club)),
                         array_length(text_return, 1) || ' Errors in teamcomp of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number,
-                        'I tried correcting the ' || string_parser(rec_teamcomp.id, 'idTeamcomp') || ' for the game of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number || '. It contained ' || array_length(text_return, 1) || ' errors !');
+                        'I tried correcting the ' || string_parser(inp_entity_type := 'idTeamcomp', inp_id := rec_teamcomp.id) || ' for the game of S' || rec_teamcomp.season_number || 'W' || rec_teamcomp.week_number || '. It contained ' || array_length(text_return, 1) || ' errors !');
 
             END IF;
 
@@ -6496,8 +6740,8 @@ BEGIN
             INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
             VALUES (
                 latest_bid.id_club, 'Treasurer', TRUE,
-                'Outbided on ' || string_parser(rec_player.id, 'idPlayer'),
-                'A new bid of ' || inp_amount || ' was made on ' || string_parser(rec_player.id, 'idPlayer') || ' by ' || string_parser(rec_club_bidder.id, 'idClub') || '. We are not favourite anymore');
+                'Outbided on ' || string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id),
+                'A new bid of ' || inp_amount || ' was made on ' || string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' by ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_club_bidder.id) || '. We are not favourite anymore');
             
         END IF;
 
@@ -6543,6 +6787,91 @@ $$;
 ALTER FUNCTION public.transfers_handle_new_bid(inp_id_player bigint, inp_id_club_bidder bigint, inp_amount bigint, inp_max_price bigint, is_auto boolean) OWNER TO postgres;
 
 --
+-- Name: transfers_handle_new_embodied_player_offer(bigint, bigint, smallint, timestamp with time zone, smallint, text, text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.transfers_handle_new_embodied_player_offer(inp_id_player bigint, inp_id_club bigint, inp_expenses_offered smallint, inp_date_limit timestamp with time zone DEFAULT NULL::timestamp with time zone, inp_number_season smallint DEFAULT 1, inp_comment_for_player text DEFAULT NULL::text, inp_comment_for_club text DEFAULT NULL::text) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+    rec_player RECORD; -- Player record
+    rec_club RECORD; -- Club record
+    new_id bigint;
+    current_user_name text;
+BEGIN
+
+    ------ CHECKS
+    IF inp_id_player IS NULL THEN
+        RAISE EXCEPTION 'Player id cannot be NULL';
+    ELSIF inp_id_club IS NULL THEN
+        RAISE EXCEPTION 'Club id cannot be null !';
+    ELSIF inp_expenses_offered IS NULL THEN
+        RAISE EXCEPTION 'Expenses offered cannot be NULL !';
+    ELSIF inp_expenses_offered < 0 THEN
+        RAISE EXCEPTION 'Expenses offered cannot be negative !';
+    ELSIF inp_number_season < 1 THEN
+        RAISE EXCEPTION 'Number of seasons cannot be lower than 1 !';
+    ELSIF inp_number_season > 5 THEN
+        RAISE EXCEPTION 'Number of seasons cannot be higher than 5 !';
+    END IF;
+
+    ------ Get the club record
+    SELECT * INTO rec_club FROM clubs WHERE id = inp_id_club;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Club with id % does not exist', inp_id_club;
+    END IF;
+
+    ------ Get the player record
+    SELECT players.*, player_get_full_name(players.id) AS full_name, multiverses.speed INTO rec_player
+    FROM players
+    LEFT JOIN clubs ON clubs.id = players.id_club
+    JOIN multiverses ON multiverses.id = players.id_multiverse
+    WHERE players.id = inp_id_player;
+
+    ------ CHECKS on the player record
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Player with id % does not exist', inp_id_player;
+    ELSIF rec_player.id_multiverse != rec_club.id_multiverse THEN
+        RAISE EXCEPTION 'Player and club must be in the same multiverse';
+    ELSIF inp_expenses_offered < rec_player.expenses_target * 0.5 THEN
+        RAISE EXCEPTION 'Expenses offered cannot be lower than 50%% of the target expenses (%)', rec_player.expenses_target;
+    ELSIF inp_expenses_offered > rec_player.expenses_target * 1.5 THEN
+        RAISE EXCEPTION 'Expenses offered cannot be higher than 150%% of the target expenses (%)', rec_player.expenses_target; 
+    END IF;
+
+    ------ Delete the previous offer if it exists
+    DELETE FROM public.transfers_embodied_players_offers
+    WHERE id_player = inp_id_player
+        AND id_club = inp_id_club
+        AND is_accepted IS NULL;
+
+    ------ Insert the new offer
+    INSERT INTO public.transfers_embodied_players_offers (
+        id_player,
+        id_club,
+        expenses_offered,
+        date_limit,
+        number_season,
+        comment_for_player,
+        comment_for_club
+    ) VALUES (
+        inp_id_player,
+        inp_id_club,
+        inp_expenses_offered,
+        inp_date_limit,
+        inp_number_season,
+        inp_comment_for_player,
+        inp_comment_for_club
+    );
+
+    RETURN;
+END;
+$$;
+
+
+ALTER FUNCTION public.transfers_handle_new_embodied_player_offer(inp_id_player bigint, inp_id_club bigint, inp_expenses_offered smallint, inp_date_limit timestamp with time zone, inp_number_season smallint, inp_comment_for_player text, inp_comment_for_club text) OWNER TO postgres;
+
+--
 -- Name: transfers_handle_transfers(record); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -6550,35 +6879,43 @@ CREATE FUNCTION public.transfers_handle_transfers(inp_multiverse record) RETURNS
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    player RECORD; -- Record variable to store each row from the query
+    rec_player RECORD; -- Record variable to store each row from the query
     last_bid RECORD; -- Record variable to store the last bid for each player
     teamcomp RECORD; -- Record variable to store the teamcomp
     loc_tmp INT8; -- Variable to store the count of rows affected by the query
 BEGIN
 
-    -- Query to select rows to process (bids finished and player is not currently playing a game)
-    FOR player IN (
-        SELECT *, player_get_full_name(id) AS full_name,
-            string_parser(id, 'idPlayer') AS special_string_player,
-            string_parser(id_club, 'idClub') AS special_string_club
-            FROM players
-            WHERE date_bid_end < NOW()
-            AND is_playing = FALSE
-            AND id_multiverse = inp_multiverse.id
+    ------ Query to select rows to process (bids finished and player is not currently playing a game)
+    FOR rec_player IN (
+        SELECT *,
+            player_get_full_name(id) AS full_name,
+            string_parser(inp_entity_type := 'idPlayer', inp_id := id) AS special_string_player,
+            CASE WHEN id_club IS NULL THEN
+                'NO CLUB'
+            ELSE
+                string_parser(inp_entity_type := 'idClub', inp_id := id_club)
+            END AS special_string_club
+        FROM players
+        WHERE date_bid_end < NOW()
+        AND is_playing = FALSE
+        AND id_multiverse = inp_multiverse.id
+        AND username IS NULL -- Exclude embodied players
     ) LOOP
-
+    
         -- Get the last bid on the player
-        SELECT * INTO last_bid
-            FROM transfers_bids
-            WHERE id_player = player.id
-            ORDER BY amount DESC
-            LIMIT 1;
+        SELECT *, 
+            string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS special_string_buying_club
+        INTO last_bid
+        FROM transfers_bids
+        WHERE id_player = rec_player.id
+        ORDER BY amount DESC
+        LIMIT 1;
 
         ------ If no bids are found
         IF NOT FOUND THEN
 
             ---- If the player is clubless
-            IF player.id_club IS NULL THEN
+            IF rec_player.id_club IS NULL THEN
 
                 -- Update player to make bidding next week
                 UPDATE players SET
@@ -6586,45 +6923,45 @@ BEGIN
                     expenses_expected = CEIL(0.1 * expenses_target + 0.5 * expenses_expected),
                     transfer_price = 100,
                     motivation = motivation - 5.0 * (expenses_expected / expenses_target)
-                WHERE id = player.id;
+                WHERE id = rec_player.id;
             
             ---- If the player has a club
             ELSE
 
                 -- If the player asked to leave the club or was fired ==> Player leaves the club
-                IF player.transfer_price = -100 THEN
+                IF rec_player.transfer_price = -100 THEN
 
                     -- Insert a message to say that the player left the club
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message) VALUES
-                        (player.id_club, 'Treasurer', TRUE,
-                        player.special_string_player || ' found no bidder and leaves the club',
-                        player.special_string_player || ' has not received any bid, the selling is over and he is not part of the club anymore. He is now clubless and was removed from the club''s teamcomps.');
+                        (rec_player.id_club, 'Treasurer', TRUE,
+                        rec_player.special_string_player || ' found no bidder and leaves the club',
+                        rec_player.special_string_player || ' has not received any bid, the selling is over and he is not part of the club anymore. He is now clubless and was removed from the club''s teamcomps.');
 
                     -- Send mail to the clubs following the player
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     SELECT DISTINCT id_club, 'Scouts', TRUE,
-                        player.special_string_player || ' (followed) found no bidder and leaves ' || player.special_string_club,
-                        'The transfer of ' || player.special_string_player || ' (followed) has been canceled because no bids were made. He is now clubless'
+                        rec_player.special_string_player || ' (followed) found no bidder and leaves ' || rec_player.special_string_club,
+                        'The transfer of ' || rec_player.special_string_player || ' (followed) has been canceled because no bids were made. He is now clubless'
                     FROM (
-                        SELECT id_club FROM players_favorite WHERE id_player = player.id
+                        SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                         UNION
-                        SELECT id_club FROM players_poaching WHERE id_player = player.id
+                        SELECT id_club FROM players_poaching WHERE id_player = rec_player.id
                     ) AS clubs;
 
                     -- Insert a new row in the clubs_history table
                     INSERT INTO clubs_history
                         (id_club, description)
                         VALUES (
-                            player.id_club,
-                            player.special_string_player || ' left the club and is now clubless because no bids were made on him'
+                            rec_player.id_club,
+                            rec_player.special_string_player || ' left the club and is now clubless because no bids were made on him'
                     );
 
                     -- Insert a new row in the players_history table
                     INSERT INTO players_history
-                        (id_player, id_club, description)
+                        (id_player, id_club, is_transfer_description, description)
                         VALUES (
-                            player.id, player.id_club,
-                            'Left ' || string_parser(player.id_club, 'idClub') || ' because no bids were made on him'
+                            rec_player.id, rec_player.id_club, TRUE,
+                            'Left ' || rec_player.special_string_club || ' because no bids were made on him'
                     );
 
                     -- Update the player to set him as clubless
@@ -6632,16 +6969,17 @@ BEGIN
                         id_club = NULL,
                         date_arrival = date_bid_end,
                         shirt_number = NULL,
+                        expenses_payed = 0,
                         expenses_missed = 0,
                         motivation = 60 + random() * 30,
                         transfer_price = 100,
                         date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / inp_multiverse.speed)
-                    WHERE id = player.id;
+                    WHERE id = rec_player.id;
 
                     -- Remove the player from the club's teamcomps where he appears
                     FOR teamcomp IN (
                         SELECT id FROM games_teamcomp
-                        WHERE id_club = player.id_club
+                        WHERE id_club = rec_player.id_club
                         AND is_played = FALSE)
                     LOOP
                         PERFORM teamcomp_check_or_correct_errors(
@@ -6651,23 +6989,25 @@ BEGIN
                     END LOOP;
 
                     ------ If the club is a bot club
-                    IF (SELECT username FROM clubs WHERE id = player.id_club) IS NULL THEN
+                    IF (SELECT username FROM clubs WHERE id = rec_player.id_club) IS NULL THEN
 
                         -- Create a new player to replace the one that left
                         loc_tmp := players_create_player(
-                            inp_id_multiverse := player.id_multiverse,
-                            inp_id_club := player.id_club,
-                            inp_id_country := player.id_country,
+                            inp_id_multiverse := rec_player.id_multiverse,
+                            inp_id_club := rec_player.id_club,
+                            inp_id_country := rec_player.id_country,
                             inp_age := 15 + RANDOM() * 5,
-                            inp_shirt_number := player.shirt_number
+                            inp_shirt_number := rec_player.shirt_number,
+                            inp_notes := 'New player replacing ' || rec_player.full_name,
+                            inp_stats_better_player := 1.0
                         );
 
                         -- Store in the club history
                         INSERT INTO clubs_history
                             (id_club, description)
                         VALUES (
-                            player.id_club,
-                            string_parser(loc_tmp, 'idPlayer') || ' joined the squad because of a lack of players');
+                            rec_player.id_club,
+                            string_parser(inp_entity_type := 'idPlayer', inp_id := loc_tmp) || ' joined the club because of a lack of players');
 
                     END IF;
 
@@ -6678,35 +7018,34 @@ BEGIN
                     INSERT INTO mails (
                         id_club_to, created_at, sender_role, is_transfer_info, title, message)
                     VALUES
-                        (player.id_club, player.date_bid_end, 'Treasurer', TRUE,
-                        player.special_string_player || ' not sold and stays in the club',
-                        player.special_string_player || ' has not received any bid, the selling is canceled and he will stay in the club');
+                        (rec_player.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
+                        rec_player.special_string_player || ' not sold and stays in the club',
+                        rec_player.special_string_player || ' has not received any bid, the selling is canceled and he will stay in the club');
 
                     -- Send mail to the clubs following the player
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     SELECT DISTINCT id_club, 'Scouts', TRUE,
-                        player.special_string_player || ' (followed) found no bidder so stays in ' || player.special_string_club,
-                        'The transfer of ' || player.special_string_player || ' (followed) has been canceled because no bids were made. He stays in ' || player.special_string_club
+                        rec_player.special_string_player || ' (followed) found no bidder so stays in ' || rec_player.special_string_club,
+                        'The transfer of ' || rec_player.special_string_player || ' (followed) has been canceled because no bids were made. He stays in ' || rec_player.special_string_club
                     FROM (
-                        SELECT id_club FROM players_favorite WHERE id_player = player.id
+                        SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                         UNION
-                        SELECT id_club FROM players_poaching WHERE id_player = player.id
+                        SELECT id_club FROM players_poaching WHERE id_player = rec_player.id
                     ) AS clubs;
 
                     -- Insert a new row in the players_history table
                     INSERT INTO players_history
-                        (id_player, id_club, description)
+                        (id_player, id_club, is_transfer_description, description)
                     VALUES (
-                        player.id,
-                        player.id_club,
-                        'Put on transfer list by ' || string_parser(player.id_club, 'idClub') || ' but no bids were made'
+                        rec_player.id, rec_player.id_club, TRUE,
+                        'Put on transfer list by ' || rec_player.special_string_club || ' but no bids were made'
                     );
 
                     -- Update the player to remove the date bid end
                     UPDATE players SET
                         date_bid_end = NULL,
                         transfer_price = NULL
-                    WHERE id = player.id;
+                    WHERE id = rec_player.id;
 
                 END IF;
             END IF;
@@ -6714,25 +7053,25 @@ BEGIN
         ELSE
 
             -- If the player is clubless
-            IF player.id_club IS NULL THEN
+            IF rec_player.id_club IS NULL THEN
 
                 -- Insert a message to say that the player was sold
                 INSERT INTO mails (
                     id_club_to, created_at, sender_role, is_transfer_info, title, message)
                 VALUES
-                    (last_bid.id_club, player.date_bid_end, 'Treasurer', TRUE,
-                    player.special_string_player || ' (clubless player) bought for ' || last_bid.amount,
-                    player.special_string_player || ' who was clubless has been bought for ' || last_bid.amount);
+                    (last_bid.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
+                    rec_player.special_string_player || ' (clubless player) bought for ' || last_bid.amount,
+                    rec_player.special_string_player || ' who was clubless has been bought for ' || last_bid.amount);
                 
                 -- Send mail to the clubs following the player
                 INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                 SELECT DISTINCT id_club, 'Scouts', TRUE,
-                    player.special_string_player || ' (followed) sold for ' || last_bid.amount,
-                    player.special_string_player || ' (followed) who was clubless has been sold for ' || last_bid.amount || ' to ' || string_parser(last_bid.id_club, 'idClub') || '.'
+                    rec_player.special_string_player || ' (followed) sold for ' || last_bid.amount,
+                    rec_player.special_string_player || ' (followed) who was clubless has been sold for ' || last_bid.amount || ' to ' || last_bid.special_string_buying_club || '.'
                 FROM (
-                    SELECT id_club FROM players_favorite WHERE id_player = player.id
+                    SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                     UNION
-                    SELECT id_club FROM players_poaching WHERE id_player = player.id
+                    SELECT id_club FROM players_poaching WHERE id_player = rec_player.id
                 ) AS clubs;
 
             ELSE
@@ -6741,22 +7080,21 @@ BEGIN
                 INSERT INTO mails
                     (id_club_to, created_at, sender_role, is_transfer_info, title, message)
                 VALUES
-                    (player.id_club, player.date_bid_end, 'Treasurer', TRUE,
-                        player.special_string_player || ' sold for ' || last_bid.amount,
-                        player.special_string_player || ' has been sold for ' || last_bid.amount || ' to ' || string_parser(last_bid.id_club, 'idClub') || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
-                    (last_bid.id_club, player.date_bid_end, 'Treasurer', TRUE,
-                        player.special_string_player || ' bought for ' || last_bid.amount,
-                        player.special_string_player || ' has been bought for ' || last_bid.amount || '. I hope he will be a good addition to our team !');
+                    (rec_player.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
+                        rec_player.special_string_player || ' sold for ' || last_bid.amount,
+                        rec_player.special_string_player || ' has been sold for ' || last_bid.amount || ' to ' || last_bid.special_string_buying_club || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
+                    (last_bid.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
+                        rec_player.special_string_player || ' has been bought for ' || last_bid.amount || '. I hope he will be a good addition to our team !');
 
                 -- Send mail to the clubs following the player
                 INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                 SELECT DISTINCT id_club, 'Scouts', TRUE,
-                    player.special_string_player || ' (followed) sold for ' || last_bid.amount,
-                    player.special_string_player || ' (followed) has been sold for ' || last_bid.amount || ' from ' || player.special_string_club || ' to ' || string_parser(last_bid.id_club, 'idClub') || '.'
+                    rec_player.special_string_player || ' (followed) sold for ' || last_bid.amount,
+                    rec_player.special_string_player || ' (followed) has been sold for ' || last_bid.amount || ' from ' || rec_player.special_string_club || ' to ' || last_bid.special_string_buying_club || '.'
                 FROM (
-                    SELECT id_club FROM players_favorite WHERE id_player = player.id
+                    SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                     UNION
-                    SELECT id_club FROM players_poaching WHERE id_player = player.id
+                    SELECT id_club FROM players_poaching WHERE id_player = rec_player.id
                 ) AS clubs;
 
                 -- Update the selling club's cash
@@ -6764,12 +7102,12 @@ BEGIN
                     cash = cash + last_bid.amount,
                     revenues_transfers_expected = revenues_transfers_expected - last_bid.amount,
                     revenues_transfers_done = revenues_transfers_done + last_bid.amount
-                    WHERE id = player.id_club;
+                    WHERE id = rec_player.id_club;
 
                 -- Remove the player from the club's teamcomps where he appears
                 FOR teamcomp IN (
                     SELECT id FROM games_teamcomp
-                    WHERE id_club = player.id_club
+                    WHERE id_club = rec_player.id_club
                     AND is_played = FALSE)
                 LOOP
                     PERFORM teamcomp_check_or_correct_errors(
@@ -6791,62 +7129,112 @@ BEGIN
                 (id_club, description)
             VALUES (
                 last_bid.id_club,
-                player.special_string_player || ' joined the club for ' || last_bid.amount
+                rec_player.special_string_player || ' joined the club for ' || last_bid.amount
             );
 
             -- Insert a new row in the players_history table
             INSERT INTO players_history
-                (id_player, id_club, description)
+                (id_player, id_club, is_transfer_description, description)
                 VALUES (
-                    player.id,
-                    player.id_club,
-                    'Joined ' || string_parser(last_bid.id_club, 'idClub') || ' for ' || last_bid.amount
+                    rec_player.id, rec_player.id_club, TRUE,
+                    'Joined ' || last_bid.special_string_buying_club || ' for ' || last_bid.amount
                 );
 
             -- Update the players from the clubs_poaching tables
             UPDATE players_poaching SET
                 investment_target = 0,
                 affinity = 0
-            WHERE id_player = player.id;
+            WHERE id_player = rec_player.id;
 
             -- Update the player
             UPDATE players SET
                 id_club = last_bid.id_club,
                 date_arrival = date_bid_end,
                 motivation = 70 + random() * 30,
-                -- new expenses_expected = expenses_expected * (125 - affinity) / 100.0,
                 expenses_expected = expenses_expected *
-                    (125 - COALESCE((SELECT affinity FROM players_poaching WHERE id_player = player.id AND id_club = last_bid.id_club), 0)) / 100.0,
+                    (125 - COALESCE((SELECT affinity FROM players_poaching WHERE id_player = rec_player.id AND id_club = last_bid.id_club), 0)) / 100.0,
                 transfer_price = NULL,
                 date_bid_end = NULL
-            WHERE id = player.id;
+            WHERE id = rec_player.id;
 
             ------ If the player has a club that is a bot club
-            IF player.id_club IS NOT NULL AND (SELECT username FROM clubs WHERE id = player.id_club) IS NULL THEN
+            IF rec_player.id_club IS NOT NULL AND (SELECT username FROM clubs WHERE id = rec_player.id_club) IS NULL THEN
             
                 -- Create a new player to replace the one that left
                 loc_tmp := players_create_player(
-                    inp_id_multiverse := player.id_multiverse,
-                    inp_id_club := player.id_club,
-                    inp_id_country := player.id_country,
+                    inp_id_multiverse := rec_player.id_multiverse,
+                    inp_id_club := rec_player.id_club,
+                    inp_id_country := rec_player.id_country,
                     inp_age := 15 + RANDOM() * 5,
-                    inp_shirt_number := player.shirt_number
+                    inp_shirt_number := rec_player.shirt_number,
+                    inp_notes := 'New player replacing ' || rec_player.full_name,
+                    inp_stats_better_player := 1.0
                 );
 
                 -- Store in the club history
                 INSERT INTO clubs_history
                     (id_club, description)
                 VALUES (
-                    player.id_club,
-                    string_parser(loc_tmp, 'idPlayer') || ' joined the squad because of a lack of players');
+                    rec_player.id_club,
+                    string_parser(inp_entity_type := 'idPlayer', inp_id := loc_tmp) || ' joined the squad because of a lack of players');
 
             END IF;
 
         END IF;
 
         -- Remove bids for this transfer from the transfer_bids table
-        DELETE FROM transfers_bids WHERE id_player = player.id;
+        DELETE FROM transfers_bids WHERE id_player = rec_player.id;
         
+    END LOOP;
+
+    ------ Handle players that have their contract ended
+    FOR rec_player IN (
+        SELECT *, player_get_full_name(id) AS full_name,
+            string_parser(inp_entity_type := 'idPlayer', inp_id := id) AS special_string_player,
+            string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS special_string_club
+            FROM players
+            WHERE date_end_contract < NOW()
+            AND is_playing = FALSE
+            AND id_multiverse = inp_multiverse.id
+    ) LOOP
+
+        ---- Insert a message to say that the embodied player has left the club
+        INSERT INTO mails (
+            id_club_to, created_at, sender_role, is_transfer_info, title, message)
+        VALUES
+            (rec_player.id_club, rec_player.date_end_contract, 'Coach', TRUE,
+            rec_player.special_string_player || ' contract ended',
+            rec_player.special_string_player || ' contract ended, he left the club, lets hope he will find what he is looking for');
+
+        ---- Send mail to the clubs following and poaching the player
+        INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
+        SELECT DISTINCT id_club, 'Scouts', TRUE,
+            rec_player.special_string_player || ' (followed) contract ended',
+            rec_player.special_string_player || ' (followed) contract ended and he is now clubless, its probably a good time to make a move !'
+        FROM (
+            SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
+            UNION
+            SELECT id_club FROM players_poaching WHERE id_player = rec_player.id
+        ) AS clubs;
+
+        ---- Update the player to set him as clubless
+        UPDATE players SET
+            id_club = NULL,
+            date_arrival = date_end_contract,
+            date_end_contract = NULL,
+            expenses_payed = 0,
+            expenses_missed = 0,
+            motivation = 60 + random() * 30
+        WHERE id = rec_player.id;
+
+        ---- Insert a new row in the players_history table
+        INSERT INTO players_history
+            (id_player, id_club, is_transfer_description, description)
+        VALUES (
+            rec_player.id, rec_player.id_club, TRUE,
+            'Contract ended and left ' || rec_player.special_string_club
+        );
+
     END LOOP;
 
     ------ Retire players that have too small motivation and are not in a club
@@ -6918,7 +7306,7 @@ ALTER FUNCTION public.trg_update_elo_points() OWNER TO postgres;
 
 CREATE FUNCTION public.trigger_club_handle_staff_update() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
-    AS $_$
+    AS $$
 DECLARE
     description_club TEXT;
     description_player TEXT;
@@ -6929,12 +7317,12 @@ DECLARE
     is_hired BOOLEAN;
 BEGIN
 
-    description_club := string_parser(NEW.id, 'idClub');
+    description_club := string_parser(inp_entity_type := 'idClub', inp_id := NEW.id);
 
     ------ If the coach has changed
     IF OLD.id_coach IS DISTINCT FROM NEW.id_coach THEN
         loc_id_player := COALESCE(NEW.id_coach, OLD.id_coach);
-        description_player := string_parser(loc_id_player, 'idPlayer');
+        description_player := string_parser(inp_entity_type := 'idPlayer', inp_id := loc_id_player);
         description_role := 'Coach';
         ---- If the coach arrived in the club
         IF NEW.id_coach IS NULL THEN
@@ -6948,7 +7336,7 @@ BEGIN
         END IF;
     ELSIF OLD.id_scout IS DISTINCT FROM NEW.id_scout THEN
         loc_id_player := COALESCE(NEW.id_scout, OLD.id_scout);
-        description_player := string_parser(loc_id_player, 'idPlayer');
+        description_player := string_parser(inp_entity_type := 'idPlayer', inp_id := loc_id_player);
         description_role := 'Scout';
         ---- If the scout has changed
         IF NEW.id_scout IS NULL THEN
@@ -6976,7 +7364,7 @@ BEGIN
     INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
     VALUES (NEW.id, 'Secretary', TRUE,
     description_role || ' Update: ' || description_player,
-    description_mail || '.\nYou have payed ' || description_player || ' 1000$ for the transfer.');
+    description_mail || '. You have payed 1000 for the transfer.');
 
     ------ Update the clubs table
     UPDATE clubs
@@ -6985,7 +7373,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$_$;
+$$;
 
 
 ALTER FUNCTION public.trigger_club_handle_staff_update() OWNER TO postgres;
@@ -7070,8 +7458,8 @@ BEGIN
     ------ Reset the player
     UPDATE players SET
         id_club = NULL, is_staff = FALSE, date_bid_end = NULL,
-        performance_score = 0,
-        expenses_payed = 0, expenses_expected = 0, expenses_missed = 0, expenses_target = 0,
+        performance_score_real = 0, performance_score_theoretical = 0,
+        expenses_payed = 0, expenses_expected = 0, expenses_missed = 0,
         keeper = 0, defense = 0, passes = 0, playmaking = 0, winger = 0, scoring = 0, freekick = 0,
         motivation = 0, form = 0, stamina = 0, energy = 0,
         training_points_available = 0, training_points_used = 0,
@@ -7112,7 +7500,7 @@ DECLARE
     player_string_parser TEXT;
 BEGIN
 
-    player_string_parser := string_parser(NEW.id, 'idPlayer');
+    player_string_parser := string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id);
 
     -- Select a random description from the array
     random_description := descriptions[floor(random() * array_length(descriptions, 1) + 1)::int];
@@ -7145,6 +7533,53 @@ $$;
 ALTER FUNCTION public.trigger_players_handle_retire() OWNER TO postgres;
 
 --
+-- Name: trigger_players_stats_update_recalculate_all(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.trigger_players_stats_update_recalculate_all() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+
+RAISE NOTICE 'Trigger players_stats_update_recalculate_all called for player ID: %', NEW.id;
+
+-- Update the players table with recalculated values
+UPDATE players SET
+    performance_score_real = players_calculate_player_best_weight(
+        ARRAY[
+            NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.scoring, NEW.freekick, NEW.winger,
+            NEW.motivation, NEW.form, NEW.experience, 100, NEW.stamina
+        ]
+    ),
+    performance_score_theoretical = players_calculate_player_best_weight(
+        ARRAY[
+            NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.scoring, NEW.freekick, NEW.winger,
+            100, 100, NEW.experience, 100, 100
+        ]
+    ),
+    expenses_target = FLOOR(
+        50 +
+        1 * calculate_age((SELECT speed FROM multiverses WHERE id = NEW.id_multiverse), NEW.date_birth) +
+        GREATEST(NEW.keeper, NEW.defense, NEW.playmaking, NEW.passes, NEW.winger, NEW.scoring, NEW.freekick) / 2 +
+        (NEW.keeper + NEW.defense + NEW.passes + NEW.playmaking + NEW.winger + NEW.scoring + NEW.freekick) / 4 +
+        (NEW.coef_coach + NEW.coef_scout) / 2
+    ),
+    coef_coach = FLOOR(
+        (NEW.loyalty + 2 * NEW.leadership + 2 * NEW.discipline + 2 * NEW.communication + 2 * NEW.composure + NEW.teamwork) / 10
+    ),
+    coef_scout = FLOOR(
+        (2 * NEW.loyalty + NEW.leadership + NEW.discipline + 3 * NEW.communication + 2 * NEW.composure + NEW.teamwork) / 10
+    )
+WHERE id = NEW.id;
+
+RETURN NULL;
+END;
+$$;
+
+
+ALTER FUNCTION public.trigger_players_stats_update_recalculate_all() OWNER TO postgres;
+
+--
 -- Name: trigger_teamcomps_check_error_in_teamcomp(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -7165,6 +7600,79 @@ $$;
 
 
 ALTER FUNCTION public.trigger_teamcomps_check_error_in_teamcomp() OWNER TO postgres;
+
+--
+-- Name: trigger_transfers_embodied_players_offer_is_accepted_or_refused(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.trigger_transfers_embodied_players_offer_is_accepted_or_refused() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    ------ Ignore if the offer has not been handled yet
+    IF (NEW.is_accepted IS NULL) THEN
+        RETURN NEW;
+    END IF;
+    
+    ------ Offer is accepted
+    IF (NEW.is_accepted = TRUE) THEN
+      
+        ---- Send mail to the club to say that the player has accepted the offer
+        INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
+        VALUES (
+            NEW.id_club, 'Scouts', TRUE,
+            string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id_player) || ' has accepted our offer',
+            'The embodied player ' || string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id_player) || ' has accepted our offer of ' || NEW.expenses_offered || ' weekly expenses and is now ready to write a new page in the history of the club !');
+
+        ---- Automatically refuse the other pending offers
+        UPDATE public.transfers_embodied_players_offers SET
+            is_accepted = FALSE
+        WHERE id_player = NEW.id_player
+            AND id != NEW.id
+            AND is_accepted IS NULL;
+
+        ---- Update the player's club
+        UPDATE players SET
+            id_club = NEW.id_club,
+            date_arrival = NOW(),
+            motivation = 70 + random() * 30,
+            expenses_expected = NEW.expenses_offered,
+            transfer_price = NULL,
+            date_end_contract = NOW() +
+                (INTERVAL '14 weeks' * NEW.number_season / (
+                    SELECT speed FROM multiverses WHERE id = (SELECT id_multiverse FROM players WHERE id = NEW.id_player)))
+        WHERE id = NEW.id_player;
+
+        ---- Insert a new row in the players_history table
+        INSERT INTO players_history (id_player, id_club, is_transfer_description, description)
+        VALUES (
+            NEW.id_player, NEW.id_club, TRUE,
+            'Joined ' || string_parser(inp_entity_type := 'idClub', inp_id := NEW.id_club) || ' for a ' || NEW.number_season || ' year contract'
+        );
+
+    ------ Offer is refused
+    ELSEIF (NEW.is_accepted = FALSE) THEN
+      
+        ---- Send mail to the club
+        INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
+        VALUES (
+            NEW.id_club, 'Scouts', TRUE,
+            string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id_player) || ' has refused our offer',
+            'The embodied player ' || string_parser(inp_entity_type := 'idPlayer', inp_id := NEW.id_player) || ' has refused our offer of ' || NEW.expenses_offered || ' weekly expenses !');
+
+    END IF;
+
+    ---- Update the offer
+    UPDATE public.transfers_embodied_players_offers SET
+        date_handled = now()
+    WHERE id = NEW.id;
+
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.trigger_transfers_embodied_players_offer_is_accepted_or_refused() OWNER TO postgres;
 
 --
 -- Name: update_club_number_players_when_id_club_change(); Type: FUNCTION; Schema: public; Owner: postgres
@@ -7209,6 +7717,95 @@ $$;
 
 
 ALTER FUNCTION public.update_club_number_players_when_id_club_change() OWNER TO postgres;
+
+--
+-- Name: users_handle_user_created(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.users_handle_user_created() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+BEGIN
+
+    ------ Check if the user already exists
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE uuid_user = NEW.id) THEN
+        RAISE EXCEPTION 'User with ID % already exists', NEW.id;
+    END IF;
+
+    ------ Check if the raw_user_meta_data is provided
+    IF NEW.raw_user_meta_data IS NULL THEN
+        RAISE EXCEPTION 'raw_user_meta_data cannot be NULL';
+    END IF;
+
+    IF NEW.raw_user_meta_data->>'username' IS NULL THEN
+        RAISE EXCEPTION 'username cannot be NULL in raw_user_meta_data';
+    END IF;
+
+    IF NEW.email IS NULL THEN
+        RAISE EXCEPTION 'email cannot be NULL';
+    END IF;
+
+    ------ Insert the user into the profiles table
+    INSERT INTO public.profiles(uuid_user, username, email)
+    VALUES (NEW.id, NEW.raw_user_meta_data->>'username', NEW.email);
+
+    ------ Log user history
+    INSERT INTO public.profile_events (uuid_user, description)
+    VALUES (NEW.id, 'Creation of the user');
+
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.users_handle_user_created() OWNER TO postgres;
+
+--
+-- Name: users_handle_user_deleted(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.users_handle_user_deleted() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+    rec_profile RECORD; -- Record to hold the profile information
+BEGIN
+
+    ------ Check if the user exists in the profiles table
+    SELECT *,
+        string_parser(inp_entity_type := 'uuidUser', inp_uuid_user := uuid_user) AS uuid_user_special_string
+    INTO rec_profile
+    FROM public.profiles
+    WHERE uuid_user = OLD.id;
+
+    -- IF NOT FOUND THEN
+    --     RAISE EXCEPTION 'User with ID % does not exist in profiles', OLD.id;
+    -- END IF;
+    
+    ------ Remove the user from the clubs and players table
+    UPDATE public.clubs
+    SET username = NULL
+    WHERE username = rec_profile.username;
+
+    ------ Remove the user from the players table
+    UPDATE public.players
+    SET username = NULL
+    WHERE username = rec_profile.username;
+
+    ------ Handle user deletion
+    DELETE FROM public.profiles WHERE uuid_user = OLD.id;
+
+    ------ Log user history
+    -- INSERT INTO public.profile_events (uuid_user, description)
+    -- VALUES (OLD.id, 'User deleted with username: ' || (SELECT username FROM public.profiles WHERE uuid_user = OLD.id));
+
+    RETURN OLD;
+END;
+$$;
+
+
+ALTER FUNCTION public.users_handle_user_deleted() OWNER TO postgres;
 
 --
 -- Name: apply_rls(jsonb, integer); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
@@ -8684,6 +9281,78 @@ COMMENT ON COLUMN auth.users.is_sso_user IS 'Auth: Set this column to true when 
 
 
 --
+-- Name: first_names; Type: TABLE; Schema: players_generation; Owner: postgres
+--
+
+CREATE TABLE players_generation.first_names (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    name text NOT NULL,
+    weight real NOT NULL,
+    id_country bigint NOT NULL
+);
+
+
+ALTER TABLE players_generation.first_names OWNER TO postgres;
+
+--
+-- Name: TABLE first_names; Type: COMMENT; Schema: players_generation; Owner: postgres
+--
+
+COMMENT ON TABLE players_generation.first_names IS 'First names';
+
+
+--
+-- Name: first_names_id_seq; Type: SEQUENCE; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE players_generation.first_names ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME players_generation.first_names_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: last_names; Type: TABLE; Schema: players_generation; Owner: postgres
+--
+
+CREATE TABLE players_generation.last_names (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    name text NOT NULL,
+    weight real NOT NULL,
+    id_country bigint NOT NULL
+);
+
+
+ALTER TABLE players_generation.last_names OWNER TO postgres;
+
+--
+-- Name: TABLE last_names; Type: COMMENT; Schema: players_generation; Owner: postgres
+--
+
+COMMENT ON TABLE players_generation.last_names IS 'This is a duplicate of first_names';
+
+
+--
+-- Name: last_names_id_seq; Type: SEQUENCE; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE players_generation.last_names ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME players_generation.last_names_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: clubs_history; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -9777,8 +10446,8 @@ CREATE TABLE public.multiverses (
     day_number smallint DEFAULT '1'::smallint NOT NULL,
     last_run timestamp with time zone DEFAULT now() NOT NULL,
     error text,
-    date_next_handling timestamp with time zone DEFAULT now() NOT NULL,
-    is_active boolean DEFAULT true NOT NULL
+    is_active boolean DEFAULT true NOT NULL,
+    date_handling timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -9827,13 +10496,6 @@ COMMENT ON COLUMN public.multiverses.name IS 'Name of the multiverse';
 
 
 --
--- Name: COLUMN multiverses.date_next_handling; Type: COMMENT; Schema: public; Owner: postgres
---
-
-COMMENT ON COLUMN public.multiverses.date_next_handling IS 'Current date of the multiverse';
-
-
---
 -- Name: players; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -9862,7 +10524,7 @@ CREATE TABLE public.players (
     shirt_number smallint,
     notes text DEFAULT ''::text,
     multiverse_speed smallint NOT NULL,
-    performance_score real,
+    performance_score_real real DEFAULT '0'::real NOT NULL,
     is_playing boolean DEFAULT false NOT NULL,
     expenses_missed bigint DEFAULT '0'::bigint NOT NULL,
     experience real DEFAULT '0'::real NOT NULL,
@@ -9891,6 +10553,12 @@ CREATE TABLE public.players (
     coef_coach smallint DEFAULT '0'::smallint NOT NULL,
     coef_scout smallint DEFAULT '0'::smallint NOT NULL,
     is_staff boolean DEFAULT false NOT NULL,
+    user_points_available real NOT NULL,
+    user_points_used real DEFAULT '0'::real NOT NULL,
+    performance_score_theoretical real DEFAULT '0'::real NOT NULL,
+    date_end_contract timestamp with time zone,
+    expenses_won_total integer DEFAULT 0 NOT NULL,
+    expenses_won_available integer DEFAULT 0 NOT NULL,
     CONSTRAINT players_first_name_check CHECK ((length(first_name) <= 24)),
     CONSTRAINT players_last_name_check CHECK ((length(last_name) <= 24)),
     CONSTRAINT players_notes_small_check CHECK ((length(notes_small) <= 6)),
@@ -9916,10 +10584,10 @@ COMMENT ON COLUMN public.players.training_points_available IS 'Available trainin
 
 
 --
--- Name: COLUMN players.performance_score; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN players.performance_score_real; Type: COMMENT; Schema: public; Owner: postgres
 --
 
-COMMENT ON COLUMN public.players.performance_score IS 'Overall preformance score based on stats';
+COMMENT ON COLUMN public.players.performance_score_real IS 'Overall preformance score based on stats';
 
 
 --
@@ -10042,6 +10710,41 @@ COMMENT ON COLUMN public.players.is_staff IS 'Is the player part of the staff of
 
 
 --
+-- Name: COLUMN players.user_points_available; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.players.user_points_available IS 'Available points from the user embodying the player';
+
+
+--
+-- Name: COLUMN players.user_points_used; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.players.user_points_used IS 'Used points from the user embodying the player';
+
+
+--
+-- Name: COLUMN players.date_end_contract; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.players.date_end_contract IS 'Date when the player will leave its current club';
+
+
+--
+-- Name: COLUMN players.expenses_won_total; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.players.expenses_won_total IS 'Total amount of expenses won';
+
+
+--
+-- Name: COLUMN players.expenses_won_available; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.players.expenses_won_available IS 'Expenses won available (for embodied players)';
+
+
+--
 -- Name: players_favorite; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -10137,7 +10840,7 @@ CREATE TABLE public.players_history_stats (
     form real NOT NULL,
     stamina real NOT NULL,
     experience real NOT NULL,
-    performance_score real NOT NULL,
+    performance_score_real real NOT NULL,
     expenses_expected integer NOT NULL,
     expenses_payed integer NOT NULL,
     expenses_missed integer NOT NULL,
@@ -10150,7 +10853,13 @@ CREATE TABLE public.players_history_stats (
     communication real NOT NULL,
     aggressivity real NOT NULL,
     composure real NOT NULL,
-    teamwork real NOT NULL
+    teamwork real NOT NULL,
+    user_points_available real NOT NULL,
+    user_points_used real NOT NULL,
+    performance_score_theoretical real NOT NULL,
+    coef_coach smallint NOT NULL,
+    coef_scout smallint NOT NULL,
+    expenses_won_total integer NOT NULL
 );
 
 
@@ -10176,36 +10885,6 @@ ALTER TABLE public.players_history_stats ALTER COLUMN id ADD GENERATED BY DEFAUL
 
 ALTER TABLE public.players ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
     SEQUENCE NAME public.players_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- Name: players_names; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.players_names (
-    id bigint NOT NULL,
-    id_country bigint,
-    first_name text,
-    last_name text,
-    CONSTRAINT players_names_first_name_check CHECK ((length(first_name) <= 24)),
-    CONSTRAINT players_names_last_name_check CHECK ((length(last_name) <= 24))
-);
-
-
-ALTER TABLE public.players_names OWNER TO postgres;
-
---
--- Name: players_names_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-ALTER TABLE public.players_names ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.players_names_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -10279,6 +10958,34 @@ ALTER TABLE public.players_poaching ALTER COLUMN id ADD GENERATED BY DEFAULT AS 
 
 
 --
+-- Name: profile_events; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.profile_events (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    uuid_user uuid DEFAULT gen_random_uuid() NOT NULL,
+    description text NOT NULL
+);
+
+
+ALTER TABLE public.profile_events OWNER TO postgres;
+
+--
+-- Name: profile_events_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.profile_events ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.profile_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: profiles; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -10289,12 +10996,9 @@ CREATE TABLE public.profiles (
     id_default_club bigint,
     last_username_update timestamp with time zone DEFAULT now() NOT NULL,
     email character varying,
-    number_clubs_available smallint DEFAULT '1'::smallint NOT NULL,
-    number_players_available smallint DEFAULT '1'::smallint NOT NULL,
-    credits_available double precision DEFAULT '0'::double precision NOT NULL,
-    credits_used double precision DEFAULT '0'::double precision NOT NULL,
-    CONSTRAINT profiles_clubs_available_check CHECK ((number_clubs_available > 0)),
-    CONSTRAINT profiles_players_available_check CHECK ((number_players_available > 0)),
+    credits_available integer DEFAULT 0 NOT NULL,
+    credits_used integer DEFAULT 0 NOT NULL,
+    date_delete timestamp with time zone,
     CONSTRAINT username_validation CHECK ((username ~* '^[A-Za-z0-9_]{3,24}$'::text))
 );
 
@@ -10306,20 +11010,6 @@ ALTER TABLE public.profiles OWNER TO postgres;
 --
 
 COMMENT ON TABLE public.profiles IS 'Holds all of users profile information';
-
-
---
--- Name: COLUMN profiles.number_clubs_available; Type: COMMENT; Schema: public; Owner: postgres
---
-
-COMMENT ON COLUMN public.profiles.number_clubs_available IS 'Number of clubs available for this user';
-
-
---
--- Name: COLUMN profiles.number_players_available; Type: COMMENT; Schema: public; Owner: postgres
---
-
-COMMENT ON COLUMN public.profiles.number_players_available IS 'Number of players available for this user';
 
 
 --
@@ -10352,6 +11042,78 @@ COMMENT ON COLUMN public.transfers_bids.max_price IS 'Max price the club is will
 
 ALTER TABLE public.transfers_bids ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
     SEQUENCE NAME public.transfers_bids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: transfers_embodied_players_offers; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.transfers_embodied_players_offers (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    id_player bigint NOT NULL,
+    id_club bigint NOT NULL,
+    expenses_offered smallint NOT NULL,
+    date_limit timestamp with time zone,
+    number_season smallint DEFAULT '1'::smallint NOT NULL,
+    comment_for_player text,
+    comment_for_club text,
+    is_accepted boolean,
+    date_delete timestamp with time zone,
+    date_handled timestamp with time zone,
+    CONSTRAINT transfers_embodied_players_offers_number_season_check CHECK ((number_season <= 5))
+);
+
+
+ALTER TABLE public.transfers_embodied_players_offers OWNER TO postgres;
+
+--
+-- Name: COLUMN transfers_embodied_players_offers.date_limit; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.transfers_embodied_players_offers.date_limit IS 'Date when the offer expires';
+
+
+--
+-- Name: COLUMN transfers_embodied_players_offers.number_season; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.transfers_embodied_players_offers.number_season IS 'Number of season the player will be contracted to the club';
+
+
+--
+-- Name: COLUMN transfers_embodied_players_offers.comment_for_player; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.transfers_embodied_players_offers.comment_for_player IS 'Comment for the player';
+
+
+--
+-- Name: COLUMN transfers_embodied_players_offers.date_delete; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.transfers_embodied_players_offers.date_delete IS 'Date when the offer is removed from the table';
+
+
+--
+-- Name: COLUMN transfers_embodied_players_offers.date_handled; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.transfers_embodied_players_offers.date_handled IS 'Date when it was handled';
+
+
+--
+-- Name: transfers_embodied_players_offers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.transfers_embodied_players_offers ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.transfers_embodied_players_offers_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -10423,10 +11185,10 @@ PARTITION BY RANGE (inserted_at);
 ALTER TABLE realtime.messages OWNER TO supabase_realtime_admin;
 
 --
--- Name: messages_2025_03_28; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_16; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_03_28 (
+CREATE TABLE realtime.messages_2025_06_16 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -10438,13 +11200,13 @@ CREATE TABLE realtime.messages_2025_03_28 (
 );
 
 
-ALTER TABLE realtime.messages_2025_03_28 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2025_06_16 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_03_29; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_17; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_03_29 (
+CREATE TABLE realtime.messages_2025_06_17 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -10456,13 +11218,13 @@ CREATE TABLE realtime.messages_2025_03_29 (
 );
 
 
-ALTER TABLE realtime.messages_2025_03_29 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2025_06_17 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_03_30; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_18; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_03_30 (
+CREATE TABLE realtime.messages_2025_06_18 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -10474,13 +11236,13 @@ CREATE TABLE realtime.messages_2025_03_30 (
 );
 
 
-ALTER TABLE realtime.messages_2025_03_30 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2025_06_18 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_03_31; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_19; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_03_31 (
+CREATE TABLE realtime.messages_2025_06_19 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -10492,13 +11254,13 @@ CREATE TABLE realtime.messages_2025_03_31 (
 );
 
 
-ALTER TABLE realtime.messages_2025_03_31 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2025_06_19 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_04_01; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_20; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_04_01 (
+CREATE TABLE realtime.messages_2025_06_20 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -10510,13 +11272,13 @@ CREATE TABLE realtime.messages_2025_04_01 (
 );
 
 
-ALTER TABLE realtime.messages_2025_04_01 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2025_06_20 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_04_02; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_21; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_04_02 (
+CREATE TABLE realtime.messages_2025_06_21 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -10528,13 +11290,13 @@ CREATE TABLE realtime.messages_2025_04_02 (
 );
 
 
-ALTER TABLE realtime.messages_2025_04_02 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2025_06_21 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_04_03; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_22; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_04_03 (
+CREATE TABLE realtime.messages_2025_06_22 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -10546,529 +11308,7 @@ CREATE TABLE realtime.messages_2025_04_03 (
 );
 
 
-ALTER TABLE realtime.messages_2025_04_03 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_04; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_04 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_04 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_05; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_05 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_05 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_06; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_06 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_06 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_07; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_07 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_07 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_08; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_08 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_08 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_09; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_09 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_09 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_10; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_10 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_10 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_11; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_11 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_11 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_12; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_12 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_12 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_13; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_13 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_13 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_14; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_14 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_14 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_15; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_15 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_15 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_16; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_16 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_16 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_17; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_17 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_17 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_18; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_18 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_18 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_19; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_19 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_19 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_20; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_20 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_20 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_21; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_21 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_21 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_22; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_22 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_22 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_23; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_23 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_23 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_24; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_24 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_24 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_25; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_25 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_25 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_26; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_26 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_26 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_27; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_27 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_27 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_28; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_28 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_28 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_29; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_29 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_29 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_04_30; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_04_30 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_04_30 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_05_01; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_05_01 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_05_01 OWNER TO supabase_admin;
-
---
--- Name: messages_2025_05_02; Type: TABLE; Schema: realtime; Owner: supabase_admin
---
-
-CREATE TABLE realtime.messages_2025_05_02 (
-    topic text NOT NULL,
-    extension text NOT NULL,
-    payload jsonb,
-    event text,
-    private boolean DEFAULT false,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    inserted_at timestamp without time zone DEFAULT now() NOT NULL,
-    id uuid DEFAULT gen_random_uuid() NOT NULL
-);
-
-
-ALTER TABLE realtime.messages_2025_05_02 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2025_06_22 OWNER TO supabase_admin;
 
 --
 -- Name: schema_migrations; Type: TABLE; Schema: realtime; Owner: supabase_admin
@@ -11223,255 +11463,52 @@ CREATE TABLE storage.s3_multipart_uploads_parts (
 ALTER TABLE storage.s3_multipart_uploads_parts OWNER TO supabase_storage_admin;
 
 --
--- Name: messages_2025_03_28; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_16; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_03_28 FOR VALUES FROM ('2025-03-28 00:00:00') TO ('2025-03-29 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_16 FOR VALUES FROM ('2025-06-16 00:00:00') TO ('2025-06-17 00:00:00');
 
 
 --
--- Name: messages_2025_03_29; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_17; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_03_29 FOR VALUES FROM ('2025-03-29 00:00:00') TO ('2025-03-30 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_17 FOR VALUES FROM ('2025-06-17 00:00:00') TO ('2025-06-18 00:00:00');
 
 
 --
--- Name: messages_2025_03_30; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_18; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_03_30 FOR VALUES FROM ('2025-03-30 00:00:00') TO ('2025-03-31 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_18 FOR VALUES FROM ('2025-06-18 00:00:00') TO ('2025-06-19 00:00:00');
 
 
 --
--- Name: messages_2025_03_31; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_19; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_03_31 FOR VALUES FROM ('2025-03-31 00:00:00') TO ('2025-04-01 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_19 FOR VALUES FROM ('2025-06-19 00:00:00') TO ('2025-06-20 00:00:00');
 
 
 --
--- Name: messages_2025_04_01; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_20; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_01 FOR VALUES FROM ('2025-04-01 00:00:00') TO ('2025-04-02 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_20 FOR VALUES FROM ('2025-06-20 00:00:00') TO ('2025-06-21 00:00:00');
 
 
 --
--- Name: messages_2025_04_02; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_21; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_02 FOR VALUES FROM ('2025-04-02 00:00:00') TO ('2025-04-03 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_21 FOR VALUES FROM ('2025-06-21 00:00:00') TO ('2025-06-22 00:00:00');
 
 
 --
--- Name: messages_2025_04_03; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_22; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_03 FOR VALUES FROM ('2025-04-03 00:00:00') TO ('2025-04-04 00:00:00');
-
-
---
--- Name: messages_2025_04_04; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_04 FOR VALUES FROM ('2025-04-04 00:00:00') TO ('2025-04-05 00:00:00');
-
-
---
--- Name: messages_2025_04_05; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_05 FOR VALUES FROM ('2025-04-05 00:00:00') TO ('2025-04-06 00:00:00');
-
-
---
--- Name: messages_2025_04_06; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_06 FOR VALUES FROM ('2025-04-06 00:00:00') TO ('2025-04-07 00:00:00');
-
-
---
--- Name: messages_2025_04_07; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_07 FOR VALUES FROM ('2025-04-07 00:00:00') TO ('2025-04-08 00:00:00');
-
-
---
--- Name: messages_2025_04_08; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_08 FOR VALUES FROM ('2025-04-08 00:00:00') TO ('2025-04-09 00:00:00');
-
-
---
--- Name: messages_2025_04_09; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_09 FOR VALUES FROM ('2025-04-09 00:00:00') TO ('2025-04-10 00:00:00');
-
-
---
--- Name: messages_2025_04_10; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_10 FOR VALUES FROM ('2025-04-10 00:00:00') TO ('2025-04-11 00:00:00');
-
-
---
--- Name: messages_2025_04_11; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_11 FOR VALUES FROM ('2025-04-11 00:00:00') TO ('2025-04-12 00:00:00');
-
-
---
--- Name: messages_2025_04_12; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_12 FOR VALUES FROM ('2025-04-12 00:00:00') TO ('2025-04-13 00:00:00');
-
-
---
--- Name: messages_2025_04_13; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_13 FOR VALUES FROM ('2025-04-13 00:00:00') TO ('2025-04-14 00:00:00');
-
-
---
--- Name: messages_2025_04_14; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_14 FOR VALUES FROM ('2025-04-14 00:00:00') TO ('2025-04-15 00:00:00');
-
-
---
--- Name: messages_2025_04_15; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_15 FOR VALUES FROM ('2025-04-15 00:00:00') TO ('2025-04-16 00:00:00');
-
-
---
--- Name: messages_2025_04_16; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_16 FOR VALUES FROM ('2025-04-16 00:00:00') TO ('2025-04-17 00:00:00');
-
-
---
--- Name: messages_2025_04_17; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_17 FOR VALUES FROM ('2025-04-17 00:00:00') TO ('2025-04-18 00:00:00');
-
-
---
--- Name: messages_2025_04_18; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_18 FOR VALUES FROM ('2025-04-18 00:00:00') TO ('2025-04-19 00:00:00');
-
-
---
--- Name: messages_2025_04_19; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_19 FOR VALUES FROM ('2025-04-19 00:00:00') TO ('2025-04-20 00:00:00');
-
-
---
--- Name: messages_2025_04_20; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_20 FOR VALUES FROM ('2025-04-20 00:00:00') TO ('2025-04-21 00:00:00');
-
-
---
--- Name: messages_2025_04_21; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_21 FOR VALUES FROM ('2025-04-21 00:00:00') TO ('2025-04-22 00:00:00');
-
-
---
--- Name: messages_2025_04_22; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_22 FOR VALUES FROM ('2025-04-22 00:00:00') TO ('2025-04-23 00:00:00');
-
-
---
--- Name: messages_2025_04_23; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_23 FOR VALUES FROM ('2025-04-23 00:00:00') TO ('2025-04-24 00:00:00');
-
-
---
--- Name: messages_2025_04_24; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_24 FOR VALUES FROM ('2025-04-24 00:00:00') TO ('2025-04-25 00:00:00');
-
-
---
--- Name: messages_2025_04_25; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_25 FOR VALUES FROM ('2025-04-25 00:00:00') TO ('2025-04-26 00:00:00');
-
-
---
--- Name: messages_2025_04_26; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_26 FOR VALUES FROM ('2025-04-26 00:00:00') TO ('2025-04-27 00:00:00');
-
-
---
--- Name: messages_2025_04_27; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_27 FOR VALUES FROM ('2025-04-27 00:00:00') TO ('2025-04-28 00:00:00');
-
-
---
--- Name: messages_2025_04_28; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_28 FOR VALUES FROM ('2025-04-28 00:00:00') TO ('2025-04-29 00:00:00');
-
-
---
--- Name: messages_2025_04_29; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_29 FOR VALUES FROM ('2025-04-29 00:00:00') TO ('2025-04-30 00:00:00');
-
-
---
--- Name: messages_2025_04_30; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_04_30 FOR VALUES FROM ('2025-04-30 00:00:00') TO ('2025-05-01 00:00:00');
-
-
---
--- Name: messages_2025_05_01; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_05_01 FOR VALUES FROM ('2025-05-01 00:00:00') TO ('2025-05-02 00:00:00');
-
-
---
--- Name: messages_2025_05_02; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_05_02 FOR VALUES FROM ('2025-05-02 00:00:00') TO ('2025-05-03 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_22 FOR VALUES FROM ('2025-06-22 00:00:00') TO ('2025-06-23 00:00:00');
 
 
 --
@@ -11655,6 +11692,38 @@ ALTER TABLE ONLY auth.users
 
 ALTER TABLE ONLY auth.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: first_names first_names_pkey; Type: CONSTRAINT; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE ONLY players_generation.first_names
+    ADD CONSTRAINT first_names_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: last_names last_names_pkey; Type: CONSTRAINT; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE ONLY players_generation.last_names
+    ADD CONSTRAINT last_names_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: first_names unique_first_name_per_country; Type: CONSTRAINT; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE ONLY players_generation.first_names
+    ADD CONSTRAINT unique_first_name_per_country UNIQUE (name, id_country);
+
+
+--
+-- Name: last_names unique_last_name_per_country; Type: CONSTRAINT; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE ONLY players_generation.last_names
+    ADD CONSTRAINT unique_last_name_per_country UNIQUE (name, id_country);
 
 
 --
@@ -11882,14 +11951,6 @@ ALTER TABLE ONLY public.players
 
 
 --
--- Name: players_names players_names_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.players_names
-    ADD CONSTRAINT players_names_pkey PRIMARY KEY (id);
-
-
---
 -- Name: players players_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -11954,6 +12015,14 @@ ALTER TABLE ONLY public.transfers_bids
 
 
 --
+-- Name: transfers_embodied_players_offers transfers_embodied_players_offers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.transfers_embodied_players_offers
+    ADD CONSTRAINT transfers_embodied_players_offers_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: transfers_history transfers_history_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -11978,291 +12047,59 @@ ALTER TABLE ONLY realtime.messages
 
 
 --
--- Name: messages_2025_03_28 messages_2025_03_28_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_16 messages_2025_06_16_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_03_28
-    ADD CONSTRAINT messages_2025_03_28_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2025_06_16
+    ADD CONSTRAINT messages_2025_06_16_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
--- Name: messages_2025_03_29 messages_2025_03_29_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_17 messages_2025_06_17_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_03_29
-    ADD CONSTRAINT messages_2025_03_29_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2025_06_17
+    ADD CONSTRAINT messages_2025_06_17_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
--- Name: messages_2025_03_30 messages_2025_03_30_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_18 messages_2025_06_18_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_03_30
-    ADD CONSTRAINT messages_2025_03_30_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2025_06_18
+    ADD CONSTRAINT messages_2025_06_18_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
--- Name: messages_2025_03_31 messages_2025_03_31_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_19 messages_2025_06_19_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_03_31
-    ADD CONSTRAINT messages_2025_03_31_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2025_06_19
+    ADD CONSTRAINT messages_2025_06_19_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
--- Name: messages_2025_04_01 messages_2025_04_01_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_20 messages_2025_06_20_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_04_01
-    ADD CONSTRAINT messages_2025_04_01_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2025_06_20
+    ADD CONSTRAINT messages_2025_06_20_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
--- Name: messages_2025_04_02 messages_2025_04_02_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_21 messages_2025_06_21_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_04_02
-    ADD CONSTRAINT messages_2025_04_02_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2025_06_21
+    ADD CONSTRAINT messages_2025_06_21_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
--- Name: messages_2025_04_03 messages_2025_04_03_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2025_06_22 messages_2025_06_22_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_04_03
-    ADD CONSTRAINT messages_2025_04_03_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_04 messages_2025_04_04_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_04
-    ADD CONSTRAINT messages_2025_04_04_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_05 messages_2025_04_05_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_05
-    ADD CONSTRAINT messages_2025_04_05_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_06 messages_2025_04_06_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_06
-    ADD CONSTRAINT messages_2025_04_06_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_07 messages_2025_04_07_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_07
-    ADD CONSTRAINT messages_2025_04_07_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_08 messages_2025_04_08_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_08
-    ADD CONSTRAINT messages_2025_04_08_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_09 messages_2025_04_09_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_09
-    ADD CONSTRAINT messages_2025_04_09_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_10 messages_2025_04_10_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_10
-    ADD CONSTRAINT messages_2025_04_10_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_11 messages_2025_04_11_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_11
-    ADD CONSTRAINT messages_2025_04_11_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_12 messages_2025_04_12_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_12
-    ADD CONSTRAINT messages_2025_04_12_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_13 messages_2025_04_13_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_13
-    ADD CONSTRAINT messages_2025_04_13_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_14 messages_2025_04_14_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_14
-    ADD CONSTRAINT messages_2025_04_14_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_15 messages_2025_04_15_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_15
-    ADD CONSTRAINT messages_2025_04_15_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_16 messages_2025_04_16_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_16
-    ADD CONSTRAINT messages_2025_04_16_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_17 messages_2025_04_17_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_17
-    ADD CONSTRAINT messages_2025_04_17_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_18 messages_2025_04_18_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_18
-    ADD CONSTRAINT messages_2025_04_18_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_19 messages_2025_04_19_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_19
-    ADD CONSTRAINT messages_2025_04_19_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_20 messages_2025_04_20_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_20
-    ADD CONSTRAINT messages_2025_04_20_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_21 messages_2025_04_21_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_21
-    ADD CONSTRAINT messages_2025_04_21_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_22 messages_2025_04_22_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_22
-    ADD CONSTRAINT messages_2025_04_22_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_23 messages_2025_04_23_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_23
-    ADD CONSTRAINT messages_2025_04_23_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_24 messages_2025_04_24_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_24
-    ADD CONSTRAINT messages_2025_04_24_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_25 messages_2025_04_25_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_25
-    ADD CONSTRAINT messages_2025_04_25_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_26 messages_2025_04_26_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_26
-    ADD CONSTRAINT messages_2025_04_26_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_27 messages_2025_04_27_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_27
-    ADD CONSTRAINT messages_2025_04_27_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_28 messages_2025_04_28_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_28
-    ADD CONSTRAINT messages_2025_04_28_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_29 messages_2025_04_29_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_29
-    ADD CONSTRAINT messages_2025_04_29_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_04_30 messages_2025_04_30_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_04_30
-    ADD CONSTRAINT messages_2025_04_30_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_05_01 messages_2025_05_01_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_05_01
-    ADD CONSTRAINT messages_2025_05_01_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_05_02 messages_2025_05_02_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_05_02
-    ADD CONSTRAINT messages_2025_05_02_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2025_06_22
+    ADD CONSTRAINT messages_2025_06_22_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
@@ -12771,262 +12608,66 @@ CREATE INDEX name_prefix_search ON storage.objects USING btree (name text_patter
 
 
 --
--- Name: messages_2025_03_28_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: messages_2025_06_16_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_03_28_pkey;
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_16_pkey;
 
 
 --
--- Name: messages_2025_03_29_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: messages_2025_06_17_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_03_29_pkey;
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_17_pkey;
 
 
 --
--- Name: messages_2025_03_30_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: messages_2025_06_18_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_03_30_pkey;
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_18_pkey;
 
 
 --
--- Name: messages_2025_03_31_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: messages_2025_06_19_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_03_31_pkey;
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_19_pkey;
 
 
 --
--- Name: messages_2025_04_01_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: messages_2025_06_20_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_01_pkey;
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_20_pkey;
 
 
 --
--- Name: messages_2025_04_02_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: messages_2025_06_21_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_02_pkey;
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_21_pkey;
 
 
 --
--- Name: messages_2025_04_03_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: messages_2025_06_22_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_03_pkey;
-
-
---
--- Name: messages_2025_04_04_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_04_pkey;
-
-
---
--- Name: messages_2025_04_05_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_05_pkey;
-
-
---
--- Name: messages_2025_04_06_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_06_pkey;
-
-
---
--- Name: messages_2025_04_07_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_07_pkey;
-
-
---
--- Name: messages_2025_04_08_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_08_pkey;
-
-
---
--- Name: messages_2025_04_09_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_09_pkey;
-
-
---
--- Name: messages_2025_04_10_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_10_pkey;
-
-
---
--- Name: messages_2025_04_11_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_11_pkey;
-
-
---
--- Name: messages_2025_04_12_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_12_pkey;
-
-
---
--- Name: messages_2025_04_13_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_13_pkey;
-
-
---
--- Name: messages_2025_04_14_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_14_pkey;
-
-
---
--- Name: messages_2025_04_15_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_15_pkey;
-
-
---
--- Name: messages_2025_04_16_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_16_pkey;
-
-
---
--- Name: messages_2025_04_17_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_17_pkey;
-
-
---
--- Name: messages_2025_04_18_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_18_pkey;
-
-
---
--- Name: messages_2025_04_19_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_19_pkey;
-
-
---
--- Name: messages_2025_04_20_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_20_pkey;
-
-
---
--- Name: messages_2025_04_21_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_21_pkey;
-
-
---
--- Name: messages_2025_04_22_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_22_pkey;
-
-
---
--- Name: messages_2025_04_23_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_23_pkey;
-
-
---
--- Name: messages_2025_04_24_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_24_pkey;
-
-
---
--- Name: messages_2025_04_25_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_25_pkey;
-
-
---
--- Name: messages_2025_04_26_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_26_pkey;
-
-
---
--- Name: messages_2025_04_27_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_27_pkey;
-
-
---
--- Name: messages_2025_04_28_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_28_pkey;
-
-
---
--- Name: messages_2025_04_29_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_29_pkey;
-
-
---
--- Name: messages_2025_04_30_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_04_30_pkey;
-
-
---
--- Name: messages_2025_05_01_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_05_01_pkey;
-
-
---
--- Name: messages_2025_05_02_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_05_02_pkey;
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_22_pkey;
 
 
 --
 -- Name: users on_auth_user_created; Type: TRIGGER; Schema: auth; Owner: supabase_auth_admin
 --
 
-CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.users_handle_user_created();
+
+
+--
+-- Name: users on_auth_user_deleted; Type: TRIGGER; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TRIGGER on_auth_user_deleted BEFORE DELETE ON auth.users FOR EACH ROW EXECUTE FUNCTION public.users_handle_user_deleted();
 
 
 --
@@ -13079,10 +12720,24 @@ CREATE TRIGGER player_retire_trigger AFTER UPDATE OF date_retire ON public.playe
 
 
 --
+-- Name: transfers_embodied_players_offers trg_is_accepted_changed; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER trg_is_accepted_changed AFTER UPDATE OF is_accepted ON public.transfers_embodied_players_offers FOR EACH ROW WHEN ((old.is_accepted IS DISTINCT FROM new.is_accepted)) EXECUTE FUNCTION public.trigger_transfers_embodied_players_offer_is_accepted_or_refused();
+
+
+--
 -- Name: games trg_update_expected_elo_score_trigger; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
 CREATE TRIGGER trg_update_expected_elo_score_trigger AFTER UPDATE OF elo_left, elo_right ON public.games FOR EACH ROW WHEN (((old.elo_left IS DISTINCT FROM new.elo_left) OR (old.elo_right IS DISTINCT FROM new.elo_right))) EXECUTE FUNCTION public.trg_update_elo_expected_result();
+
+
+--
+-- Name: players trg_update_performance_score; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER trg_update_performance_score AFTER INSERT OR UPDATE OF keeper, defense, playmaking, passes, scoring, freekick, winger, motivation, form, stamina, experience, loyalty, leadership, discipline, communication, composure, teamwork ON public.players FOR EACH ROW EXECUTE FUNCTION public.trigger_players_stats_update_recalculate_all();
 
 
 --
@@ -13213,6 +12868,22 @@ ALTER TABLE ONLY auth.sessions
 
 ALTER TABLE ONLY auth.sso_domains
     ADD CONSTRAINT sso_domains_sso_provider_id_fkey FOREIGN KEY (sso_provider_id) REFERENCES auth.sso_providers(id) ON DELETE CASCADE;
+
+
+--
+-- Name: first_names first_names_id_country_fkey; Type: FK CONSTRAINT; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE ONLY players_generation.first_names
+    ADD CONSTRAINT first_names_id_country_fkey FOREIGN KEY (id_country) REFERENCES public.countries(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: last_names last_names_id_country_fkey; Type: FK CONSTRAINT; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE ONLY players_generation.last_names
+    ADD CONSTRAINT last_names_id_country_fkey FOREIGN KEY (id_country) REFERENCES public.countries(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -13584,14 +13255,6 @@ ALTER TABLE ONLY public.players
 
 
 --
--- Name: players_names players_names_id_country_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.players_names
-    ADD CONSTRAINT players_names_id_country_fkey FOREIGN KEY (id_country) REFERENCES public.countries(id) ON UPDATE CASCADE;
-
-
---
 -- Name: players_poaching players_poaching_id_club_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -13848,6 +13511,22 @@ ALTER TABLE ONLY public.transfers_bids
 
 
 --
+-- Name: transfers_embodied_players_offers transfers_embodied_players_offers_id_club_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.transfers_embodied_players_offers
+    ADD CONSTRAINT transfers_embodied_players_offers_id_club_fkey FOREIGN KEY (id_club) REFERENCES public.clubs(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: transfers_embodied_players_offers transfers_embodied_players_offers_id_player_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.transfers_embodied_players_offers
+    ADD CONSTRAINT transfers_embodied_players_offers_id_player_fkey FOREIGN KEY (id_player) REFERENCES public.players(id) ON UPDATE CASCADE;
+
+
+--
 -- Name: transfers_history transfers_history_id_club_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -13984,6 +13663,25 @@ ALTER TABLE auth.sso_providers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: first_names; Type: ROW SECURITY; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE players_generation.first_names ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: last_names; Type: ROW SECURITY; Schema: players_generation; Owner: postgres
+--
+
+ALTER TABLE players_generation.last_names ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: transfers_embodied_players_offers ALL for all; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "ALL for all" ON public.transfers_embodied_players_offers USING (true);
+
+
+--
 -- Name: transfers_bids All for all users; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -14023,6 +13721,13 @@ CREATE POLICY "Enable insert for all users" ON public.mails FOR INSERT WITH CHEC
 --
 
 CREATE POLICY "Enable insert for authenticated users only" ON public.messages FOR INSERT TO authenticated WITH CHECK (true);
+
+
+--
+-- Name: players_history Enable insert for authenticated users only; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Enable insert for authenticated users only" ON public.players_history FOR INSERT TO authenticated WITH CHECK (true);
 
 
 --
@@ -14117,10 +13822,10 @@ CREATE POLICY "Enable read access for all users" ON public.players FOR SELECT US
 
 
 --
--- Name: players_names Enable read access for all users; Type: POLICY; Schema: public; Owner: postgres
+-- Name: profile_events Enable read access for all users; Type: POLICY; Schema: public; Owner: postgres
 --
 
-CREATE POLICY "Enable read access for all users" ON public.players_names FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON public.profile_events FOR SELECT USING (true);
 
 
 --
@@ -14177,13 +13882,6 @@ CREATE POLICY "Enable update for all users" ON public.mails FOR UPDATE USING (tr
 --
 
 CREATE POLICY "Enable update for users based on username of authenticated" ON public.players FOR UPDATE USING (true);
-
-
---
--- Name: players INSERT for all users; Type: POLICY; Schema: public; Owner: postgres
---
-
-CREATE POLICY "INSERT for all users" ON public.players FOR INSERT WITH CHECK (true);
 
 
 --
@@ -14374,16 +14072,16 @@ ALTER TABLE public.players_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.players_history_stats ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: players_names; Type: ROW SECURITY; Schema: public; Owner: postgres
---
-
-ALTER TABLE public.players_names ENABLE ROW LEVEL SECURITY;
-
---
 -- Name: players_poaching; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.players_poaching ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: profile_events; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.profile_events ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: postgres
@@ -14396,6 +14094,12 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.transfers_bids ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: transfers_embodied_players_offers; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.transfers_embodied_players_offers ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: transfers_history; Type: ROW SECURITY; Schema: public; Owner: postgres
@@ -14605,6 +14309,13 @@ ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.players_poaching;
 
 
 --
+-- Name: supabase_realtime profile_events; Type: PUBLICATION TABLE; Schema: public; Owner: postgres
+--
+
+ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.profile_events;
+
+
+--
 -- Name: supabase_realtime profiles; Type: PUBLICATION TABLE; Schema: public; Owner: postgres
 --
 
@@ -14616,6 +14327,13 @@ ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.profiles;
 --
 
 ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.transfers_bids;
+
+
+--
+-- Name: supabase_realtime transfers_embodied_players_offers; Type: PUBLICATION TABLE; Schema: public; Owner: postgres
+--
+
+ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.transfers_embodied_players_offers;
 
 
 --
@@ -15324,11 +15042,12 @@ GRANT ALL ON FUNCTION graphql_public.graphql("operationName" text, query text, v
 
 
 --
--- Name: FUNCTION get_auth(p_usename text); Type: ACL; Schema: pgbouncer; Owner: postgres
+-- Name: FUNCTION get_auth(p_usename text); Type: ACL; Schema: pgbouncer; Owner: supabase_admin
 --
 
 REVOKE ALL ON FUNCTION pgbouncer.get_auth(p_usename text) FROM PUBLIC;
 GRANT ALL ON FUNCTION pgbouncer.get_auth(p_usename text) TO pgbouncer;
+GRANT ALL ON FUNCTION pgbouncer.get_auth(p_usename text) TO postgres;
 
 
 --
@@ -15359,6 +15078,15 @@ GRANT ALL ON FUNCTION pgsodium.crypto_aead_det_keygen() TO service_role;
 GRANT ALL ON FUNCTION public.calculate_age(inp_multiverse_speed bigint, inp_date_birth timestamp with time zone, inp_date_now timestamp with time zone) TO anon;
 GRANT ALL ON FUNCTION public.calculate_age(inp_multiverse_speed bigint, inp_date_birth timestamp with time zone, inp_date_now timestamp with time zone) TO authenticated;
 GRANT ALL ON FUNCTION public.calculate_age(inp_multiverse_speed bigint, inp_date_birth timestamp with time zone, inp_date_now timestamp with time zone) TO service_role;
+
+
+--
+-- Name: FUNCTION clamp(value double precision, min_value double precision, max_value double precision); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.clamp(value double precision, min_value double precision, max_value double precision) TO anon;
+GRANT ALL ON FUNCTION public.clamp(value double precision, min_value double precision, max_value double precision) TO authenticated;
+GRANT ALL ON FUNCTION public.clamp(value double precision, min_value double precision, max_value double precision) TO service_role;
 
 
 --
@@ -15506,12 +15234,12 @@ GRANT ALL ON FUNCTION public.main_populate_game(rec_game record) TO service_role
 
 
 --
--- Name: FUNCTION main_simulate_day(inp_multiverse record); Type: ACL; Schema: public; Owner: postgres
+-- Name: FUNCTION main_simulate_week_games(inp_multiverse record); Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT ALL ON FUNCTION public.main_simulate_day(inp_multiverse record) TO anon;
-GRANT ALL ON FUNCTION public.main_simulate_day(inp_multiverse record) TO authenticated;
-GRANT ALL ON FUNCTION public.main_simulate_day(inp_multiverse record) TO service_role;
+GRANT ALL ON FUNCTION public.main_simulate_week_games(inp_multiverse record) TO anon;
+GRANT ALL ON FUNCTION public.main_simulate_week_games(inp_multiverse record) TO authenticated;
+GRANT ALL ON FUNCTION public.main_simulate_week_games(inp_multiverse record) TO service_role;
 
 
 --
@@ -15578,15 +15306,6 @@ GRANT ALL ON FUNCTION public.players_calculate_date_birth(inp_id_multiverse bigi
 
 
 --
--- Name: FUNCTION players_calculate_performance_score(inp_id_player bigint); Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON FUNCTION public.players_calculate_performance_score(inp_id_player bigint) TO anon;
-GRANT ALL ON FUNCTION public.players_calculate_performance_score(inp_id_player bigint) TO authenticated;
-GRANT ALL ON FUNCTION public.players_calculate_performance_score(inp_id_player bigint) TO service_role;
-
-
---
 -- Name: FUNCTION players_calculate_player_best_weight(inp_player_stats real[]); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -15614,12 +15333,21 @@ GRANT ALL ON FUNCTION public.players_check_club_players_count_no_less_than_16() 
 
 
 --
--- Name: FUNCTION players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_shirt_number bigint, inp_notes text, inp_stats double precision[]); Type: ACL; Schema: public; Owner: postgres
+-- Name: FUNCTION players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_username text, inp_shirt_number bigint, inp_notes text, inp_stats_better_player double precision, inp_stats double precision[], inp_first_name text, inp_last_name text); Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT ALL ON FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_shirt_number bigint, inp_notes text, inp_stats double precision[]) TO anon;
-GRANT ALL ON FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_shirt_number bigint, inp_notes text, inp_stats double precision[]) TO authenticated;
-GRANT ALL ON FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_shirt_number bigint, inp_notes text, inp_stats double precision[]) TO service_role;
+GRANT ALL ON FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_username text, inp_shirt_number bigint, inp_notes text, inp_stats_better_player double precision, inp_stats double precision[], inp_first_name text, inp_last_name text) TO anon;
+GRANT ALL ON FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_username text, inp_shirt_number bigint, inp_notes text, inp_stats_better_player double precision, inp_stats double precision[], inp_first_name text, inp_last_name text) TO authenticated;
+GRANT ALL ON FUNCTION public.players_create_player(inp_id_multiverse bigint, inp_id_club bigint, inp_id_country bigint, inp_age double precision, inp_username text, inp_shirt_number bigint, inp_notes text, inp_stats_better_player double precision, inp_stats double precision[], inp_first_name text, inp_last_name text) TO service_role;
+
+
+--
+-- Name: FUNCTION players_handle_embodied_player(inp_id_player bigint, inp_username text, inp_start_embody boolean, inp_stop_embody boolean, inp_retire_embodied boolean); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.players_handle_embodied_player(inp_id_player bigint, inp_username text, inp_start_embody boolean, inp_stop_embody boolean, inp_retire_embodied boolean) TO anon;
+GRANT ALL ON FUNCTION public.players_handle_embodied_player(inp_id_player bigint, inp_username text, inp_start_embody boolean, inp_stop_embody boolean, inp_retire_embodied boolean) TO authenticated;
+GRANT ALL ON FUNCTION public.players_handle_embodied_player(inp_id_player bigint, inp_username text, inp_start_embody boolean, inp_stop_embody boolean, inp_retire_embodied boolean) TO service_role;
 
 
 --
@@ -15629,6 +15357,15 @@ GRANT ALL ON FUNCTION public.players_create_player(inp_id_multiverse bigint, inp
 GRANT ALL ON FUNCTION public.players_handle_new_player_created() TO anon;
 GRANT ALL ON FUNCTION public.players_handle_new_player_created() TO authenticated;
 GRANT ALL ON FUNCTION public.players_handle_new_player_created() TO service_role;
+
+
+--
+-- Name: FUNCTION players_increase_stats_from_training_points(inp_id_player bigint, inp_increase_points integer[], inp_user_uuid uuid); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.players_increase_stats_from_training_points(inp_id_player bigint, inp_increase_points integer[], inp_user_uuid uuid) TO anon;
+GRANT ALL ON FUNCTION public.players_increase_stats_from_training_points(inp_id_player bigint, inp_increase_points integer[], inp_user_uuid uuid) TO authenticated;
+GRANT ALL ON FUNCTION public.players_increase_stats_from_training_points(inp_id_player bigint, inp_increase_points integer[], inp_user_uuid uuid) TO service_role;
 
 
 --
@@ -15758,12 +15495,12 @@ GRANT ALL ON FUNCTION public.simulate_week_games(multiverse record, inp_season_n
 
 
 --
--- Name: FUNCTION string_parser(inp_id bigint, inp_entity_type text, inp_text text); Type: ACL; Schema: public; Owner: postgres
+-- Name: FUNCTION string_parser(inp_entity_type text, inp_id bigint, inp_uuid_user uuid, inp_text text); Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT ALL ON FUNCTION public.string_parser(inp_id bigint, inp_entity_type text, inp_text text) TO anon;
-GRANT ALL ON FUNCTION public.string_parser(inp_id bigint, inp_entity_type text, inp_text text) TO authenticated;
-GRANT ALL ON FUNCTION public.string_parser(inp_id bigint, inp_entity_type text, inp_text text) TO service_role;
+GRANT ALL ON FUNCTION public.string_parser(inp_entity_type text, inp_id bigint, inp_uuid_user uuid, inp_text text) TO anon;
+GRANT ALL ON FUNCTION public.string_parser(inp_entity_type text, inp_id bigint, inp_uuid_user uuid, inp_text text) TO authenticated;
+GRANT ALL ON FUNCTION public.string_parser(inp_entity_type text, inp_id bigint, inp_uuid_user uuid, inp_text text) TO service_role;
 
 
 --
@@ -15818,6 +15555,15 @@ GRANT ALL ON FUNCTION public.teamcomp_fetch_players_id(inp_id_teamcomp bigint) T
 GRANT ALL ON FUNCTION public.transfers_handle_new_bid(inp_id_player bigint, inp_id_club_bidder bigint, inp_amount bigint, inp_max_price bigint, is_auto boolean) TO anon;
 GRANT ALL ON FUNCTION public.transfers_handle_new_bid(inp_id_player bigint, inp_id_club_bidder bigint, inp_amount bigint, inp_max_price bigint, is_auto boolean) TO authenticated;
 GRANT ALL ON FUNCTION public.transfers_handle_new_bid(inp_id_player bigint, inp_id_club_bidder bigint, inp_amount bigint, inp_max_price bigint, is_auto boolean) TO service_role;
+
+
+--
+-- Name: FUNCTION transfers_handle_new_embodied_player_offer(inp_id_player bigint, inp_id_club bigint, inp_expenses_offered smallint, inp_date_limit timestamp with time zone, inp_number_season smallint, inp_comment_for_player text, inp_comment_for_club text); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.transfers_handle_new_embodied_player_offer(inp_id_player bigint, inp_id_club bigint, inp_expenses_offered smallint, inp_date_limit timestamp with time zone, inp_number_season smallint, inp_comment_for_player text, inp_comment_for_club text) TO anon;
+GRANT ALL ON FUNCTION public.transfers_handle_new_embodied_player_offer(inp_id_player bigint, inp_id_club bigint, inp_expenses_offered smallint, inp_date_limit timestamp with time zone, inp_number_season smallint, inp_comment_for_player text, inp_comment_for_club text) TO authenticated;
+GRANT ALL ON FUNCTION public.transfers_handle_new_embodied_player_offer(inp_id_player bigint, inp_id_club bigint, inp_expenses_offered smallint, inp_date_limit timestamp with time zone, inp_number_season smallint, inp_comment_for_player text, inp_comment_for_club text) TO service_role;
 
 
 --
@@ -15884,6 +15630,15 @@ GRANT ALL ON FUNCTION public.trigger_players_handle_retire() TO service_role;
 
 
 --
+-- Name: FUNCTION trigger_players_stats_update_recalculate_all(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.trigger_players_stats_update_recalculate_all() TO anon;
+GRANT ALL ON FUNCTION public.trigger_players_stats_update_recalculate_all() TO authenticated;
+GRANT ALL ON FUNCTION public.trigger_players_stats_update_recalculate_all() TO service_role;
+
+
+--
 -- Name: FUNCTION trigger_teamcomps_check_error_in_teamcomp(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -15893,12 +15648,39 @@ GRANT ALL ON FUNCTION public.trigger_teamcomps_check_error_in_teamcomp() TO serv
 
 
 --
+-- Name: FUNCTION trigger_transfers_embodied_players_offer_is_accepted_or_refused(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.trigger_transfers_embodied_players_offer_is_accepted_or_refused() TO anon;
+GRANT ALL ON FUNCTION public.trigger_transfers_embodied_players_offer_is_accepted_or_refused() TO authenticated;
+GRANT ALL ON FUNCTION public.trigger_transfers_embodied_players_offer_is_accepted_or_refused() TO service_role;
+
+
+--
 -- Name: FUNCTION update_club_number_players_when_id_club_change(); Type: ACL; Schema: public; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION public.update_club_number_players_when_id_club_change() TO anon;
 GRANT ALL ON FUNCTION public.update_club_number_players_when_id_club_change() TO authenticated;
 GRANT ALL ON FUNCTION public.update_club_number_players_when_id_club_change() TO service_role;
+
+
+--
+-- Name: FUNCTION users_handle_user_created(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.users_handle_user_created() TO anon;
+GRANT ALL ON FUNCTION public.users_handle_user_created() TO authenticated;
+GRANT ALL ON FUNCTION public.users_handle_user_created() TO service_role;
+
+
+--
+-- Name: FUNCTION users_handle_user_deleted(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.users_handle_user_deleted() TO anon;
+GRANT ALL ON FUNCTION public.users_handle_user_deleted() TO authenticated;
+GRANT ALL ON FUNCTION public.users_handle_user_deleted() TO service_role;
 
 
 --
@@ -16656,24 +16438,6 @@ GRANT ALL ON SEQUENCE public.players_id_seq TO service_role;
 
 
 --
--- Name: TABLE players_names; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.players_names TO anon;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.players_names TO authenticated;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.players_names TO service_role;
-
-
---
--- Name: SEQUENCE players_names_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON SEQUENCE public.players_names_id_seq TO anon;
-GRANT ALL ON SEQUENCE public.players_names_id_seq TO authenticated;
-GRANT ALL ON SEQUENCE public.players_names_id_seq TO service_role;
-
-
---
 -- Name: TABLE players_poaching; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -16689,6 +16453,24 @@ GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.pl
 GRANT ALL ON SEQUENCE public.players_poaching_id_seq TO anon;
 GRANT ALL ON SEQUENCE public.players_poaching_id_seq TO authenticated;
 GRANT ALL ON SEQUENCE public.players_poaching_id_seq TO service_role;
+
+
+--
+-- Name: TABLE profile_events; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.profile_events TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.profile_events TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.profile_events TO service_role;
+
+
+--
+-- Name: SEQUENCE profile_events_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE public.profile_events_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.profile_events_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.profile_events_id_seq TO service_role;
 
 
 --
@@ -16716,6 +16498,24 @@ GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.tr
 GRANT ALL ON SEQUENCE public.transfers_bids_id_seq TO anon;
 GRANT ALL ON SEQUENCE public.transfers_bids_id_seq TO authenticated;
 GRANT ALL ON SEQUENCE public.transfers_bids_id_seq TO service_role;
+
+
+--
+-- Name: TABLE transfers_embodied_players_offers; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.transfers_embodied_players_offers TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.transfers_embodied_players_offers TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.transfers_embodied_players_offers TO service_role;
+
+
+--
+-- Name: SEQUENCE transfers_embodied_players_offers_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE public.transfers_embodied_players_offers_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.transfers_embodied_players_offers_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.transfers_embodied_players_offers_id_seq TO service_role;
 
 
 --
@@ -16757,291 +16557,59 @@ GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.
 
 
 --
--- Name: TABLE messages_2025_03_28; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2025_06_16; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_03_28 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_03_28 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_16 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_16 TO dashboard_user;
 
 
 --
--- Name: TABLE messages_2025_03_29; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2025_06_17; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_03_29 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_03_29 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_17 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_17 TO dashboard_user;
 
 
 --
--- Name: TABLE messages_2025_03_30; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2025_06_18; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_03_30 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_03_30 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_18 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_18 TO dashboard_user;
 
 
 --
--- Name: TABLE messages_2025_03_31; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2025_06_19; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_03_31 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_03_31 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_19 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_19 TO dashboard_user;
 
 
 --
--- Name: TABLE messages_2025_04_01; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2025_06_20; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_01 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_01 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_20 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_20 TO dashboard_user;
 
 
 --
--- Name: TABLE messages_2025_04_02; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2025_06_21; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_02 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_02 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_21 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_21 TO dashboard_user;
 
 
 --
--- Name: TABLE messages_2025_04_03; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2025_06_22; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_03 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_03 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_04; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_04 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_04 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_05; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_05 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_05 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_06; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_06 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_06 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_07; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_07 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_07 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_08; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_08 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_08 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_09; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_09 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_09 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_10; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_10 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_10 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_11; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_11 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_11 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_12; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_12 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_12 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_13; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_13 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_13 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_14; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_14 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_14 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_15; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_15 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_15 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_16; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_16 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_16 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_17; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_17 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_17 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_18; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_18 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_18 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_19; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_19 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_19 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_20; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_20 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_20 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_21; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_21 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_21 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_22; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_22 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_22 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_23; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_23 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_23 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_24; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_24 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_24 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_25; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_25 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_25 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_26; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_26 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_26 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_27; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_27 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_27 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_28; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_28 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_28 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_29; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_29 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_29 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_04_30; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_30 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_04_30 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_05_01; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_05_01 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_05_01 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_05_02; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_05_02 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_05_02 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_22 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_22 TO dashboard_user;
 
 
 --
