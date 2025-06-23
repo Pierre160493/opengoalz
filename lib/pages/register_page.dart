@@ -26,36 +26,114 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _passwordsMatch = false;
 
   final _formKey = GlobalKey<FormState>();
-
-  // final _emailController = TextEditingController(text: 'opengoalz@pm.com');
-  // final _usernameController = TextEditingController(text: 'testAccount');
-  // final _passwordController = TextEditingController(text: 'defaultPassword');
-  // final _confirmPasswordController =
-  //     TextEditingController(text: 'defaultPassword');
   final _emailController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  String? _emailError;
+  String? _usernameError;
+  String? _passwordError;
+  String? _confirmPasswordError;
 
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_validatePasswords);
     _confirmPasswordController.addListener(_validatePasswords);
+    _emailController.addListener(_validateEmail);
+    _usernameController.addListener(_validateUsername);
+  }
+
+  void _validateEmail() {
+    setState(() {
+      final emailRegex = RegExp(
+          r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+      print('Email validation triggered: [${_emailController.text}]');
+
+      _emailError = emailRegex.hasMatch(_emailController.text)
+          ? null
+          : 'Please enter a valid email address';
+    });
+  }
+
+  void _validateUsername() {
+    setState(() {
+      final username = _usernameController.text;
+      if (username.isEmpty) {
+        _usernameError = 'Username is required';
+      } else if (username.length < 3) {
+        _usernameError = 'Username must be at least 3 characters';
+      } else if (username.length > 24) {
+        _usernameError = 'Username cannot exceed 24 characters';
+      } else {
+        const forbiddenChars = [
+          '!',
+          '@',
+          '#',
+          '\$',
+          '%',
+          '^',
+          '&',
+          '*',
+          '(',
+          ')',
+          '+',
+          '=',
+          '-',
+          '`',
+          '~',
+          '[',
+          ']',
+          '{',
+          '}',
+          '|',
+          '\\',
+          ';',
+          ':',
+          '"',
+          ',',
+          '<',
+          '.',
+          '>',
+          '/',
+          '?'
+        ];
+        final foundChar = forbiddenChars.firstWhere(
+            (char) => username.contains(char),
+            orElse: () => ''); // Use firstWhere with orElse
+        if (foundChar.isNotEmpty) {
+          _usernameError = '[$foundChar] is invalid in usernames';
+        } else {
+          _usernameError = null;
+        }
+      }
+    });
   }
 
   void _validatePasswords() {
     setState(() {
-      _passwordsMatch =
-          _passwordController.text == _confirmPasswordController.text;
+      final password = _passwordController.text;
+      final confirmPassword = _confirmPasswordController.text;
+
+      if (password.isEmpty) {
+        _passwordError = 'Password is required';
+      } else if (password.length < 6) {
+        _passwordError = 'Password must be at least 6 characters';
+      } else {
+        _passwordError = null;
+      }
+
+      if (confirmPassword.isEmpty) {
+        _confirmPasswordError = 'Confirm Password is required';
+      } else if (confirmPassword != password) {
+        _confirmPasswordError = 'Passwords do not match';
+      } else {
+        _confirmPasswordError = null;
+      }
     });
   }
 
   Future<void> _signUp() async {
-    // context.showSnackBar(
-    //   'Creating account, please wait a few seconds...',
-    //   icon: Icon(Icons.hourglass_top),
-    // );
     setState(() {
       _isLoading = true;
     });
@@ -111,71 +189,74 @@ class _RegisterPageState extends State<RegisterPage> {
           child: ListView(
             padding: formPadding,
             children: [
+              /// Email
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  label: Text('Email'),
+                decoration: InputDecoration(
+                  label: const Text('Email'),
+                  hintText: 'Enter your email address',
+                  prefixIcon: Icon(Icons.email,
+                      color: _emailError == null ? Colors.green : Colors.red),
+                  errorText: _emailController.text.isEmpty ? null : _emailError,
+                  errorStyle: const TextStyle(color: Colors.red),
                 ),
-                validator: (val) {
-                  if (val == null || val.isEmpty) {
-                    return 'Required';
-                  }
-                  return null;
-                },
                 keyboardType: TextInputType.emailAddress,
               ),
               formSpacer6,
+
+              /// Username
               TextFormField(
                 controller: _usernameController,
-                decoration: const InputDecoration(
-                  label: Text('Username'),
+                decoration: InputDecoration(
+                  label: const Text('Username'),
+                  prefixIcon: Icon(iconUser,
+                      color:
+                          _usernameError == null ? Colors.green : Colors.red),
+                  hintText: 'Enter your username',
+                  errorText:
+                      _usernameController.text.isEmpty ? null : _usernameError,
+                  errorStyle: const TextStyle(color: Colors.red),
                 ),
-                validator: (val) {
-                  if (val == null || val.isEmpty) {
-                    return 'Required';
-                  }
-                  final isValid = RegExp(r'^[A-Za-z0-9_]{3,24}$').hasMatch(val);
-                  if (!isValid) {
-                    return '3-24 long with alphanumeric or underscore';
-                  }
-                  return null;
-                },
               ),
               formSpacer6,
+
+              /// Password
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  label: Text('Password'),
+                decoration: InputDecoration(
+                  label: const Text('Password'),
+                  hintText: 'Enter your password',
+                  prefixIcon: Icon(Icons.lock,
+                      color:
+                          _passwordError == null ? Colors.green : Colors.red),
+                  errorText:
+                      _passwordController.text.isEmpty ? null : _passwordError,
+                  errorStyle: const TextStyle(color: Colors.red),
                 ),
                 validator: (val) {
-                  if (val == null || val.isEmpty) {
-                    return 'Required';
-                  }
-                  if (val.length < 6) {
-                    return '6 characters minimum';
-                  }
                   return null;
                 },
               ),
               formSpacer6,
+
+              /// Confirm Password
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: true,
                 decoration: InputDecoration(
                   label: Text('Confirm Password'),
+                  hintText: 'Re-enter your password',
+                  prefixIcon: Icon(Icons.lock,
+                      color: _confirmPasswordError == null
+                          ? Colors.green
+                          : Colors.red),
                   errorText: _confirmPasswordController.text.isEmpty
                       ? null
-                      : (_passwordsMatch ? null : 'Passwords do not match'),
+                      : _confirmPasswordError,
                   errorStyle: TextStyle(color: Colors.red),
                 ),
                 validator: (val) {
-                  if (val == null || val.isEmpty) {
-                    return 'Required';
-                  }
-                  if (val != _passwordController.text) {
-                    return 'Passwords do not match';
-                  }
                   return null;
                 },
                 onFieldSubmitted: (value) {
@@ -205,12 +286,19 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               if (!_isLoading)
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _signUp,
+                  onPressed: (_isLoading ||
+                          _emailError != null ||
+                          _usernameError != null ||
+                          _passwordError != null ||
+                          _confirmPasswordError != null)
+                      ? null
+                      : _signUp,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.login),
-                      formSpacer6,
+                      Icon(Icons.login,
+                          color: Colors.green, size: iconSizeSmall),
+                      formSpacer3,
                       const Text('Register'),
                     ],
                   ),
@@ -223,8 +311,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.arrow_back_rounded),
-                    formSpacer6,
+                    Icon(Icons.arrow_back_rounded,
+                        size: iconSizeSmall, color: Colors.orange),
+                    formSpacer3,
                     const Text('I already have an account'),
                   ],
                 ),
