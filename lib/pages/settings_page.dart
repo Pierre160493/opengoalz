@@ -208,7 +208,7 @@ class SettingsPage extends StatelessWidget {
                               // .add(Duration(days: 30))
                               .add(Duration(
                                   days:
-                                      -1)) // Set to yesterday to delete immediately
+                                      30)) // Set to yesterday to delete immediately
                               .toIso8601String(),
                         },
                         matchCriteria: {
