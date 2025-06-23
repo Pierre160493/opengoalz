@@ -23,7 +23,6 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   bool _isLoading = false;
-  bool _passwordsMatch = false;
 
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
