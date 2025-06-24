@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/club/page/club_page.dart';
@@ -10,11 +11,12 @@ import 'package:opengoalz/pages/teamCompPage.dart';
 import 'package:opengoalz/pages/user_page/user_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
+import 'package:opengoalz/pages/continent_page.dart';
 
 TextSpan stringParser(BuildContext context, String description,
     {Color colorDefaultText = Colors.white}) {
   final RegExp regex = RegExp(
-      r'\{(idPlayer|idClub|idLeague|idGame|idTeamcomp|idCountry|uuidUser):([a-fA-F0-9\-]+),([^}]+)\}');
+      r'\{(idPlayer|idClub|idLeague|idGame|idTeamcomp|idCountry|uuidUser|Continent):([a-fA-F0-9\-]+),([^}]+)\}');
   final List<TextSpan> spans = [];
   int start = 0;
 
@@ -91,6 +93,14 @@ TextSpan stringParser(BuildContext context, String description,
                 UserPage.route(uuidUser: id),
               );
               break;
+            case 'continent':
+              Navigator.push(
+                context,
+                ContinentPage.route(text, idMultiverse: null),
+              );
+              break;
+            default:
+              context.showSnackBarError('Unknown type: $type');
           }
         },
     ));

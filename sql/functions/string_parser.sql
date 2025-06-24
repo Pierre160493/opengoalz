@@ -10,7 +10,7 @@ DECLARE
 BEGIN
     -- Validate input based on entity type
     CASE inp_entity_type
-        WHEN 'idPlayer', 'idClub', 'idLeague', 'idGame', 'idTeamcomp', 'idCountry' THEN
+        WHEN 'idPlayer', 'idClub', 'idLeague', 'idGame', 'idTeamcomp', 'idCountry', 'Continent' THEN
             IF inp_id IS NULL THEN
                 -- RAISE EXCEPTION 'inp_id must be provided for entity type %', inp_entity_type;
                 RETURN 'NOT FOUND';
@@ -43,6 +43,9 @@ BEGIN
         WHEN 'idCountry' THEN
             SELECT id::TEXT, name INTO loc_record FROM countries WHERE id = inp_id;
             loc_name := COALESCE(inp_text, loc_record.name);
+         WHEN 'Continent' THEN
+            -- Since continents are not stored in a table with IDs, we directly use inp_text as the continent name.
+            RETURN '{' || inp_entity_type || '0,:' || inp_text || '}';
         WHEN 'uuidUser' THEN
             SELECT uuid_user::TEXT AS id, username AS name INTO loc_record FROM profiles WHERE uuid_user = inp_uuid_user;
             loc_name := COALESCE(inp_text, loc_record.name);

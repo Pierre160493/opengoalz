@@ -129,7 +129,9 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
                     WHEN pos_league = 3 THEN '3rd'
                     ELSE pos_league || 'th'
                 END
-                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := leagues.id) || ' of ' || leagues.continent AS description
+                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := leagues.id)
+                -- || ' of ' || string_parser(inp_entity_type := 'Continent', inp_text := leagues.continent) AS description
+                || ' of ' || string_parser(inp_entity_type := 'Continent', inp_text := 'Europe') AS description
             FROM clubs
             JOIN leagues ON clubs.id_league = leagues.id
             WHERE clubs.id_multiverse = inp_multiverse.id;
