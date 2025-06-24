@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
-import 'package:opengoalz/models/club/clubCashListTile.dart';
+import 'package:opengoalz/models/club/others/clubCashListTile.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';

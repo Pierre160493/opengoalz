@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/models/club/page/club_page.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 Widget getClubNameListTile(BuildContext context, Club club) {

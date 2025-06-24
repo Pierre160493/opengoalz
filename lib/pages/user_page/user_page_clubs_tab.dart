@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/models/club/clubCardWidget.dart';
+import 'package:opengoalz/models/club/others/clubCardWidget.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/user_page/user_page_add_club_tile.dart';
 

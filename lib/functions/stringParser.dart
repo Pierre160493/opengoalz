@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
-import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/models/club/page/club_page.dart';
 import 'package:opengoalz/pages/country_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/models/league/page/league_page.dart';

@@ -1,7 +1,7 @@
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/models/club/clubHelper.dart';
+import 'package:opengoalz/models/club/others/clubHelper.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';

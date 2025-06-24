@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
-import 'package:opengoalz/models/club/getClubNameWidget.dart';
+import 'package:opengoalz/models/club/others/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/playerStaffCoefListTile.dart';

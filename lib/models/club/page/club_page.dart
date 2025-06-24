@@ -4,8 +4,8 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
-import 'package:opengoalz/models/club/clubCashListTile.dart';
-import 'package:opengoalz/models/club/clubHelper.dart';
+import 'package:opengoalz/models/club/others/clubCashListTile.dart';
+import 'package:opengoalz/models/club/others/clubHelper.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
@@ -202,15 +202,15 @@ class _ClubPageState extends State<ClubPage> {
                       ],
                     ),
                     shape: shapePersoRoundedBorder(),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ClubCardHistoryWidget(club: club),
-                        ),
-                      );
-                    },
+                    // onTap: () {
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (context) =>
+                    //           ClubCardHistoryWidget(club: club),
+                    //     ),
+                    //   );
+                    // },
                   ),
 
                   /// Username of the club owner

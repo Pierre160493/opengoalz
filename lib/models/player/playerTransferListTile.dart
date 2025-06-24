@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/models/club/getClubNameWidget.dart';
+import 'package:opengoalz/models/club/others/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/playerTransferBidDialogBox.dart';
 import 'package:opengoalz/widgets/tickingTime.dart';

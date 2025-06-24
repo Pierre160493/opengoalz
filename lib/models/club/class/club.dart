@@ -19,7 +19,7 @@ import 'package:opengoalz/models/league/page/league_page.dart';
 import 'package:opengoalz/pages/scouts_page/scouts_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/pages/club_page.dart';
+import 'package:opengoalz/models/club/page/club_page.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:provider/provider.dart';
 
