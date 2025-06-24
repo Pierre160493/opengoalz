@@ -43,69 +43,99 @@ class _RegisterPageState extends State<RegisterPage> {
     _usernameController.addListener(_validateUsername);
   }
 
-  void _validateEmail() {
-    setState(() {
-      final emailRegex = RegExp(
-          r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
-      print('Email validation triggered: [${_emailController.text}]');
+  void _validateEmail() async {
+    final emailRegex = RegExp(
+        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+    print('Email validation triggered: [${_emailController.text}]');
 
-      _emailError = emailRegex.hasMatch(_emailController.text)
-          ? null
-          : 'Please enter a valid email address';
-    });
+    if (!emailRegex.hasMatch(_emailController.text)) {
+      setState(() {
+        _emailError = 'Please enter a valid email address';
+      });
+    } else {
+      // Check if email exists in the database
+      final response = await supabase
+          .from('profiles')
+          .select('email')
+          .ilike('email', _emailController.text)
+          .maybeSingle();
+
+      setState(() {
+        if (response != null) {
+          _emailError = 'Email already exists';
+        } else {
+          _emailError = null;
+        }
+      });
+    }
   }
 
-  void _validateUsername() {
-    setState(() {
-      final username = _usernameController.text;
-      if (username.isEmpty) {
-        _usernameError = 'Username is required';
-      } else if (username.length < 3) {
-        _usernameError = 'Username must be at least 3 characters';
-      } else if (username.length > 24) {
-        _usernameError = 'Username cannot exceed 24 characters';
+  void _validateUsername() async {
+    final username = _usernameController.text;
+    String? usernameError;
+
+    if (username.isEmpty) {
+      usernameError = 'Username is required';
+    } else if (username.length < 3) {
+      usernameError = 'Username must be at least 3 characters';
+    } else if (username.length > 24) {
+      usernameError = 'Username cannot exceed 24 characters';
+    } else {
+      const forbiddenChars = [
+        '!',
+        '@',
+        '#',
+        '\$',
+        '%',
+        '^',
+        '&',
+        '*',
+        '(',
+        ')',
+        '+',
+        '=',
+        '-',
+        '`',
+        '~',
+        '[',
+        ']',
+        '{',
+        '}',
+        '|',
+        '\\',
+        ';',
+        ':',
+        '"',
+        ',',
+        '<',
+        '.',
+        '>',
+        '/',
+        '?'
+      ];
+      final foundChar = forbiddenChars.firstWhere(
+          (char) => username.contains(char),
+          orElse: () => ''); // Use firstWhere with orElse
+      if (foundChar.isNotEmpty) {
+        usernameError = '[$foundChar] is invalid in usernames';
       } else {
-        const forbiddenChars = [
-          '!',
-          '@',
-          '#',
-          '\$',
-          '%',
-          '^',
-          '&',
-          '*',
-          '(',
-          ')',
-          '+',
-          '=',
-          '-',
-          '`',
-          '~',
-          '[',
-          ']',
-          '{',
-          '}',
-          '|',
-          '\\',
-          ';',
-          ':',
-          '"',
-          ',',
-          '<',
-          '.',
-          '>',
-          '/',
-          '?'
-        ];
-        final foundChar = forbiddenChars.firstWhere(
-            (char) => username.contains(char),
-            orElse: () => ''); // Use firstWhere with orElse
-        if (foundChar.isNotEmpty) {
-          _usernameError = '[$foundChar] is invalid in usernames';
+        // Check if username exists in the database
+        final response = await supabase
+            .from('profiles')
+            .select('username')
+            .ilike('username', username)
+            .maybeSingle();
+
+        if (response != null) {
+          usernameError = 'Username already exists';
         } else {
-          _usernameError = null;
+          usernameError = null;
         }
       }
+    }
+
+    setState(() {
+      _usernameError = usernameError;
     });
   }
 
@@ -133,6 +163,14 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _signUp() async {
+    // Check if the form is valid before proceeding
+    if (_isLoading) return; // Prevent multiple submissions
+    /// Redundant validation calls
+    _validateUsername();
+    _validateEmail();
+    _validatePasswords();
+    if (!await _validateFormFields()) return;
+
     setState(() {
       _isLoading = true;
     });
@@ -151,19 +189,38 @@ class _RegisterPageState extends State<RegisterPage> {
           email: email, password: password, data: {'username': username});
       context.showConfirmationDialog(
           'Please check your email to verify your account and start playing !');
-      context.showSnackBarSuccess(
-          'Please check your email to verify your account and start playing !');
       // Navigate back to the login page
       Navigator.of(context).pushAndRemoveUntil(
           LoginPage.route(username: username), (route) => false);
     } on AuthException catch (error) {
-      context.showSnackBarError(error.message);
+      print('AuthException: ${error.message}');
+      if (error.message.contains('Error sending confirmation email')) {
+        context.showSnackBarError(
+            'There was an issue sending the confirmation email. Please check email adress or try again later.');
+      } else {
+        context.showSnackBarError(error.message);
+      }
     } catch (error) {
       context.showSnackBarError(error.toString());
     }
     setState(() {
       _isLoading = false;
     });
+  }
+
+  bool _validateFormFields() {
+    final errors = [
+      _emailError,
+      _usernameError,
+      _passwordError,
+      _confirmPasswordError
+    ];
+
+    if (errors.any((error) => error != null)) {
+      context.showSnackBarError(errors.firstWhere((error) => error != null)!);
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -271,11 +328,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // const SizedBox(
-                      //   width: 24,
-                      //   height: 24,
-                      //   child: CircularProgressIndicator(),
-                      // ),
                       CircularProgressIndicator(),
                       formSpacer6,
                       const Text(
