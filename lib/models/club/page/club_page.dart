@@ -202,15 +202,15 @@ class _ClubPageState extends State<ClubPage> {
                       ],
                     ),
                     shape: shapePersoRoundedBorder(),
-                    // onTap: () {
-                    //   Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(
-                    //       builder: (context) =>
-                    //           ClubCardHistoryWidget(club: club),
-                    //     ),
-                    //   );
-                    // },
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ClubCardHistoryWidget(club: club),
+                        ),
+                      );
+                    },
                   ),
 
                   /// Username of the club owner
