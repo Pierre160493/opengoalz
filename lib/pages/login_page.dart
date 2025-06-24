@@ -54,51 +54,9 @@ class _LoginPageState extends State<LoginPage> {
       _isLoading = true;
     });
 
-    String email = _inputController.text; // Email to be used for login
-    String? postgresError;
-    String? otherError;
-
-    // If using email, check if it is not empty
-    if (!email.contains('@')) {
-      try {
-        // Fetch email associated with the username
-        Map<String, dynamic>? response = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('username', _inputController.text)
-            .maybeSingle();
-
-        if (response == null) {
-          postgresError = 'Username not found: ${_inputController.text}';
-        } else if (response['email'] == null) {
-          postgresError =
-              'Email not found for the user: ${_inputController.text}';
-        } else {
-          email = response['email'];
-        }
-      } on PostgrestException catch (error) {
-        postgresError =
-            'POSTGRES ERROR: Failed to fetch email for the username ==> ${error.code}: ${error.message}';
-      } catch (error) {
-        otherError =
-            'UNKNOWN ERROR: Failed to fetch email for the username, try the email directly';
-      }
-    }
-
-    // If there was an error, show it and exit the function
-    if (otherError != null || postgresError != null) {
-      if (postgresError != null) {
-        context.showSnackBarPostgreSQLError(postgresError);
-      } else if (otherError != null) {
-        context.showSnackBarError(otherError);
-      }
-      setState(() {
-        _isLoading = false;
-      });
-      return;
-    }
-
+    // Fetch email if the input is not an email, otherwise use the input directly
     try {
+      final email = await _getEmailFromIdentifier(_inputController.text);
       await supabase.auth.signInWithPassword(
         email: email,
         password: _passwordController.text,
@@ -119,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
     } on AuthException catch (error) {
       context.showSnackBarError(error.message);
     } catch (error) {
-      context.showSnackBarError('UNKNOWN ERROR: ${error}');
+      context.showSnackBarError('ERROR: ${error}');
     }
     if (mounted) {
       setState(() {
@@ -129,19 +87,50 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _resetPassword() async {
-    final email = _inputController.text;
-    if (email.isEmpty) {
-      context.showSnackBarError('Please enter your email');
+    if (_inputController.text.isEmpty) {
+      context.showSnackBarError('Please enter your email or username');
       return;
     }
 
     try {
+      final email = await _getEmailFromIdentifier(_inputController.text);
+// Prompt user are you sure you want to reset the password?
+      final confirmReset = await context.showConfirmationDialog(
+          'Are you sure you want to reset the password for $email ?');
+      if (!confirmReset) {
+        return;
+      }
+      // Send password reset email
       await supabase.auth.resetPasswordForEmail(email);
-      context.showSnackBar('Password reset email sent');
+      context.showSnackBarSuccess('Password reset email sent');
     } on AuthException catch (error) {
+      print('Error resetting password: ${error.message}');
       context.showSnackBarError(error.message);
     } catch (error) {
       context.showSnackBarError('UNKNOWN ERROR: ${error}');
+    }
+  }
+
+  Future<String> _getEmailFromIdentifier(String input) async {
+    final emailRegex = RegExp(
+        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+
+    // Check if the input is a valid email
+    if (emailRegex.hasMatch(input)) {
+      return input;
+      // If it's not an email, we assume it's a username and fetch the email from the database
+    } else {
+      final response = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('username', input)
+          .maybeSingle();
+
+      final email = response?['email'];
+      if (email == null) {
+        throw 'Invalid username or email not found';
+      }
+      return email;
     }
   }
 
@@ -217,7 +206,11 @@ class _LoginPageState extends State<LoginPage> {
             ),
             formSpacer6,
             TextButton(
-              onPressed: _resetPassword,
+              // onPressed: _resetPassword,
+              onPressed: () {
+                context.showSnackBarError(
+                    'This feature is not implemented yet.'); // TODO: Implement reset password
+              },
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
