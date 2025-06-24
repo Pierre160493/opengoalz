@@ -3,7 +3,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/others/getClubNameWidget.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/playerCardGamesTab.dart';
-import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
+import 'package:opengoalz/models/player/PlayerHistoryTimeline.dart';
 import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
 import 'package:opengoalz/models/player/playerStatsWidget.dart';
 import 'package:opengoalz/models/player/playerTransferListTile.dart';
@@ -251,7 +251,7 @@ Widget PlayerCardOtherTab(Player player) {
       body: TabBarView(
         children: [
           PlayerGamesTab(player),
-          PlayerHistoryListTiles(player: player),
+          PlayerHistoryTimeline(player: player),
         ],
       ),
     ),

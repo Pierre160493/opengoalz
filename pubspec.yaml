@@ -43,6 +43,7 @@ dependencies:
   country_flags: ^3.0.0
   table_calendar: ^3.1.2
   quiver: ^3.2.2
+  timeline_tile: ^2.0.0
 
 dev_dependencies:
   flutter_test:

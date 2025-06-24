@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
-import 'package:opengoalz/functions/stringParser.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
-import 'package:opengoalz/widgets/max_width_widget.dart';
+import 'package:opengoalz/widgets/buildHistoryList.dart';
 
 class ClubHistoryPage extends StatefulWidget {
   final Club club;
@@ -52,37 +50,7 @@ class _ClubHistoryPageState extends State<ClubHistoryPage> {
             return ErrorWithBackButton(errorMessage: 'No data available');
           } else {
             List<Map> listClubDataHistory = snapshot.data!;
-            return MaxWidthContainer(
-              child: ListView.builder(
-                itemCount: listClubDataHistory.length,
-                itemBuilder: (context, index) {
-                  final history = listClubDataHistory[index];
-                  return ListTile(
-                    leading: Icon(iconHistory,
-                        color: Colors.green, size: iconSizeMedium),
-                    title: RichText(
-                      text: stringParser(
-                          context, history['description'] ?? 'No description'),
-                    ),
-                    subtitle: Row(
-                      children: [
-                        Icon(
-                          iconCalendar,
-                          color: Colors.green,
-                          size: iconSizeSmall,
-                        ),
-                        Text(
-                          DateFormat(persoDateFormat)
-                              .format(DateTime.parse(history['created_at'])),
-                          style: styleItalicBlueGrey,
-                        ),
-                      ],
-                    ),
-                    shape: shapePersoRoundedBorder(),
-                  );
-                },
-              ),
-            );
+            return buildHistoryList(context, listClubDataHistory, null, null);
           }
         },
       ),

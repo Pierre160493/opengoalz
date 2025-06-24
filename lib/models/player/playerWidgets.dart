@@ -5,13 +5,15 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerHistoryListTiles.dart';
+import 'package:opengoalz/models/player/PlayerHistoryTimeline.dart';
 import 'package:opengoalz/models/player/playerNotesDialogBox.dart';
 import 'package:opengoalz/models/player/playerShirtNumberDialogBox.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
+import 'package:opengoalz/widgets/playerHistoryPage.dart';
 import 'package:provider/provider.dart';
 
 Widget playerShirtNumberIcon(BuildContext context, Player player) {
@@ -189,19 +191,11 @@ Widget getAgeListTile(BuildContext context, Player player) {
       ],
     ),
     onTap: () {
-      /// Open a dialog box with the player's history
-      showDialog(
-        context: context,
-        builder: (context) {
-          return Dialog(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: maxWidth * 0.8, // Define a maximum width
-              ),
-              child: PlayerHistoryListTiles(player: player),
-            ),
-          );
-        },
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PlayerHistoryPage(player: player),
+        ),
       );
     },
   );
