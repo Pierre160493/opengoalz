@@ -17,7 +17,7 @@ import 'package:opengoalz/pages/games_page.dart';
 import 'package:opengoalz/pages/user_page/user_page.dart';
 import 'package:opengoalz/pages/transfer_page.dart';
 import 'package:opengoalz/models/player/players_page.dart';
-import 'package:opengoalz/pages/league_page/league_page.dart';
+import 'package:opengoalz/models/league/page/league_page.dart';
 import 'package:opengoalz/widgets/customListTile.dart';
 import 'package:opengoalz/models/mails/mailsWidget.dart';
 import 'package:provider/provider.dart';

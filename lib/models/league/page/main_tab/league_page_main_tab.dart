@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/league/league.dart';
-import 'package:opengoalz/pages/league_page/current_ranking_tab.dart';
-import 'package:opengoalz/pages/league_page/evolution_ranking_tab.dart';
+import 'package:opengoalz/models/league/page/main_tab/current_ranking_tab.dart';
+import 'package:opengoalz/models/league/page/main_tab/evolution_ranking_tab.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
 class LeaguePageMainTab extends StatelessWidget {

@@ -209,7 +209,7 @@ class _UserPageState extends State<UserPage> {
                           idClub: user.selectedClub!.id,
                           username: user.username);
                     },
-                    icon: Icon(Icons.quick_contacts_mail, size: iconSizeSmall),
+                    icon: Icon(Icons.quick_contacts_mail, size: iconSizeMedium),
                   ),
                 ),
           user.isConnectedUser
@@ -227,7 +227,7 @@ class _UserPageState extends State<UserPage> {
                       }
                     },
                     icon: Icon(Icons.logout,
-                        size: iconSizeSmall, color: Colors.red),
+                        size: iconSizeMedium, color: Colors.red),
                   ),
                 )
               : Provider.of<UserSessionProvider>(context, listen: false)

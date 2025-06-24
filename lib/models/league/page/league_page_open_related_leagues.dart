@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/league/league.dart';
-import 'package:opengoalz/pages/league_page/league_page.dart';
+import 'package:opengoalz/models/league/page/league_page.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 
 class LeagueOtherLeaguesSelectionWidget extends StatelessWidget {

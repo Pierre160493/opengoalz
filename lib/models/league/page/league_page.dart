@@ -5,10 +5,10 @@ import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/events/event.dart';
 import 'package:opengoalz/models/league/league.dart';
-import 'package:opengoalz/pages/league_page/league_page_games_tab.dart';
-import 'package:opengoalz/pages/league_page/league_page_main_tab.dart';
-import 'package:opengoalz/pages/league_page/league_page_open_related_leagues.dart';
-import 'package:opengoalz/pages/league_page/league_page_stats_tab.dart';
+import 'package:opengoalz/models/league/page/games_tab/league_page_games_tab.dart';
+import 'package:opengoalz/models/league/page/main_tab/league_page_main_tab.dart';
+import 'package:opengoalz/models/league/page/league_page_open_related_leagues.dart';
+import 'package:opengoalz/models/league/page/stats_tab/league_page_stats_tab.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
@@ -16,7 +16,7 @@ import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
-import '../../constants.dart';
+import '../../../constants.dart';
 
 class LeaguePage extends StatefulWidget {
   final int idLeague;
