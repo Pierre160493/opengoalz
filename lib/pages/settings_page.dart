@@ -58,48 +58,49 @@ class SettingsPage extends StatelessWidget {
                   color: Colors.green, size: iconSizeMedium),
               title: Text('Invite someone to create his account'),
               onTap: () async {
-                // Show a dialog box to enter an email address
-                final TextEditingController emailController =
-                    TextEditingController();
-                final String? email = await showDialog<String>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Enter Email Address'),
-                      content: TextField(
-                        controller: emailController,
-                        decoration:
-                            InputDecoration(hintText: 'email@example.com'),
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('Cancel'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        TextButton(
-                          child: Text('Send Invitation'),
-                          onPressed: () {
-                            Navigator.of(context).pop(emailController.text);
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
+                context
+                    .showSnackBarError('This feature is not implemented yet.');
+                // // Show a dialog box to enter an email address
+                // final TextEditingController emailController =
+                //     TextEditingController();
+                // final String? email = await showDialog<String>(
+                //   context: context,
+                //   builder: (BuildContext context) {
+                //     return AlertDialog(
+                //       title: Text('Enter Email Address'),
+                //       content: TextField(
+                //         controller: emailController,
+                //         decoration:
+                //             InputDecoration(hintText: 'email@example.com'),
+                //         keyboardType: TextInputType.emailAddress,
+                //       ),
+                //       actions: <Widget>[
+                //         TextButton(
+                //           child: Text('Cancel'),
+                //           onPressed: () {
+                //             Navigator.of(context).pop();
+                //           },
+                //         ),
+                //         TextButton(
+                //           child: Text('Send Invitation'),
+                //           onPressed: () {
+                //             Navigator.of(context).pop(emailController.text);
+                //           },
+                //         ),
+                //       ],
+                //     );
+                //   },
+                // );
 
-                // If email is null, the user canceled the dialog
-                if (email == null || email.isEmpty) {
-                  return;
-                }
+                // // If email is null, the user canceled the dialog
+                // if (email == null || email.isEmpty) {
+                //   return;
+                // }
 
-                // Send an invitation email to the specified email address
-                await supabase.auth.admin.inviteUserByEmail(email);
+                // // Send an invitation email to the specified email address
+                // await supabase.auth.admin.inviteUserByEmail(email);
 
-                context.showSnackBar('Invitation sent successfully to ${email}',
-                    icon: Icon(Icons.email, color: Colors.green));
+                // context.showSnackBarSuccess('Invitation sent successfully to ${email}');
               },
               shape: shapePersoRoundedBorder(),
             ),
@@ -176,7 +177,7 @@ class SettingsPage extends StatelessWidget {
               onTap: () {
                 context.showSnackBarError(
                   'Language selection is not implemented yet.',
-                  icon: Icon(Icons.language, color: Colors.orange),
+                  icon: Icon(Icons.language),
                 );
               },
               shape: shapePersoRoundedBorder(Colors.orange),
