@@ -17,7 +17,7 @@ import 'package:opengoalz/pages/user_page/user_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/clubCardHistoryWidget.dart';
+import 'package:opengoalz/widgets/clubHistoryPage.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -206,8 +206,7 @@ class _ClubPageState extends State<ClubPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              ClubCardHistoryWidget(club: club),
+                          builder: (context) => ClubHistoryPage(club: club),
                         ),
                       );
                     },

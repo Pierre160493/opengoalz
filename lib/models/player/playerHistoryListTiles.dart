@@ -44,34 +44,34 @@ class _PlayerHistoryListTilesState extends State<PlayerHistoryListTiles> {
           return ErrorWithBackButton(errorMessage: 'No data available');
         } else {
           List<Map> listPlayerHistory = snapshot.data!;
-          return Column(
-            children: [
-              ListTile(
-                leading: Icon(
-                  Icons.history,
-                  size: iconSizeLarge,
-                  color: Colors.green,
-                ),
-                title: Row(
-                  children: [
-                    Text(
-                      'History of ',
-                    ),
-                    Text(widget.player.getFullName(),
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                subtitle: Text(
-                  'This page shows the history of the player.',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.blueGrey,
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(
+                    Icons.history,
+                    size: iconSizeLarge,
+                    color: Colors.green,
                   ),
+                  title: Row(
+                    children: [
+                      Text(
+                        'History of ',
+                      ),
+                      Text(widget.player.getFullName(),
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  subtitle: Text(
+                    'This page shows the history of the player.',
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                  shape: shapePersoRoundedBorder(Colors.green, 3),
                 ),
-                shape: shapePersoRoundedBorder(Colors.green, 3),
-              ),
-              SingleChildScrollView(
-                child: ListView.builder(
+                ListView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                   itemCount: listPlayerHistory.length,
@@ -124,8 +124,8 @@ class _PlayerHistoryListTilesState extends State<PlayerHistoryListTiles> {
                     );
                   },
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         }
       },

@@ -7,16 +7,16 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
-class ClubCardHistoryWidget extends StatefulWidget {
+class ClubHistoryPage extends StatefulWidget {
   final Club club;
 
-  const ClubCardHistoryWidget({Key? key, required this.club}) : super(key: key);
+  const ClubHistoryPage({Key? key, required this.club}) : super(key: key);
 
   @override
-  _ClubCardHistoryWidgetState createState() => _ClubCardHistoryWidgetState();
+  _ClubHistoryPageState createState() => _ClubHistoryPageState();
 }
 
-class _ClubCardHistoryWidgetState extends State<ClubCardHistoryWidget> {
+class _ClubHistoryPageState extends State<ClubHistoryPage> {
   late Stream<List<Map>> _ClubDataHistoryStream;
 
   @override
