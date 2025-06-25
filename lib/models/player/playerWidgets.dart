@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/PlayerHistoryTimeline.dart';
 import 'package:opengoalz/models/player/playerNotesDialogBox.dart';
 import 'package:opengoalz/models/player/playerShirtNumberDialogBox.dart';
-import 'package:opengoalz/models/profile.dart';
-import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
-import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:opengoalz/widgets/playerHistoryPage.dart';
 import 'package:provider/provider.dart';
 
@@ -167,36 +162,40 @@ Widget getPlayerHistoryGraph(
 }
 
 Widget getAgeListTile(BuildContext context, Player player) {
-  return ListTile(
-    shape: shapePersoRoundedBorder(),
-    leading: player.dateDeath != null
-        ? Icon(
-            iconDead,
-            size: iconSizeLarge,
-            color: Colors.red,
-          )
-        : Icon(Icons.cake_outlined, size: iconSizeLarge, color: Colors.green),
-    title: Row(
-      children: [
-        getAgeStringRow(player.age),
-      ],
+  return Tooltip(
+    message: 'Click to see player history',
+    waitDuration: const Duration(milliseconds: 500),
+    child: ListTile(
+      shape: shapePersoRoundedBorder(),
+      leading: player.dateDeath != null
+          ? Icon(
+              iconDead,
+              size: iconSizeLarge,
+              color: Colors.red,
+            )
+          : Icon(Icons.cake_outlined, size: iconSizeLarge, color: Colors.green),
+      title: Row(
+        children: [
+          getAgeStringRow(player.age),
+        ],
+      ),
+      subtitle: Row(
+        children: [
+          Icon(Icons.event, size: iconSizeSmall, color: Colors.green),
+          formSpacer3,
+          Text(DateFormat(persoDateFormat).format(player.dateBirth),
+              style: TextStyle(
+                  fontStyle: FontStyle.italic, color: Colors.blueGrey)),
+        ],
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PlayerHistoryPage(player: player),
+          ),
+        );
+      },
     ),
-    subtitle: Row(
-      children: [
-        Icon(Icons.event, size: iconSizeSmall, color: Colors.green),
-        formSpacer3,
-        Text(DateFormat(persoDateFormat).format(player.dateBirth),
-            style:
-                TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey)),
-      ],
-    ),
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PlayerHistoryPage(player: player),
-        ),
-      );
-    },
   );
 }

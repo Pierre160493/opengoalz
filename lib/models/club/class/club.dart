@@ -68,11 +68,13 @@ class Club {
   final int? idCoach;
   final int? idScout;
 
-  Club.fromMap(Map<String, dynamic> map,
-      {List<int>? myClubsIds, int? idSelectedClub})
+  Club.fromMap(Map<String, dynamic> map, Profile user)
       : id = map['id'],
-        isBelongingToConnectedUser = myClubsIds?.contains(map['id']) ?? false,
-        isCurrentlySelected = idSelectedClub == map['id'],
+        isBelongingToConnectedUser = user.username == map['username'],
+        isCurrentlySelected =
+            user.selectedClub != null && user.selectedClub!.id == map['id'],
+        // isBelongingToConnectedUser = myClubsIds?.contains(map['id']) ?? false,
+        // isCurrentlySelected = idSelectedClub == map['id'],
         createdAt = DateTime.parse(map['created_at']).toLocal(),
         userSince = map['user_since'] != null
             ? DateTime.parse(map['user_since']).toLocal()
@@ -99,12 +101,17 @@ class Club {
         idScout = map['id_scout'] {}
 
   /// Fetch the club from its id
-  static Future<Club?> fromId(int id) async {
+  static Future<Club?> fromId(int id, Profile user) async {
     final stream = supabase
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', id)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).first);
+        .map((maps) => maps
+            .map((map) => Club.fromMap(
+                  map,
+                  user,
+                ))
+            .first);
 
     try {
       final club = await stream.first;

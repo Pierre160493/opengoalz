@@ -7,8 +7,10 @@ import 'package:opengoalz/models/game/game_card.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -55,7 +57,8 @@ class _HomePageState extends State<GamesPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => Club.fromMap(maps.first))
+        .map((maps) => Club.fromMap(maps.first,
+            Provider.of<UserSessionProvider>(context, listen: false).user))
 
         /// Fetch the games
         .switchMap((Club club) {
@@ -154,7 +157,12 @@ class _HomePageState extends State<GamesPage> {
                       .map((id) => id!)
                       .toSet()
                       .toList())
-              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+              .map((maps) => maps
+                  .map((map) => Club.fromMap(
+                      map,
+                      Provider.of<UserSessionProvider>(context, listen: false)
+                          .user))
+                  .toList())
               .map((clubs) {
                 for (var game in club.games) {
                   game.rightClub =

@@ -3,7 +3,9 @@ import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
@@ -40,7 +42,10 @@ class _CalendarPageState extends State<CalendarPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+        .map((maps) => maps
+            .map((map) => Club.fromMap(map,
+                Provider.of<UserSessionProvider>(context, listen: false).user))
+            .first)
         .switchMap((Club club) {
           return supabase
               .from('multiverses')

@@ -54,7 +54,7 @@ class _ClubPageState extends State<ClubPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+        .map((maps) => maps.map((map) => Club.fromMap(map, currentUser)).first)
 
         /// Fetch its league
         .switchMap((Club club) {
@@ -95,7 +95,6 @@ class _ClubPageState extends State<ClubPage> {
           return loadingCircularAndText('Loading club');
         } else {
           Club club = snapshot.data!;
-          bool isSelectedClub = currentUser.selectedClub!.id == club.id;
           return Scaffold(
             appBar: AppBar(
               title: club.getClubName(context),
@@ -109,8 +108,12 @@ class _ClubPageState extends State<ClubPage> {
                   ListTile(
                     leading: Icon(
                       iconClub,
-                      size: 48,
-                      color: isSelectedClub ? colorIsSelected : Colors.green,
+                      size: iconSizeLarge,
+                      color: club.isCurrentlySelected
+                          ? colorIsSelected
+                          : club.isBelongingToConnectedUser
+                              ? colorIsMine
+                              : Colors.green,
                     ), // Icon to indicate club
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -118,7 +121,7 @@ class _ClubPageState extends State<ClubPage> {
                         /// Club name with possibility to change it
                         InkWell(
                           onTap: () {
-                            isSelectedClub
+                            club.isBelongingToConnectedUser
                                 ? showDialog(
                                     context: context,
                                     builder: (BuildContext context) {

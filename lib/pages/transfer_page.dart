@@ -103,7 +103,12 @@ class _TransferPageState extends State<TransferPage>
                 .from('clubs')
                 .stream(primaryKey: ['id'])
                 .inFilter('id', clubIds)
-                .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+                .map((maps) => maps
+                    .map((map) => Club.fromMap(
+                        map,
+                        Provider.of<UserSessionProvider>(context, listen: false)
+                            .user))
+                    .toList())
                 .map((List<Club> clubs) {
                   for (Player player
                       in players.where((player) => player.idClub != null)) {

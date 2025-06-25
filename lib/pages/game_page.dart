@@ -83,7 +83,12 @@ class _HomePageState extends State<GamePage> {
               .from('clubs')
               .stream(primaryKey: ['id'])
               .inFilter('id', clubIds.cast<int>())
-              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+              .map((maps) => maps
+                  .map((map) => Club.fromMap(
+                      map,
+                      Provider.of<UserSessionProvider>(context, listen: false)
+                          .user))
+                  .toList())
               .map((List<Club> clubs) {
                 for (Club club in clubs) {
                   if (club.id == game.idClubLeft) {

@@ -130,7 +130,10 @@ class _TeamCompPageState extends State<TeamCompPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).first);
+        .map((maps) => maps
+            .map((map) => Club.fromMap(map,
+                Provider.of<UserSessionProvider>(context, listen: false).user))
+            .first);
   }
 
   Stream<Club> _getPlayersStream(Club club) {

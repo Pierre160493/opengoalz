@@ -48,7 +48,10 @@ class _StaffPageState extends State<StaffPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+        .map((maps) => maps
+            .map((map) => Club.fromMap(map,
+                Provider.of<UserSessionProvider>(context, listen: false).user))
+            .first)
         .switchMap((Club club) {
           List<int> idPlayerStaff = [club.idScout, club.idCoach]
               .where((id) => id != null)

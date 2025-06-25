@@ -76,7 +76,12 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
               .from('clubs')
               .stream(primaryKey: ['id'])
               .eq('id', player.idClub!)
-              .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+              .map((maps) => maps
+                  .map((map) => Club.fromMap(
+                      map,
+                      Provider.of<UserSessionProvider>(context, listen: false)
+                          .user))
+                  .first)
               .map((Club club) {
                 player.club = club;
                 return player;

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/errorTextWidget.dart';
+import 'package:provider/provider.dart';
 
 Widget getClubNameClickable(BuildContext context, Club? club, int? idCLub) {
   /// Returns a clickable widget with the club name
@@ -21,7 +23,7 @@ Widget getClubNameClickable(BuildContext context, Club? club, int? idCLub) {
           .from('clubs')
           .stream(primaryKey: ['id'])
           .eq('id', idCLub)
-          .map((maps) => maps.map((map) => Club.fromMap(map)).first),
+          .map((maps) => maps.map((map) => Club.fromMap(map, Provider.of<UserSessionProvider>(context, listen: false).user)).first),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // return CircularProgressIndicator();

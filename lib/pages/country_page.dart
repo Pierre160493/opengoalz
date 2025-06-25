@@ -72,7 +72,12 @@ class _CountryPageState extends State<CountryPage>
               .stream(primaryKey: ['id'])
               .eq('id_country', country.id)
               .order('elo_points', ascending: false)
-              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+              .map((maps) => maps
+                  .map((map) => Club.fromMap(
+                      map,
+                      Provider.of<UserSessionProvider>(context, listen: false)
+                          .user))
+                  .toList())
               .map((clubs) {
                 country.clubsAll = clubs;
                 return country;

@@ -54,7 +54,10 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
         .from('clubs')
         .stream(primaryKey: ['id'])
         .eq('id', widget.idClub)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).first)
+        .map((maps) => maps
+            .map((map) => Club.fromMap(map,
+                Provider.of<UserSessionProvider>(context, listen: false).user))
+            .first)
         .switchMap((Club club) {
           print('Club: ${club.name}');
           return supabase

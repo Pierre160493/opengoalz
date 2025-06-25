@@ -73,7 +73,12 @@ class LeaguePageStatsTab extends StatelessWidget {
                       .toSet()
                       .toList()
                       .cast<Object>())
-              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+              .map((maps) => maps
+                  .map((map) => Club.fromMap(
+                      map,
+                      Provider.of<UserSessionProvider>(context, listen: false)
+                          .user))
+                  .toList())
               .map((List<Club> clubs) {
                 return players.map((player) {
                   // player.club =

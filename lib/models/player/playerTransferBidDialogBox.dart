@@ -8,7 +8,6 @@ import 'package:opengoalz/models/player/playerTransferListTile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/postgresql_requests.dart';
@@ -85,7 +84,12 @@ class _PlayerTransferBidDialogBoxState
               .from('clubs')
               .stream(primaryKey: ['id'])
               .inFilter('id', clubIds)
-              .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+              .map((maps) => maps
+                  .map((map) => Club.fromMap(
+                      map,
+                      Provider.of<UserSessionProvider>(context, listen: false)
+                          .user))
+                  .toList())
               .map((List<Club> clubs) {
                 if (player.idClub != null) {
                   player.club =

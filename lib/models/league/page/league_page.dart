@@ -9,10 +9,12 @@ import 'package:opengoalz/models/league/page/games_tab/league_page_games_tab.dar
 import 'package:opengoalz/models/league/page/main_tab/league_page_main_tab.dart';
 import 'package:opengoalz/models/league/page/league_page_open_related_leagues.dart';
 import 'package:opengoalz/models/league/page/stats_tab/league_page_stats_tab.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
@@ -119,7 +121,13 @@ class _RankingPageState extends State<LeaguePage> {
                   .from('clubs')
                   .stream(primaryKey: ['id'])
                   .inFilter('id', clubsIds)
-                  .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+                  .map((maps) => maps
+                      .map((map) => Club.fromMap(
+                          map,
+                          Provider.of<UserSessionProvider>(context,
+                                  listen: false)
+                              .user))
+                      .toList())
                   .map((List<Club> clubs) {
                     clubs.sort((a, b) =>
                         a.clubData.posLeague.compareTo(b.clubData.posLeague));

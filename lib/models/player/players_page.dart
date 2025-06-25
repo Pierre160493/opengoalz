@@ -127,7 +127,12 @@ class _PlayersPageState extends State<PlayersPage> {
                         .toSet()
                         .cast<Object>()
                         .toList())
-                .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+                .map((maps) => maps
+                    .map((map) => Club.fromMap(
+                        map,
+                        Provider.of<UserSessionProvider>(context, listen: false)
+                            .user))
+                    .toList())
                 .map((List<Club> clubs) {
                   for (Player player
                       in players.where((player) => player.idClub != null)) {

@@ -70,7 +70,13 @@ class _UserPageState extends State<UserPage> {
                   .stream(primaryKey: ['id'])
                   .eq('username', user.username)
                   .order('user_since')
-                  .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+                  .map((maps) => maps
+                      .map((map) => Club.fromMap(
+                          map,
+                          Provider.of<UserSessionProvider>(context,
+                                  listen: false)
+                              .user))
+                      .toList())
                   .map((List<Club> clubs) {
                     user.clubs = clubs;
                     return user;

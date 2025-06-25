@@ -3,7 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
-import 'package:opengoalz/widgets/buildHistoryList.dart';
+import 'package:opengoalz/widgets/historyTimelineWidget.dart';
 
 class ClubHistoryPage extends StatefulWidget {
   final Club club;
@@ -50,7 +50,8 @@ class _ClubHistoryPageState extends State<ClubHistoryPage> {
             return ErrorWithBackButton(errorMessage: 'No data available');
           } else {
             List<Map> listClubDataHistory = snapshot.data!;
-            return buildHistoryList(context, listClubDataHistory, null, null);
+            return historyTimelineWidget(
+                context, listClubDataHistory, null, null);
           }
         },
       ),

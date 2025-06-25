@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/page/club_page.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
+import 'package:provider/provider.dart';
 
 Widget getClubNameListTile(BuildContext context, Club club) {
   return ListTile(
@@ -19,7 +21,8 @@ Widget getClubNameListTile(BuildContext context, Club club) {
 
 Widget getClubNameFromId(BuildContext context, int idClub) {
   return FutureBuilder<Club?>(
-    future: Club.fromId(idClub), // Remove the 3-second delay
+    future: Club.fromId(
+        idClub, Provider.of<UserSessionProvider>(context, listen: false).user),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return Container(

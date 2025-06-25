@@ -8,8 +8,10 @@ import 'package:opengoalz/models/game/game_card.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/pages/game_page.dart';
+import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class PlayerGamesTab extends StatefulWidget {
@@ -69,8 +71,13 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                     .from('clubs')
                     .stream(primaryKey: ['id'])
                     .inFilter('id', clubsIds)
-                    .map(
-                        (maps) => maps.map((map) => Club.fromMap(map)).toList())
+                    .map((maps) => maps
+                        .map((map) => Club.fromMap(
+                            map,
+                            Provider.of<UserSessionProvider>(context,
+                                    listen: false)
+                                .user))
+                        .toList())
                     .map((List<Club> clubs) {
                       for (var game in games) {
                         if (game.idClubLeft != null) {

@@ -6,7 +6,7 @@ import 'package:opengoalz/functions/stringParser.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 
-Widget buildHistoryList(BuildContext context, List<Map> listDataHistory,
+Widget historyTimelineWidget(BuildContext context, List<Map> listDataHistory,
     DateTime? dateStart, int? multiverseSpeed) {
   return MaxWidthContainer(
     child: ListView.builder(
@@ -82,7 +82,7 @@ Widget buildHistoryList(BuildContext context, List<Map> listDataHistory,
                 backgroundColor: Colors.blueGrey,
                 radius: 15,
                 child: Text(
-                  (index + 1).toString(),
+                  (listDataHistory.length - index).toString(),
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

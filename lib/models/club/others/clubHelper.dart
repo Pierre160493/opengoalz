@@ -33,22 +33,25 @@ Widget clubLeagueAndRankingListTile(BuildContext context, Club club) {
 
 Widget clubEloRow(BuildContext context, int? idClub, int? eloValue) {
   if (idClub == null) return Container();
-  return InkWell(
-    onTap: () {
-      ClubData.showClubDataHistoryChartDialog(
-          context, idClub, 'elo_points', 'Elo Points Evolution');
-    },
-    child: Row(
-      children: [
-        Icon(
-          iconRankingPoints,
-          size: iconSizeSmall,
-          color: Colors.green,
-        ),
-        Text(eloValue.toString(),
-            style:
-                TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-      ],
+  return Tooltip(
+    message: 'Elo Points',
+    child: InkWell(
+      onTap: () {
+        ClubData.showClubDataHistoryChartDialog(
+            context, idClub, 'elo_points', 'Elo Points Evolution');
+      },
+      child: Row(
+        children: [
+          Icon(
+            iconRankingPoints,
+            size: iconSizeSmall,
+            color: Colors.green,
+          ),
+          Text(eloValue.toString(),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+        ],
+      ),
     ),
   );
 }

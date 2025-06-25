@@ -98,7 +98,7 @@ class UserSessionProvider extends ChangeNotifier {
         .stream(primaryKey: ['id'])
         .eq('username', user.username)
         .order('user_since', ascending: true)
-        .map((maps) => maps.map((map) => Club.fromMap(map)).toList())
+        .map((maps) => maps.map((map) => Club.fromMap(map, user)).toList())
         .listen((List<Club> clubs) {
           user.clubs = clubs;
 
