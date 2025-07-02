@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/player_embodied_offers_button.dart';
 import 'package:opengoalz/models/player/player_user_points_button.dart';
@@ -17,7 +18,6 @@ import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
 import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'class/player.dart';
-import '../../constants.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class PlayersPage extends StatefulWidget {
