@@ -8,8 +8,8 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerCard_Main.dart';
 import 'package:opengoalz/pages/countriesSelection_page.dart';
+import 'package:opengoalz/pages/country/country_players_tab.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
@@ -207,14 +207,14 @@ class _CountryPageState extends State<CountryPage>
                   Expanded(
                     child: TabBarView(controller: _tabController, children: [
                       /// Country presentation
-                      _getCountryPresentationWidget(
+                      _countryMainTab(
                           context, country, _selectedMultiverse?.id),
 
                       /// Clubs of the country
-                      _getClubsWidget(context, country),
+                      _clubsTab(context, country),
 
                       /// Players of the country
-                      _getPlayersWidget(context, country),
+                      CountryPlayersTab(country: country),
                     ]),
                   ),
                 ],
@@ -226,8 +226,7 @@ class _CountryPageState extends State<CountryPage>
     );
   }
 
-  _getCountryPresentationWidget(
-      BuildContext context, Country country, int? idMultiverse) {
+  _countryMainTab(BuildContext context, Country country, int? idMultiverse) {
     return ListView(
       children: [
         getCountryListTileFromCountry(context, country, idMultiverse,
@@ -258,7 +257,7 @@ class _CountryPageState extends State<CountryPage>
     );
   }
 
-  _getClubsWidget(BuildContext context, Country country) {
+  _clubsTab(BuildContext context, Country country) {
     if (country.clubsSelected.isEmpty) {
       return const Center(
         child: ErrorWithBackButton(
@@ -291,22 +290,6 @@ class _CountryPageState extends State<CountryPage>
           leading: Icon(iconClub, size: iconSizeMedium, color: Colors.green),
           shape: shapePersoRoundedBorder(),
         );
-      },
-    );
-  }
-
-  _getPlayersWidget(BuildContext context, Country country) {
-    if (country.playersSelected.isEmpty) {
-      return const Center(
-        child: ErrorWithBackButton(
-            errorMessage: 'No players found for this country'),
-      );
-    }
-    return ListView.builder(
-      itemCount: country.playersSelected.length,
-      itemBuilder: (context, index) {
-        Player player = country.playersSelected[index];
-        return PlayerCard(player: player, index: index + 1, isExpanded: false);
       },
     );
   }

@@ -4,7 +4,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/calendar_page.dart';
-import 'package:opengoalz/pages/country_page.dart';
+import 'package:opengoalz/pages/country/country_page.dart';
 import 'package:opengoalz/pages/mails_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:opengoalz/pages/scouts_page/scouts_page.dart';

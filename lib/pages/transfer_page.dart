@@ -260,99 +260,10 @@ class _TransferPageState extends State<TransferPage>
                     index: players.length == 1 ? 0 : index + 1,
                     isExpanded: players.length == 1 ? true : false),
               );
-              // return GestureDetector(
-              //     onTap: () {
-              //       Navigator.push(
-              //         context,
-              //         MaterialPageRoute(
-              //           builder: (context) => PlayersPage(
-              //             playerSearchCriterias: PlayerSearchCriterias(
-              //               idPlayer: [player.id],
-              //             ),
-              //           ),
-              //         ),
-              //       );
-              //     },
-              //     child: Card(
-              //       child: ListTile(
-              //         title: Row(
-              //           children: [
-              //             Flexible(
-              //               child: Text(
-              //                 '${player.firstName[0]}.${player.lastName.toUpperCase()} ',
-              //                 overflow: TextOverflow.ellipsis,
-              //                 maxLines: 1,
-              //                 style: TextStyle(
-              //                   fontWeight: FontWeight.bold,
-              //                 ),
-              //               ),
-              //             ),
-              //             player.getStatusRow(),
-              //           ],
-              //         ),
-              //         subtitle: Column(
-              //           children: [
-              //             player.getAgeWidget(),
-              //             player.getAvgStatsWidget(),
-              //           ],
-              //         ),
-              //         // You can add more widgets here to display additional information about the player
-              //       ),
-              //     ));
             },
           ),
         )
       ],
-    );
-  }
-
-  void _showSearchPlayerDialog(BuildContext context) {
-    double selectedAge = 15.0;
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Search Players'),
-          content: Column(
-            children: [
-              Text('This is where the search functionality will go.'),
-              Slider(
-                value: selectedAge,
-                min: 15.0,
-                max: 35.0,
-                divisions: 200,
-                label: selectedAge.toStringAsFixed(1),
-                onChanged: (double value) {
-                  setState(() {
-                    selectedAge = value;
-                  });
-                },
-              ),
-              Text(
-                'Selected Age: ${selectedAge.toStringAsFixed(1)}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Search'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

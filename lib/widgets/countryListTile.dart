@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/pages/continent_page.dart';
-import 'package:opengoalz/pages/country_page.dart';
+import 'package:opengoalz/pages/country/country_page.dart';
 import 'package:opengoalz/widgets/continent_display_widget.dart';
 
 // Widget getCountryListTile(BuildContext context, int? idCountry) {

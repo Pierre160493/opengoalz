@@ -34,7 +34,7 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       return AlertDialog(
-        title: Text('Search Players'),
+        title: Text('Searching Criterias for Players'),
         content: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(

@@ -4,7 +4,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/club/page/club_page.dart';
-import 'package:opengoalz/pages/country_page.dart';
+import 'package:opengoalz/pages/country/country_page.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/models/league/page/league_page.dart';
 import 'package:opengoalz/pages/teamCompPage.dart';

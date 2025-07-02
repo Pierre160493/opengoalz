@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
-import 'package:opengoalz/pages/country_page.dart';
+import 'package:opengoalz/pages/country/country_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';

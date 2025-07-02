@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/player_embodied_offers_button.dart';
 import 'package:opengoalz/models/player/player_user_points_button.dart';
-import 'package:opengoalz/models/player/players_sorting_function.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/models/player/playerSearchDialogBox.dart';
+import 'package:opengoalz/widgets/player_sort_button.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/club/class/club.dart';
@@ -290,13 +290,10 @@ class _PlayersPageState extends State<PlayersPage> {
             ),
 
             /// Sort players
-            IconButton(
-                tooltip: 'Sort players by...',
-                onPressed: () {
-                  showSortingOptions(context, setState, players);
-                },
-                icon: Icon(Icons.align_horizontal_left_rounded,
-                    color: Colors.green)),
+            PlayerSortButton(
+              players: players,
+              onSort: () => setState(() {}),
+            ),
           ],
         ),
         drawer: (widget.isReturningPlayer || players.length == 1)
