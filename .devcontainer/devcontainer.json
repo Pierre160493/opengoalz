@@ -1,17 +1,15 @@
 {
-	"name": "OpenGoalZ CodeSpace",
-	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-	"features": {
-		"ghcr.io/devcontainers/features/common-utils:2": {},
-		"ghcr.io/devcontainers/features/flutter:1": {}
-	},
-	"postCreateCommand": "flutter pub get",
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"dart-code.flutter",
-				"dart-code.dart-code"
-			]
-		}
-	}
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "forwardPorts": [3000],
+    "name": "OpenGoalZ Codespace",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "Dart-Code.dart-code",
+                "Dart-Code.flutter"
+            ]
+        }
+    }
 }
