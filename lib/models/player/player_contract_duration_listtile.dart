@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/player_embodied_offers_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:opengoalz/widgets/tickingTime.dart';

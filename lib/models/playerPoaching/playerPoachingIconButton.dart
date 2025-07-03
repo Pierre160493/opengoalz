@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/scouts_page/scouts_page.dart';

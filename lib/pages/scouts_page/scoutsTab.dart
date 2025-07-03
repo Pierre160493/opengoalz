@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/stringFunctions.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';

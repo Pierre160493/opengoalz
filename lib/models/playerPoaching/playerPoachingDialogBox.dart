@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/profile.dart';

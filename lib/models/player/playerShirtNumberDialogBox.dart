@@ -3,7 +3,6 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 
 import 'dart:math';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';

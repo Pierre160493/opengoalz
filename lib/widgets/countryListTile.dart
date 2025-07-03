@@ -2,7 +2,6 @@ import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/country.dart';
-import 'package:opengoalz/pages/continent_page.dart';
 import 'package:opengoalz/pages/country/country_page.dart';
 import 'package:opengoalz/widgets/continent_display_widget.dart';
 

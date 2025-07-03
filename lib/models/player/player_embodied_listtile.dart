@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
 import 'package:opengoalz/models/player/player_embodied_offers_button.dart';
-import 'package:opengoalz/models/player/player_embodied_offers_page.dart';
 import 'package:opengoalz/models/profile.dart';
 
 class PlayerCardEmbodiedListTile extends StatelessWidget {

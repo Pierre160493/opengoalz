@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'dart:math';
-import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 
 class PlayerNotesDialogBox extends StatefulWidget {
