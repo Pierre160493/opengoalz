@@ -48,7 +48,7 @@ void sendMailDialog(BuildContext context, {int? idClub, String? username}) {
                 }
               }
 
-              bool isOk = await operationInDB(
+              await operationInDB(
                 context,
                 'INSERT',
                 'mails',

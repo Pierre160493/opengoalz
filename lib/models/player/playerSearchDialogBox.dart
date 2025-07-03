@@ -720,9 +720,6 @@ class _StatusSelectorState extends State<StatusSelector> {
       case PlayerStatus.freePlayer:
         icon = Icon(Icons.wallet_giftcard, color: Colors.green);
         text = Text('Free Player');
-      default:
-        icon = Icon(iconError, color: Colors.red);
-        text = Text('Unknown');
     }
     return Row(children: [
       icon,

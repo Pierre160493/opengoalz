@@ -240,11 +240,10 @@ class _ClubPageState extends State<ClubPage> {
                                         listen: false)
                                     .setOtherThemeWhenSelectedUserIsNotConnectedUser(
                                         Provider.of<UserSessionProvider>(
-                                                    context,
-                                                    listen: false)
-                                                .user
-                                                .isConnectedUser ??
-                                            false),
+                                                context,
+                                                listen: false)
+                                            .user
+                                            .isConnectedUser),
 
                                 /// Go to the User's Page
                                 Navigator.push(

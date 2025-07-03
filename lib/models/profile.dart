@@ -143,8 +143,7 @@ class Profile {
                 .setOtherThemeWhenSelectedUserIsNotConnectedUser(
                     Provider.of<UserSessionProvider>(context, listen: false)
                             .user
-                            .isConnectedUser ??
-                        false);
+                            .isConnectedUser);
 
             /// Launch UserPage Page
             Navigator.of(context)

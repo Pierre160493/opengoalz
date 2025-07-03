@@ -10,7 +10,6 @@ extension TabOrders on TeamComp {
             itemBuilder: (context, index) {
               final sub = subs[index];
 
-              Color? colorBackground;
               PlayerWithPosition playerOutMap;
               Player playerOut;
               Widget playerOutWidget;
