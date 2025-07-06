@@ -90,27 +90,26 @@ BEGIN
         GROUP BY players.id, multiverses.speed, players.id_club, clubs.username
     )
     UPDATE players SET
-        motivation = LEAST(100, GREATEST(0,
-            motivation + (random() * 20 - 8) -- Random [-8, +12]
+        motivation = clamp(0, 100, motivation
+            + (random() * 20 - 8) -- Random [-8, +12]
             + ((70 - motivation) / 10) -- +7; -3 based on value
-            - ((expenses_missed / expenses_expected) ^ 0.5) * 10
+            - ((expenses_missed / expenses_expected) ^ 0.5) * 10 -- Reduce motivation based on expenses_missed
             -- Lower motivation if player is being poached
             - players1.affinity_max * (0.1 + RANDOM()) -- Reduce motivation based on the max affinity
             - (players1.poaching_count ^ 0.5) -- Reduce motivation for each poaching attempt
-            ------ Lower motivation based on age for bot clubs from 30 years old
+            ------ Lower motivation based on age for unretired bot players from 30 years old
             - CASE
-            ---- Not for retired players nor embodied players
-                WHEN players1.date_retire IS NOT NULL OR players1.username IS NOT NULL THEN 0
-                ELSE GREATEST(0, players1.age - 30) * RANDOM()
+                WHEN players1.date_retire IS NULL THEN
+                    GREATEST(0, players1.age - 30) * RANDOM() -- Reduce motivation based on age for unretired bot players from 35 years old
+                ELSE 0
             END
-            )
-        ),
-        form = LEAST(100, GREATEST(0,
+            ),
+        form = clamp(0, 100,
             form + (random() * 20 - 10) + ((70 - form) / 10)
-            )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
-        stamina = LEAST(100, GREATEST(0,
+            ), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
+        stamina = clamp(0, 100,
             stamina + (random() * 20 - 10) + ((70 - stamina) / 10)
-            )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
+            ), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
         experience = experience + 0.05,
         loyalty = clamp(loyalty + random() - 0.5, 0, 100),
         leadership = clamp(leadership + random() - 0.5, 0, 100),
