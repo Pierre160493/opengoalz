@@ -27,13 +27,6 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  Widget getPlayerNameToolTip(BuildContext context, {bool isSurname = false}) {
-    return Tooltip(
-      message: firstName + ' ' + lastName.toUpperCase(),
-      child: getPlayerNameTextWidget(context, isSurname: isSurname),
-    );
-  }
-
   /// Clickable widget of the club name
   Widget getPlayerNameClickable(BuildContext context,
       {bool isRightClub = false, bool isSurname = false}) {
@@ -52,7 +45,7 @@ extension PlayerWidgetsHelper on Player {
               ),
             );
           },
-          child: getPlayerNameToolTip(context),
+          child: PlayerNameTooltip(player: this, isSurname: isSurname),
         ),
       ],
     );

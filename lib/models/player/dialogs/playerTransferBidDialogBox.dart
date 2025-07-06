@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/others/clubCashListTile.dart';
-import 'package:opengoalz/models/player/transfer/playerTransferListTile.dart';
+import 'package:opengoalz/models/player/transfer/player_transfer_list_tile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/constants.dart';
@@ -14,6 +14,7 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
+import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 
 class PlayerTransferBidDialogBox extends StatefulWidget {
   final int idPlayer;
@@ -168,7 +169,7 @@ class _PlayerTransferBidDialogBoxState
               title: Row(
                 children: [
                   Text('Transfer Bid for '),
-                  player.getPlayerNameToolTip(context),
+                  PlayerNameTooltip(player: player),
                 ],
               ),
               content: SingleChildScrollView(
@@ -307,7 +308,7 @@ class _PlayerTransferBidDialogBoxState
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Text(' on '),
-                            player.getPlayerNameToolTip(context)
+                            PlayerNameTooltip(player: player)
                           ],
                         ),
                       ),

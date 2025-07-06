@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 
 import 'dart:math';
 import 'package:opengoalz/postgresql_requests.dart';
@@ -108,7 +109,9 @@ class _PlayerShirtNumberDialogBoxState
           title: Row(
             children: [
               Text('Shirt Number for '),
-              widget.player.getPlayerNameToolTip(context),
+              PlayerNameTooltip(player: widget.player),
+              Spacer(),
+              Text('Shirt Number'),
             ],
           ),
           content: SingleChildScrollView(
@@ -182,7 +185,7 @@ class _PlayerShirtNumberDialogBoxState
                         formSpacer3,
                         Text(
                             'Update shirt number to ${_shirtNumberController.text.isEmpty ? 'NULL' : _shirtNumber}'),
-                        // widget.player.getPlayerNameToolTip(context)
+                        // PlayerNameTooltip(player: widget.player)
                       ],
                     ),
                   ),

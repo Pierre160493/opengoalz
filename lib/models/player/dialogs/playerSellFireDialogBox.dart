@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 import 'package:opengoalz/widgets/tickingTime.dart';
 
 class SellFirePlayerDialogBox extends StatefulWidget {
@@ -234,7 +235,15 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
               ],
               child: _firePlayer ? rowFirePlayer : rowSellPlayer,
             ),
-            player.getPlayerNameToolTip(context),
+            Column(
+              children: [
+                PlayerNameTooltip(player: player),
+                Text(
+                  'Fire or sell player',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
           ],
         ),
         content: SingleChildScrollView(

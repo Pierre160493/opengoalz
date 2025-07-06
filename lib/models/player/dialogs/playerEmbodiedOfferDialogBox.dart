@@ -11,6 +11,7 @@ import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 
 class PlayerEmbodiedOfferDialogBox extends StatefulWidget {
   final int idPlayer;
@@ -184,8 +185,9 @@ class _PlayerEmbodiedOfferDialogBoxState
         return persoAlertDialogWithConstrainedContent(
           title: Row(
             children: [
-              Text('Place an offer on '),
-              player.getPlayerNameToolTip(context),
+              PlayerNameTooltip(player: player),
+              Spacer(),
+              Text('Place an offer for an embodied player'),
             ],
           ),
           content: Column(
@@ -516,7 +518,7 @@ class _PlayerEmbodiedOfferDialogBoxState
                         Text(_existingClubOffer == null
                             ? 'Place an Offer on '
                             : 'Update Offer on '),
-                        player.getPlayerNameToolTip(context)
+                        PlayerNameTooltip(player: player)
                       ],
                     ),
                   ),

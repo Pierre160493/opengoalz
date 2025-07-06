@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/others/clubCashListTile.dart';
 import 'package:opengoalz/models/player/dialogs/playerSearchDialogBox.dart';
-import 'package:opengoalz/models/player/widgets/playerCard_Main.dart';
+import 'package:opengoalz/models/player/widgets/cards/player_card_main.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';

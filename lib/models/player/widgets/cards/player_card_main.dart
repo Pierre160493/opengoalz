@@ -15,6 +15,7 @@ import 'package:opengoalz/pages/user_page/user_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
+import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 
 class PlayerCard extends StatefulWidget {
   final Player player;
@@ -98,7 +99,8 @@ class _PlayerCardState extends State<PlayerCard>
                 Row(
                   children: [
                     /// Player's name
-                    widget.player.getPlayerNameToolTip(context),
+                    // widget.player.getPlayerNameToolTip(context),
+                    PlayerNameTooltip(player: widget.player),
 
                     /// If the player is embodied by a user, show the username
                     if (widget.player.userName != null)

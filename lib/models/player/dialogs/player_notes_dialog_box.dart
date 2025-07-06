@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 import 'dart:math';
 import 'package:opengoalz/postgresql_requests.dart';
 
@@ -100,8 +101,9 @@ class _PlayerNotesDialogBoxState extends State<PlayerNotesDialogBox> {
         return AlertDialog(
           title: Row(
             children: [
-              Text('Notes on '),
-              widget.player.getPlayerNameToolTip(context),
+              PlayerNameTooltip(player: widget.player),
+              Spacer(),
+              Text('Notes'),
             ],
           ),
           content: SingleChildScrollView(
@@ -221,7 +223,9 @@ class _PlayerNotesDialogBoxState extends State<PlayerNotesDialogBox> {
                           Icon(iconSuccessfulOperation, color: Colors.green),
                           formSpacer3,
                           Text('Update notes on '),
-                          widget.player.getPlayerNameToolTip(context)
+                          PlayerNameTooltip(
+                            player: widget.player,
+                          ),
                         ],
                       ),
                     ),

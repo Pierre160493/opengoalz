@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/widgets/playerCard_Main.dart';
+import 'package:opengoalz/models/player/widgets/cards/player_card_main.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/player_sort_button.dart';
 
