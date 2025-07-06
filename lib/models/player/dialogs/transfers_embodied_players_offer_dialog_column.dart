@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
+import 'package:opengoalz/models/player/embodied/transfers_embodied_players_offer.dart';
 
 class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
   final Player player;

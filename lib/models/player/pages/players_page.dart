@@ -2,22 +2,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
-import 'package:opengoalz/models/player/player_embodied_offers_button.dart';
-import 'package:opengoalz/models/player/player_user_points_button.dart';
+import 'package:opengoalz/models/player/dialogs/playerSearchDialogBox.dart';
+import 'package:opengoalz/models/player/widgets/cards/player_card_main.dart';
+import 'package:opengoalz/models/player/widgets/player_embodied_offers_button.dart';
+import 'package:opengoalz/models/player/widgets/player_user_points_button.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/goBackToolTip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
-import 'package:opengoalz/models/player/playerSearchDialogBox.dart';
 import 'package:opengoalz/widgets/player_sort_button.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/widgets/appDrawer.dart';
-import 'package:opengoalz/models/player/playerCard_Main.dart';
-import 'class/player.dart';
+import '../class/player.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class PlayersPage extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerSellFireDialogBox.dart';
-import 'package:opengoalz/models/player/players_page.dart';
+import 'package:opengoalz/models/player/dialogs/playerSellFireDialogBox.dart';
+import 'package:opengoalz/models/player/pages/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';

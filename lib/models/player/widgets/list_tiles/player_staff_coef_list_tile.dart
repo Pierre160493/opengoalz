@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerWidgets.dart';
+import 'package:opengoalz/models/player/widgets/get_player_history_graph.dart';
 
 Widget getStaffCoefListTile(BuildContext context, Player player, String title) {
   IconData icon;

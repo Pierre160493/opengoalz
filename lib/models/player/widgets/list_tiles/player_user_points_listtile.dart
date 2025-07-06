@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/player_user_points_button.dart';
+import 'package:opengoalz/models/player/widgets/player_user_points_button.dart';
 import 'package:opengoalz/widgets/graphWidget.dart';
 
 class PlayerUserPointsListTile extends StatelessWidget {

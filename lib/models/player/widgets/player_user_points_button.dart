@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/player_user_points_dialog.dart';
+import 'package:opengoalz/models/player/dialogs/player_user_points_dialog.dart';
 
 class PlayerUserPointsButton extends StatelessWidget {
   final Player player;

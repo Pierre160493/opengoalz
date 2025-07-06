@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
-import 'package:opengoalz/models/player/player_embodied_offers_page.dart';
+import 'package:opengoalz/models/player/dialogs/playerEmbodiedOfferDialogBox.dart';
+import 'package:opengoalz/models/player/embodied/player_embodied_offers_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 

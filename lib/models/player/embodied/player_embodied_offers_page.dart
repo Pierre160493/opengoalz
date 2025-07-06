@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
-import 'package:opengoalz/models/player/playerEmbodiedOfferDialogBox.dart';
-import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/models/player/transfers_embodied_players_offer_tile.dart';
+import 'package:opengoalz/models/player/dialogs/playerEmbodiedOfferDialogBox.dart';
+import 'package:opengoalz/models/player/embodied/transfers_embodied_players_offer.dart';
+import 'package:opengoalz/models/player/embodied/transfers_embodied_players_offer_tile.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:opengoalz/provider_user.dart';

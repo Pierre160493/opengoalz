@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opengoalz/models/player/PlayerHistoryTimeline.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/stats/player_history_timeline.dart';
 
 class PlayerHistoryPage extends StatelessWidget {
   final Player player;

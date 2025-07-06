@@ -6,7 +6,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/others/clubCashListTile.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/players_page.dart';
+import 'package:opengoalz/models/player/pages/players_page.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/postgresql_requests.dart';

@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/others/getClubNameWidget.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/models/player/playerCardGamesTab.dart';
-import 'package:opengoalz/models/player/PlayerHistoryTimeline.dart';
-import 'package:opengoalz/models/player/playerStatsWidget.dart';
-import 'package:opengoalz/models/player/playerWidgets.dart';
-import 'package:opengoalz/models/player/player_actions_listtiles.dart';
-import 'package:opengoalz/models/player/player_contract_duration_listtile.dart';
-import 'package:opengoalz/models/player/player_embodied_listtile.dart';
+import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/stats/playerCardGamesTab.dart';
+import 'package:opengoalz/models/player/stats/player_history_timeline.dart';
+import 'package:opengoalz/models/player/actions/player_actions_listtiles.dart';
+import 'package:opengoalz/models/player/widgets/list_tiles/player_contract_duration_listtile.dart';
+import 'package:opengoalz/models/player/embodied/player_embodied_listtile.dart';
+import 'package:opengoalz/models/player/widgets/player_stats_widget.dart';
+import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/playerFavorite/playerFavoriteIconButton.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
 import 'package:opengoalz/pages/user_page/user_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
-import 'class/player.dart';
 
 class PlayerCard extends StatefulWidget {
   final Player player;

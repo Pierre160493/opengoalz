@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerTrainingCoefDialogBox.dart';
-import 'package:opengoalz/models/player/player_user_points_listtile.dart';
+import 'package:opengoalz/models/player/dialogs/playerTrainingCoefDialogBox.dart';
+import 'package:opengoalz/models/player/widgets/list_tiles/player_user_points_listtile.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
 class PlayerCardStatsWidget extends StatefulWidget {

@@ -3,7 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerCard_Main.dart';
+import 'package:opengoalz/models/player/widgets/playerCard_Main.dart';
 import 'package:opengoalz/models/playerPoaching/playersPoachingTab.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';

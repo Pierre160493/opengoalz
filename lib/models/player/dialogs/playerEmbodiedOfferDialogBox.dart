@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
+import 'package:opengoalz/models/player/embodied/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';

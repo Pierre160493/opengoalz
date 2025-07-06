@@ -4,8 +4,8 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/others/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
-import 'package:opengoalz/models/player/transfers_embodied_players_offer_dialog_column.dart';
+import 'package:opengoalz/models/player/dialogs/transfers_embodied_players_offer_dialog_column.dart';
+import 'package:opengoalz/models/player/embodied/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 
