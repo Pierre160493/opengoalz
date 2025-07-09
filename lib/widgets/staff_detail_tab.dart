@@ -8,6 +8,7 @@ import 'package:opengoalz/models/player/pages/players_page.dart';
 import 'package:opengoalz/models/player/widgets/list_tiles/player_expenses_list_tile.dart';
 import 'package:opengoalz/models/player/widgets/list_tiles/player_staff_coef_list_tile.dart';
 import 'package:opengoalz/models/player/widgets/player_widgets.dart';
+import 'package:opengoalz/models/player/widgets/player_status_row.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/countryListTile.dart';
@@ -102,7 +103,7 @@ class StaffDetailTab extends StatelessWidget {
                   Row(
                     children: [
                       player.getPlayerNameClickable(context),
-                      player.getStatusRow(),
+                      PlayerStatusRow(player: player),
                     ],
                   ),
                 ],

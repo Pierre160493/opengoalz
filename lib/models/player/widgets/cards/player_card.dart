@@ -11,13 +11,14 @@ import 'package:opengoalz/models/player/widgets/player_stats_widget.dart';
 import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/playerFavorite/playerFavoriteIconButton.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
-import 'package:opengoalz/pages/user_page/user_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/player/pages/players_page.dart';
+import 'package:opengoalz/models/player/widgets/embodied_user_icon_button.dart';
+import 'package:opengoalz/models/player/widgets/player_status_row.dart';
 
 class PlayerCard extends StatefulWidget {
   final Player player;
@@ -63,15 +64,24 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
     });
   }
 
+  /// Determines the tap behavior for the player card based on context
+  ///
+  /// Returns null if no tap action should be available, otherwise returns
+  /// a callback that handles navigation based on the card's purpose:
+  /// - Returning player: Pops the current screen and returns the selected player
+  /// - List item: Navigates to detailed player view
+  /// - Single expanded view: No tap action (already viewing details)
   VoidCallback? _getPlayerTapHandler() {
-    if (!widget.isReturningPlayer && widget.index == null) {
-      return null; // No tap action for single expanded player
+    // Case 1: Returning player scenario (e.g., player selection dialog)
+    // User taps to select this player and return it to the previous screen
+    if (widget.isReturningPlayer) {
+      return () => Navigator.of(context).pop(widget.player);
     }
 
-    return () {
-      if (widget.isReturningPlayer) {
-        Navigator.of(context).pop(widget.player);
-      } else if (widget.index != null) {
+    // Case 2: Player list item with index (not expanded view)
+    // User taps to navigate to detailed player page
+    if (widget.index != null) {
+      return () {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -82,17 +92,20 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
             ),
           ),
         );
-      }
-    };
+      };
+    }
+
+    // Case 3: Single expanded player view (index is null and not returning)
+    // No tap action needed as user is already viewing the player details
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserSessionProvider>(context, listen: false).user;
+
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      final user =
-          Provider.of<UserSessionProvider>(context, listen: false).user;
-
       /// Player Card
       Color playerColor = widget.player.isEmbodiedByCurrentUser
           ? colorIsMine
@@ -144,6 +157,9 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
+                          /// On the left side of the card, display the player's name,
+                          /// status row, actions, and favorite/poaching icons
+                          /// On the right side, display the expand icon button
                           children: [
                             /// Player's name
                             // widget.player.getPlayerNameToolTip(context),
@@ -151,41 +167,18 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
 
                             /// If the player is embodied by a user, show the username
                             if (widget.player.userName != null)
-                              IconButton(
-                                tooltip:
-                                    'Embodied by: ${widget.player.userName}',
-                                icon: Icon(
-                                  iconUser,
-                                  size: iconSizeSmall,
-                                  color: Colors.blue,
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => UserPage(
-                                        userName: widget.player.userName,
-                                      ),
-                                    ),
-                                  );
-                                },
+                              EmbodiedUserIconButton(
+                                userName: widget.player.userName!,
                               ),
 
                             /// Show the status row of the player
-                            widget.player.getStatusRow(),
+                            PlayerStatusRow(player: widget.player),
 
-                            /// Player actions widget
-                            // if (widget.player.isEmbodiedByCurrentUser ||
-                            //     widget.player.isPartOfClubOfCurrentUser)
-                            // Row(
-                            //   children: [
-                            //     formSpacer3,
+                            /// Player actions widget (list of actions on player)
                             PlayerActionsWidget(
                               player: widget.player,
                               index: widget.index,
                             ),
-                            //   ],
-                            // ),
 
                             /// Favorite icon button
                             PlayerFavoriteIconButton(
@@ -196,11 +189,14 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                                 player: widget.player, user: user),
                           ],
                         ),
+
+                        /// Expand icon button to show more details
                         IconButton(
                           icon: Icon(_developed
                               ? Icons.expand_less
                               : Icons.expand_circle_down_outlined),
                           iconSize: iconSizeSmall,
+                          color: Colors.green,
                           onPressed: () {
                             setState(() {
                               _developed = !_developed;
@@ -212,14 +208,18 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                     subtitle: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        getClubNameClickable(
-                            context, widget.player.club, widget.player.idClub),
+                        ClubNameClickable(
+                          club: widget.player.club,
+                          idClub: widget.player.idClub,
+                        ),
                         Row(
                           children: [
-                            playerShirtNumberIcon(context, widget.player),
+                            /// Player's shirt number icon
+                            PlayerShirtNumberIcon(player: widget.player),
+
+                            /// If the user is the owner of the club
                             if (user.selectedClub!.id == widget.player.idClub)
-                              formSpacer3,
-                            playerSmallNotesIcon(context, widget.player),
+                              PlayerSmallNotesIcon(player: widget.player),
                           ],
                         ),
                       ],
