@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/pages/players_page.dart';
-import 'package:opengoalz/models/player/widgets/cards/player_card_main.dart';
+import 'package:opengoalz/models/player/widgets/cards/player_card.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/pages/user_page/user_page_add_player_tile.dart';

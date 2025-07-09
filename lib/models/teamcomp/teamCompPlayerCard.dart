@@ -4,7 +4,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/pages/players_page.dart';
-import 'package:opengoalz/models/player/widgets/cards/player_card_main.dart';
+import 'package:opengoalz/models/player/widgets/cards/player_card.dart';
 import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 import 'package:opengoalz/models/playerPosition.dart';
