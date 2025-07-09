@@ -3,8 +3,8 @@
 ## Flutter Commands
 
 ```bash
-flutter run -d windows
-flutter pub get
+fvm flutter run -d windows
+fvm flutter pub get
 ```
 
 ## Powershell Scripts
