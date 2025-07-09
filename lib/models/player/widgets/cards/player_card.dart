@@ -41,7 +41,6 @@ class PlayerCard extends StatefulWidget {
 
 class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
   late TabController _tabController;
-  late AnimationController _rotationController;
   bool _developed = false;
   bool _isHovered = false;
 
@@ -49,17 +48,12 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _rotationController = AnimationController(
-      duration: Duration(seconds: 2), // Complete rotation every 2 seconds
-      vsync: this,
-    );
     _developed = widget.isExpanded;
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _rotationController.dispose();
     super.dispose();
   }
 
@@ -67,13 +61,6 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
     setState(() {
       _isHovered = isHovered;
     });
-
-    if (isHovered) {
-      _rotationController.repeat(); // Start perpetual rotation
-    } else {
-      _rotationController.stop(); // Stop rotation
-      _rotationController.reset(); // Reset to initial position
-    }
   }
 
   VoidCallback? _getPlayerTapHandler() {
@@ -103,55 +90,48 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      // if (constraints.maxWidth < maxWidth / 2) {
-      return _buildLarge();
-    });
-  }
+      final user =
+          Provider.of<UserSessionProvider>(context, listen: false).user;
 
-  /// Build Large
-  Widget _buildLarge() {
-    final user = Provider.of<UserSessionProvider>(context, listen: false).user;
+      /// Player Card
+      Color playerColor = widget.player.isEmbodiedByCurrentUser
+          ? colorIsMine
+          : widget.player.isPartOfClubOfCurrentUser
+              ? colorIsSelected
+              : colorDefault;
+      return MouseRegion(
+        onEnter: (_) => _handleHoverChange(true),
+        onExit: (_) => _handleHoverChange(false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          transform: _isHovered
+              ? Matrix4.translationValues(0, -3, 0) // Subtle lift on hover
+              : Matrix4.identity(),
+          child: InkWell(
+            onTap: _getPlayerTapHandler(),
+            hoverColor: Colors.blue.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            child: Card(
+              elevation: _isHovered ? 8.0 : 4.0, // Enhanced shadow on hover
 
-    /// Player Card
-    Color playerColor = widget.player.isEmbodiedByCurrentUser
-        ? colorIsMine
-        : widget.player.isPartOfClubOfCurrentUser
-            ? colorIsSelected
-            : colorDefault;
-    return MouseRegion(
-      onEnter: (_) => _handleHoverChange(true),
-      onExit: (_) => _handleHoverChange(false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        transform: _isHovered
-            ? Matrix4.translationValues(0, -3, 0) // Subtle lift on hover
-            : Matrix4.identity(),
-        child: InkWell(
-          onTap: _getPlayerTapHandler(),
-          hoverColor: Colors.blue.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(12),
-          child: Card(
-            elevation: _isHovered ? 8.0 : 4.0, // Enhanced shadow on hover
-
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(12), // Adjust border radius as needed
-              side: BorderSide(
-                color: _isHovered // Change border color on hover
-                    ? Colors.green
-                    : Colors.blueGrey,
-                width: _isHovered ? 6.0 : 4.0, // Border width changes on hover
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(12), // Adjust border radius as needed
+                side: BorderSide(
+                  color: _isHovered // Change border color on hover
+                      ? Colors.green
+                      : Colors.blueGrey,
+                  width:
+                      _isHovered ? 6.0 : 4.0, // Border width changes on hover
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// Title of the card
-                ListTile(
-                  leading: RotationTransition(
-                    turns: _rotationController,
-                    child: CircleAvatar(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Title of the card
+                  ListTile(
+                    leading: CircleAvatar(
                       backgroundColor: playerColor,
                       child: (widget.index == null || _isHovered)
                           ? Icon(widget.player.getPlayerIcon())
@@ -159,156 +139,158 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                               (widget.index!).toString(),
                             ),
                     ),
-                  ),
-                  shape: shapePersoRoundedBorder(),
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          /// Player's name
-                          // widget.player.getPlayerNameToolTip(context),
-                          PlayerNameTooltip(player: widget.player),
+                    shape: shapePersoRoundedBorder(),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            /// Player's name
+                            // widget.player.getPlayerNameToolTip(context),
+                            PlayerNameTooltip(player: widget.player),
 
-                          /// If the player is embodied by a user, show the username
-                          if (widget.player.userName != null)
-                            IconButton(
-                              tooltip: 'Embodied by: ${widget.player.userName}',
-                              icon: Icon(
-                                iconUser,
-                                size: iconSizeSmall,
-                                color: Colors.blue,
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => UserPage(
-                                      userName: widget.player.userName,
+                            /// If the player is embodied by a user, show the username
+                            if (widget.player.userName != null)
+                              IconButton(
+                                tooltip:
+                                    'Embodied by: ${widget.player.userName}',
+                                icon: Icon(
+                                  iconUser,
+                                  size: iconSizeSmall,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => UserPage(
+                                        userName: widget.player.userName,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
+
+                            /// Show the status row of the player
+                            widget.player.getStatusRow(),
+
+                            /// Player actions widget
+                            // if (widget.player.isEmbodiedByCurrentUser ||
+                            //     widget.player.isPartOfClubOfCurrentUser)
+                            // Row(
+                            //   children: [
+                            //     formSpacer3,
+                            PlayerActionsWidget(
+                              player: widget.player,
+                              index: widget.index,
                             ),
+                            //   ],
+                            // ),
 
-                          /// Show the status row of the player
-                          widget.player.getStatusRow(),
+                            /// Favorite icon button
+                            PlayerFavoriteIconButton(
+                                player: widget.player, user: user),
 
-                          /// Player actions widget
-                          // if (widget.player.isEmbodiedByCurrentUser ||
-                          //     widget.player.isPartOfClubOfCurrentUser)
-                          // Row(
-                          //   children: [
-                          //     formSpacer3,
-                          PlayerActionsWidget(
-                            player: widget.player,
-                            index: widget.index,
-                          ),
-                          //   ],
-                          // ),
-
-                          /// Favorite icon button
-                          PlayerFavoriteIconButton(
-                              player: widget.player, user: user),
-
-                          /// Poaching icon button
-                          PlayerPoachingIconButton(
-                              player: widget.player, user: user),
-                        ],
-                      ),
-                      IconButton(
-                        icon: Icon(_developed
-                            ? Icons.expand_less
-                            : Icons.expand_circle_down_outlined),
-                        iconSize: iconSizeSmall,
-                        onPressed: () {
-                          setState(() {
-                            _developed = !_developed;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  subtitle: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      getClubNameClickable(
-                          context, widget.player.club, widget.player.idClub),
-                      Row(
-                        children: [
-                          playerShirtNumberIcon(context, widget.player),
-                          if (user.selectedClub!.id == widget.player.idClub)
-                            formSpacer3,
-                          playerSmallNotesIcon(context, widget.player),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                if (!_developed)
-                  widget.player.getPlayerMainInformation(context),
-                if (_developed)
-                  SizedBox(
-                    width: double.infinity,
-                    // height: 400, // Adjust the height as needed
-                    height: MediaQuery.of(context).size.height -
-                        kToolbarHeight -
-                        120, // Adjust the height as needed
-                    child: DefaultTabController(
-                      length: 3,
-                      child: Scaffold(
-                        appBar: TabBar(
-                          tabs: [
-                            buildTabWithIcon(
-                                icon: iconDetails, text: 'Details'),
-                            buildTabWithIcon(icon: iconTraining, text: 'Stats'),
-                            buildTabWithIcon(
-                                icon: Icons.more_horiz, text: 'Others')
+                            /// Poaching icon button
+                            PlayerPoachingIconButton(
+                                player: widget.player, user: user),
                           ],
                         ),
-                        body: TabBarView(
+                        IconButton(
+                          icon: Icon(_developed
+                              ? Icons.expand_less
+                              : Icons.expand_circle_down_outlined),
+                          iconSize: iconSizeSmall,
+                          onPressed: () {
+                            setState(() {
+                              _developed = !_developed;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    subtitle: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        getClubNameClickable(
+                            context, widget.player.club, widget.player.idClub),
+                        Row(
                           children: [
-                            /// Details tab
-                            SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  /// Player's main information
-                                  widget.player
-                                      .getPlayerMainInformation(context),
-
-                                  /// ListTile to display only when expended
-                                  if (_developed) ...[
-                                    if (widget.player.userName != null)
-
-                                      /// Players embodied listtile
-                                      PlayerCardEmbodiedListTile(
-                                          player: widget.player),
-
-                                    /// Player's end contract list tile
-                                    if (widget.player.dateEndContract != null)
-                                      PlayerCardContractDurationListTile(
-                                          player: widget.player),
-                                  ]
-                                ],
-                              ),
-                            ),
-
-                            /// Stats Tab
-                            PlayerCardStatsWidget(player: widget.player),
-
-                            PlayerCardOtherTab(widget.player)
+                            playerShirtNumberIcon(context, widget.player),
+                            if (user.selectedClub!.id == widget.player.idClub)
+                              formSpacer3,
+                            playerSmallNotesIcon(context, widget.player),
                           ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!_developed)
+                    widget.player.getPlayerMainInformation(context),
+                  if (_developed)
+                    SizedBox(
+                      width: double.infinity,
+                      // height: 400, // Adjust the height as needed
+                      height: MediaQuery.of(context).size.height -
+                          kToolbarHeight -
+                          120, // Adjust the height as needed
+                      child: DefaultTabController(
+                        length: 3,
+                        child: Scaffold(
+                          appBar: TabBar(
+                            tabs: [
+                              buildTabWithIcon(
+                                  icon: iconDetails, text: 'Details'),
+                              buildTabWithIcon(
+                                  icon: iconTraining, text: 'Stats'),
+                              buildTabWithIcon(
+                                  icon: Icons.more_horiz, text: 'Others')
+                            ],
+                          ),
+                          body: TabBarView(
+                            children: [
+                              /// Details tab
+                              SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    /// Player's main information
+                                    widget.player
+                                        .getPlayerMainInformation(context),
+
+                                    /// ListTile to display only when expended
+                                    if (_developed) ...[
+                                      if (widget.player.userName != null)
+
+                                        /// Players embodied listtile
+                                        PlayerCardEmbodiedListTile(
+                                            player: widget.player),
+
+                                      /// Player's end contract list tile
+                                      if (widget.player.dateEndContract != null)
+                                        PlayerCardContractDurationListTile(
+                                            player: widget.player),
+                                    ]
+                                  ],
+                                ),
+                              ),
+
+                              /// Stats Tab
+                              PlayerCardStatsWidget(player: widget.player),
+
+                              PlayerCardOtherTab(widget.player)
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
