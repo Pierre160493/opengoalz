@@ -39,9 +39,9 @@ class PlayerCard extends StatefulWidget {
   _PlayerCardState createState() => _PlayerCardState();
 }
 
-class _PlayerCardState extends State<PlayerCard>
-    with SingleTickerProviderStateMixin {
+class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
   late TabController _tabController;
+  late AnimationController _rotationController;
   bool _developed = false;
   bool _isHovered = false;
 
@@ -49,13 +49,31 @@ class _PlayerCardState extends State<PlayerCard>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _rotationController = AnimationController(
+      duration: Duration(seconds: 2), // Complete rotation every 2 seconds
+      vsync: this,
+    );
     _developed = widget.isExpanded;
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _rotationController.dispose();
     super.dispose();
+  }
+
+  void _handleHoverChange(bool isHovered) {
+    setState(() {
+      _isHovered = isHovered;
+    });
+
+    if (isHovered) {
+      _rotationController.repeat(); // Start perpetual rotation
+    } else {
+      _rotationController.stop(); // Stop rotation
+      _rotationController.reset(); // Reset to initial position
+    }
   }
 
   VoidCallback? _getPlayerTapHandler() {
@@ -101,8 +119,8 @@ class _PlayerCardState extends State<PlayerCard>
             ? colorIsSelected
             : colorDefault;
     return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
+      onEnter: (_) => _handleHoverChange(true),
+      onExit: (_) => _handleHoverChange(false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
@@ -131,13 +149,16 @@ class _PlayerCardState extends State<PlayerCard>
               children: [
                 /// Title of the card
                 ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: playerColor,
-                    child: widget.index == null
-                        ? Icon(widget.player.getPlayerIcon())
-                        : Text(
-                            (widget.index!).toString(),
-                          ),
+                  leading: RotationTransition(
+                    turns: _rotationController,
+                    child: CircleAvatar(
+                      backgroundColor: playerColor,
+                      child: (widget.index == null || _isHovered)
+                          ? Icon(widget.player.getPlayerIcon())
+                          : Text(
+                              (widget.index!).toString(),
+                            ),
+                    ),
                   ),
                   shape: shapePersoRoundedBorder(),
                   title: Row(
