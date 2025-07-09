@@ -213,6 +213,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                 pos_league = pos_league_next_season,
                 pos_league_next_season = NULL,
                 league_points = 0,
+                lis_last_results = ARRAY[]::integer[], -- Reset the last results of the clubs
                 id_games = ARRAY[]::integer[], -- Reset the games of the club (for better performance in games page)
                 league_goals_for = 0,
                 league_goals_against = 0

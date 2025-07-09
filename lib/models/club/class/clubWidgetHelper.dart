@@ -172,25 +172,29 @@ extension ClubWidgetHelper on Club {
 
     const boldTextStyle = TextStyle(fontWeight: FontWeight.bold);
 
-    return Row(
-      children: [
-        Icon(Icons.emoji_events, color: Colors.yellow),
-        formSpacer3, // Assuming formSpacer3 is defined elsewhere
-        Text(
-          victories.toString(),
-          style: boldTextStyle.copyWith(color: Colors.green),
-        ),
-        Text(' / '),
-        Text(
-          draws.toString(),
-          style: boldTextStyle.copyWith(color: Colors.grey),
-        ),
-        Text(' / '),
-        Text(
-          losses.toString(),
-          style: boldTextStyle.copyWith(color: Colors.red),
-        ),
-      ],
+    return Tooltip(
+      message:
+          'Last 10 results: $victories victories / $draws draws / $losses losses',
+      child: Row(
+        children: [
+          Icon(Icons.emoji_events, color: Colors.yellow),
+          formSpacer3, // Assuming formSpacer3 is defined elsewhere
+          Text(
+            victories.toString(),
+            style: boldTextStyle.copyWith(color: Colors.green),
+          ),
+          Text(' / '),
+          Text(
+            draws.toString(),
+            style: boldTextStyle.copyWith(color: Colors.grey),
+          ),
+          Text(' / '),
+          Text(
+            losses.toString(),
+            style: boldTextStyle.copyWith(color: Colors.red),
+          ),
+        ],
+      ),
     );
   }
 
