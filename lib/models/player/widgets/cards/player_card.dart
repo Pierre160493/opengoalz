@@ -4,17 +4,17 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/stats/playerCardGamesTab.dart';
 import 'package:opengoalz/models/player/stats/player_history_timeline.dart';
-import 'package:opengoalz/models/player/actions/player_actions_listtiles.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_contract_duration_listtile.dart';
-import 'package:opengoalz/models/player/embodied/player_embodied_listtile.dart';
+import 'package:opengoalz/models/player/actions/player_actions_icon_button.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_contract_duration_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_embodied_tile.dart';
 import 'package:opengoalz/models/player/widgets/player_main_information.dart';
 import 'package:opengoalz/models/player/widgets/player_shirt_number_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_small_notes_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_stats_widget.dart';
-import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/playerFavorite/playerFavoriteIconButton.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
 import 'package:opengoalz/provider_user.dart';
+import 'package:opengoalz/widgets/player_icon_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
 import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
@@ -150,7 +150,10 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                     leading: CircleAvatar(
                       backgroundColor: playerColor,
                       child: (widget.index == null || _isHovered)
-                          ? Icon(widget.player.getPlayerIcon())
+                          ? PlayerIcon(
+                              player: widget.player,
+                              size: iconSizeLarge,
+                            )
                           : Text(
                               (widget.index!).toString(),
                             ),
@@ -277,7 +280,7 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
 
                                       /// Player's end contract list tile
                                       if (widget.player.dateEndContract != null)
-                                        PlayerCardContractDurationListTile(
+                                        PlayerCardContractDurationTile(
                                             player: widget.player),
                                     ]
                                   ],

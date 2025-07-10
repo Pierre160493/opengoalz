@@ -6,10 +6,10 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:opengoalz/widgets/tickingTime.dart';
 
-class PlayerCardContractDurationListTile extends StatelessWidget {
+class PlayerCardContractDurationTile extends StatelessWidget {
   final Player player;
 
-  const PlayerCardContractDurationListTile({Key? key, required this.player})
+  const PlayerCardContractDurationTile({Key? key, required this.player})
       : super(key: key);
 
   @override

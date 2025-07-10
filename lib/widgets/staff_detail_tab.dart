@@ -5,9 +5,10 @@ import 'package:opengoalz/models/club/others/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/pages/players_page.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_expenses_tile.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_staff_coef_tile.dart';
-import 'package:opengoalz/models/player/widgets/player_age_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_expenses_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_staff_coef_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_age_tile.dart';
+import 'package:opengoalz/models/player/widgets/player_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_small_notes_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/player/widgets/player_status_row.dart';
@@ -97,7 +98,7 @@ class StaffDetailTab extends StatelessWidget {
           children: [
             /// Player List Tile
             ListTile(
-              leading: CircleAvatar(child: Icon(player.getPlayerIcon())),
+              leading: CircleAvatar(child: PlayerIcon(player: player)),
               shape: shapePersoRoundedBorder(),
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

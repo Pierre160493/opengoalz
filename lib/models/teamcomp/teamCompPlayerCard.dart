@@ -5,6 +5,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/pages/players_page.dart';
 import 'package:opengoalz/models/player/widgets/cards/player_card.dart';
+import 'package:opengoalz/models/player/widgets/player_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_shirt_number_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_small_notes_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_widgets.dart';
@@ -299,8 +300,8 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
                   player.gamePlayerStatsBest != null
                       ? buildStarIcon(
                           player.gamePlayerStatsBest!.stars, iconSizeLarge)
-                      : Icon(
-                          player.getPlayerIcon(),
+                      : PlayerIcon(
+                          player: player,
                           size: iconSizeLarge,
                         ),
                   PlayerNameTooltip(player: player),

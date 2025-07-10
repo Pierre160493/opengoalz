@@ -51,16 +51,7 @@ extension PlayerWidgetsHelper on Player {
     );
   }
 
-  /// Legacy method wrapper for backward compatibility
-  ///
-  /// **Deprecated**: Use PlayerMainInformation widget instead
-  @Deprecated('Use PlayerMainInformation widget instead')
-  Widget getPlayerMainInformation(BuildContext context) {
-    return PlayerMainInformation(player: this);
-  }
-
   static double iconSize = iconSizeSmall;
-
 
   Widget getAgeWidgetSmall() {
     return Tooltip(
@@ -75,33 +66,5 @@ extension PlayerWidgetsHelper on Player {
         ],
       ),
     );
-  }
-
-  /// Generate ico of the player based on the last digit of the player id
-  IconData getPlayerIcon() {
-    switch (id % 10) {
-      case 0:
-        return Icons.person;
-      case 1:
-        return Icons.face_5;
-      case 2:
-        return Icons.person_3;
-      case 3:
-        return Icons.person_4;
-      case 4:
-        return Icons.person_outline;
-      case 5:
-        return Icons.person_pin;
-      case 6:
-        return Icons.face_6;
-      case 7:
-        return Icons.person_pin_rounded;
-      case 8:
-        return Icons.person_2;
-      case 9:
-        return Icons.face;
-      default:
-        return Icons.error;
-    }
   }
 }

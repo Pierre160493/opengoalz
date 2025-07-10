@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/widgets/player_age_tile.dart';
-import 'package:opengoalz/models/player/widgets/player_injury_tile.dart';
-import 'package:opengoalz/models/player/widgets/player_performance_score_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_age_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_injury_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_performance_score_tile.dart';
 import 'package:opengoalz/widgets/country_tile.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_expenses_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_expenses_tile.dart';
 import 'package:opengoalz/models/player/transfer/player_transfer_list_tile.dart';
-import 'package:opengoalz/models/player/embodied/player_embodied_listtile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_embodied_tile.dart';
 
 /// Widget that displays a player's main information in a responsive layout
 ///

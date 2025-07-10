@@ -5,7 +5,7 @@ import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/dialogs/playerTrainingCoefDialogBox.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_user_points_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_user_points_tile.dart';
 import 'package:opengoalz/models/player/widgets/player_stat_linear_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
