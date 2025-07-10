@@ -1,34 +1,40 @@
 CREATE OR REPLACE PROCEDURE public.clean_data()
 LANGUAGE plpgsql
 AS $procedure$
-DECLARE
-    rec_multiverse RECORD; -- Record for the multiverses loop
 BEGIN
 
-    FOR rec_multiverse IN (
-        SELECT * FROM multiverses
-        ORDER BY id
-    )
-    LOOP
-    
-        -- Clean the old games
-        DELETE FROM games WHERE id_multiverse = rec_multiverse.id AND season_number < rec_multiverse.season_number - 30;
+    -- Clean the old games
+    DELETE FROM games g
+    WHERE g.season_number < (
+        SELECT m.season_number - 30 FROM multiverses m WHERE m.id = g.id_multiverse
+    );
 
-        -- -- Delete the old games_teamcomp ==> games_orders
-        -- DELETE FROM games_teamcomp
-        -- USING clubs
-        -- WHERE games_teamcomp.id_club = clubs.id
-        -- AND clubs.id_multiverse = inp_multiverse_id
-        -- AND games_teamcomp.season_number < (SELECT season_number FROM multiverses WHERE id = inp_multiverse_id) - 30
-        -- AND games_teamcomp.season_number > 0;
+    -- Delete the game_player_stats_all because it takes too much space
+    DELETE FROM game_player_stats_all gpsa
+    WHERE gpsa.id_game IN (
+        SELECT g.id FROM games g
+        WHERE g.season_number < (
+            SELECT m.season_number FROM multiverses m WHERE m.id = g.id_multiverse
+        )
+    );
 
-        -- Delete the game_player_stats_all because it takes too much space
-        DELETE FROM game_player_stats_all WHERE id_game IN (
-            SELECT id FROM games 
-            WHERE id_multiverse = rec_multiverse.id
-            AND season_number < rec_multiverse.season_number); -- Keep only last season stats
-    
-    END LOOP;
+    -- Delete old data from clubs
+    DELETE FROM clubs_history_weekly chw
+    WHERE chw.season_number < (
+        SELECT m.season_number - 30
+        FROM clubs c
+        JOIN multiverses m ON c.id_multiverse = m.id
+        WHERE c.id = chw.id_club
+    );
+
+    -- Delete old data from players
+    DELETE FROM players_history_stats phs
+    WHERE phs.season_number < (
+        SELECT m.season_number - 30
+        FROM players p
+        JOIN multiverses m ON p.id_multiverse = m.id
+        WHERE p.id = phs.id_player
+    );
 
     -- Delete mails that must be deleted
     DELETE FROM mails WHERE now() > date_delete;

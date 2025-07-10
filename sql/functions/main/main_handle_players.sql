@@ -11,7 +11,8 @@ BEGIN
 
     ------ Store player's stats in the history
     INSERT INTO players_history_stats
-        (created_at, id_player, performance_score_real, performance_score_theoretical, 
+        (created_at, season_number, week_number,
+        id_player, performance_score_real, performance_score_theoretical, 
         expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience,
@@ -19,7 +20,8 @@ BEGIN
         coef_coach, coef_scout,
         training_points_used, user_points_available, user_points_used)
     SELECT
-        inp_multiverse.date_handling, id, performance_score_real, performance_score_theoretical,
+        inp_multiverse.date_handling, inp_multiverse.season_number, inp_multiverse.week_number,
+        id, performance_score_real, performance_score_theoretical,
         expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
         keeper, defense, passes, playmaking, winger, scoring, freekick,
         motivation, form, stamina, energy, experience,
