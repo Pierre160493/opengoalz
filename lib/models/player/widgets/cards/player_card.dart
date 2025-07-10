@@ -7,6 +7,9 @@ import 'package:opengoalz/models/player/stats/player_history_timeline.dart';
 import 'package:opengoalz/models/player/actions/player_actions_listtiles.dart';
 import 'package:opengoalz/models/player/widgets/list_tiles/player_contract_duration_listtile.dart';
 import 'package:opengoalz/models/player/embodied/player_embodied_listtile.dart';
+import 'package:opengoalz/models/player/widgets/player_main_information.dart';
+import 'package:opengoalz/models/player/widgets/player_shirt_number_icon.dart';
+import 'package:opengoalz/models/player/widgets/player_small_notes_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_stats_widget.dart';
 import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/playerFavorite/playerFavoriteIconButton.dart';
@@ -225,8 +228,14 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                       ],
                     ),
                   ),
+
+                  /// If not developed, show the main player information
                   if (!_developed)
-                    widget.player.getPlayerMainInformation(context),
+                    PlayerMainInformation(
+                      player: widget.player,
+                    ),
+
+                  /// If developed, show the player stats and tabs
                   if (_developed)
                     SizedBox(
                       width: double.infinity,

@@ -6,6 +6,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/dialogs/playerTrainingCoefDialogBox.dart';
 import 'package:opengoalz/models/player/widgets/list_tiles/player_user_points_listtile.dart';
+import 'package:opengoalz/models/player/widgets/player_stat_linear_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
 class PlayerCardStatsWidget extends StatefulWidget {
@@ -224,17 +225,24 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
             shape: shapePersoRoundedBorder(),
           ),
           for (var stat in stats)
-            widget.player.getStatLinearWidget(
-              stat,
-              [
+            PlayerStatLinearWidget(
+              /// Player instance
+              player: widget.player,
+
+              /// Stat label
+              label: stat,
+
+              /// List of stats history
+              statsHistoryAll: [
                 if (listPlayerHistoricStats.isNotEmpty)
                   ...listPlayerHistoricStats
                       .map((s) => s[stat.toLowerCase()].toDouble())
                       .toList(),
                 widget.player.toJson()[stat.toLowerCase()]
               ],
-              _weekOffsetToCompareWithNow,
-              context,
+
+              /// Week offset to compare with now
+              weekOffsetToCompareWithNow: _weekOffsetToCompareWithNow,
             ),
         ],
       ),

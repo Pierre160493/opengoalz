@@ -13,10 +13,10 @@ class PlayerHistoryPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
           title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           PlayerNameTooltip(player: player),
-          Text('Player History'),
+          Text(' Player History'),
         ],
       )),
       body: PlayerHistoryTimeline(

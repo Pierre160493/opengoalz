@@ -1,16 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsAll.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/player/embodied/player_embodied_listtile.dart';
-import 'package:opengoalz/models/player/transfer/player_transfer_list_tile.dart';
-import 'package:opengoalz/models/player/widgets/get_player_history_graph.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_expenses_list_tile.dart';
-import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
@@ -19,11 +11,10 @@ import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/pages/players_page.dart';
-import 'package:opengoalz/widgets/countryListTile.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
 import 'package:collection/collection.dart';
 import 'package:opengoalz/models/player/embodied/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
+import 'package:opengoalz/models/player/widgets/player_main_information.dart';
 
 part 'player_widget_helper.dart';
 

@@ -5,6 +5,8 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/pages/players_page.dart';
 import 'package:opengoalz/models/player/widgets/cards/player_card.dart';
+import 'package:opengoalz/models/player/widgets/player_shirt_number_icon.dart';
+import 'package:opengoalz/models/player/widgets/player_small_notes_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 import 'package:opengoalz/models/playerPosition.dart';
@@ -288,7 +290,7 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   player.getAgeWidgetSmall(),
-                  playerShirtNumberIcon(context, player),
+                  PlayerShirtNumberIcon(player: player),
                 ],
               ),
               Column(
@@ -306,7 +308,7 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
               ),
               Row(
                 children: [
-                  playerSmallNotesIcon(context, player),
+                  PlayerSmallNotesIcon(player: player),
                 ],
               ),
             ],

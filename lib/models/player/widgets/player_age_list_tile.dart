@@ -17,38 +17,18 @@ class PlayerAgeListTile extends StatelessWidget {
   /// The player whose age information to display
   final Player player;
 
-  /// Optional custom shape for the ListTile
-  final ShapeBorder? customShape;
-
-  /// Optional custom icon for living players
-  final IconData? aliveIcon;
-
-  /// Optional custom icon for deceased players
-  final IconData? deadIcon;
-
-  /// Optional custom date format
-  final String? customDateFormat;
-
-  /// Optional tooltip message
-  final String? tooltipMessage;
-
   const PlayerAgeListTile({
     Key? key,
     required this.player,
-    this.customShape,
-    this.aliveIcon,
-    this.deadIcon,
-    this.customDateFormat,
-    this.tooltipMessage,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: tooltipMessage ?? 'Click to see player history',
+      message: 'Click to see player history',
       waitDuration: const Duration(milliseconds: 500),
       child: ListTile(
-        shape: customShape ?? shapePersoRoundedBorder(),
+        shape: shapePersoRoundedBorder(),
         leading: _buildLeadingIcon(),
         title: Row(
           children: [
@@ -65,13 +45,13 @@ class PlayerAgeListTile extends StatelessWidget {
   Widget _buildLeadingIcon() {
     if (player.dateDeath != null) {
       return Icon(
-        deadIcon ?? iconDead,
+        iconDead,
         size: iconSizeLarge,
         color: Colors.red,
       );
     } else {
       return Icon(
-        aliveIcon ?? Icons.cake_outlined,
+        Icons.cake_outlined,
         size: iconSizeLarge,
         color: Colors.green,
       );
@@ -101,8 +81,7 @@ class PlayerAgeListTile extends StatelessWidget {
 
   /// Returns formatted birth date string
   String _getFormattedBirthDate() {
-    final dateFormat = customDateFormat ?? persoDateFormat;
-    return DateFormat(dateFormat).format(player.dateBirth);
+    return DateFormat(persoDateFormat).format(player.dateBirth);
   }
 
   /// Navigates to the player history page

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/widgets/player_stat_linear_widget.dart';
 
 Widget WidgetOtherStats(BuildContext context, Player player,
     List<Map> listPlayerHistoricStats, int _weekOffsetToCompareWithNow) {
@@ -23,17 +24,24 @@ Widget WidgetOtherStats(BuildContext context, Player player,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (var stat in stats)
-          player.getStatLinearWidget(
-            stat,
-            [
+          PlayerStatLinearWidget(
+            /// Player instance
+            player: player,
+
+            /// Stat label
+            label: stat,
+
+            /// List of stats history
+            statsHistoryAll: [
               if (listPlayerHistoricStats.isNotEmpty)
                 ...listPlayerHistoricStats
                     .map((s) => s[stat.toLowerCase()].toDouble())
                     .toList(),
               player.toJson()[stat.toLowerCase()]
             ],
-            _weekOffsetToCompareWithNow,
-            context,
+
+            /// Week offset to compare with now
+            weekOffsetToCompareWithNow: _weekOffsetToCompareWithNow,
           ),
       ],
     ),
