@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/widgets/player_age_list_tile.dart';
-import 'package:opengoalz/models/player/widgets/player_injury_widget.dart';
-import 'package:opengoalz/models/player/widgets/player_performance_score_list_tile.dart';
-import 'package:opengoalz/models/player/widgets/player_widgets.dart';
-import 'package:opengoalz/widgets/countryListTile.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_expenses_list_tile.dart';
+import 'package:opengoalz/models/player/widgets/player_age_tile.dart';
+import 'package:opengoalz/models/player/widgets/player_injury_tile.dart';
+import 'package:opengoalz/models/player/widgets/player_performance_score_tile.dart';
+import 'package:opengoalz/widgets/country_tile.dart';
+import 'package:opengoalz/models/player/widgets/list_tiles/player_expenses_tile.dart';
 import 'package:opengoalz/models/player/transfer/player_transfer_list_tile.dart';
 import 'package:opengoalz/models/player/embodied/player_embodied_listtile.dart';
 
@@ -52,31 +51,30 @@ class PlayerMainInformation extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: PlayerAgeListTile(player: player)),
+            Expanded(child: PlayerAgeTile(player: player)),
             Expanded(
-              child: getCountryListTileFromIdCountry(
-                context,
-                player.idCountry,
-                player.idMultiverse,
+              child: CountryTileFromId(
+                idCountry: player.idCountry,
+                idMultiverse: player.idMultiverse,
               ),
             ),
           ],
         ),
         Row(
           children: [
-            Expanded(child: PlayerPerformanceScoreListTile(player: player)),
+            Expanded(child: PlayerPerformanceScoreTile(player: player)),
             Expanded(
-                child: PlayerExpensesListTile(
+                child: PlayerExpensesTile(
               player: player,
             )),
           ],
         ),
 
         /// If the player is on the transfer list, show transfer information
-        if (player.dateBidEnd != null) PlayerCardTransferWidget(player: player),
+        if (player.dateBidEnd != null) PlayerTransferTile(player: player),
 
         /// If the player is injured, show injury information
-        if (player.dateEndInjury != null) PlayerInjuryWidget(player: player),
+        if (player.dateEndInjury != null) PlayerInjuryTile(player: player),
       ],
     );
   }
@@ -85,19 +83,18 @@ class PlayerMainInformation extends StatelessWidget {
   Widget _buildSmallScreenLayout(BuildContext context) {
     return Column(
       children: [
-        PlayerAgeListTile(player: player),
-        getCountryListTileFromIdCountry(
-          context,
-          player.idCountry,
-          player.idMultiverse,
+        PlayerAgeTile(player: player),
+        CountryTileFromId(
+          idCountry: player.idCountry,
+          idMultiverse: player.idMultiverse,
         ),
-        PlayerPerformanceScoreListTile(player: player),
-        PlayerExpensesListTile(
+        PlayerPerformanceScoreTile(player: player),
+        PlayerExpensesTile(
           player: player,
         ),
-        if (player.dateBidEnd != null) PlayerCardTransferWidget(player: player),
-        if (player.userName != null) PlayerCardEmbodiedListTile(player: player),
-        if (player.dateEndInjury != null) PlayerInjuryWidget(player: player),
+        if (player.dateBidEnd != null) PlayerTransferTile(player: player),
+        if (player.userName != null) PlayerEmbodiedTile(player: player),
+        if (player.dateEndInjury != null) PlayerInjuryTile(player: player),
       ],
     );
   }

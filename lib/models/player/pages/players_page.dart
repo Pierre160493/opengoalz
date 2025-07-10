@@ -10,7 +10,7 @@ import 'package:opengoalz/models/player/widgets/player_user_points_button.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/player_sort_button.dart';
 import 'package:provider/provider.dart';

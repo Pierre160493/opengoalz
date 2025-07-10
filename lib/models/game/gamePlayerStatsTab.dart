@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/gameWeights.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
-import 'package:opengoalz/widgets/gamePlayerStatsDialog.dart';
+import 'package:opengoalz/widgets/graph_widget.dart';
+import 'package:opengoalz/widgets/game_player_stats_dialog.dart';
 
 Widget gamePlayerStatsWidget(BuildContext context, Game game, int idPlayer) {
   return ElevatedButton(

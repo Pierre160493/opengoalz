@@ -6,21 +6,17 @@ import 'package:opengoalz/pages/country/country_page.dart';
 import 'package:opengoalz/widgets/continent_display_widget.dart';
 
 /// Widget that displays a country ListTile by loading country data from ID
-class CountryListTileFromId extends StatelessWidget {
+class CountryTileFromId extends StatelessWidget {
   /// The country ID to load and display
   final int? idCountry;
 
   /// The multiverse ID for context
   final int? idMultiverse;
 
-  /// Whether the tile should be clickable
-  final bool isClickable;
-
-  const CountryListTileFromId({
+  const CountryTileFromId({
     super.key,
     required this.idCountry,
     this.idMultiverse,
-    this.isClickable = true,
   });
 
   @override
@@ -41,10 +37,9 @@ class CountryListTileFromId extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Text('ERROR: ${snapshot.error}');
         } else {
-          return CountryListTile(
+          return CountryTile(
             country: snapshot.data!,
             idMultiverse: idMultiverse,
-            isClickable: isClickable,
           );
         }
       },
@@ -53,21 +48,17 @@ class CountryListTileFromId extends StatelessWidget {
 }
 
 /// Widget that displays a country as a ListTile
-class CountryListTile extends StatelessWidget {
+class CountryTile extends StatelessWidget {
   /// The country to display
   final Country country;
 
   /// The multiverse ID for context
   final int? idMultiverse;
 
-  /// Whether the tile should be clickable
-  final bool isClickable;
-
-  const CountryListTile({
+  const CountryTile({
     super.key,
     required this.country,
     this.idMultiverse,
-    this.isClickable = true,
   });
 
   @override
@@ -82,7 +73,7 @@ class CountryListTile extends StatelessWidget {
         continentName: country.continents.first,
         idMultiverse: idMultiverse,
       ),
-      onTap: isClickable ? () => _navigateToCountryPage(context) : null,
+      onTap: () => _navigateToCountryPage(context),
       shape: shapePersoRoundedBorder(),
       leading: CountryFlagWidget(countryCode: country.iso2),
     );
@@ -196,23 +187,22 @@ class _CountryLoadingWidget extends StatelessWidget {
 }
 
 // Legacy function wrappers for backward compatibility
-@Deprecated('Use CountryListTileFromId widget instead')
-Widget getCountryListTileFromIdCountry(
+@Deprecated('Use CountryTileFromId widget instead')
+Widget getCountryTileFromIdCountry(
     BuildContext context, int? idCountry, int? idMultiverse) {
-  return CountryListTileFromId(
+  return CountryTileFromId(
     idCountry: idCountry,
     idMultiverse: idMultiverse,
   );
 }
 
-@Deprecated('Use CountryListTile widget instead')
-Widget getCountryListTileFromCountry(
+@Deprecated('Use CountryTile widget instead')
+Widget getCountryTileFromCountry(
     BuildContext context, Country country, int? idMultiverse,
     {bool isClickable = true}) {
-  return CountryListTile(
+  return CountryTile(
     country: country,
     idMultiverse: idMultiverse,
-    isClickable: isClickable,
   );
 }
 

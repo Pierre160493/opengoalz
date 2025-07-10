@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/errorTextWidget.dart';
+import 'package:opengoalz/widgets/error_text_widget.dart';
 import 'package:provider/provider.dart';
 
 /// Widget that displays a clickable club name

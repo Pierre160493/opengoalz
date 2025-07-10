@@ -5,15 +5,15 @@ import 'package:opengoalz/models/club/others/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/pages/players_page.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_expenses_list_tile.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_staff_coef_list_tile.dart';
-import 'package:opengoalz/models/player/widgets/player_age_list_tile.dart';
+import 'package:opengoalz/models/player/widgets/list_tiles/player_expenses_tile.dart';
+import 'package:opengoalz/models/player/widgets/list_tiles/player_staff_coef_tile.dart';
+import 'package:opengoalz/models/player/widgets/player_age_tile.dart';
 import 'package:opengoalz/models/player/widgets/player_small_notes_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/player/widgets/player_status_row.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/postgresql_requests.dart';
-import 'package:opengoalz/widgets/countryListTile.dart';
+import 'package:opengoalz/widgets/country_tile.dart';
 
 class StaffDetailTab extends StatelessWidget {
   final Club club;
@@ -138,26 +138,29 @@ class StaffDetailTab extends StatelessWidget {
             Divider(),
             Row(
               children: [
-                Expanded(child: PlayerAgeListTile(player: player)),
+                Expanded(child: PlayerAgeTile(player: player)),
                 Expanded(
-                    child: getCountryListTileFromIdCountry(
-                        context, player.idCountry, player.idMultiverse)),
+                  child: CountryTileFromId(
+                    idCountry: player.idCountry,
+                    idMultiverse: player.idMultiverse,
+                  ),
+                ),
               ],
             ),
             Row(
               children: [
                 Expanded(
-                  child: getStaffCoefListTile(context, player, title),
+                  child: PlayerStaffCoefTile(player: player, title: title),
                 ),
                 Expanded(
-                    child: PlayerExpensesListTile(
+                    child: PlayerExpensesTile(
                   player: player,
                 )),
               ],
             ),
             Divider(),
-            getStaffCoefListTile(context, player, 'Coach'),
-            getStaffCoefListTile(context, player, 'Scout'),
+            PlayerStaffCoefTile(player: player, title: 'Coach'),
+            PlayerStaffCoefTile(player: player, title: 'Scout'),
           ],
         ),
       ),

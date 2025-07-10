@@ -5,7 +5,7 @@ import 'package:opengoalz/models/player/dialogs/playerChartDialogBox.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/profile.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/graph_widget.dart';
 
 Widget getPlayersPoachingTab(List<Player> playersPoached, Profile user) {
   if (playersPoached.isEmpty) {

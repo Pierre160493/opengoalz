@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/graph_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> showHistoryChartDialog(

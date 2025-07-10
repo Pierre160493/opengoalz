@@ -5,11 +5,10 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/dialogs/playerTransferBidDialogBox.dart';
 import 'package:opengoalz/widgets/tickingTime.dart';
 
-class PlayerCardTransferWidget extends StatelessWidget {
+class PlayerTransferTile extends StatelessWidget {
   final Player player;
 
-  const PlayerCardTransferWidget({Key? key, required this.player})
-      : super(key: key);
+  const PlayerTransferTile({Key? key, required this.player}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -13,11 +13,11 @@ import 'package:opengoalz/models/player/pages/player_history_page.dart';
 /// - Birth date in formatted string
 /// - Clickable to navigate to player history page
 /// - Tooltip with instruction to click for history
-class PlayerAgeListTile extends StatelessWidget {
+class PlayerAgeTile extends StatelessWidget {
   /// The player whose age information to display
   final Player player;
 
-  const PlayerAgeListTile({
+  const PlayerAgeTile({
     Key? key,
     required this.player,
   }) : super(key: key);

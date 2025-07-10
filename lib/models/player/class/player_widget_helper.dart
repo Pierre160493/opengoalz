@@ -61,30 +61,6 @@ extension PlayerWidgetsHelper on Player {
 
   static double iconSize = iconSizeSmall;
 
-  // Widget getAgeWidget() {
-  //   return ListTile(
-  //     shape: shapePersoRoundedBorder(),
-  //     // leading: Icon(
-  //     //   Icons.cake_outlined,
-  //     //   size: iconSize,
-  //     // ),
-  //     title: Row(
-  //       children: [
-  //         Icon(iconAge, size: iconSize),
-  //         getAgeStringRow(age, multiverseSpeed),
-  //       ],
-  //     ),
-  //     subtitle: Row(
-  //       children: [
-  //         Icon(Icons.event, size: iconSize),
-  //         formSpacer3,
-  //         Text(DateFormat('dd MMMM yyyy').format(dateBirth),
-  //             style: TextStyle(
-  //                 fontStyle: FontStyle.italic, color: Colors.blueGrey)),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget getAgeWidgetSmall() {
     return Tooltip(

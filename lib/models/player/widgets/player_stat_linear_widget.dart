@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/graph_widget.dart';
 
 /// Widget that displays a player's stat with a linear progress indicator
 ///
@@ -13,7 +13,7 @@ import 'package:opengoalz/widgets/graphWidget.dart';
 /// - Clickable to show detailed stat history chart
 ///
 /// Supports various stat types like Motivation, Stamina, Form, etc.
-class PlayerStatLinearWidget extends StatelessWidget {
+class PlayerStatLinearTile extends StatelessWidget {
   /// The player whose stat to display
   final Player player;
 
@@ -26,24 +26,12 @@ class PlayerStatLinearWidget extends StatelessWidget {
   /// Week offset to compare current value with previous value
   final int weekOffsetToCompareWithNow;
 
-  /// Optional custom shape for the ListTile
-  final ShapeBorder? customShape;
-
-  /// Optional custom icon size
-  final double? iconSize;
-
-  /// Optional custom label width
-  final double? labelWidth;
-
-  const PlayerStatLinearWidget({
+  const PlayerStatLinearTile({
     super.key,
     required this.player,
     required this.label,
     required this.statsHistoryAll,
     required this.weekOffsetToCompareWithNow,
-    this.customShape,
-    this.iconSize,
-    this.labelWidth,
   });
 
   @override
@@ -52,12 +40,12 @@ class PlayerStatLinearWidget extends StatelessWidget {
     final values = _calculateValues();
 
     return ListTile(
-      shape: customShape ?? shapePersoRoundedBorder(),
+      shape: shapePersoRoundedBorder(),
       leading: Tooltip(
         message: statInfo.tooltip,
         child: Icon(
           statInfo.icon,
-          size: iconSize ?? iconSizeSmall,
+          size: iconSizeSmall,
           color: _getIconColor(values.current),
         ),
       ),
@@ -65,7 +53,7 @@ class PlayerStatLinearWidget extends StatelessWidget {
         children: [
           formSpacer6,
           SizedBox(
-            width: labelWidth ?? 100,
+            width: 100,
             child: Text(label),
           ),
         ],

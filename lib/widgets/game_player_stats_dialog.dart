@@ -3,7 +3,7 @@ import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsTab.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/graph_widget.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class GamePlayerStatsDialog extends StatelessWidget {

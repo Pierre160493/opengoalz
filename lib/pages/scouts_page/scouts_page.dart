@@ -8,7 +8,7 @@ import 'package:opengoalz/models/playerPoaching/playersPoachingTab.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:opengoalz/pages/scouts_page/scoutsTab.dart';

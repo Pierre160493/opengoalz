@@ -10,7 +10,7 @@ import 'package:opengoalz/models/player/widgets/get_player_history_graph.dart';
 /// - Stats icon with green color
 /// - "Performance Score" subtitle
 /// - Clickable to show performance history graph dialog
-class PlayerPerformanceScoreListTile extends StatelessWidget {
+class PlayerPerformanceScoreTile extends StatelessWidget {
   /// The player whose performance score to display
   final Player player;
 
@@ -32,7 +32,7 @@ class PlayerPerformanceScoreListTile extends StatelessWidget {
   /// Optional custom subtitle text style
   final TextStyle? subtitleStyle;
 
-  const PlayerPerformanceScoreListTile({
+  const PlayerPerformanceScoreTile({
     super.key,
     required this.player,
     this.customShape,

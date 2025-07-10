@@ -10,37 +10,13 @@ import 'package:opengoalz/models/player/class/player.dart';
 /// - Recovery text description
 ///
 /// Note: Should only be displayed when player.dateEndInjury is not null
-class PlayerInjuryWidget extends StatelessWidget {
+class PlayerInjuryTile extends StatelessWidget {
   /// The player whose injury information to display
   final Player player;
 
-  /// Optional custom icon for injury
-  final IconData? customIcon;
-
-  /// Optional custom icon size
-  final double? iconSize;
-
-  /// Optional custom icon color
-  final Color? iconColor;
-
-  /// Optional custom text style for days count
-  final TextStyle? daysTextStyle;
-
-  /// Optional custom text style for recovery text
-  final TextStyle? recoveryTextStyle;
-
-  /// Optional custom recovery text
-  final String? customRecoveryText;
-
-  const PlayerInjuryWidget({
+  const PlayerInjuryTile({
     super.key,
     required this.player,
-    this.customIcon,
-    this.iconSize,
-    this.iconColor,
-    this.daysTextStyle,
-    this.recoveryTextStyle,
-    this.customRecoveryText,
   });
 
   @override
@@ -55,20 +31,18 @@ class PlayerInjuryWidget extends StatelessWidget {
     return Row(
       children: [
         Icon(
-          customIcon ?? Icons.personal_injury_outlined,
-          size: iconSize ?? iconSizeSmall,
-          color: iconColor ?? Colors.red,
+          Icons.personal_injury_outlined,
+          size: iconSizeSmall,
+          color: Colors.red,
         ),
         Text(
           ' $daysLeft',
-          style: daysTextStyle ??
-              const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         Text(
-          customRecoveryText ?? ' days left for recovery',
-          style: recoveryTextStyle,
+          ' days left for recovery',
         ),
       ],
     );

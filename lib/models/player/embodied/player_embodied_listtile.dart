@@ -4,11 +4,10 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/widgets/player_embodied_offers_button.dart';
 import 'package:opengoalz/models/profile.dart';
 
-class PlayerCardEmbodiedListTile extends StatelessWidget {
+class PlayerEmbodiedTile extends StatelessWidget {
   final Player player;
 
-  const PlayerCardEmbodiedListTile({Key? key, required this.player})
-      : super(key: key);
+  const PlayerEmbodiedTile({Key? key, required this.player}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -9,8 +9,8 @@ import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/pages/country/country_page.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
-import 'package:opengoalz/widgets/countryListTile.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/country_tile.dart';
+import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
@@ -182,7 +182,7 @@ class _ContinentPageState extends State<ContinentPage>
       itemCount: countries.length,
       itemBuilder: (context, index) {
         Country country = countries[index];
-        // return getCountryListTileFromCountry(
+        // return getCountryTileFromCountry(
         //     context, country, _selectedMultiverse?.id,
         //     isClickable: false);
         return ListTile(

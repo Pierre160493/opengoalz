@@ -4,7 +4,7 @@ import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_theme_app.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';

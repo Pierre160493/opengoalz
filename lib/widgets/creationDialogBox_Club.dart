@@ -10,7 +10,7 @@ import 'package:opengoalz/pages/countriesSelection_page.dart';
 import 'package:opengoalz/models/league/page/league_page.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/countryListTile.dart';
+import 'package:opengoalz/widgets/country_tile.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

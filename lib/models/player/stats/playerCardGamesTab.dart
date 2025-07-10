@@ -9,7 +9,7 @@ import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/pages/game_page.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/graph_widget.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';

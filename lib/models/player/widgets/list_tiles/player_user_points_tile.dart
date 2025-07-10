@@ -3,12 +3,12 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/widgets/player_user_points_button.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/graph_widget.dart';
 
-class PlayerUserPointsListTile extends StatelessWidget {
+class PlayerUserPointsTile extends StatelessWidget {
   final Player player;
 
-  const PlayerUserPointsListTile({Key? key, required this.player})
+  const PlayerUserPointsTile({Key? key, required this.player})
       : super(key: key);
 
   @override

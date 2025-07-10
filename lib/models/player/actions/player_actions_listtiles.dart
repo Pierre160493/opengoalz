@@ -9,11 +9,11 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:provider/provider.dart';
 
-class PlayerActionsWidget extends StatelessWidget {
+class PlayerActionsIconButton extends StatelessWidget {
   final Player player;
   final int? index;
 
-  const PlayerActionsWidget({Key? key, required this.player, this.index})
+  const PlayerActionsIconButton({Key? key, required this.player, this.index})
       : super(key: key);
 
   @override

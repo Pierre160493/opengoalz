@@ -14,11 +14,11 @@ import 'package:provider/provider.dart';
 /// - Red warning if there are missed expenses with action button
 /// - Clickable to show expenses history graph
 /// - Pay expenses functionality for club owners
-class PlayerExpensesListTile extends StatelessWidget {
+class PlayerExpensesTile extends StatelessWidget {
   /// The player whose expenses to display
   final Player player;
 
-  const PlayerExpensesListTile({
+  const PlayerExpensesTile({
     super.key,
     required this.player,
   });

@@ -4,7 +4,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/material.dart';

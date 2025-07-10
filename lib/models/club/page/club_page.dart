@@ -17,8 +17,8 @@ import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/clubHistoryPage.dart';
-import 'package:opengoalz/widgets/countryListTile.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/country_tile.dart';
+import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:provider/provider.dart';
@@ -312,7 +312,7 @@ class _ClubPageState extends State<ClubPage> {
                   clubLeagueAndRankingListTile(context, club),
 
                   /// Country
-                  getCountryListTileFromIdCountry(
+                  getCountryTileFromIdCountry(
                       context, club.idCountry, club.idMultiverse),
 
                   /// Finances

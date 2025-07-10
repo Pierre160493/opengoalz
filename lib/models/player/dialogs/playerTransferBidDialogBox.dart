@@ -187,7 +187,7 @@ class _PlayerTransferBidDialogBoxState
                                   listen: false)
                               .user
                               .selectedClub!),
-                      PlayerCardTransferWidget(player: player),
+                      PlayerTransferTile(player: player),
                       ListTile(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),

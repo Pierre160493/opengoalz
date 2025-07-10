@@ -24,7 +24,7 @@ Widget WidgetOtherStats(BuildContext context, Player player,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (var stat in stats)
-          PlayerStatLinearWidget(
+          PlayerStatLinearTile(
             /// Player instance
             player: player,
 

@@ -3,7 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
-import 'package:opengoalz/widgets/historyTimelineWidget.dart';
+import 'package:opengoalz/widgets/history_timeline_widget.dart';
 
 class ClubHistoryPage extends StatefulWidget {
   final Club club;

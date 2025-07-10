@@ -5,7 +5,7 @@ import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/dialogs/playerTrainingCoefDialogBox.dart';
-import 'package:opengoalz/models/player/widgets/list_tiles/player_user_points_listtile.dart';
+import 'package:opengoalz/models/player/widgets/list_tiles/player_user_points_tile.dart';
 import 'package:opengoalz/models/player/widgets/player_stat_linear_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 
@@ -181,7 +181,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
 
           /// Display available user points if the player is embodied by a user
           if (widget.player.isEmbodiedByCurrentUser)
-            PlayerUserPointsListTile(player: widget.player),
+            PlayerUserPointsTile(player: widget.player),
 
           /// Compare with a specific week to check progress
           moveHistoricDataListTile(),
@@ -225,7 +225,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
             shape: shapePersoRoundedBorder(),
           ),
           for (var stat in stats)
-            PlayerStatLinearWidget(
+            PlayerStatLinearTile(
               /// Player instance
               player: widget.player,
 

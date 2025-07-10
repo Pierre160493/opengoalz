@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/widgets/historyTimelineWidget.dart';
+import 'package:opengoalz/widgets/history_timeline_widget.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 
 class PlayerHistoryTimeline extends StatefulWidget {

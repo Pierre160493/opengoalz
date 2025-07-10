@@ -178,7 +178,7 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                             PlayerStatusRow(player: widget.player),
 
                             /// Player actions widget (list of actions on player)
-                            PlayerActionsWidget(
+                            PlayerActionsIconButton(
                               player: widget.player,
                               index: widget.index,
                             ),
@@ -264,15 +264,15 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     /// Player's main information
-                                    widget.player
-                                        .getPlayerMainInformation(context),
+                                    PlayerMainInformation(
+                                        player: widget.player),
 
                                     /// ListTile to display only when expended
                                     if (_developed) ...[
                                       if (widget.player.userName != null)
 
                                         /// Players embodied listtile
-                                        PlayerCardEmbodiedListTile(
+                                        PlayerEmbodiedTile(
                                             player: widget.player),
 
                                       /// Player's end contract list tile
