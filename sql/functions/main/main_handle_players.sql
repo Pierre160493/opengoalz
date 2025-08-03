@@ -32,7 +32,7 @@ BEGIN
     WHERE id_multiverse = inp_multiverse.id
     AND date_death IS NULL;
 
-    ------ Update the players expenses_missed
+    ------ Update the players expenses_missed from the payed expenses
     UPDATE players SET
         expenses_missed = CASE
             WHEN id_club IS NULL THEN 0

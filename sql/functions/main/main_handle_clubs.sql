@@ -50,6 +50,7 @@ BEGIN
                 ELSE 0
             END AS expenses_players_ratio_applied,
             -- Total expenses missed for the players
+            -- TODO: C'est le bordel ici, il faut revoir la logique
             SUM(LEAST(players.expenses_missed, players.expenses_expected)) AS total_expenses_missed_to_pay
         FROM clubs
         LEFT JOIN players ON players.id_club = clubs.id
