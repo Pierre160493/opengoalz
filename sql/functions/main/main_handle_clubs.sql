@@ -17,8 +17,7 @@ BEGIN
         expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
         league_points, pos_league, league_goals_for, league_goals_against,
         elo_points, expenses_players_ratio_target, expenses_players_ratio,
-        expenses_training_target, expenses_scouts_target
-    )
+        expenses_training_target, expenses_scouts_target)
     SELECT
         id, inp_multiverse.season_number, inp_multiverse.week_number,
         number_fans, training_weight, scouts_weight,
@@ -49,9 +48,8 @@ BEGIN
                 WHEN clubs.cash > 0 THEN expenses_players_ratio_target
                 ELSE 0
             END AS expenses_players_ratio_applied,
-            -- Total expenses missed for the players
-            -- TODO: C'est le bordel ici, il faut revoir la logique
-            SUM(LEAST(players.expenses_missed, players.expenses_expected)) AS total_expenses_missed_to_pay
+            -- Total expenses missed for the players (we dont pay all of the missed expenses but caped with the expected expenses)
+            SUM(LEAST(players.expenses_missed, players.expenses_expected)) AS expenses_missed_to_pay
         FROM clubs
         LEFT JOIN players ON players.id_club = clubs.id
         WHERE clubs.id_multiverse = inp_multiverse.id
@@ -60,12 +58,26 @@ BEGIN
     -- Update players' expenses
     player_expenses AS (
         UPDATE players SET
-            expenses_payed = CEIL(expenses_expected * clubs_finances.expenses_players_ratio_applied)
+             -- Total expenses paid this week (if payed in advance for missed expenses)
+            expenses_payed = expenses_payed
+                 -- Expected expenses for the player this week
+                + CEIL(
+                    expenses_expected * clubs_finances.expenses_players_ratio_applied)
+                -- If the club has enough cash, pay the missed expenses (caped with the expected expenses)
                 + CASE
-                    WHEN clubs_finances.cash > 3 * clubs_finances.total_expenses_missed_to_pay THEN
+                    WHEN clubs_finances.cash > 3 * clubs_finances.expenses_missed_to_pay THEN
+                        LEAST(expenses_missed, expenses_expected)
+                    ELSE 0
+                END,
+            expenses_missed = GREATEST(0,
+                expenses_missed + expenses_expected
+                - CEIL(expenses_expected * clubs_finances.expenses_players_ratio_applied)
+                - CASE
+                    WHEN clubs_finances.cash > 3 * clubs_finances.expenses_missed_to_pay THEN
                         LEAST(expenses_missed, expenses_expected)
                     ELSE 0
                 END
+                )
         FROM clubs_finances
         WHERE players.id_club = clubs_finances.id_club),
     ------ Insert messages for clubs that paid missed expenses
@@ -73,11 +85,11 @@ BEGIN
         INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
     SELECT 
         id_club AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_club_info,
-        clubs_finances.total_expenses_missed_to_pay || 'Missed Expenses Paid' AS title,
-        'The previous missed expenses (' || clubs_finances.total_expenses_missed_to_pay || ') have been paid for week ' || inp_multiverse.week_number || '. The club now has available cash: ' || cash || '.' AS message
+        clubs_finances.expenses_missed_to_pay || 'Missed Expenses Paid' AS title,
+        'The previous missed expenses (' || clubs_finances.expenses_missed_to_pay || ') have been paid for week ' || inp_multiverse.week_number || '. The club now has available cash: ' || cash || '.' AS message
     FROM clubs_finances
-    WHERE cash > 3 * total_expenses_missed_to_pay
-    AND total_expenses_missed_to_pay > 0)
+    WHERE cash > 3 * expenses_missed_to_pay
+    AND expenses_missed_to_pay > 0)
     -- Update clubs' finances based on calculations
     UPDATE clubs SET
         expenses_training_applied = clubs_finances.expenses_training_applied,

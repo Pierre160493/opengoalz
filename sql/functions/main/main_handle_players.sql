@@ -34,12 +34,12 @@ BEGIN
 
     ------ Update the players expenses_missed from the payed expenses
     UPDATE players SET
-        expenses_missed = CASE
-            WHEN id_club IS NULL THEN 0
-            ELSE GREATEST(
-                0,
-                expenses_missed - expenses_payed + expenses_expected)
-        END,
+        -- expenses_missed = CASE
+        --     WHEN id_club IS NULL THEN 0
+        --     ELSE GREATEST(
+        --         0,
+        --         expenses_missed - expenses_payed + expenses_expected)
+        -- END,
         expenses_won_total = expenses_won_total + expenses_payed,
         expenses_won_available = expenses_won_available + expenses_payed,
         user_points_available = user_points_available + 2.0 + expenses_payed::NUMERIC / expenses_target
