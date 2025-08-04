@@ -31,8 +31,9 @@ class PlayerExpensesTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    int updatedMissedExpenses = player.expensesMissed - player.expensesPayed;
     Color colorIfMissedExpenses =
-        player.expensesMissed > 0 ? Colors.orange : Colors.green;
+        updatedMissedExpenses > 0 ? Colors.orange : Colors.green;
     return ListTile(
       shape: shapePersoRoundedBorder(colorIfMissedExpenses),
       leading: Icon(
@@ -53,8 +54,15 @@ class PlayerExpensesTile extends StatelessWidget {
           style: styleItalicBlueGrey,
         ),
       ),
-      trailing: player.expensesMissed > 0
-          ? _buildMissedExpensesButton(context)
+
+      /// Show missed expenses warning button if there are any
+      trailing: updatedMissedExpenses > 0
+          ? IconButton(
+              tooltip:
+                  'Past expenses not payed ${updatedMissedExpenses.toString()}',
+              onPressed: () => _showPayExpensesDialog(context),
+              icon: Icon(Icons.money_off, color: Colors.red),
+            )
           : null,
       onTap: () => _showExpensesHistoryDialog(context),
     );
@@ -87,11 +95,13 @@ class PlayerExpensesTile extends StatelessWidget {
         Provider.of<UserSessionProvider>(context, listen: false)
             .user
             .selectedClub!;
+    final int updatedMissedExpenses =
+        player.expensesMissed - player.expensesPayed;
     final TextEditingController _payController = TextEditingController(
-      text: player.expensesMissed.toString(),
+      text: updatedMissedExpenses.toString(),
     );
     // Cap maxPayable by both missed expenses and club cash
-    int maxPayable = min(player.expensesMissed, selectedClub.clubData.cash);
+    int maxPayable = min(updatedMissedExpenses, selectedClub.clubData.cash);
 
     showDialog(
       context: context,
@@ -104,7 +114,7 @@ class PlayerExpensesTile extends StatelessWidget {
           builder: (context, setState) {
             return persoAlertDialogWithConstrainedContent(
               title: Text(
-                  '${player.expensesMissed} Past expenses not payed for ${player.getFullName()}'),
+                  '${updatedMissedExpenses} Past expenses not payed for ${player.getFullName()}'),
               content: SingleChildScrollView(
                 child: Column(
                   children: [
@@ -118,12 +128,13 @@ class PlayerExpensesTile extends StatelessWidget {
                         children: [
                           Icon(iconMoney, color: Colors.red),
                           Text(
-                            ' ${player.expensesMissed.toString()}',
+                            ' ${updatedMissedExpenses.toString()}',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      subtitle: Text('Total amount of unpaid expenses',
+                      subtitle: Text(
+                          'Total amount of unpaid expenses remaining',
                           style: styleItalicBlueGrey),
                     ),
 
@@ -134,12 +145,12 @@ class PlayerExpensesTile extends StatelessWidget {
                         children: [
                           Icon(iconMoney, color: Colors.green),
                           Text(
-                            ' ${player.expensesExpected.toString()}',
+                            ' ${player.expensesPayed.toString()}',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      subtitle: Text('Expected weekly expenses',
+                      subtitle: Text('Already payed expenses this week',
                           style: styleItalicBlueGrey),
                     ),
 
@@ -149,13 +160,13 @@ class PlayerExpensesTile extends StatelessWidget {
                       title: GestureDetector(
                         onTap: () {
                           _payController.text =
-                              player.expensesMissed.toString();
+                              updatedMissedExpenses.toString();
                           _payController.selection = TextSelection.fromPosition(
                             TextPosition(offset: _payController.text.length),
                           );
                         },
                         child: Text(
-                          'Pay the ${player.expensesMissed} missed expenses',
+                          'Pay the ${updatedMissedExpenses} missed expenses remaining',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -275,7 +286,7 @@ class PlayerExpensesTile extends StatelessWidget {
       'players',
       data: {
         // 'expenses_payed': player.expensesPayed + amountToPay,
-        'expenses_missed': player.expensesMissed - amountToPay
+        'expenses_payed': player.expensesPayed + amountToPay
       },
       matchCriteria: {'id': player.id},
       messageSuccess:
@@ -308,17 +319,6 @@ class PlayerExpensesTile extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ],
-    );
-  }
-
-  /// Builds the missed expenses warning button
-  Widget? _buildMissedExpensesButton(BuildContext context) {
-    if (player.expensesMissed <= 0) return null;
-
-    return IconButton(
-      tooltip: 'Past expenses not payed ${player.expensesMissed.toString()}',
-      onPressed: () => _showPayExpensesDialog(context),
-      icon: Icon(Icons.money_off, color: Colors.red),
     );
   }
 }
