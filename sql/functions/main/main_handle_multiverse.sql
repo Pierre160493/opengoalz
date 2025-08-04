@@ -9,7 +9,7 @@ BEGIN
 
     RAISE NOTICE '****** START: main_handle_multiverse !';
 
-    -- Loop through all multiverses that need handling
+    ------ Loop through all multiverses that need handling
     FOR rec_multiverse IN (
         SELECT *
         FROM multiverses
@@ -19,14 +19,15 @@ BEGIN
     LOOP
         RAISE NOTICE '*** Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
 
-        -- Handle the transfers
+        ---- Handle the transfers
         PERFORM transfers_handle_transfers(
             inp_multiverse := rec_multiverse
         );
 
-        -- Simulate the week games
+        ---- Simulate the week games
         PERFORM main_simulate_week_games(rec_multiverse);
 
+        ---- Check if it's time to pass to the nex day of the multiverse
         IF now() >= rec_multiverse.date_handling THEN
 
             -- Handle weekly and seasonal updates if it's the end of the week (match day)
@@ -58,6 +59,7 @@ BEGIN
             WHERE id_multiverse = rec_multiverse.id
             AND date_death IS NULL;
 
+            ----
             WITH players1 AS (
                 SELECT 
                     players.id,
