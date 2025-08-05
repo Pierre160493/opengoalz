@@ -9,26 +9,6 @@ DECLARE
     loc_id_player bigint; -- Variable to store the player's id
 BEGIN
 
-    ------ Store the clubs' revenues and expenses in the history_weekly table
-    INSERT INTO public.clubs_history_weekly (
-        id_club, season_number, week_number,
-        number_fans, training_weight, scouts_weight,
-        cash, revenues_sponsors, revenues_transfers_done, revenues_total,
-        expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
-        league_points, pos_league, league_goals_for, league_goals_against,
-        elo_points, expenses_players_ratio_target, expenses_players_ratio,
-        expenses_training_target, expenses_scouts_target)
-    SELECT
-        id, inp_multiverse.season_number, inp_multiverse.week_number,
-        number_fans, training_weight, scouts_weight,
-        cash, revenues_sponsors, revenues_transfers_done, revenues_total,
-        expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
-        league_points, pos_league, league_goals_for, league_goals_against,
-        elo_points, expenses_players_ratio_target, expenses_players_ratio,
-        expenses_training_target, expenses_scouts_target
-    FROM clubs
-    WHERE id_multiverse = inp_multiverse.id;
-
     WITH clubs_finances AS (
         SELECT
             clubs.id AS id_club, -- Club's id
@@ -55,7 +35,7 @@ BEGIN
         WHERE clubs.id_multiverse = inp_multiverse.id
         GROUP BY clubs.id
     ),
-    -- Update players' expenses
+    -- Calculate the players expenses payed
     player_expenses AS (
         UPDATE players SET
              -- Total expenses paid this week (if payed in advance for missed expenses)
@@ -68,25 +48,28 @@ BEGIN
                     WHEN clubs_finances.cash > 3 * clubs_finances.expenses_missed_to_pay THEN
                         LEAST(expenses_missed, expenses_expected)
                     ELSE 0
-                END,
-            expenses_missed = GREATEST(0,
-                expenses_missed + expenses_expected
-                - CEIL(expenses_expected * clubs_finances.expenses_players_ratio_applied)
-                - CASE
-                    WHEN clubs_finances.cash > 3 * clubs_finances.expenses_missed_to_pay THEN
-                        LEAST(expenses_missed, expenses_expected)
-                    ELSE 0
                 END
-                )
         FROM clubs_finances
         WHERE players.id_club = clubs_finances.id_club),
+    -- Update the players expenses missed and update for next week
+    player_expenses2 AS (
+        UPDATE players SET
+            -- Update the expenses missed for the player
+            expenses_missed = GREATEST(0,
+                expenses_missed + expenses_expected - expenses_payed),
+            expenses_won_total = expenses_won_total + expenses_payed,
+            expenses_won_available = expenses_won_available + expenses_payed,
+            user_points_available = user_points_available + 2.0 + expenses_payed::NUMERIC / expenses_target
+        FROM clubs_finances
+        WHERE id_multiverse = inp_multiverse.id
+        AND date_death IS NULL),
     ------ Insert messages for clubs that paid missed expenses
     message_debt_payed AS (
         INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
     SELECT 
         id_club AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_club_info,
         clubs_finances.expenses_missed_to_pay || 'Missed Expenses Paid' AS title,
-        'The previous missed expenses (' || clubs_finances.expenses_missed_to_pay || ') have been paid for week ' || inp_multiverse.week_number || '. The club now has available cash: ' || cash || '.' AS message
+        'Some previous missed expenses (' || clubs_finances.expenses_missed_to_pay || ') have been paid. The club now has available cash: ' || cash || '.' AS message
     FROM clubs_finances
     WHERE cash > 3 * expenses_missed_to_pay
     AND expenses_missed_to_pay > 0)
@@ -148,9 +131,7 @@ BEGIN
     UPDATE clubs SET
         cash = cash + revenues_total - expenses_total
         -- We need to handle the revenues and expenses that were already paid in the cash
-            - revenues_transfers_done + expenses_transfers_done,
-        revenues_transfers_done = 0,
-        expenses_transfers_done = 0
+            - revenues_transfers_done + expenses_transfers_done
     WHERE id_multiverse = inp_multiverse.id;
 
     ------ Update the leagues cash by paying club expenses and players salaries and cash last season

@@ -9,43 +9,6 @@ DECLARE
     rec_poaching RECORD; -- Record for the list of poaching players
 BEGIN
 
-    ------ Store player's stats in the history
-    INSERT INTO players_history_stats
-        (created_at, season_number, week_number,
-        id_player, performance_score_real, performance_score_theoretical, 
-        expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
-        keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, energy, experience,
-        loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
-        coef_coach, coef_scout,
-        training_points_used, user_points_available, user_points_used)
-    SELECT
-        inp_multiverse.date_handling, inp_multiverse.season_number, inp_multiverse.week_number,
-        id, performance_score_real, performance_score_theoretical,
-        expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
-        keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, energy, experience,
-        loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
-        coef_coach, coef_scout,
-        training_points_used, user_points_available, user_points_used
-    FROM players
-    WHERE id_multiverse = inp_multiverse.id
-    AND date_death IS NULL;
-
-    ------ Update the players expenses_missed from the payed expenses
-    UPDATE players SET
-        -- expenses_missed = CASE
-        --     WHEN id_club IS NULL THEN 0
-        --     ELSE GREATEST(
-        --         0,
-        --         expenses_missed - expenses_payed + expenses_expected)
-        -- END,
-        expenses_won_total = expenses_won_total + expenses_payed,
-        expenses_won_available = expenses_won_available + expenses_payed,
-        user_points_available = user_points_available + 2.0 + expenses_payed::NUMERIC / expenses_target
-    WHERE id_multiverse = inp_multiverse.id
-    AND date_death IS NULL;
-
     ---- Update the clubs scouts weight based on the players_poaching table
     UPDATE clubs SET
         scouts_weight = CASE
