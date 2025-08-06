@@ -72,7 +72,9 @@ class PlayerShirtNumberIcon extends StatelessWidget {
 
   /// Returns appropriate tooltip message based on shirt number status
   String _getTooltipMessage() {
-    return 'Shirt number: ${player.shirtNumber == null ? 'None' : player.shirtNumber}';
+    return player.shirtNumber == null
+        ? 'No Shirt Number '
+        : 'Shirt number: ${player.shirtNumber}';
   }
 
   /// Returns appropriate icon color based on shirt number status

@@ -110,8 +110,6 @@ class _PlayerShirtNumberDialogBoxState
             children: [
               Text('Shirt Number for '),
               PlayerNameTooltip(player: widget.player),
-              Spacer(),
-              Text('Shirt Number'),
             ],
           ),
           content: SingleChildScrollView(
