@@ -8,6 +8,7 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/others/clubCashListTile.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/widgets/get_player_history_graph.dart';
+import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 import 'package:opengoalz/postgresql_requests.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
@@ -113,133 +114,149 @@ class PlayerExpensesTile extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             return persoAlertDialogWithConstrainedContent(
-              title: Text(
-                  '${updatedMissedExpenses} Past expenses not payed for ${player.getFullName()}'),
+              title: Row(
+                children: [
+                  Text('${updatedMissedExpenses} Past expenses not payed for '),
+                  PlayerNameTooltip(player: player),
+                ],
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   children: [
                     /// Display available cash in the club
                     getClubCashListTile(context, selectedClub),
 
-                    /// Display missed expenses
-                    ListTile(
-                      shape: shapePersoRoundedBorder(),
-                      title: Row(
-                        children: [
-                          Icon(iconMoney, color: Colors.red),
-                          Text(
-                            ' ${updatedMissedExpenses.toString()}',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                    formSpacer6,
+                    // Display missed expenses as a read-only TextField
+                    TextField(
+                      readOnly: true,
+                      controller: TextEditingController(
+                        text: updatedMissedExpenses.toString(),
                       ),
-                      subtitle: Text(
-                          'Total amount of unpaid expenses remaining',
-                          style: styleItalicBlueGrey),
+                      decoration: InputDecoration(
+                        labelText: 'Missed expenses',
+                        prefixIcon: Icon(iconMoney, color: Colors.orange),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: updatedMissedExpenses > 0
+                                ? Colors.orange
+                                : Colors.grey,
+                            width: 2,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: updatedMissedExpenses > 0
+                                ? Colors.orange
+                                : Colors.grey,
+                            width: 2,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: updatedMissedExpenses > 0
+                                ? Colors.red
+                                : Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                        helperStyle: styleItalicBlueGrey,
+                      ),
                     ),
-
-                    /// Display expected expenses
-                    ListTile(
-                      shape: shapePersoRoundedBorder(),
-                      title: Row(
-                        children: [
-                          Icon(iconMoney, color: Colors.green),
-                          Text(
-                            ' ${player.expensesPayed.toString()}',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                    formSpacer6,
+                    // Display already payed expenses as a read-only TextField
+                    TextField(
+                      readOnly: true,
+                      controller: TextEditingController(
+                        text: player.expensesPayed.toString(),
                       ),
-                      subtitle: Text('Already payed expenses this week',
-                          style: styleItalicBlueGrey),
+                      decoration: InputDecoration(
+                        labelText: 'Expenses already payed this week',
+                        prefixIcon: Icon(iconMoney, color: Colors.green),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.green,
+                            width: 2,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.green,
+                            width: 2,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
                     ),
 
                     /// Choose the amount to pay (with input)
-                    ListTile(
-                      shape: shapePersoRoundedBorder(),
-                      title: GestureDetector(
-                        onTap: () {
-                          _payController.text =
-                              updatedMissedExpenses.toString();
+
+                    formSpacer6,
+                    TextField(
+                      controller: _payController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Amount to pay (max $maxPayable)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: (int.tryParse(_payController.text) ?? 0) > 0
+                                ? Colors.green
+                                : Colors.grey,
+                            width: 2,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: (int.tryParse(_payController.text) ?? 0) > 0
+                                ? Colors.green
+                                : Colors.grey,
+                            width: 2,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: (int.tryParse(_payController.text) ?? 0) > 0
+                                ? Colors.green
+                                : Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      onChanged: (value) {
+                        int? val = int.tryParse(value);
+                        // Remove leading zeros by parsing and converting back to string
+                        String sanitized =
+                            (val == null || val < 0) ? '0' : val.toString();
+                        if (val != null && val > maxPayable) {
+                          sanitized = maxPayable.toString();
+                          val = maxPayable;
+                        }
+                        if (_payController.text != sanitized) {
+                          _payController.text = sanitized;
+                          // Move cursor to end
                           _payController.selection = TextSelection.fromPosition(
                             TextPosition(offset: _payController.text.length),
                           );
-                        },
-                        child: Text(
-                          'Pay the ${updatedMissedExpenses} missed expenses remaining',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          formSpacer6,
-                          TextField(
-                            controller: _payController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              labelText: 'Amount to pay (max $maxPayable)',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color:
-                                      (int.tryParse(_payController.text) ?? 0) >
-                                              0
-                                          ? Colors.green
-                                          : Colors.grey,
-                                  width: 2,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color:
-                                      (int.tryParse(_payController.text) ?? 0) >
-                                              0
-                                          ? Colors.green
-                                          : Colors.grey,
-                                  width: 2,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: (int.tryParse(_payController.text) ??
-                                              0) >
-                                          0
-                                      ? Colors.green
-                                      : Theme.of(context).colorScheme.primary,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            onChanged: (value) {
-                              int? val = int.tryParse(value);
-                              // Remove leading zeros by parsing and converting back to string
-                              String sanitized = (val == null || val < 0)
-                                  ? '0'
-                                  : val.toString();
-                              if (val != null && val > maxPayable) {
-                                sanitized = maxPayable.toString();
-                                val = maxPayable;
-                              }
-                              if (_payController.text != sanitized) {
-                                _payController.text = sanitized;
-                                // Move cursor to end
-                                _payController.selection =
-                                    TextSelection.fromPosition(
-                                  TextPosition(
-                                      offset: _payController.text.length),
-                                );
-                              }
-                              setState(() {});
-                            },
-                          ),
-                        ],
-                      ),
+                        }
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
