@@ -1,10 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
-import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/others/clubCashListTile.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/widgets/get_player_history_graph.dart';
@@ -32,20 +29,59 @@ class PlayerExpensesTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int updatedMissedExpenses = player.expensesMissed - player.expensesPayed;
-    Color colorIfMissedExpenses =
-        updatedMissedExpenses > 0 ? Colors.orange : Colors.green;
+    // Color colorIfMissedExpenses =
+    //     player.expensesMissed > player.expensesExpected
+    //         ? Colors.red
+    //         : player.expensesMissed > 0
+    //             ? Colors.orange
+    //             : Colors.green;
     return ListTile(
-      shape: shapePersoRoundedBorder(colorIfMissedExpenses),
+      shape: shapePersoRoundedBorder(),
       leading: Icon(
         iconMoney,
-        color: colorIfMissedExpenses,
+        // color: colorIfMissedExpenses,
+        color: Colors.green,
         size: iconSizeMedium,
       ),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildExpensesDisplay(),
+          Row(
+            children: [
+              Text(
+                player.expensesExpected.toString(),
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          if (player.expensesMissed > 0)
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => _showExpensesMissedDialog(context),
+                child: Tooltip(
+                  message: 'Missed expenses reducing player\'s motivation',
+                  child: Row(
+                    children: [
+                      formSpacer6,
+                      Icon(
+                        Icons.warning_amber_outlined,
+                        color: Colors.red,
+                        size: iconSizeSmall,
+                      ),
+                      formSpacer3,
+                      Text(
+                        '(${player.expensesMissed.toString()})',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
       subtitle: Tooltip(
@@ -57,15 +93,11 @@ class PlayerExpensesTile extends StatelessWidget {
       ),
 
       /// Show missed expenses warning button if there are any
-      trailing: updatedMissedExpenses > 0
-          ? IconButton(
-              tooltip:
-                  'Past expenses not payed ${updatedMissedExpenses.toString()}',
-              onPressed: () => _showPayExpensesDialog(context),
-              icon: Icon(Icons.money_off, color: Colors.red),
-            )
-          : null,
-      onTap: () => _showExpensesHistoryDialog(context),
+      trailing: IconButton(
+        tooltip: 'Check ${player.getPlayerNameString()} expenses history',
+        onPressed: () => _showExpensesHistoryDialog(context),
+        icon: Icon(iconHistory, size: iconSizeMedium, color: Colors.green),
+      ),
     );
   }
 
@@ -85,24 +117,17 @@ class PlayerExpensesTile extends StatelessWidget {
   }
 
   /// Shows the pay expenses dialog for missed payments
-  void _showPayExpensesDialog(BuildContext context) {
+  void _showExpensesMissedDialog(BuildContext context) {
     if (!_isPlayerOwnedByCurrentUser(context)) {
       context.showSnackBarError(
           'You are not the owner of ${player.firstName} ${player.lastName.toUpperCase()}\'s club');
       return;
     }
 
-    final Club selectedClub =
-        Provider.of<UserSessionProvider>(context, listen: false)
-            .user
-            .selectedClub!;
-    final int updatedMissedExpenses =
-        player.expensesMissed - player.expensesPayed;
-    final TextEditingController _payController = TextEditingController(
-      text: updatedMissedExpenses.toString(),
+    final TextEditingController _expensesMissedToPayInPriorityController =
+        TextEditingController(
+      text: player.expensesMissedToPayInPriority.toString(),
     );
-    // Cap maxPayable by both missed expenses and club cash
-    int maxPayable = min(updatedMissedExpenses, selectedClub.clubData.cash);
 
     showDialog(
       context: context,
@@ -116,7 +141,7 @@ class PlayerExpensesTile extends StatelessWidget {
             return persoAlertDialogWithConstrainedContent(
               title: Row(
                 children: [
-                  Text('${updatedMissedExpenses} Past expenses not payed for '),
+                  Text('${player.expensesMissed} Missed Expenses for '),
                   PlayerNameTooltip(player: player),
                 ],
               ),
@@ -131,7 +156,7 @@ class PlayerExpensesTile extends StatelessWidget {
                     TextField(
                       readOnly: true,
                       controller: TextEditingController(
-                        text: updatedMissedExpenses.toString(),
+                        text: player.expensesMissed.toString(),
                       ),
                       decoration: InputDecoration(
                         labelText: 'Missed expenses',
@@ -139,7 +164,7 @@ class PlayerExpensesTile extends StatelessWidget {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: updatedMissedExpenses > 0
+                            color: player.expensesMissed > 0
                                 ? Colors.orange
                                 : Colors.grey,
                             width: 2,
@@ -148,7 +173,7 @@ class PlayerExpensesTile extends StatelessWidget {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: updatedMissedExpenses > 0
+                            color: player.expensesMissed > 0
                                 ? Colors.orange
                                 : Colors.grey,
                             width: 2,
@@ -157,8 +182,8 @@ class PlayerExpensesTile extends StatelessWidget {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: updatedMissedExpenses > 0
-                                ? Colors.red
+                            color: player.expensesMissed > 0
+                                ? Colors.orange
                                 : Theme.of(context).colorScheme.primary,
                             width: 2,
                           ),
@@ -166,52 +191,23 @@ class PlayerExpensesTile extends StatelessWidget {
                         helperStyle: styleItalicBlueGrey,
                       ),
                     ),
+
+                    /// Choose the amount to pay (with input)
                     formSpacer6,
-                    // Display already payed expenses as a read-only TextField
                     TextField(
-                      readOnly: true,
-                      controller: TextEditingController(
-                        text: player.expensesPayed.toString(),
-                      ),
+                      controller: _expensesMissedToPayInPriorityController,
+                      keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: 'Expenses already payed this week',
+                        labelText: 'Missed expenses to pay in priority',
                         prefixIcon: Icon(iconMoney, color: Colors.green),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: Colors.green,
-                            width: 2,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.green,
-                            width: 2,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    /// Choose the amount to pay (with input)
-
-                    formSpacer6,
-                    TextField(
-                      controller: _payController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Amount to pay (max $maxPayable)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: (int.tryParse(_payController.text) ?? 0) > 0
+                            color: (int.tryParse(
+                                            _expensesMissedToPayInPriorityController
+                                                .text) ??
+                                        0) >
+                                    0
                                 ? Colors.green
                                 : Colors.grey,
                             width: 2,
@@ -220,7 +216,11 @@ class PlayerExpensesTile extends StatelessWidget {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: (int.tryParse(_payController.text) ?? 0) > 0
+                            color: (int.tryParse(
+                                            _expensesMissedToPayInPriorityController
+                                                .text) ??
+                                        0) >
+                                    0
                                 ? Colors.green
                                 : Colors.grey,
                             width: 2,
@@ -229,7 +229,11 @@ class PlayerExpensesTile extends StatelessWidget {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: (int.tryParse(_payController.text) ?? 0) > 0
+                            color: (int.tryParse(
+                                            _expensesMissedToPayInPriorityController
+                                                .text) ??
+                                        0) >
+                                    0
                                 ? Colors.green
                                 : Theme.of(context).colorScheme.primary,
                             width: 2,
@@ -244,15 +248,16 @@ class PlayerExpensesTile extends StatelessWidget {
                         // Remove leading zeros by parsing and converting back to string
                         String sanitized =
                             (val == null || val < 0) ? '0' : val.toString();
-                        if (val != null && val > maxPayable) {
-                          sanitized = maxPayable.toString();
-                          val = maxPayable;
-                        }
-                        if (_payController.text != sanitized) {
-                          _payController.text = sanitized;
+                        if (_expensesMissedToPayInPriorityController.text !=
+                            sanitized) {
+                          _expensesMissedToPayInPriorityController.text =
+                              sanitized;
                           // Move cursor to end
-                          _payController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: _payController.text.length),
+                          _expensesMissedToPayInPriorityController.selection =
+                              TextSelection.fromPosition(
+                            TextPosition(
+                                offset: _expensesMissedToPayInPriorityController
+                                    .text.length),
                           );
                         }
                         setState(() {});
@@ -268,15 +273,20 @@ class PlayerExpensesTile extends StatelessWidget {
                     TextButton(
                       child: persoRowWithIcon(
                         iconSuccessfulOperation,
-                        'Pay ${_payController.text} missed expenses',
+                        'Set ${_expensesMissedToPayInPriorityController.text} as missed expenses to pay in priority',
                         color: Colors.green,
                       ),
-                      onPressed: (int.tryParse(_payController.text) ?? 0) > 0
+                      onPressed: (int.tryParse(
+                                      _expensesMissedToPayInPriorityController
+                                          .text) ??
+                                  0) >
+                              0
                           ? () {
-                              int toPay =
-                                  int.tryParse(_payController.text) ?? 0;
+                              int toPay = int.tryParse(
+                                      _expensesMissedToPayInPriorityController
+                                          .text) ??
+                                  0;
                               if (toPay < 0) toPay = 0;
-                              if (toPay > maxPayable) toPay = maxPayable;
                               _payExpenses(context, toPay);
                             }
                           : null,
@@ -302,12 +312,12 @@ class PlayerExpensesTile extends StatelessWidget {
       'UPDATE',
       'players',
       data: {
-        // 'expenses_payed': player.expensesPayed + amountToPay,
-        'expenses_payed': player.expensesPayed + amountToPay
+        'expenses_missed_to_pay_in_advance':
+            player.expensesMissedToPayInPriority
       },
       matchCriteria: {'id': player.id},
       messageSuccess:
-          'Successfully payed $amountToPay missed expenses for ${player.getFullName()}',
+          '${player.expensesMissedToPayInPriority} will be payed next week in priority if the club has enough cash',
     );
     Navigator.of(context).pop();
   }

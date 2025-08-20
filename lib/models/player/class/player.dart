@@ -14,7 +14,6 @@ import 'package:opengoalz/models/player/pages/players_page.dart';
 import 'package:collection/collection.dart';
 import 'package:opengoalz/models/player/embodied/transfers_embodied_players_offer.dart';
 import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
-import 'package:opengoalz/models/player/widgets/player_main_information.dart';
 
 part 'player_widget_helper.dart';
 
@@ -47,6 +46,7 @@ class Player {
   final int expensesExpected;
   final int expensesPayed;
   final int expensesMissed;
+  final int expensesMissedToPayInPriority;
   final int expensesTarget;
   final double trainingPointsUsed;
   final List<int> trainingCoef;
@@ -105,6 +105,8 @@ class Player {
         expensesExpected = map['expenses_expected'],
         expensesPayed = map['expenses_payed'],
         expensesMissed = map['expenses_missed'],
+        expensesMissedToPayInPriority =
+            map['expenses_missed_to_pay_in_priority'],
         expensesTarget = map['expenses_target'],
         trainingPointsUsed = (map['training_points_used'] as num).toDouble(),
         trainingCoef = List<int>.from(map['training_coef']),
@@ -201,6 +203,8 @@ class Player {
         return expensesPayed;
       case 'expensesMissed':
         return expensesMissed;
+      case 'expensesMissedToPayInPriority':
+        return expensesMissedToPayInPriority;
       case 'expensesTarget':
         return expensesTarget;
       case 'trainingPointsUsed':
@@ -293,6 +297,7 @@ class Player {
       'expensesExpected': expensesExpected,
       'expensesPayed': expensesPayed,
       'expensesMissed': expensesMissed,
+      'expensesMissedToPayInPriority': expensesMissedToPayInPriority,
       'expensesTarget': expensesTarget,
       'trainingPointsUsed': trainingPointsUsed,
       'trainingCoef': trainingCoef,

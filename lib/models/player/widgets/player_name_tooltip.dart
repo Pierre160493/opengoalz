@@ -12,17 +12,9 @@ class PlayerNameTooltip extends StatelessWidget {
     this.isSurname = false,
   }) : super(key: key);
 
-  String _getPlayerNameString() {
-    return isSurname
-        ? player.surName == null
-            ? 'No Surname'
-            : player.surName!
-        : '${player.firstName[0]}.${player.lastName.toUpperCase()}';
-  }
-
   Widget _getPlayerNameTextWidget(BuildContext context) {
     return Text(
-      _getPlayerNameString(),
+      player.getPlayerNameString(),
       style: TextStyle(
         fontWeight: FontWeight.bold,
         color: player.isEmbodiedByCurrentUser
@@ -40,7 +32,8 @@ class PlayerNameTooltip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: '${player.firstName} ${player.lastName.toUpperCase()}',
+      message:
+          '${player.firstName} ${player.lastName.toUpperCase()} (${player.id})',
       child: _getPlayerNameTextWidget(context),
     );
   }
