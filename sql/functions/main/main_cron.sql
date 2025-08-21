@@ -34,7 +34,8 @@ BEGIN
 
                 -- Store the error message in the multiverse record
                 UPDATE multiverses SET
-                    error = SQLERRM
+                    error = SQLERRM,
+                    last_run = NOW()
                 WHERE id = rec_multiverse.id;
         END;
         
