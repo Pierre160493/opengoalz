@@ -46,58 +46,65 @@ class PlayerExpensesTile extends StatelessWidget {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Text(
-                player.expensesExpected.toString(),
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+          Tooltip(
+            message: 'Weekly expected expenses',
+            child: Row(
+              children: [
+                Text(
+                  player.expensesExpected.toString(),
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
           if (player.expensesMissed > 0)
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () => _showExpensesMissedDialog(context),
-                child: Tooltip(
-                  message: 'Missed expenses reducing player\'s motivation',
-                  child: Row(
-                    children: [
-                      formSpacer6,
-                      Icon(
-                        Icons.warning_amber_outlined,
+            TextButton(
+              onPressed: () => _showExpensesMissedDialog(context),
+              child: Tooltip(
+                message:
+                    '${player.expensesMissed} missed expenses${player.expensesMissedToPayInPriority > 0 ? ' (${player.expensesMissedToPayInPriority} to pay in priority)' : ''}',
+                child: Row(
+                  children: [
+                    formSpacer6,
+                    Icon(
+                      Icons.warning_amber_outlined,
+                      color: Colors.red,
+                      size: iconSizeSmall,
+                    ),
+                    formSpacer3,
+                    Text(
+                      player.expensesMissed.toString(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
                         color: Colors.red,
-                        size: iconSizeSmall,
                       ),
-                      formSpacer3,
-                      Text(
-                        '(${player.expensesMissed.toString()})',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
+                    ),
+                    if (player.expensesMissedToPayInPriority > 0)
+                      Row(
+                        children: [
+                          formSpacer6,
+                          Text(
+                            '(${player.expensesMissedToPayInPriority.toString()})',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ),
         ],
       ),
-      subtitle: Tooltip(
-        message: 'Weekly expected expenses of the player',
-        child: Text(
-          'Expected expenses',
-          style: styleItalicBlueGrey,
-        ),
+      subtitle: Text(
+        'Weekly Expenses',
+        style: styleItalicBlueGrey,
       ),
 
       /// Show missed expenses warning button if there are any
-      trailing: IconButton(
-        tooltip: 'Check ${player.getPlayerNameString()} expenses history',
-        onPressed: () => _showExpensesHistoryDialog(context),
-        icon: Icon(iconHistory, size: iconSizeMedium, color: Colors.green),
-      ),
+      onTap: () => _showExpensesHistoryDialog(context),
     );
   }
 
@@ -128,6 +135,8 @@ class PlayerExpensesTile extends StatelessWidget {
         TextEditingController(
       text: player.expensesMissedToPayInPriority.toString(),
     );
+
+    String? errorText; // Variable to hold error message
 
     showDialog(
       context: context,
@@ -161,34 +170,33 @@ class PlayerExpensesTile extends StatelessWidget {
                       decoration: InputDecoration(
                         labelText: 'Missed expenses',
                         prefixIcon: Icon(iconMoney, color: Colors.orange),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: player.expensesMissed > 0
-                                ? Colors.orange
-                                : Colors.grey,
-                            width: 2,
-                          ),
+                        enabledBorder: buildBorder(Colors.orange),
+                        focusedBorder: buildBorder(Colors.green),
+                        suffixIcon: Tooltip(
+                          message:
+                              'Missed expenses are expected expenses that were not payed, it reduces the player\'s motivation',
+                          child: Icon(Icons.info_outline, color: Colors.green),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: player.expensesMissed > 0
-                                ? Colors.orange
-                                : Colors.grey,
-                            width: 2,
-                          ),
+                      ),
+                    ),
+
+                    // Display missed expenses as a read-only TextField
+                    formSpacer6,
+                    TextField(
+                      readOnly: true,
+                      controller: TextEditingController(
+                        text: player.expensesMissedToPayInPriority.toString(),
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Current missed expenses to pay in priority',
+                        prefixIcon: Icon(iconMoney, color: Colors.green),
+                        enabledBorder: buildBorder(Colors.green),
+                        focusedBorder: buildBorder(Colors.green),
+                        suffixIcon: Tooltip(
+                          message:
+                              'Missed expenses to pay in priority will be payed at the end of week if the club has enough cash',
+                          child: Icon(Icons.info_outline, color: Colors.green),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: player.expensesMissed > 0
-                                ? Colors.orange
-                                : Theme.of(context).colorScheme.primary,
-                            width: 2,
-                          ),
-                        ),
-                        helperStyle: styleItalicBlueGrey,
                       ),
                     ),
 
@@ -198,69 +206,64 @@ class PlayerExpensesTile extends StatelessWidget {
                       controller: _expensesMissedToPayInPriorityController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: 'Missed expenses to pay in priority',
+                        labelText:
+                            'Modify the missed expenses to pay in priority',
                         prefixIcon: Icon(iconMoney, color: Colors.green),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: (int.tryParse(
-                                            _expensesMissedToPayInPriorityController
-                                                .text) ??
-                                        0) >
-                                    0
-                                ? Colors.green
-                                : Colors.grey,
+                            color: errorText != null
+                                ? Colors.red
+                                : Colors.green, // Red border if error
                             width: 2,
                           ),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: (int.tryParse(
-                                            _expensesMissedToPayInPriorityController
-                                                .text) ??
-                                        0) >
-                                    0
-                                ? Colors.green
-                                : Colors.grey,
-                            width: 2,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: (int.tryParse(
-                                            _expensesMissedToPayInPriorityController
-                                                .text) ??
-                                        0) >
-                                    0
-                                ? Colors.green
-                                : Theme.of(context).colorScheme.primary,
-                            width: 2,
-                          ),
-                        ),
+                        suffixIcon: _expensesMissedToPayInPriorityController
+                                    .text !=
+                                player.expensesMissedToPayInPriority.toString()
+                            ? IconButton(
+                                icon: Icon(Icons.refresh,
+                                    size: iconSizeSmall, color: Colors.grey),
+                                tooltip:
+                                    'Reset to current: ${player.expensesMissedToPayInPriority}',
+                                onPressed: () {
+                                  _expensesMissedToPayInPriorityController
+                                          .text =
+                                      player.expensesMissedToPayInPriority
+                                          .toString();
+                                  setState(() {
+                                    errorText =
+                                        null; // Clear error when resetting
+                                  });
+                                },
+                              )
+                            : null,
+                        errorText: errorText, // Display error text if any
                       ),
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                       ],
                       onChanged: (value) {
                         int? val = int.tryParse(value);
-                        // Remove leading zeros by parsing and converting back to string
                         String sanitized =
                             (val == null || val < 0) ? '0' : val.toString();
                         if (_expensesMissedToPayInPriorityController.text !=
                             sanitized) {
                           _expensesMissedToPayInPriorityController.text =
                               sanitized;
-                          // Move cursor to end
                           _expensesMissedToPayInPriorityController.selection =
                               TextSelection.fromPosition(
-                            TextPosition(
-                                offset: _expensesMissedToPayInPriorityController
-                                    .text.length),
+                            TextPosition(offset: sanitized.length),
                           );
                         }
-                        setState(() {});
+                        setState(() {
+                          if (val != null && val > player.expensesMissed) {
+                            errorText =
+                                'Value cannot exceed the current missed expenses (${player.expensesMissed})';
+                          } else {
+                            errorText = null; // Clear error if input is valid
+                          }
+                        });
                       },
                     ),
                   ],
@@ -276,17 +279,18 @@ class PlayerExpensesTile extends StatelessWidget {
                         'Set ${_expensesMissedToPayInPriorityController.text} as missed expenses to pay in priority',
                         color: Colors.green,
                       ),
-                      onPressed: (int.tryParse(
-                                      _expensesMissedToPayInPriorityController
-                                          .text) ??
-                                  0) >
-                              0
+                      onPressed: (errorText == null &&
+                              _expensesMissedToPayInPriorityController.text
+                                      .trim() !=
+                                  player.expensesMissedToPayInPriority
+                                      .toString()
+                                      .trim())
                           ? () {
                               int toPay = int.tryParse(
                                       _expensesMissedToPayInPriorityController
-                                          .text) ??
+                                          .text
+                                          .trim()) ??
                                   0;
-                              if (toPay < 0) toPay = 0;
                               _payExpenses(context, toPay);
                             }
                           : null,
@@ -312,8 +316,7 @@ class PlayerExpensesTile extends StatelessWidget {
       'UPDATE',
       'players',
       data: {
-        'expenses_missed_to_pay_in_advance':
-            player.expensesMissedToPayInPriority
+        'expenses_missed_to_pay_in_priority': amountToPay,
       },
       matchCriteria: {'id': player.id},
       messageSuccess:
@@ -346,6 +349,17 @@ class PlayerExpensesTile extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ],
+    );
+  }
+
+  /// Add a helper method to build OutlineInputBorder
+  OutlineInputBorder buildBorder(Color color) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: color,
+        width: 2,
+      ),
     );
   }
 }
