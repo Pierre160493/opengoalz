@@ -7,14 +7,14 @@ DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
 BEGIN
 
-    RAISE NOTICE '****** START: main_handle_multiverse !';
+    -- RAISE NOTICE '****** START: main_handle_multiverse !';
 
     ------ Loop through all multiverses that need handling
     FOR rec_multiverse IN (
         SELECT *
         FROM multiverses
         WHERE id = ANY(id_multiverses)
-        AND is_active = TRUE
+        AND is_active IS TRUE
     )
     LOOP
         RAISE NOTICE '*** Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
