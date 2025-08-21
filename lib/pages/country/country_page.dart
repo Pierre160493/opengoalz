@@ -12,8 +12,8 @@ import 'package:opengoalz/pages/countriesSelection_page.dart';
 import 'package:opengoalz/pages/country/country_players_tab.dart';
 import 'package:opengoalz/pages/multiverse_page.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/countryListTile.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/country_tile.dart';
+import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';
@@ -229,7 +229,7 @@ class _CountryPageState extends State<CountryPage>
   _countryMainTab(BuildContext context, Country country, int? idMultiverse) {
     return ListView(
       children: [
-        getCountryListTileFromCountry(context, country, idMultiverse,
+        getCountryTileFromCountry(context, country, idMultiverse,
             isClickable: false),
         ListTile(
           title: Text(

@@ -3,7 +3,7 @@ import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/mails/mail.dart';
 import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';

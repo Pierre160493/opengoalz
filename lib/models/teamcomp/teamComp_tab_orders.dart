@@ -31,7 +31,7 @@ extension TabOrders on TeamComp {
                         color: Colors.red,
                       ),
                     ),
-                    playerOut.getPlayerNameToolTip(context),
+                    PlayerNameTooltip(player: playerOut, isSurname: true),
                   ],
                 );
               } else {
@@ -55,7 +55,12 @@ extension TabOrders on TeamComp {
                       Icons.directions_rounded,
                       color: Colors.green,
                     ),
-                    playerIn!.getPlayerNameToolTip(context),
+                    playerIn == null
+                        ? Text('In: Player not found')
+                        : // If playerIn is null, show a message
+                        // Otherwise, show the player's name
+                        // with a tooltip
+                        PlayerNameTooltip(player: playerIn, isSurname: true),
                   ],
                 );
               } else {

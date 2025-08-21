@@ -6,7 +6,7 @@ import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsAll.dart';
 import 'dart:math';
 
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/graph_widget.dart';
 
 Widget getGameWeights(BuildContext context, Game game) {
   return FutureBuilder<List<GamePlayerStatsAll>>(

@@ -1,15 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/AgeAndBirth.dart';
 import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsAll.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/player/playerTransferListTile.dart';
-import 'package:opengoalz/models/player/playerExpensesListTile.dart';
-import 'package:opengoalz/models/player/playerWidgets.dart';
-import 'package:opengoalz/models/player/player_embodied_listtile.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
@@ -17,11 +10,10 @@ import 'package:opengoalz/models/playerStatsBest.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/transfer_bid.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/models/player/players_page.dart';
-import 'package:opengoalz/widgets/countryListTile.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/models/player/pages/players_page.dart';
 import 'package:collection/collection.dart';
-import 'package:opengoalz/models/player/transfers_embodied_players_offer.dart';
+import 'package:opengoalz/models/player/embodied/transfers_embodied_players_offer.dart';
+import 'package:opengoalz/models/player/widgets/player_name_tooltip.dart';
 
 part 'player_widget_helper.dart';
 
@@ -54,6 +46,7 @@ class Player {
   final int expensesExpected;
   final int expensesPayed;
   final int expensesMissed;
+  final int expensesMissedToPayInPriority;
   final int expensesTarget;
   final double trainingPointsUsed;
   final List<int> trainingCoef;
@@ -112,6 +105,8 @@ class Player {
         expensesExpected = map['expenses_expected'],
         expensesPayed = map['expenses_payed'],
         expensesMissed = map['expenses_missed'],
+        expensesMissedToPayInPriority =
+            map['expenses_missed_to_pay_in_priority'],
         expensesTarget = map['expenses_target'],
         trainingPointsUsed = (map['training_points_used'] as num).toDouble(),
         trainingCoef = List<int>.from(map['training_coef']),
@@ -208,6 +203,8 @@ class Player {
         return expensesPayed;
       case 'expensesMissed':
         return expensesMissed;
+      case 'expensesMissedToPayInPriority':
+        return expensesMissedToPayInPriority;
       case 'expensesTarget':
         return expensesTarget;
       case 'trainingPointsUsed':
@@ -300,6 +297,7 @@ class Player {
       'expensesExpected': expensesExpected,
       'expensesPayed': expensesPayed,
       'expensesMissed': expensesMissed,
+      'expensesMissedToPayInPriority': expensesMissedToPayInPriority,
       'expensesTarget': expensesTarget,
       'trainingPointsUsed': trainingPointsUsed,
       'trainingCoef': trainingCoef,

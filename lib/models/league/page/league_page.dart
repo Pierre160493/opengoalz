@@ -11,7 +11,7 @@ import 'package:opengoalz/models/league/page/league_page_open_related_leagues.da
 import 'package:opengoalz/models/league/page/stats_tab/league_page_stats_tab.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
-import 'package:opengoalz/widgets/goBackToolTip.dart';
+import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/perso_alert_dialog_box.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:provider/provider.dart';

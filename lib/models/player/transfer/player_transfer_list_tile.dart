@@ -1,0 +1,58 @@
+import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
+import 'package:opengoalz/models/club/others/getClubNameWidget.dart';
+import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/models/player/dialogs/playerTransferBidDialogBox.dart';
+import 'package:opengoalz/widgets/tickingTime.dart';
+
+class PlayerTransferTile extends StatelessWidget {
+  final Player player;
+
+  const PlayerTransferTile({Key? key, required this.player}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Choose tile builder based on player.userName presence
+    return ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Colors.blueGrey),
+      ),
+      leading: Icon(
+        iconTransfers,
+        size: iconSizeMedium,
+        color: Colors.green,
+      ),
+      title: Row(
+        children: [
+          if (player.transferBids.isEmpty)
+            Text(
+              'Starting price: ',
+            ),
+          if (player.transferBids.isNotEmpty)
+            getClubNameClickable(
+                context, null, player.transferBids.first.idClub),
+          formSpacer6,
+          Text(
+            player.transferPrice != null
+                ? player.transferPrice!.abs().toString()
+                : 'Price not available',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
+          ),
+        ],
+      ),
+      subtitle: tickingTimeWidget(player.dateBidEnd!),
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return PlayerTransferBidDialogBox(idPlayer: player.id);
+          },
+        );
+      },
+    );
+  }
+}

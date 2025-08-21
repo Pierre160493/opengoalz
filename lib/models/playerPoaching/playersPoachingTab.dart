@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:opengoalz/models/player/playerChartDialogBox.dart';
+import 'package:opengoalz/models/player/dialogs/playerChartDialogBox.dart';
+import 'package:opengoalz/models/player/widgets/player_icon.dart';
 import 'package:opengoalz/models/playerPoaching/playerPoachingIconButton.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
 import 'package:opengoalz/models/profile.dart';
-import 'package:opengoalz/widgets/graphWidget.dart';
+import 'package:opengoalz/widgets/graph_widget.dart';
 
 Widget getPlayersPoachingTab(List<Player> playersPoached, Profile user) {
   if (playersPoached.isEmpty) {
@@ -54,9 +55,11 @@ Widget buildPlayerPoachingTile(
   return ListTile(
     leading: Tooltip(
       message: playerPoaching.toDelete == true ? 'To delete' : '',
-      child: Icon(player.getPlayerIcon(),
-          size: iconSizeLarge,
-          color: playerPoaching.toDelete == true ? Colors.red : Colors.green),
+      child: PlayerIcon(
+        player: player,
+        size: iconSizeLarge,
+        color: playerPoaching.toDelete == true ? Colors.red : Colors.green,
+      ),
     ),
     title: player.getPlayerNameClickable(context),
     subtitle: Column(

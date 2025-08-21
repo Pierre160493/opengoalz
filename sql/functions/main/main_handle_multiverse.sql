@@ -7,26 +7,27 @@ DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
 BEGIN
 
-    RAISE NOTICE '****** START: main_handle_multiverse !';
+    -- RAISE NOTICE '****** START: main_handle_multiverse !';
 
-    -- Loop through all multiverses that need handling
+    ------ Loop through all multiverses that need handling
     FOR rec_multiverse IN (
         SELECT *
         FROM multiverses
         WHERE id = ANY(id_multiverses)
-        AND is_active = TRUE
+        AND is_active IS TRUE
     )
     LOOP
         RAISE NOTICE '*** Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
 
-        -- Handle the transfers
+        ---- Handle the transfers
         PERFORM transfers_handle_transfers(
             inp_multiverse := rec_multiverse
         );
 
-        -- Simulate the week games
+        ---- Simulate the week games
         PERFORM main_simulate_week_games(rec_multiverse);
 
+        ---- Check if it's time to pass to the nex day of the multiverse
         IF now() >= rec_multiverse.date_handling THEN
 
             -- Handle weekly and seasonal updates if it's the end of the week (match day)
@@ -49,6 +50,61 @@ BEGIN
                 PERFORM main_handle_clubs(rec_multiverse);
                 PERFORM main_handle_players(rec_multiverse);
                 PERFORM main_handle_season(rec_multiverse);
+
+                -- Store the clubs' revenues and expenses in the history_weekly table
+                INSERT INTO public.clubs_history_weekly (
+                    id_club, season_number, week_number,
+                    number_fans, training_weight, scouts_weight,
+                    cash, revenues_sponsors, revenues_transfers_done, revenues_total,
+                    expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+                    league_points, pos_league, league_goals_for, league_goals_against,
+                    elo_points, expenses_players_ratio_target, expenses_players_ratio,
+                    expenses_training_target, expenses_scouts_target)
+                SELECT
+                    id, rec_multiverse.season_number, rec_multiverse.week_number,
+                    number_fans, training_weight, scouts_weight,
+                    cash, revenues_sponsors, revenues_transfers_done, revenues_total,
+                    expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+                    league_points, pos_league, league_goals_for, league_goals_against,
+                    elo_points, expenses_players_ratio_target, expenses_players_ratio,
+                    expenses_training_target, expenses_scouts_target
+                FROM clubs
+                WHERE id_multiverse = rec_multiverse.id;
+
+                -- Reset the clubs revenues and expenses for the next week
+                UPDATE clubs SET
+                    revenues_transfers_done = 0,
+                    expenses_transfers_done = 0
+                WHERE id_multiverse = rec_multiverse.id;
+
+                -- Store player's stats in the history table
+                INSERT INTO public.players_history_stats
+                    (created_at, season_number, week_number,
+                    id_player, performance_score_real, performance_score_theoretical, 
+                    expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
+                    keeper, defense, passes, playmaking, winger, scoring, freekick,
+                    motivation, form, stamina, energy, experience,
+                    loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
+                    coef_coach, coef_scout,
+                    training_points_used, user_points_available, user_points_used)
+                SELECT
+                    rec_multiverse.date_handling, rec_multiverse.season_number, rec_multiverse.week_number,
+                    id, performance_score_real, performance_score_theoretical,
+                    expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
+                    keeper, defense, passes, playmaking, winger, scoring, freekick,
+                    motivation, form, stamina, energy, experience,
+                    loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
+                    coef_coach, coef_scout,
+                    training_points_used, user_points_available, user_points_used
+                FROM players
+                WHERE id_multiverse = rec_multiverse.id
+                AND date_death IS NULL;
+
+                -- Reset the players' expenses for the next week
+                UPDATE players SET
+                    expenses_payed = 0
+                WHERE id_multiverse = rec_multiverse.id;
+
             END IF;
 
             ---- Increase players energy
@@ -58,6 +114,7 @@ BEGIN
             WHERE id_multiverse = rec_multiverse.id
             AND date_death IS NULL;
 
+            ---- Handle the players' age and death
             WITH players1 AS (
                 SELECT 
                     players.id,

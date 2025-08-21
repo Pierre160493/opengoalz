@@ -25,8 +25,6 @@ BEGIN
     ------ Generate name of the club
     UPDATE clubs SET name = 'Club ' || loc_id_club WHERE clubs.id = loc_id_club;
 
-    ------ INSERT Init finance for this new club
-    INSERT INTO finances (id_club, amount, description) VALUES (loc_id_club, 250000, 'Club Initialisation');
     ------ INSERT Init club_history for this new club
     INSERT INTO clubs_history (id_club, description) VALUES (loc_id_club, 'Creation of the club');
 

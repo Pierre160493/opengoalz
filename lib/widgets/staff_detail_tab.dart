@@ -4,13 +4,17 @@ import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/club/others/getClubNameWidget.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/models/player/playerStaffCoefListTile.dart';
-import 'package:opengoalz/models/player/playerExpensesListTile.dart';
-import 'package:opengoalz/models/player/playerWidgets.dart';
-import 'package:opengoalz/models/player/players_page.dart';
+import 'package:opengoalz/models/player/pages/players_page.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_expenses_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_staff_coef_tile.dart';
+import 'package:opengoalz/models/player/widgets/tiles/player_age_tile.dart';
+import 'package:opengoalz/models/player/widgets/player_icon.dart';
+import 'package:opengoalz/models/player/widgets/player_small_notes_icon.dart';
+import 'package:opengoalz/models/player/widgets/player_widgets.dart';
+import 'package:opengoalz/models/player/widgets/player_status_row.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/postgresql_requests.dart';
-import 'package:opengoalz/widgets/countryListTile.dart';
+import 'package:opengoalz/widgets/country_tile.dart';
 
 class StaffDetailTab extends StatelessWidget {
   final Club club;
@@ -94,7 +98,7 @@ class StaffDetailTab extends StatelessWidget {
           children: [
             /// Player List Tile
             ListTile(
-              leading: CircleAvatar(child: Icon(player.getPlayerIcon())),
+              leading: CircleAvatar(child: PlayerIcon(player: player)),
               shape: shapePersoRoundedBorder(),
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -102,7 +106,7 @@ class StaffDetailTab extends StatelessWidget {
                   Row(
                     children: [
                       player.getPlayerNameClickable(context),
-                      player.getStatusRow(),
+                      PlayerStatusRow(player: player),
                     ],
                   ),
                 ],
@@ -111,7 +115,7 @@ class StaffDetailTab extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   getClubNameClickable(context, club, null),
-                  playerSmallNotesIcon(context, player),
+                  PlayerSmallNotesIcon(player: player),
                 ],
               ),
 
@@ -135,23 +139,29 @@ class StaffDetailTab extends StatelessWidget {
             Divider(),
             Row(
               children: [
-                Expanded(child: getAgeListTile(context, player)),
+                Expanded(child: PlayerAgeTile(player: player)),
                 Expanded(
-                    child: getCountryListTileFromIdCountry(
-                        context, player.idCountry, player.idMultiverse)),
+                  child: CountryTileFromId(
+                    idCountry: player.idCountry,
+                    idMultiverse: player.idMultiverse,
+                  ),
+                ),
               ],
             ),
             Row(
               children: [
                 Expanded(
-                  child: getStaffCoefListTile(context, player, title),
+                  child: PlayerStaffCoefTile(player: player, title: title),
                 ),
-                Expanded(child: getExpensesWidget(context, player)),
+                Expanded(
+                    child: PlayerExpensesTile(
+                  player: player,
+                )),
               ],
             ),
             Divider(),
-            getStaffCoefListTile(context, player, 'Coach'),
-            getStaffCoefListTile(context, player, 'Scout'),
+            PlayerStaffCoefTile(player: player, title: 'Coach'),
+            PlayerStaffCoefTile(player: player, title: 'Scout'),
           ],
         ),
       ),
