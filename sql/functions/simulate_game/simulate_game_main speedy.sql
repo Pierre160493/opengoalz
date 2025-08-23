@@ -1,6 +1,6 @@
 -- DROP FUNCTION public.simulate_game_main(int8);
 
-CREATE OR REPLACE FUNCTION public.simulate_game_main(inp_id_game bigint)
+CREATE OR REPLACE FUNCTION public.simulate_game_speedy(inp_id_game bigint)
  RETURNS void
  LANGUAGE plpgsql
 AS $function$
@@ -16,7 +16,7 @@ DECLARE
     loc_array_team_weights_right float4[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
     array_player_stats float4[12]; -- Array for player stats {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}
     array_player_weights float4[7]; -- Array for player weights {left defense, central defense, right defense, midfield, left attack, central attack, right attack}
-    energy_coef float4; -- Array for player weights {left defense, central defense, right defense, midfield, left attack, central attack, right attack}
+    energy_coef float4; -- Coefficient for energy (calculated each turn based on the energy of the players)
     loc_period_game int; -- The period of the game (e.g., first half, second half, extra time)
     loc_minute_period_start int; -- The minute where the period starts
     loc_minute_period_end int := 0; -- The minute where the period ends
@@ -34,6 +34,7 @@ DECLARE
     penalty_number int8; -- The number of penalties
     context game_context; -- Game context
     index_player int; -- Index of the player
+    loc_tmp float4; -- Temporary variable for calculations
 BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -270,9 +271,6 @@ BEGIN
                 --     score := loc_score_right - loc_score_left,
                 --     game := rec_game);
 
-
-
-
                 ------ Calculate the weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
                 ---- Initialize the team weights
                 loc_array_team_weights_left := '{100,100,100,100,100,100,100}';
@@ -290,16 +288,20 @@ BEGIN
                         FOR J IN 1..12 LOOP
                             array_player_stats[J] := loc_matrix_player_stats_left[index_player][J];
                         END LOOP;
+                        -- Sum only the first 10 stats (not stamina and energy)
+                        loc_tmp := (SELECT SUM(val) FROM unnest(array_player_stats[1:10]) AS val) / 10.0; -- Average stats for the player
 
                         -- Fetch the weights of the player playing at the position I {LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack}
-                        array_player_weights := players_calculate_player_weight(array_player_stats, I);
+                        -- array_player_weights := players_calculate_player_weight(array_player_stats, I);
 
                         -- Calculate the energy coefficient of the player
                         energy_coef := array_player_stats[12] / 100.0;
 
                         -- Add the player weights to the team weights
                         FOR J IN 1..7 LOOP
-                            array_player_weights[J] := array_player_weights[J] * energy_coef;
+                            -- array_player_weights[J] := array_player_weights[J] * energy_coef;
+                            -- loc_array_team_weights_left[J] := loc_array_team_weights_left[J] + array_player_weights[J];
+                            array_player_weights[J] := loc_tmp * energy_coef;
                             loc_array_team_weights_left[J] := loc_array_team_weights_left[J] + array_player_weights[J];
                         END LOOP;
 
@@ -333,17 +335,21 @@ BEGIN
                         FOR J IN 1..12 LOOP
                             array_player_stats[J] := loc_matrix_player_stats_right[index_player][J];
                         END LOOP;
+                        -- Sum only the first 10 stats (not stamina and energy)
+                        loc_tmp := (SELECT SUM(val) FROM unnest(array_player_stats[1:10]) AS val) / 10.0; -- Average stats for the player
 
                         -- Fetch the weights of the player playing at the position I {LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack}
-                        array_player_weights := players_calculate_player_weight(array_player_stats, I);
+                        -- array_player_weights := players_calculate_player_weight(array_player_stats, I);
 
                         -- Calculate the energy coefficient of the player
                         energy_coef := array_player_stats[12] / 100.0;
 
                         -- Add the player weights to the team weights
                         FOR J IN 1..7 LOOP
-                            array_player_weights[J] := array_player_weights[J] * energy_coef;
-                            loc_array_team_weights_right[J] := loc_array_team_weights_right[J] + array_player_weights[J];
+                            -- array_player_weights[J] := array_player_weights[J] * energy_coef;
+                            -- loc_array_team_weights_right[J] := loc_array_team_weights_right[J] + array_player_weights[J];
+                            array_player_weights[J] := loc_tmp * energy_coef;
+                            loc_array_team_weights_right[J] := loc_array_team_weights_right[J] + loc_tmp;
                         END LOOP;
 
                         --Store the player weights in the game_player_stats_all table

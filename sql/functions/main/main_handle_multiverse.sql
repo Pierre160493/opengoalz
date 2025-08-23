@@ -5,6 +5,8 @@ LANGUAGE plpgsql
 AS $function$
 DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
+    loc_start_time_global TIMESTAMP;
+    loc_start_time_function TIMESTAMP;
 BEGIN
 
     -- RAISE NOTICE '****** START: main_handle_multiverse !';
@@ -17,15 +19,22 @@ BEGIN
         AND is_active IS TRUE
     )
     LOOP
-        RAISE NOTICE '*** Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
+        RAISE NOTICE '###### Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
+        loc_start_time_global := clock_timestamp();
 
         ---- Handle the transfers
+        RAISE NOTICE '### Multiverse [%]: transfers_handle_transfers', rec_multiverse.name;
+        loc_start_time_function := clock_timestamp();
         PERFORM transfers_handle_transfers(
             inp_multiverse := rec_multiverse
         );
+        RAISE NOTICE '### Multiverse [%]: transfers_handle_transfers (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
 
         ---- Simulate the week games
+        RAISE NOTICE '### Multiverse [%]: main_simulate_week_games', rec_multiverse.name;
+        loc_start_time_function := clock_timestamp();
         PERFORM main_simulate_week_games(rec_multiverse);
+        RAISE NOTICE '### Multiverse [%]: main_simulate_week_games (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
 
         ---- Check if it's time to pass to the nex day of the multiverse
         IF now() >= rec_multiverse.date_handling THEN
@@ -46,10 +55,24 @@ BEGIN
                     EXIT; -- Exit the loop
                 END IF;
 
-                -- Handle clubs, players, and season updates
+                ------ Handle clubs, players, and season updates
+                -- Start timer for main_handle_clubs
+                RAISE NOTICE '### Multiverse [%]: main_handle_clubs', rec_multiverse.name;
+                loc_start_time_function := clock_timestamp();
                 PERFORM main_handle_clubs(rec_multiverse);
+                RAISE NOTICE '### Multiverse [%]: main_handle_clubs (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
+
+                -- Start timer for main_handle_players
+                RAISE NOTICE '### Multiverse [%]: main_handle_players', rec_multiverse.name;
+                loc_start_time_function := clock_timestamp();
                 PERFORM main_handle_players(rec_multiverse);
+                RAISE NOTICE '### Multiverse [%]: main_handle_players (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
+
+                -- Start timer for main_handle_season
+                RAISE NOTICE '### Multiverse [%]: main_handle_season', rec_multiverse.name;
+                loc_start_time_function := clock_timestamp();
                 PERFORM main_handle_season(rec_multiverse);
+                RAISE NOTICE '### Multiverse [%]: main_handle_season (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
 
                 -- Store the clubs' revenues and expenses in the history_weekly table
                 INSERT INTO public.clubs_history_weekly (
@@ -162,7 +185,7 @@ BEGIN
             error = NULL
         WHERE id = rec_multiverse.id;
 
-        RAISE NOTICE '*** Multiverse [%]: Successfully processed.', rec_multiverse.name;
+        RAISE NOTICE '*** Multiverse [%]: Successfully processed in: %', rec_multiverse.name, clock_timestamp() - loc_start_time_global;
     END LOOP;
 
     RAISE NOTICE '****** END: main_handle_multiverse !';

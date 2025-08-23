@@ -270,9 +270,6 @@ BEGIN
                 --     score := loc_score_right - loc_score_left,
                 --     game := rec_game);
 
-
-
-
                 ------ Calculate the weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
                 ---- Initialize the team weights
                 loc_array_team_weights_left := '{100,100,100,100,100,100,100}';
