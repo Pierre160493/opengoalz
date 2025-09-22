@@ -9,48 +9,88 @@ DECLARE
     last_bid RECORD; -- Record variable to store the last bid for each player
     teamcomp RECORD; -- Record variable to store the teamcomp
     loc_tmp INT8; -- Variable to store the count of rows affected by the query
+    loc_start_time TIMESTAMP;
+    loc_step_time TIMESTAMP;
 BEGIN
+    -- Start timer
+    loc_start_time := clock_timestamp();
+    RAISE NOTICE '### Start processing transfers_handle_transfers at %', loc_start_time;
 
     ------ Query to select rows to process (bids finished and player is not currently playing a game)
-    FOR rec_player IN (
-        SELECT *,
-            player_get_full_name(id) AS full_name,
-            string_parser(inp_entity_type := 'idPlayer', inp_id := id) AS special_string_player,
-            CASE WHEN id_club IS NULL THEN
-                'NO CLUB'
+    -- Drop the temporary table if it exists
+    DROP TABLE IF EXISTS temp_player_bids;
+
+    -- Create a temporary table to store the query results
+    loc_step_time := clock_timestamp();
+    CREATE TEMP TABLE temp_player_bids AS
+    SELECT 
+        players.id, players.id_club,
+        player_get_full_name(players.id) AS full_name,
+        string_parser(inp_entity_type := 'idPlayer', inp_id := players.id) AS special_string_player,
+        CASE 
+            WHEN players.id_club IS NULL THEN 'NO CLUB'
+            ELSE string_parser(inp_entity_type := 'idClub', inp_id := players.id_club)
+        END AS special_string_club,
+        COUNT(transfers_bids.id) AS bid_count, -- Number of bids for the player
+        MAX(transfers_bids.amount) AS highest_bid, -- Highest bid amount
+        string_parser(inp_entity_type := 'idClub', inp_id := MAX(transfers_bids.id_club)) AS special_string_buying_club -- Club with the highest bid
+    FROM
+        players
+    LEFT JOIN
+        transfers_bids ON players.id = transfers_bids.id_player
+    WHERE 
+        players.date_bid_end < NOW()
+        AND players.is_playing = FALSE
+        AND players.id_multiverse = inp_multiverse.id
+        AND players.username IS NULL -- Exclude embodied players
+    GROUP BY 
+        players.id, players.id_club; -- Group by player ID, club ID, and multiverse speed
+    RAISE NOTICE '### Duration of creating temp_player_bids: %', clock_timestamp() - loc_step_time;
+
+    -- Optimized bulk update of clubless players that dont have any bids to extend their bid date
+    loc_step_time := clock_timestamp();
+    UPDATE players
+    SET
+        -- date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / inp_multiverse.speed),
+        date_bid_end = CASE
+            WHEN (NOW() - date_arrival) > INTERVAL '14 weeks' / inp_multiverse.speed
+                THEN NULL -- If the player has been clubless for more than a season, he leaves the transfer market
             ELSE
-                string_parser(inp_entity_type := 'idClub', inp_id := id_club)
-            END AS special_string_club
-        FROM players
-        WHERE date_bid_end < NOW()
-        AND is_playing = FALSE
-        AND id_multiverse = inp_multiverse.id
-        AND username IS NULL -- Exclude embodied players
+                date_trunc('minute', NOW()) + (INTERVAL '1 week' / inp_multiverse.speed)
+            END,
+        expenses_expected = CEIL(0.1 * expenses_target + 0.5 * expenses_expected),
+        transfer_price = 100,
+        motivation = motivation - 5.0 * (expenses_expected / expenses_target)
+    FROM temp_player_bids
+    WHERE players.id = temp_player_bids.id
+    AND temp_player_bids.bid_count = 0
+    AND temp_player_bids.id_club IS NULL;
+
+    -- Get the number of rows affected
+    GET DIAGNOSTICS loc_tmp = ROW_COUNT;
+
+    -- Display the duration and the number of players impacted
+    RAISE NOTICE '### Duration of optimized bulk update for clubless players: %, Rows affected: %', clock_timestamp() - loc_step_time, loc_tmp;
+
+    -- Replace the query in the FOR loop with a SELECT from the temporary table
+    FOR rec_player IN (
+        SELECT *
+        FROM temp_player_bids
+        WHERE bid_count > 0
     ) LOOP
     
-        -- Get the last bid on the player
-        SELECT *, 
-            string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS special_string_buying_club
-        INTO last_bid
-        FROM transfers_bids
-        WHERE id_player = rec_player.id
-        ORDER BY amount DESC
-        LIMIT 1;
+        -- Process each player and their bids
+        RAISE NOTICE 'Processing player [%] with highest bid [%]', rec_player.id, rec_player.highest_bid;
 
         ------ If no bids are found
-        IF NOT FOUND THEN
+        IF rec_player.bid_count = 0 THEN
 
             ---- If the player is clubless
             IF rec_player.id_club IS NULL THEN
 
-                -- Update player to make bidding next week
-                UPDATE players SET
-                    date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / inp_multiverse.speed),
-                    expenses_expected = CEIL(0.1 * expenses_target + 0.5 * expenses_expected),
-                    transfer_price = 100,
-                    motivation = motivation - 5.0 * (expenses_expected / expenses_target)
-                WHERE id = rec_player.id;
-            
+------ DO NOTHING BECAUSE HANDLED IN BULK UPDATE ABOVE
+RAISE NOTICE '### Player is clubless and has no bids, already handled in bulk update.';
+
             ---- If the player has a club
             ELSE
 
@@ -374,6 +414,11 @@ BEGIN
     AND id_club IS NULL
     AND motivation < 10;
 
+    -- Drop the temporary table at the end of the function
+    DROP TABLE IF EXISTS temp_player_bids;
+
+    -- End timer
+    RAISE NOTICE '### Total execution time for transfers_handle_transfers: %', clock_timestamp() - loc_start_time;
 END;
 $function$
 ;

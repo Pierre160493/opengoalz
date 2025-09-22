@@ -34,10 +34,8 @@ BEGIN
         LOOP
             -- Simulate the game
             IF game.is_running_late = TRUE THEN
-                RAISE NOTICE 'Game %: Simulate game main (SPEEDY)', game.id;
+                -- RAISE NOTICE 'Game %: Simulate game main (SPEEDY)', game.id;
                 PERFORM simulate_game_speedy(inp_id_game := game.id);
-                -- RAISE NOTICE 'Game %: Simulate game main (NORMAL)', game.id;
-                -- PERFORM simulate_game_main(inp_id_game := game.id);
             ELSE
                 PERFORM simulate_game_main(inp_id_game := game.id);
             END IF;
@@ -99,6 +97,6 @@ BEGIN
 
     -- Log the execution time
     RAISE NOTICE 'Execution time for main_simulate_week_games: %', loc_end_time - loc_start_time;
-    RAISE EXCEPTION 'Execution time for main_simulate_week_games: %', loc_end_time - loc_start_time;
+    -- RAISE EXCEPTION 'Execution time for main_simulate_week_games: %', loc_end_time - loc_start_time;
 END;
 $function$;

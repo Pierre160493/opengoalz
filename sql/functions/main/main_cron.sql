@@ -5,6 +5,7 @@ DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
     lock_exists BOOLEAN;   -- Variable to check if the lock exists
 BEGIN
+    RAISE NOTICE '############ PROCEDURE main_cron called';
 
     ------ Uncomment the following line to deactivate the cron
     -- RAISE EXCEPTION '************ KILL THE CRON !!!';
@@ -24,6 +25,7 @@ BEGIN
         -- Start a new transaction for each multiverse
         BEGIN
             ---- Handle the multiverse
+            RAISE NOTICE '######### Calling main_handle_multiverse for multiverse with id: %', rec_multiverse.id;
             PERFORM main_handle_multiverse(ARRAY[rec_multiverse.id]);
 
         EXCEPTION
