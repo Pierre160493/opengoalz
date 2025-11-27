@@ -10,8 +10,8 @@ Color getMultiverseSyncColor(Multiverse multiverse) {
   if (multiverse.error != null) {
     return Colors.red;
   }
-  if (!multiverse.isActive) {
-    return Colors.yellow;
+  if (multiverse.dateDelete != null) {
+    return Colors.amber;
   }
   if (multiverse.dateHandling.isBefore(DateTime.now())) {
     return Colors.orange;
@@ -239,12 +239,17 @@ Widget multiverseSpeedTile(Multiverse multiverse) {
         Row(
           children: [
             Icon(
-              multiverse.isActive ? Icons.check_circle : Icons.cancel,
+              multiverse.dateDelete != null
+                  ? Icons.delete_forever
+                  : Icons.check_circle,
               color: syncColor,
               size: iconSizeSmall,
             ),
             SizedBox(width: 4),
-            Text(multiverse.isActive ? 'Active' : 'Inactive',
+            Text(
+                multiverse.dateDelete != null
+                    ? 'Deleting: ${formatDate(multiverse.dateDelete!)}'
+                    : 'Active',
                 style: styleItalicBlueGrey),
           ],
         ),

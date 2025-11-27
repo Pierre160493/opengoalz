@@ -13,7 +13,7 @@ class Multiverse {
   final int cashPrinted;
   final DateTime lastRun;
   final String? error;
-  final bool isActive;
+  final DateTime? dateDelete;
 
   Multiverse({
     required this.id,
@@ -28,7 +28,7 @@ class Multiverse {
     required this.cashPrinted,
     required this.lastRun,
     required this.error,
-    required this.isActive,
+    required this.dateDelete,
   });
 
   factory Multiverse.fromMap(Map<String, dynamic> map) {
@@ -45,7 +45,9 @@ class Multiverse {
       cashPrinted: map['cash_printed'],
       lastRun: DateTime.parse(map['last_run']).toLocal(),
       error: map['error'],
-      isActive: map['is_active'], // New property
+      dateDelete: map['date_delete'] != null
+          ? DateTime.parse(map['date_delete']).toLocal()
+          : null,
     );
   }
 

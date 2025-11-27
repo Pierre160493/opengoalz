@@ -52,7 +52,7 @@ BEGIN
         SELECT id
         FROM ranked_mails
         WHERE rn > 900
-    );    
+    );
 
     ------ Delete the players poaching
     DELETE FROM players_poaching
@@ -66,6 +66,9 @@ BEGIN
         FROM public.profiles
         WHERE NOW() >= date_delete
     );
+
+    ------ Delete multiverses scheduled for deletion
+    CALL clean_multiverse_to_delete();
 
 END;
 $procedure$;

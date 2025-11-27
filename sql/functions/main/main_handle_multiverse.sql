@@ -16,7 +16,7 @@ BEGIN
         SELECT *
         FROM multiverses
         WHERE id = ANY(id_multiverses)
-        AND is_active IS TRUE
+        AND date_delete IS NULL -- Handle only multiverses that are not marked for deletion
     )
     LOOP
         RAISE NOTICE '###### Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
