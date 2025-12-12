@@ -20,7 +20,7 @@ class UserPageAddClubTile extends StatelessWidget {
     final Color clubColor = canCreateClub ? Colors.green : Colors.orange;
 
     return ListTile(
-      shape: shapePersoRoundedBorder(),
+      shape: shapePersoRoundedBorder(Colors.green, 3),
       leading: Icon(
         iconClub,
         color: Colors.green,
