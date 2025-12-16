@@ -35,7 +35,7 @@ BEGIN
     
     -- Store the name in the player row
     IF (NEW.first_name IS NULL OR NEW.first_name = '') THEN
-        NEW.first_name = 
+        NEW.first_name = initcap(
             COALESCE(
                 -- Attempt 1: Get a random name from country
                 (SELECT name FROM players_generation.first_names
@@ -44,10 +44,11 @@ BEGIN
                 -- Fallback: If no name found from country, get a random name from anywhere
                 (SELECT name FROM players_generation.first_names
                 ORDER BY RANDOM() LIMIT 1)
-            );
+            )
+        );
     END IF;
     IF (NEW.last_name IS NULL OR NEW.last_name = '') THEN
-        NEW.last_name =
+        NEW.last_name = initcap(
             COALESCE(
                 -- Attempt 1: Get a random name from country
                 (SELECT name FROM players_generation.last_names
@@ -56,7 +57,8 @@ BEGIN
                 -- Fallback: If no name found from country, get a random name from anywhere
                 (SELECT name FROM players_generation.last_names
                 ORDER BY RANDOM() LIMIT 1)
-            );
+            )
+        );
     END IF;
 
     ------ Store the multiverse speed

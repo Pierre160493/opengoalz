@@ -46,55 +46,55 @@ BEGIN
                 loc_tmp + 10 * (1 + random()), -- Keeper: BaseValue(age) + Random(10 ==> 20)
                 loc_tmp + 10 * random(), -- Defense: BaseValue(age) + Random(0 ==> 5)
                 loc_tmp + 10 * random(), -- Passes: BaseValue(age) + Random(0 ==> 5)
-                loc_tmp * random(), -- Playmaking: Random(0 ==> BaseValue(age))
-                loc_tmp * random(), -- Winger: Random(0 ==> BaseValue(age))
-                loc_tmp * random(), -- Scoring: Random(0 ==> BaseValue(age))
+                10 * random(), -- Playmaking: Random(0 ==> BaseValue(age))
+                10 * random(), -- Winger: Random(0 ==> BaseValue(age))
+                10 * random(), -- Scoring: Random(0 ==> BaseValue(age))
                 loc_tmp + 10 * random()] -- Freekick
             ---- Back Wingers
             WHEN inp_shirt_number IN (2, 3, 13) THEN ARRAY[
-                0, -- Keeper
+                10 * random(), -- Keeper
                 loc_tmp + 10 * (1 + random()), -- Defense
                 loc_tmp + 10 * random(), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * (1 + random()), -- Winger
-                0, -- Scoring
-                0] -- Freekick
+                10 * random(), -- Scoring
+                10 * random()] -- Freekick
             ---- Central Backs
             WHEN inp_shirt_number IN (4, 5, 14) THEN ARRAY[
-                0, -- Keeper
+                10 * random(), -- Keeper
                 loc_tmp + 10 * (1 + random()), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp * 10 * random(), -- Playmaking
-                0, -- Winger
-                0, -- Scoring
-                0] -- Freekick
+                10 * random(), -- Winger
+                10 * random(), -- Scoring
+                10 * random()] -- Freekick
             ---- Midfielders
             WHEN inp_shirt_number IN (6, 10, 15) THEN ARRAY[
-                0, -- Keeper
+                10 * random(), -- Keeper
                 loc_tmp + 10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * (1 + random()), -- Playmaking
-                0, -- Winger
-                0, -- Scoring
-                0] -- Freekick
+                10 * random(), -- Winger
+                10 * random(), -- Scoring
+                10 * random()] -- Freekick
             ---- Wingers
             WHEN inp_shirt_number IN (7, 8, 16) THEN ARRAY[
-                0, -- Keeper
+                10 * random(), -- Keeper
                 loc_tmp + 10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * (1 + random()), -- Winger
                 loc_tmp + 10 * random(), -- Scoring
-                0] -- Freekick
+                10 * random()] -- Freekick
             ---- Strikers
             WHEN inp_shirt_number IN (9, 11, 17) THEN ARRAY[
-                0, -- Keeper
-                0, -- Defense
+                10 * random(), -- Keeper
+                10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * random(), -- Winger
                 loc_tmp + 10 * (1 + random()), -- Scoring
-                0] -- Freekick
+                10 * random()] -- Freekick
             ---- Coach
             WHEN inp_notes = 'Coach' THEN ARRAY[0, 0, 0, 0, 0, 0, 0]
             ELSE NULL -- Placeholder for invalid shirt_number
