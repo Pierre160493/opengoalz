@@ -21,9 +21,9 @@ BEGIN
         ,'clubs', 'clubs_history', 'clubs_history_weekly'
         ,'players', 'players_history', 'players_history_stats', 'players_favorite', 'players_poaching'
         ,'games', 'game_events', 'games_teamcomp', 'game_orders', 'game_stats', 'game_player_stats_all', 'game_player_stats_best'
-        ,'finances'
+        ,'finances', 'transfers_bids', 'transfers_embodied_players_offers', 'transfers_history'
         ,'mails'
-        ]) -- Add your table names here
+        ])
     LOOP
 	    -- Delete tables
 	    EXECUTE 'TRUNCATE TABLE ' || quote_ident(table_name) || ' CASCADE;';
@@ -32,8 +32,6 @@ BEGIN
         EXECUTE 'ALTER SEQUENCE ' || pg_get_serial_sequence(table_name, 'id') || ' RESTART WITH 1';
     END LOOP;
 
-    --UPDATE profiles SET id_default_club = NULL;
-
     INSERT INTO public.multiverses (id, date_season_start, speed, name) VALUES 
     (1, date_trunc('week', NOW()) - INTERVAL '1 week' + INTERVAL '5 days 20 hours', 1, 'The Original'), -- 1 game per week
     (2, date_trunc('week', NOW()) - INTERVAL '1 week' + INTERVAL '5 days 20 hours', 2, 'The Second'), -- 2 games per week
@@ -41,6 +39,14 @@ BEGIN
     (4, date_trunc('week', NOW()) + INTERVAL '20 hours', 14, 'The Double Seven'), -- 2 games per day
     (5, date_trunc('hour', NOW()), 168, 'The Very Fast'), -- Every hour
     (6, date_trunc('hour', NOW()), 1008, 'The Ultra Fast'); -- Every 10 minutes
+
+    -- INSERT INTO public.multiverses (id, date_season_start, speed, name) VALUES 
+    -- (1, date_trunc('week', NOW()) - INTERVAL '1 week' + INTERVAL '5 days 20 hours', 1, 'The Original'), -- 1 game per week
+    -- (2, date_trunc('week', NOW()) - INTERVAL '1 week' + INTERVAL '5 days 20 hours', 2, 'The Second'), -- 2 games per week
+    -- (3, date_trunc('week', NOW()) + INTERVAL '20 hours', 7, 'The Lucky Seven'), -- 1 game per day
+    -- (4, date_trunc('week', NOW()) + INTERVAL '20 hours', 14, 'The Double Seven'), -- 2 games per day
+    -- (5, date_trunc('hour', NOW()), 168, 'The Very Fast'), -- Every hour
+    -- (6, date_trunc('hour', NOW()), 1008, 'The Ultra Fast'); -- Every 10 minutes
 
 --     FOR multiverse IN (
 --         SELECT * FROM multiverses
