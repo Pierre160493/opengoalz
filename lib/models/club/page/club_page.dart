@@ -104,114 +104,132 @@ class _ClubPageState extends State<ClubPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  ListTile(
-                    leading: Icon(
-                      iconClub,
-                      size: iconSizeLarge,
-                      color: club.isCurrentlySelected
-                          ? colorIsSelected
-                          : club.isBelongingToConnectedUser
-                              ? colorIsMine
-                              : Colors.green,
-                    ), // Icon to indicate club
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        /// Club name with possibility to change it
-                        InkWell(
-                          onTap: () {
-                            club.isBelongingToConnectedUser
-                                ? showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      String inputText = '';
-                                      return AlertDialog(
-                                        title: const Text('Change Club Name'),
-                                        content: TextField(
-                                          onChanged: (value) {
-                                            inputText = value;
-                                          },
-                                          decoration: const InputDecoration(
-                                              hintText:
-                                                  "Enter the new club name"),
-                                        ),
-                                        actions: <Widget>[
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            children: [
-                                              TextButton(
-                                                child: persoCancelRow(),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                              ),
-                                              TextButton(
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                        iconSuccessfulOperation,
-                                                        color: Colors.green),
-                                                    formSpacer3,
-                                                    const Text('Submit'),
-                                                  ],
-                                                ),
-                                                onPressed: () async {
-                                                  await operationInDB(context,
-                                                      'UPDATE', 'clubs',
-                                                      data: {'name': inputText},
-                                                      matchCriteria: {
-                                                        'id': club.id
-                                                      },
-                                                      messageSuccess:
-                                                          'Successfully changed the club name to $inputText');
-
-                                                  Navigator.of(context).pop();
-                                                },
+                  Tooltip(
+                    message: 'Tap to see the club\'s history',
+                    waitDuration: const Duration(seconds: 1),
+                    child: ListTile(
+                      leading: Icon(
+                        iconClub,
+                        size: iconSizeLarge,
+                        color: getClubColor(club),
+                      ), // Icon to indicate club
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          /// Club name with possibility to change it
+                          club.isBelongingToConnectedUser
+                              // Club owner can change the name
+                              ? Tooltip(
+                                  message: 'Tap to change the club name',
+                                  child: InkWell(
+                                    onTap: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          String inputText = '';
+                                          return AlertDialog(
+                                            title:
+                                                const Text('Change Club Name'),
+                                            content: TextField(
+                                              onChanged: (value) {
+                                                inputText = value;
+                                              },
+                                              decoration: const InputDecoration(
+                                                  hintText:
+                                                      "Enter the new club name"),
+                                            ),
+                                            actions: <Widget>[
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  TextButton(
+                                                    child: persoCancelRow(),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                  TextButton(
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                            iconSuccessfulOperation,
+                                                            color:
+                                                                Colors.green),
+                                                        formSpacer3,
+                                                        const Text('Submit'),
+                                                      ],
+                                                    ),
+                                                    onPressed: () async {
+                                                      await operationInDB(
+                                                          context,
+                                                          'UPDATE',
+                                                          'clubs',
+                                                          data: {
+                                                            'name': inputText
+                                                          },
+                                                          matchCriteria: {
+                                                            'id': club.id
+                                                          },
+                                                          messageSuccess:
+                                                              'Successfully changed the club name to $inputText');
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                ],
                                               ),
                                             ],
-                                          ),
-                                        ],
+                                          );
+                                        },
                                       );
                                     },
-                                  )
-                                : null;
-                          },
-                          child: Text(
-                            club.name,
+                                    child: Text(
+                                      club.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize:
+                                            24, // Increase the font size as needed
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  club.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24,
+                                  ),
+                                ),
+
+                          /// Get last results
+                          club.getLastResultsWidget(context),
+                        ],
+                      ),
+                      subtitle: Row(
+                        children: [
+                          Text(
+                            'Creation Date: ',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 24, // Increase the font size as needed
                             ),
                           ),
-                        ),
-
-                        /// Get last results
-                        club.getLastResultsWidget(context),
-                      ],
-                    ),
-                    subtitle: Row(
-                      children: [
-                        Text(
-                          'Creation Date: ',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                          Text(
+                            '${formatDate(club.createdAt)}',
                           ),
-                        ),
-                        Text(
-                          '${formatDate(club.createdAt)}',
-                        ),
-                      ],
+                        ],
+                      ),
+                      shape: shapePersoRoundedBorder(),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ClubHistoryPage(club: club),
+                          ),
+                        );
+                      },
                     ),
-                    shape: shapePersoRoundedBorder(),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ClubHistoryPage(club: club),
-                        ),
-                      );
-                    },
                   ),
 
                   /// Username of the club owner

@@ -21,7 +21,7 @@ Widget clubLeagueAndRankingListTile(BuildContext context, Club club) {
     leading: Icon(
       iconLeague,
       size: iconSizeMedium,
-      color: Colors.green,
+      color: getClubColor(club),
     ), // Icon to indicate players
     title: club.league == null
         ? Text('League Not Found')
@@ -54,4 +54,14 @@ Widget clubEloRow(BuildContext context, int? idClub, int? eloValue) {
       ),
     ),
   );
+}
+
+Color getClubColor(Club club) {
+  if (club.isCurrentlySelected) {
+    return colorIsSelected;
+  } else if (club.isBelongingToConnectedUser) {
+    return colorIsMine;
+  } else {
+    return Colors.green;
+  }
 }
