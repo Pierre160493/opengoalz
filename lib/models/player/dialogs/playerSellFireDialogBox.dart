@@ -381,13 +381,13 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
                 onPressed: (_isDateValid && _isPriceValid)
                     ? () async {
                         int? minimumPrice = int.tryParse(_priceController.text);
-                        if (minimumPrice == null || minimumPrice < 0) {
+                        if (minimumPrice == null || minimumPrice < 100) {
                           context.showSnackBarError(
                               'Please enter a valid number for minimum price (should be a positive integer)');
                           return;
                         }
                         if (_firePlayer) {
-                          minimumPrice = -100;
+                          minimumPrice = 100;
                         }
 
                         bool isOk = await operationInDB(
@@ -395,7 +395,9 @@ class _SellFirePlayerDialogBoxState extends State<SellFirePlayerDialogBox> {
                             data: {
                               'date_bid_end':
                                   _selectedDateTime.toUtc().toIso8601String(),
-                              'transfer_price': minimumPrice
+                              'transfer_price': minimumPrice,
+                              'transfer_status':
+                                  _firePlayer ? 'Fired' : 'Transfered',
                             },
                             matchCriteria: {'id': player.id},
                             messageSuccess: _firePlayer

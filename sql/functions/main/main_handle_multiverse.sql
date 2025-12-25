@@ -25,9 +25,7 @@ BEGIN
         ---- Handle the transfers
         RAISE NOTICE '### Multiverse [%]: transfers_handle_transfers', rec_multiverse.name;
         loc_start_time_function := clock_timestamp();
-        PERFORM transfers_handle_transfers(
-            inp_multiverse := rec_multiverse
-        );
+        PERFORM transfers_handle_transfers(ARRAY[rec_multiverse.id]);
         RAISE NOTICE '### Multiverse [%]: transfers_handle_transfers (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
 
         ---- Simulate the week games

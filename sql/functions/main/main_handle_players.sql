@@ -189,7 +189,8 @@ BEGIN
             -- Set date_bid_end for the demotivated players
             UPDATE players SET
                 date_bid_end = inp_multiverse.date_handling + (INTERVAL '30 days' / inp_multiverse.speed),
-                transfer_price = - 100
+                transfer_price = 100,
+                transfer_status = 'Asked to leave'
             WHERE id = rec_player.id;
 
             -- Create a new mail warning saying that the player is leaving club
@@ -255,8 +256,6 @@ BEGIN
                 string_parser(inp_entity_type := 'idPlayer', inp_id := rec_player.id) || ' who is one of your favorite player has asked to leave ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_player.id_club) ||'. He will be leaving before next week because of low motivation: ' || rec_player.motivation || '. It''s time to make a move !'
             FROM players_favorite
             WHERE id_player = rec_player.id;
-
---RAISE NOTICE '==> RageQuit => % (%) has asked to leave club [%]', rec_player.full_name, rec_player.id, rec_player.id_club;
 
         ELSE
 
