@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
+import 'package:opengoalz/pages/game_page.dart';
 
 /// Widget that displays the status indicators for a player
 ///
@@ -42,7 +43,7 @@ class PlayerStatusRow extends StatelessWidget {
         if (player.dateDeath != null) _buildDeathStatusIcon(),
 
         // Currently playing indicator
-        if (player.isPlaying) _buildPlayingStatusIcon(),
+        _buildPlayingStatusIcon(context, player),
 
         // Staff member indicator
         if (player.isStaff) _buildStaffStatusIcon(),
@@ -139,13 +140,23 @@ class PlayerStatusRow extends StatelessWidget {
   }
 
   /// Builds the currently playing status icon
-  Widget _buildPlayingStatusIcon() {
+  Widget _buildPlayingStatusIcon(BuildContext context, Player player) {
+    if (player.idGameCurrentlyPlaying == null) {
+      return SizedBox.shrink();
+    }
     return Tooltip(
-      message: 'Is currently playing',
-      child: Icon(
-        Icons.directions_run_outlined,
-        color: Colors.green,
-        size: 30.0, // iconSizeMedium
+      message: 'Currently playing a game',
+      child: IconButton(
+        icon: Icon(
+          Icons.directions_run_outlined,
+          color: Colors.green,
+          size: 30.0, // iconSizeMedium
+        ),
+        onPressed: () {
+          // Navigate to the game details page
+          Navigator.of(context).push(
+              GamePage.route(player.idGameCurrentlyPlaying!, player.idClub));
+        },
       ),
     );
   }

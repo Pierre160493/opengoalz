@@ -72,7 +72,7 @@ class Player {
   final double performanceScoreReal;
   final double performanceScoreTheoretical;
   final List<int> idGamesPlayed;
-  final bool isPlaying;
+  final int? idGameCurrentlyPlaying;
   final double loyalty;
   final double leadership;
   final double discipline;
@@ -144,7 +144,7 @@ class Player {
             (PlayerFavorite element) => element.idPlayer == map['id']),
         poaching = user.selectedClub?.playersPoached.firstWhereOrNull(
             (PlayerPoaching element) => element.idPlayer == map['id']),
-        isPlaying = map['is_playing'],
+        idGameCurrentlyPlaying = map['id_game_currently_playing'],
         loyalty = (map['loyalty'] as num).toDouble(),
         leadership = (map['leadership'] as num).toDouble(),
         discipline = (map['discipline'] as num).toDouble(),
@@ -245,8 +245,8 @@ class Player {
         return notes;
       case 'notes_small':
         return notesSmall;
-      case 'isPlaying':
-        return isPlaying;
+      case 'idGameCurrentlyPlaying':
+        return idGameCurrentlyPlaying;
       case 'loyalty':
         return loyalty;
       case 'leadership':
@@ -324,7 +324,7 @@ class Player {
       'idGamesPlayed': idGamesPlayed,
       'isPartOfClubOfCurrentUser': isPartOfClubOfCurrentUser,
       'isEmbodiedByCurrentUser': isEmbodiedByCurrentUser,
-      'isPlaying': isPlaying,
+      'idGameCurrentlyPlaying': idGameCurrentlyPlaying,
       'loyalty': loyalty,
       'leadership': leadership,
       'discipline': discipline,

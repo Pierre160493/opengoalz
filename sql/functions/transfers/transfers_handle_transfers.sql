@@ -37,7 +37,7 @@ BEGIN
     LEFT JOIN multiverses ON players.id_multiverse = multiverses.id
     WHERE 
         players.date_bid_end < NOW()
-        AND players.is_playing = FALSE
+        AND players.id_game_currently_playing = NULL
         AND players.username IS NULL -- Exclude embodied players
         AND (
             inp_id_multiverse IS NULL
@@ -355,7 +355,7 @@ RAISE NOTICE '### Player is clubless and has no bids, already handled in bulk up
             string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS magic_string_club
         FROM players
         WHERE date_end_contract < NOW()
-            AND is_playing = FALSE
+            AND id_game_currently_playing = NULL
             AND (
                 inp_id_multiverse IS NULL
                 OR id_multiverse = ANY(inp_id_multiverse)

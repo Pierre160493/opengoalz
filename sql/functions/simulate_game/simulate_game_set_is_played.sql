@@ -325,7 +325,7 @@ BEGIN
 
     ------ Update player to say they are not playing anymore
     UPDATE players SET
-        is_playing = FALSE
+        id_game_currently_playing = NULL
     WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
 
     ------ Insert a new row in the table game_player_stats_best
