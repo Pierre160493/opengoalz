@@ -357,20 +357,22 @@ class _PlayerEmbodiedOfferDialogBoxState
                       ),
                       color: isSelected ? Colors.green : Colors.grey[200],
                       style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                          (states) =>
-                              isSelected ? Colors.green : Colors.grey[200]!,
-                        ),
-                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(
-                              color: isSelected ? Colors.green : Colors.grey,
-                              width: 2,
-                            ),
+
+                          /// Had to rollback hover color to solid due to flutter issue with version
+                          // backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                          //   (states) =>
+                          //       isSelected ? Colors.green : Colors.grey[200]!,
+                          // ),
+                          // shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          //   RoundedRectangleBorder(
+                          //     borderRadius: BorderRadius.circular(8),
+                          //     side: BorderSide(
+                          //       color: isSelected ? Colors.green : Colors.grey,
+                          //       width: 2,
+                          //     ),
+                          //   ),
+                          // ),
                           ),
-                        ),
-                      ),
                     );
                   }),
                 ),
