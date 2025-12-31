@@ -234,19 +234,39 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                             Text('Retired'),
                           ],
                         ),
-                        trailing: Switch(
-                          value: playerSearchCriterias.retired ?? false,
-                          onChanged: (bool value) {
+                        trailing: ToggleButtons(
+                          isSelected: [
+                            playerSearchCriterias.retired == null,
+                            playerSearchCriterias.retired == true,
+                            playerSearchCriterias.retired == false,
+                          ],
+                          onPressed: (int index) {
                             setState(() {
-                              playerSearchCriterias.retired = value;
-
-                              /// If retired, increase the age range
-                              if (playerSearchCriterias.retired == true) {
+                              if (index == 0) {
+                                playerSearchCriterias.retired = null;
+                              } else if (index == 1) {
+                                playerSearchCriterias.retired = true;
                                 playerSearchCriterias.defaultMinAge = 0;
                                 playerSearchCriterias.defaultMaxAge = 99;
+                              } else if (index == 2) {
+                                playerSearchCriterias.retired = false;
                               }
                             });
                           },
+                          children: const [
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text('Any'),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text('Retired'),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text('Not Retired'),
+                            ),
+                          ],
                         ),
                       ),
                       // ListTile(
