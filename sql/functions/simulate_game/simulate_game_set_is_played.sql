@@ -163,7 +163,7 @@ BEGIN
             FROM players
             WHERE id_club = rec_game.id_club_overall_loser;
 
-    -- First leg games of barrage 1 games
+    -- B1W11: First leg games of barrage 1 games
     ELSEIF rec_game.id_games_description = 211 THEN
         -- Draw
         IF rec_game.score_diff = 0 THEN
@@ -178,7 +178,7 @@ BEGIN
             text_message_loser := text_message_loser || '. Unfortunately we have lost the first leg of the barrage. Nothing is lost, we can still make it in the second leg, let''s go !';
         END IF; --End right club won
 
-    -- Return game of the first barrage (between firsts of opposite leagues)
+    -- B1W12: Return game of the first barrage (between firsts of opposite leagues)
     ELSIF rec_game.id_games_description = 212 THEN
 
         -- Send messages
@@ -208,8 +208,7 @@ BEGIN
             string_parser(inp_entity_type := 'idClub', inp_id := rec_game.id_club_overall_winner) || ' won the barrage 1 ' || rec_game.game_presentation || ' against ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_game.id_club_overall_loser) ||
             '. Next season we will play in ' || string_parser(inp_entity_type := 'idLeague', inp_id := (SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner)));
 
-
-    -- First leg games of barrage 1 games
+    -- B1W13: First leg game of second games of barrage 1 (between 4th of upper league and loser of barrage 1)
     ELSIF rec_game.id_games_description = 213 THEN
         -- Draw
         IF rec_game.score_diff = 0 THEN
@@ -264,12 +263,19 @@ BEGIN
 
         END IF;
 
+    -- First games of the barrage 2 (between 2nd and 3rd of opposite leagues)
     ELSEIF rec_game.id_games_description IN (311, 312) THEN
-    -- IF rec_game.id_games_description IN (311, 312, 331) THEN
         text_title_winner := text_title_winner || ': BARRAGE2 Game1 Victory';
-        text_title_loser := text_title_loser || ': BARRAGE2 Defeat';
+        text_title_loser := text_title_loser || ': BARRAGE2 Game1 Defeat';
         text_message_winner := text_message_winner || '. Great victory in the first game of the barrage2, we are so close to promotion, keep the team focused !';
         text_message_loser := text_message_loser || '. Unfortunately we have lost the first game of the barrage. We won''t go up this season but we can make it next season ! We will play some friendly games for the rest of the interseason, use this time to prepare for the next season and try out new tactics and players !';
+
+    -- Second game of the barrage 2 between winners of the first games
+    ELSEIF rec_game.id_games_description = 321 THEN
+        text_title_winner := text_title_winner || ': BARRAGE2 Game2 Victory';
+        text_title_loser := text_title_loser || ': BARRAGE2 Game2 Defeat';
+        text_message_winner := text_message_winner || '. Great victory in the second game of the barrage2, we are so close to promotion, keep the team focused !';
+        text_message_loser := text_message_loser || '. Unfortunately we have lost the second game of the barrage2. We won''t go up this season but we can make it next season ! We will play some friendly games for the rest of the interseason, use this time to prepare for the next season and try out new tactics and players !';
 
     -- Return game of the barrage 3 (week 14) between the 4th of the upper league and the winner of the 2nd round of the barrage 3
     ELSEIF rec_game.id_games_description = 332 THEN
@@ -315,7 +321,6 @@ BEGIN
     VALUES
         (rec_game.id_club_overall_winner, 'Coach', TRUE, text_title_winner, text_message_winner),
         (rec_game.id_club_overall_loser, 'Coach', TRUE, text_title_loser, text_message_loser);
-
 
     ------ Set the game as played
     UPDATE games SET
