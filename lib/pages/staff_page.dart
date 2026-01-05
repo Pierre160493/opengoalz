@@ -97,7 +97,7 @@ class _StaffPageState extends State<StaffPage> {
             appBar: AppBar(
               title: Row(
                 children: [
-                  Text('Staff of '),
+                  Text('Staff of ', style: TextStyle(fontSize: fontSizeLarge)),
                   club.getClubNameClickable(context),
                 ],
               ),
@@ -179,13 +179,15 @@ class StaffOverviewTab extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text('Staff expenses '),
+                  Text('Staff expenses ',
+                      style: TextStyle(fontSize: fontSizeMedium)),
                   Icon(iconMoney, size: iconSizeSmall, color: Colors.green),
                   SizedBox(width: 3.0),
                   Text(
                     stringValueSeparated(club.clubData.expensesTrainingTarget +
                         club.clubData.expensesScoutsTarget),
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
                   ),
                 ],
               ),
@@ -197,11 +199,12 @@ class StaffOverviewTab extends StatelessWidget {
                     Icon(iconCoach, size: iconSizeSmall, color: Colors.green),
                 title: Text(
                   stringValueSeparated(club.clubData.expensesTrainingTarget),
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
                 ),
-                subtitle: const Text(
+                subtitle: Text(
                   'Training expenses per week',
-                  style: styleItalicBlueGrey,
+                  style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
                 ),
                 shape: shapePersoRoundedBorder(),
                 trailing: IconButton(
@@ -217,15 +220,19 @@ class StaffOverviewTab extends StatelessWidget {
                         return AlertDialog(
                           title: Row(
                             children: [
-                              Icon(iconCoach, color: Colors.green),
-                              Text('Update training Weekly Expenses'),
+                              Icon(iconCoach,
+                                  size: iconSizeMedium, color: Colors.green),
+                              Text('Update training Weekly Expenses',
+                                  style: TextStyle(fontSize: fontSizeMedium)),
                             ],
                           ),
                           content: TextField(
                             controller: controller,
                             keyboardType: TextInputType.number,
+                            style: TextStyle(fontSize: fontSizeMedium),
                             decoration: InputDecoration(
-                                hintText: "Enter new training weekly expenses"),
+                                hintText: "Enter new training weekly expenses",
+                                hintStyle: TextStyle(fontSize: fontSizeSmall)),
                           ),
                           actions: <Widget>[
                             Row(
@@ -301,11 +308,12 @@ class StaffOverviewTab extends StatelessWidget {
                     Icon(iconScout, size: iconSizeSmall, color: Colors.green),
                 title: Text(
                   stringValueSeparated(club.clubData.expensesScoutsTarget),
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
                 ),
-                subtitle: const Text(
+                subtitle: Text(
                   'Theoretical scouts weekly expenses',
-                  style: styleItalicBlueGrey,
+                  style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
                 ),
                 shape: shapePersoRoundedBorder(),
                 trailing: IconButton(
@@ -321,15 +329,19 @@ class StaffOverviewTab extends StatelessWidget {
                         return AlertDialog(
                           title: Row(
                             children: [
-                              Icon(iconScout, color: Colors.green),
-                              Text('Update Scouts Weekly Expenses'),
+                              Icon(iconScout,
+                                  size: iconSizeMedium, color: Colors.green),
+                              Text('Update Scouts Weekly Expenses',
+                                  style: TextStyle(fontSize: fontSizeMedium)),
                             ],
                           ),
                           content: TextField(
                             controller: controller,
                             keyboardType: TextInputType.number,
+                            style: TextStyle(fontSize: fontSizeMedium),
                             decoration: InputDecoration(
-                                hintText: "Enter new scouts weekly expenses"),
+                                hintText: "Enter new scouts weekly expenses",
+                                hintStyle: TextStyle(fontSize: fontSizeSmall)),
                           ),
                           actions: <Widget>[
                             Row(
@@ -400,9 +412,9 @@ class StaffOverviewTab extends StatelessWidget {
               ),
             ],
           ),
-          subtitle: const Text(
+          subtitle: Text(
             'Theoretical Expenses dedicated for staff per week',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
           shape: shapePersoRoundedBorder(),
         ),
@@ -413,17 +425,20 @@ class StaffOverviewTab extends StatelessWidget {
               Icon(Icons.thermostat, size: iconSizeMedium, color: Colors.green),
           title: Row(
             children: [
-              Text('Club\'s Training skill '),
+              Text('Club\'s Training skill ',
+                  style: TextStyle(fontSize: fontSizeMedium)),
               Text(
                 stringValueSeparated(club.clubData.staffWeight.round()),
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                    fontSize: fontSizeMedium),
               ),
             ],
           ),
-          subtitle: const Text(
+          subtitle: Text(
             'Club\'s training skill for training players',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
           shape: shapePersoRoundedBorder(),
           onTap: () async {

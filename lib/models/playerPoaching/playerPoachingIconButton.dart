@@ -86,6 +86,8 @@ class _PlayerPoachingIconButtonState extends State<PlayerPoachingIconButton> {
           color:
               widget.player.poaching == null ? Colors.blueGrey : Colors.orange),
       iconSize: iconSizeSmall,
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(),
       onPressed: () async {
         showDialog<void>(
           context: context,

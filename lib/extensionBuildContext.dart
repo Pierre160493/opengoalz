@@ -18,7 +18,7 @@ extension ShowSnackBar on BuildContext {
                   formSpacer3,
                 ],
               ),
-            Text(message),
+            Text(message, style: TextStyle(fontSize: fontSizeMedium)),
           ],
         ),
         backgroundColor: backgroundColor,

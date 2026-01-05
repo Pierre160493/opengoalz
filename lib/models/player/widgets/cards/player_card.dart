@@ -126,6 +126,7 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
               : Matrix4.identity(),
           child: InkWell(
             onTap: _getPlayerTapHandler(),
+
             /// Had to rollback hover color to solid due to flutter issue with version
             // hoverColor: Colors.blue.withValues(alpha: 0.05),
             hoverColor: Colors.blue,
@@ -158,6 +159,9 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                             )
                           : Text(
                               (widget.index!).toString(),
+                              style: TextStyle(
+                                  fontSize: fontSizeMedium,
+                                  fontWeight: FontWeight.bold),
                             ),
                     ),
                     shape: shapePersoRoundedBorder(),
@@ -205,6 +209,8 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                               : Icons.expand_circle_down_outlined),
                           iconSize: iconSizeSmall,
                           color: Colors.green,
+                          // padding: EdgeInsets.zero,
+                          // constraints: BoxConstraints(),
                           onPressed: () {
                             setState(() {
                               _developed = !_developed;

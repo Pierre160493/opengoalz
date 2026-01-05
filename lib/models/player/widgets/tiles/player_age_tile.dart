@@ -46,13 +46,13 @@ class PlayerAgeTile extends StatelessWidget {
     if (player.dateDeath != null) {
       return Icon(
         iconDead,
-        size: iconSizeLarge,
+        size: iconSizeMedium,
         color: Colors.red,
       );
     } else {
       return Icon(
         Icons.cake_outlined,
-        size: iconSizeLarge,
+        size: iconSizeMedium,
         color: Colors.green,
       );
     }
@@ -70,7 +70,8 @@ class PlayerAgeTile extends StatelessWidget {
         formSpacer3,
         Text(
           _getFormattedBirthDate(),
-          style: const TextStyle(
+          style: TextStyle(
+            fontSize: fontSizeSmall,
             fontStyle: FontStyle.italic,
             color: Colors.blueGrey,
           ),

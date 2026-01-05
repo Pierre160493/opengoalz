@@ -29,11 +29,14 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
                     selectedIdClub: club.id);
           },
           leading: CircleAvatar(
+            radius: iconSizeMedium,
             backgroundColor: (club.id == user.selectedClub?.id)
                 ? Colors.green
                 : Colors.blueGrey,
             child: Text(
               (index + 1).toString(),
+              style: TextStyle(
+                  fontSize: fontSizeMedium, fontWeight: FontWeight.bold),
             ),
           ),
           shape: shapePersoRoundedBorder(

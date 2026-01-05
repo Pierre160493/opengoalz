@@ -55,7 +55,9 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return AlertDialog(
-          title: Text('Create a new player'),
+          title: Text('Create a new player',
+              style: TextStyle(
+                  fontSize: fontSizeLarge, fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -95,6 +97,7 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                   ListTile(
                     leading: Icon(
                       iconCountries,
+                      size: iconSizeMedium,
                       color:
                           _selectedCountry == null ? Colors.red : Colors.green,
                     ),
@@ -102,7 +105,9 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                         _selectedCountry == null ? Colors.red : Colors.green),
                     title: _selectedCountry == null
                         ? Text('Select Country',
-                            style: TextStyle(fontWeight: FontWeight.bold))
+                            style: TextStyle(
+                                fontSize: fontSizeMedium,
+                                fontWeight: FontWeight.bold))
                         : getCountryFlagAndNameWidget(_selectedCountry!),
                     subtitle: _selectedCountry == null
                         ? null
@@ -116,7 +121,8 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                                 _selectedCountry = null;
                               });
                             },
-                            icon: Icon(Icons.delete_forever, color: Colors.red),
+                            icon: Icon(Icons.delete_forever,
+                                size: iconSizeMedium, color: Colors.red),
                           ),
                     onTap: () async {
                       final selected = await Navigator.push<Country>(
@@ -135,20 +141,27 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                     children: [
                       TextFormField(
                         controller: firstNameController,
+                        style: TextStyle(fontSize: fontSizeMedium),
                         decoration: InputDecoration(
                           labelText: 'First Name',
+                          labelStyle: TextStyle(fontSize: fontSizeMedium),
                           hintText: 'First name of the player',
+                          hintStyle: TextStyle(fontSize: fontSizeSmall),
                         ),
                       ),
                       TextFormField(
                         controller: lastNameController,
+                        style: TextStyle(fontSize: fontSizeMedium),
                         decoration: InputDecoration(
                           labelText: 'Last Name',
+                          labelStyle: TextStyle(fontSize: fontSizeMedium),
                           hintText: 'Last name of the player',
+                          hintStyle: TextStyle(fontSize: fontSizeSmall),
                         ),
                       ),
                       formSpacer6,
-                      Text('Select Age:'),
+                      Text('Select Age:',
+                          style: TextStyle(fontSize: fontSizeMedium)),
                       Slider(
                         value: selectedAge,
                         min: 15.0,
@@ -174,7 +187,7 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                       Text(
                         'Selected Age: ${selectedAge.toStringAsFixed(1)}',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: fontSizeSmall,
                           color: Colors.grey[700],
                         ),
                       ),
@@ -182,7 +195,7 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                         Text(
                           'Birth Date: ${DateFormat('MMMM d, yyyy').format(dateBirth!)}',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: fontSizeSmall,
                             color: Colors.grey[700],
                           ),
                         ),
@@ -298,10 +311,12 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                           children: [
                             Icon(
                               iconSuccessfulOperation,
+                              size: iconSizeMedium,
                               color: Colors.green,
                             ),
                             formSpacer3,
-                            Text('Create Player'),
+                            Text('Create Player',
+                                style: TextStyle(fontSize: fontSizeMedium)),
                           ],
                         ),
                 ),

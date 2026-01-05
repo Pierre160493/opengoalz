@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 
 DateTime calculateDateBirth(double age, int multiverseSpeed) {
   return DateTime.now().subtract(Duration(
@@ -18,24 +19,12 @@ String getAgeString(double age) {
 }
 
 Widget getAgeStringRow(double age) {
+  final style = TextStyle(fontSize: fontSizeMedium);
+  final boldStyle = style.copyWith(fontWeight: FontWeight.bold);
   return Row(children: [
-    Text(
-      age.truncate().toString(),
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-    Text(
-      ' & ',
-    ),
-    Text(
-      ((age % 1) * 14 * 7).floor().toString(),
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-    Text(
-      ' days',
-    ),
+    Text(age.truncate().toString(), style: boldStyle),
+    Text(' & ', style: style),
+    Text(((age % 1) * 14 * 7).floor().toString(), style: boldStyle),
+    Text(' days', style: style),
   ]);
 }

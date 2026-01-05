@@ -24,6 +24,8 @@ class EmbodiedUserIconButton extends StatelessWidget {
         size: iconSizeSmall,
         color: Colors.blue,
       ),
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(),
       onPressed: () {
         Navigator.push(
           context,

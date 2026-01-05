@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -145,9 +147,9 @@ Row persoValidRow(String text) {
 Row persoRowWithIcon(IconData icon, String text, {Color? color}) {
   return Row(
     children: [
-      Icon(icon, color: color ?? Colors.blueGrey),
+      Icon(icon, size: iconSizeMedium, color: color ?? Colors.blueGrey),
       formSpacer3,
-      Text(text),
+      Text(text, style: TextStyle(fontSize: fontSizeMedium)),
     ],
   );
 }
@@ -177,9 +179,13 @@ String formatDate(DateTime date) {
 
 String persoDateFormat = 'EEE dd MMM HH:mm';
 
-double iconSizeSmall = 24.0;
-double iconSizeMedium = 30.0;
-double iconSizeLarge = 36.0;
+double get iconSizeSmall => min(24.0.w, 24.0);
+double get iconSizeMedium => min(30.0.w, 30.0);
+double get iconSizeLarge => min(36.0.w, 36.0);
+
+double get fontSizeSmall => min(14.0.sp, 14.0);
+double get fontSizeMedium => min(18.0.sp, 18.0);
+double get fontSizeLarge => min(22.0.sp, 22.0);
 
 /// Credits required for managing additional entities
 const int creditsRequiredForClub = 500;

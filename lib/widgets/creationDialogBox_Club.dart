@@ -42,7 +42,9 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return AlertDialog(
-          title: Text('Get a new club'),
+          title: Text('Get a new club',
+              style: TextStyle(
+                  fontSize: fontSizeLarge, fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -71,6 +73,7 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
                   ListTile(
                     leading: Icon(
                       iconCountries,
+                      size: iconSizeMedium,
                       color:
                           _selectedCountry == null ? Colors.red : Colors.green,
                     ),
@@ -78,11 +81,15 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
                         _selectedCountry == null ? Colors.red : Colors.green),
                     title: _selectedCountry == null
                         ? Text('Select Country',
-                            style: TextStyle(fontWeight: FontWeight.bold))
+                            style: TextStyle(
+                                fontSize: fontSizeMedium,
+                                fontWeight: FontWeight.bold))
                         : getCountryFlagAndNameWidget(_selectedCountry!),
                     subtitle: _selectedCountry == null
                         ? null
-                        : Text('Selected country', style: styleItalicBlueGrey),
+                        : Text('Selected country',
+                            style: styleItalicBlueGrey.copyWith(
+                                fontSize: fontSizeSmall)),
                     trailing: _selectedCountry == null
                         ? null
                         : IconButton(
@@ -92,7 +99,8 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
                                 _selectedCountry = null;
                               });
                             },
-                            icon: Icon(Icons.delete_forever, color: Colors.red),
+                            icon: Icon(Icons.delete_forever,
+                                size: iconSizeMedium, color: Colors.red),
                           ),
                     onTap: () async {
                       _selectedCountry = await Navigator.push<Country>(
@@ -107,6 +115,7 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
                   ListTile(
                     leading: Icon(
                       iconHome,
+                      size: iconSizeMedium,
                       color: _selectedClub == null ? Colors.red : Colors.green,
                     ),
                     shape: shapePersoRoundedBorder(
@@ -115,10 +124,14 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
                         _selectedClub == null
                             ? 'Select Club'
                             : _selectedClub!.name,
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: fontSizeMedium,
+                            fontWeight: FontWeight.bold)),
                     subtitle: _selectedClub == null
                         ? null
-                        : Text('Selected club', style: styleItalicBlueGrey),
+                        : Text('Selected club',
+                            style: styleItalicBlueGrey.copyWith(
+                                fontSize: fontSizeSmall)),
                     trailing: _selectedClub == null
                         ? null
                         : IconButton(
@@ -127,7 +140,8 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
                               _selectedClub = null;
                               setState(() {});
                             },
-                            icon: Icon(Icons.delete_forever, color: Colors.red),
+                            icon: Icon(Icons.delete_forever,
+                                size: iconSizeMedium, color: Colors.red),
                           ),
                     onTap: () async {
                       if (_selectedMultiverse == null ||
@@ -253,10 +267,12 @@ class _CreationDialogBox_Club extends State<CreationDialogBox_Club> {
                           children: [
                             Icon(
                               iconSuccessfulOperation,
+                              size: iconSizeMedium,
                               color: Colors.green,
                             ),
                             formSpacer3,
-                            Text('Assign Club')
+                            Text('Assign Club',
+                                style: TextStyle(fontSize: fontSizeMedium))
                           ],
                         ),
                 ),

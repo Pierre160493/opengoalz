@@ -45,6 +45,7 @@ class PlayerShirtNumberIcon extends StatelessWidget {
             Icon(
               customIcon ?? iconShirt,
               color: _getIconColor(),
+              size: iconSizeSmall,
             ),
             if (player.shirtNumber != null) _buildShirtNumberText(),
           ],
@@ -88,7 +89,8 @@ class PlayerShirtNumberIcon extends StatelessWidget {
   Widget _buildShirtNumberText() {
     return Text(
       player.shirtNumber.toString(),
-      style: const TextStyle(
+      style: TextStyle(
+        fontSize: fontSizeSmall,
         fontStyle: FontStyle.italic,
         fontWeight: FontWeight.bold,
       ),

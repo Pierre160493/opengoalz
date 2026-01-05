@@ -148,9 +148,12 @@ class _MultiversePageState extends State<MultiversePage>
 
           return Scaffold(
             appBar: AppBar(
-              title: _selectedMultiverse == null
-                  ? Text('Multiverses Page')
-                  : Text('Multiverse: ${_selectedMultiverse!.name}'),
+              title: Text(
+                _selectedMultiverse == null
+                    ? 'Multiverses Page'
+                    : 'Multiverse: ${_selectedMultiverse!.name}',
+                style: TextStyle(fontSize: fontSizeLarge),
+              ),
             ),
             floatingActionButton:
                 widget.isReturningMultiverse && _selectedMultiverse != null
@@ -201,6 +204,7 @@ class _MultiversePageState extends State<MultiversePage>
                                   return ListTile(
                                     leading: Icon(
                                       iconMultiverseSpeed,
+                                      size: iconSizeMedium,
                                       color: getMultiverseSyncColor(multiverse),
                                     ),
                                     title: Row(
@@ -210,6 +214,7 @@ class _MultiversePageState extends State<MultiversePage>
                                         Text(
                                           multiverse.name,
                                           style: TextStyle(
+                                              fontSize: fontSizeMedium,
                                               fontWeight: FontWeight.bold),
                                         ),
                                         getMultiverseSpeedRow(multiverse),
@@ -217,7 +222,8 @@ class _MultiversePageState extends State<MultiversePage>
                                     ),
                                     subtitle: Text(
                                         'Currently playing season ${multiverse.seasonNumber} week ${multiverse.weekNumber} day ${multiverse.dayNumber}',
-                                        style: styleItalicBlueGrey),
+                                        style: styleItalicBlueGrey.copyWith(
+                                            fontSize: fontSizeSmall)),
                                     shape: shapePersoRoundedBorder(
                                         _selectedMultiverse?.id == multiverse.id
                                             ? Colors.green
@@ -344,18 +350,22 @@ class _MultiversePageState extends State<MultiversePage>
                 ),
                 title: Text(
                   'Time since last run: $minutesSinceLastRun minutes and $secondsSinceLastRun seconds',
+                  style: TextStyle(fontSize: fontSizeMedium),
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Next handling: ${DateFormat('E d MMM \'at\' HH\':\'mm').format(multiverse.dateHandling)}',
+                      style:
+                          styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
                     ),
                     Text(
                       multiverse.error == null
                           ? 'No error detected'
                           : 'Error: ${multiverse.error}',
-                      style: styleItalicBlueGrey,
+                      style:
+                          styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
                     ),
                   ],
                 ),
@@ -373,98 +383,117 @@ class _MultiversePageState extends State<MultiversePage>
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Column(
-      children: [
-        TableCalendar(
-          firstDay: DateTime.utc(2010, 10, 16),
-          lastDay: DateTime.utc(2030, 3, 14),
-          focusedDay: _focusedDay,
-          calendarFormat: _calendarFormat,
-          availableCalendarFormats: {
-            CalendarFormat.month: 'Month',
-            CalendarFormat.week: 'Week',
-          },
-          selectedDayPredicate: (day) {
-            return isSameDay(_selectedDay, day);
-          },
-          onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-              _selectedEvents = _getEventsOfSelectedDay(selectedDay);
-            });
-          },
-          onFormatChanged: (CalendarFormat format) {
-            if (_calendarFormat != format) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          TableCalendar(
+            firstDay: DateTime.utc(2010, 10, 16),
+            lastDay: DateTime.utc(2030, 3, 14),
+            focusedDay: _focusedDay,
+            calendarFormat: _calendarFormat,
+            availableCalendarFormats: {
+              CalendarFormat.month: 'Month',
+              CalendarFormat.week: 'Week',
+            },
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDay, day);
+            },
+            onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
               setState(() {
-                _calendarFormat = format;
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+                _selectedEvents = _getEventsOfSelectedDay(selectedDay);
               });
-            }
-          },
-          onPageChanged: (DateTime focusedDay) {
-            _focusedDay = focusedDay;
-          },
-          eventLoader: (DateTime day) {
-            return _eventGames
-                .where((event) => isSameDay(event.keys.first, day))
-                .map((event) => event.values.first)
-                .toList();
-          },
-          calendarStyle: CalendarStyle(
-            tableBorder: const TableBorder(
-              horizontalInside: BorderSide(color: Colors.blueGrey),
-              verticalInside: BorderSide(color: Colors.blueGrey),
+            },
+            onFormatChanged: (CalendarFormat format) {
+              if (_calendarFormat != format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              }
+            },
+            onPageChanged: (DateTime focusedDay) {
+              _focusedDay = focusedDay;
+            },
+            eventLoader: (DateTime day) {
+              return _eventGames
+                  .where((event) => isSameDay(event.keys.first, day))
+                  .map((event) => event.values.first)
+                  .toList();
+            },
+            calendarStyle: CalendarStyle(
+              tableBorder: const TableBorder(
+                horizontalInside: BorderSide(color: Colors.blueGrey),
+                verticalInside: BorderSide(color: Colors.blueGrey),
+              ),
+              markerDecoration: BoxDecoration(
+                color: Colors.blueGrey,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.red),
+              ),
+              todayDecoration: BoxDecoration(
+                color: Colors.blueGrey,
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: Colors.green,
+                shape: BoxShape.circle,
+              ),
+              defaultTextStyle: TextStyle(fontSize: fontSizeSmall),
+              todayTextStyle:
+                  TextStyle(color: Colors.white, fontSize: fontSizeSmall),
+              selectedTextStyle:
+                  TextStyle(color: Colors.white, fontSize: fontSizeSmall),
             ),
-            markerDecoration: BoxDecoration(
-              color: Colors.blueGrey,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.red),
+            daysOfWeekStyle: DaysOfWeekStyle(
+              weekdayStyle: TextStyle(fontSize: fontSizeSmall),
+              weekendStyle: TextStyle(fontSize: fontSizeSmall),
             ),
-            todayDecoration: BoxDecoration(
-              color: Colors.blueGrey,
-              shape: BoxShape.circle,
+            headerStyle: HeaderStyle(
+              titleTextStyle: TextStyle(fontSize: fontSizeSmall),
+              formatButtonTextStyle: TextStyle(fontSize: fontSizeSmall),
+              leftChevronIcon: Icon(Icons.chevron_left, size: iconSizeSmall),
+              rightChevronIcon: Icon(Icons.chevron_right, size: iconSizeSmall),
+              headerPadding: EdgeInsets.symmetric(vertical: 4),
             ),
-            selectedDecoration: BoxDecoration(
-              color: Colors.green,
-              shape: BoxShape.circle,
-            ),
-            todayTextStyle: TextStyle(color: Colors.white),
-            selectedTextStyle: TextStyle(color: Colors.white),
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
+          ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
             itemCount: _selectedEvents.length,
             itemBuilder: (context, index) {
               final Map<DateTime, String> event = _selectedEvents[index];
-
               return ListTile(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      12), // Adjust border radius as needed
+                  borderRadius: BorderRadius.circular(12),
                   side: const BorderSide(
-                    color: Colors.blueGrey, // Border color
+                    color: Colors.blueGrey,
                   ),
                 ),
                 title: Row(
                   children: [
-                    Icon(Icons.sports_soccer),
+                    Icon(Icons.sports_soccer, size: iconSizeSmall),
                     formSpacer3,
-                    Text(event.values.first),
+                    Text(event.values.first,
+                        style: TextStyle(fontSize: fontSizeMedium)),
                   ],
                 ),
                 subtitle: Row(
                   children: [
-                    const Icon(Icons.calendar_today),
+                    Icon(Icons.calendar_today, size: iconSizeSmall),
                     formSpacer3,
-                    Text(DateFormat('d MMM, HH:mm').format(event.keys.first)),
+                    Text(
+                      DateFormat('d MMM, HH:mm').format(event.keys.first),
+                      style:
+                          styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
+                    ),
                   ],
                 ),
               );
             },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

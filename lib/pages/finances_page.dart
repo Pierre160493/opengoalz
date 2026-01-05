@@ -141,7 +141,7 @@ class _FinancesPageState extends State<FinancesPage> {
               title: Row(
                 children: [
                   widget.club.getClubNameClickable(context),
-                  Text(' Finances'),
+                  Text(' Finances', style: TextStyle(fontSize: fontSizeLarge)),
                 ],
               ),
               leading: goBackIconButton(context),
@@ -193,6 +193,7 @@ class _FinancesPageState extends State<FinancesPage> {
                       : _selectedWeek == 1
                           ? 'Last week'
                           : '${_selectedWeek} weeks ago',
+                  style: TextStyle(fontSize: fontSizeMedium),
                 ),
                 Row(
                   children: [
@@ -440,10 +441,16 @@ class _FinancesPageState extends State<FinancesPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-                width: 120, child: Text(title, style: styleItalicBlueGrey)),
+                width: 120,
+                child: Text(title,
+                    style:
+                        styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall))),
             Text(
               value == null ? '?' : persoFormatCurrency(value),
-              style: TextStyle(fontWeight: FontWeight.bold, color: color),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                  fontSize: fontSizeSmall),
             ),
           ],
         ),
@@ -523,7 +530,7 @@ class _FinancesPageState extends State<FinancesPage> {
           children: [
             Expanded(
               child: CheckboxListTile(
-                title: Text('Cash'),
+                title: Text('Cash', style: TextStyle(fontSize: fontSizeSmall)),
                 value: _showCashCurve,
                 onChanged: (bool? value) {
                   setState(() {
@@ -534,7 +541,8 @@ class _FinancesPageState extends State<FinancesPage> {
             ),
             Expanded(
               child: CheckboxListTile(
-                title: Text('Revenues'),
+                title:
+                    Text('Revenues', style: TextStyle(fontSize: fontSizeSmall)),
                 value: _showRevenuesCurve,
                 onChanged: (bool? value) {
                   setState(() {
@@ -545,7 +553,8 @@ class _FinancesPageState extends State<FinancesPage> {
             ),
             Expanded(
               child: CheckboxListTile(
-                title: Text('Expenses'),
+                title:
+                    Text('Expenses', style: TextStyle(fontSize: fontSizeSmall)),
                 value: _showExpensesCurve,
                 onChanged: (bool? value) {
                   setState(() {
@@ -570,6 +579,34 @@ class _FinancesPageState extends State<FinancesPage> {
                     strokeWidth: 1,
                   ),
                 ],
+              ),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) => Text(
+                      value.toInt().toString(),
+                      style: TextStyle(fontSize: fontSizeSmall),
+                    ),
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) => Text(
+                      value.toInt().toString(),
+                      style: TextStyle(fontSize: fontSizeSmall),
+                    ),
+                  ),
+                ),
+                rightTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
               ),
             ),
           ),

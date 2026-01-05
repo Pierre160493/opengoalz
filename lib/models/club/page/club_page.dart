@@ -298,6 +298,7 @@ class _ClubPageState extends State<ClubPage> {
                     ), // Icon to indicate players
                     title: Text(
                       'Number of players: ${club.players.length}',
+                      style: TextStyle(fontSize: fontSizeMedium),
                     ),
                   ),
 

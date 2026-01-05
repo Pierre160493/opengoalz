@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opengoalz/constants.dart';
 
 Widget tickingTimeWidget(DateTime endDate) {
   return StreamBuilder<int>(
@@ -26,11 +27,13 @@ Widget tickingTimeWidget(DateTime endDate) {
           children: [
             Icon(
               Icons.timer_outlined,
+              size: iconSizeSmall,
               color: isNegative ? Colors.red : Colors.green,
             ),
             Text(
               timeString,
-              style: const TextStyle(
+              style: TextStyle(
+                fontSize: fontSizeSmall,
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
               ),

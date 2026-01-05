@@ -28,10 +28,11 @@ class UserPageAddClubTile extends StatelessWidget {
       ),
       title: Row(
         children: [
-          Text('Number of Clubs: '),
+          Text('Number of Clubs: ', style: TextStyle(fontSize: fontSizeMedium)),
           Text(clubCount.toString(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
+                fontSize: fontSizeMedium,
               )),
         ],
       ),
@@ -41,7 +42,7 @@ class UserPageAddClubTile extends StatelessWidget {
               : canCreateClub
                   ? 'You can manage another club for ${creditsRequiredForClub} credits !'
                   : 'Missing ${creditsRequiredForClub - user.creditsAvailable} credits to manage another club',
-          style: styleItalicBlueGrey),
+          style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
       trailing: IconButton(
         icon: Icon(Icons.add_home_work, size: iconSizeMedium, color: clubColor),
         tooltip: 'Add Club',

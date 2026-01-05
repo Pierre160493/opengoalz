@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 
 enum XAxisType { weekHistory, gameMinute }
 
@@ -32,7 +33,8 @@ class ChartDialogBox extends StatelessWidget {
       return Center(
         child: Text(
           'Oups... No data available',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style:
+              TextStyle(fontSize: fontSizeMedium, fontWeight: FontWeight.bold),
         ),
       );
     }
@@ -51,7 +53,10 @@ class ChartDialogBox extends StatelessWidget {
     ]; // Define colors for curves
 
     return AlertDialog(
-      title: Center(child: Text(chartData.title)),
+      title: Center(
+          child: Text(chartData.title,
+              style: TextStyle(
+                  fontSize: fontSizeLarge, fontWeight: FontWeight.bold))),
       content: Container(
         height: MediaQuery.of(context).size.height * 0.9,
         width: MediaQuery.of(context).size.width * 0.9,
@@ -71,6 +76,16 @@ class ChartDialogBox extends StatelessWidget {
             minY: chartData.minY ?? 0, // Use provided minY or default to 0
             maxY: chartData.maxY, // Use provided maxY if available
             titlesData: FlTitlesData(
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 40,
+                  getTitlesWidget: (value, meta) => Text(
+                    value.toInt().toString(),
+                    style: TextStyle(fontSize: fontSizeSmall),
+                  ),
+                ),
+              ),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -81,8 +96,7 @@ class ChartDialogBox extends StatelessWidget {
                         return Text(
                           'now',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontSize: fontSizeSmall,
                           ),
                         );
                       } else if ((data[0].length - 1 - value.toInt()) % 7 ==
@@ -90,8 +104,7 @@ class ChartDialogBox extends StatelessWidget {
                         return Text(
                           '-${data[0].length - 1 - value.toInt()}',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontSize: fontSizeSmall,
                           ),
                         );
                       } else {
@@ -101,8 +114,7 @@ class ChartDialogBox extends StatelessWidget {
                       return Text(
                         value.toInt().toString(),
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: fontSizeSmall,
                         ),
                       );
                     }
@@ -117,8 +129,7 @@ class ChartDialogBox extends StatelessWidget {
                     return Text(
                       value.toInt().toString(),
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontSize: fontSizeSmall,
                       ),
                     );
                   },

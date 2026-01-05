@@ -51,6 +51,8 @@ class _PlayerFavoriteIconButtonState extends State<PlayerFavoriteIconButton> {
       icon: Icon(iconFavorite,
           color: widget.player.favorite == null ? Colors.blueGrey : Colors.red),
       iconSize: iconSizeSmall,
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(),
       onPressed: () async {
         showDialog<void>(
           context: context,

@@ -39,6 +39,7 @@ class PlayerSmallNotesIcon extends StatelessWidget {
         child: Row(
           children: [
             Icon(
+              size: iconSizeSmall,
               customIcon ?? iconNotesSmall,
               color: iconColor ?? Colors.green,
             ),
@@ -67,7 +68,8 @@ class PlayerSmallNotesIcon extends StatelessWidget {
     return Text(
       player.notesSmall.toString(),
       style: countTextStyle ??
-          const TextStyle(
+          TextStyle(
+            fontSize: fontSizeSmall,
             fontStyle: FontStyle.italic,
             fontWeight: FontWeight.bold,
           ),

@@ -16,6 +16,7 @@ class PlayerNameTooltip extends StatelessWidget {
     return Text(
       player.getPlayerNameString(),
       style: TextStyle(
+        fontSize: fontSizeMedium,
         fontWeight: FontWeight.bold,
         color: player.isEmbodiedByCurrentUser
             ? colorIsMine

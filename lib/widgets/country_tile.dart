@@ -66,7 +66,7 @@ class CountryTile extends StatelessWidget {
     return ListTile(
       title: Text(
         country.name,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: TextStyle(fontSize: fontSizeMedium, fontWeight: FontWeight.bold),
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: ContinentRowWidget(

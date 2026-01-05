@@ -21,6 +21,8 @@ class PlayerActionsIconButton extends StatelessWidget {
     return IconButton(
       icon: Icon(Icons.pending_actions_outlined, color: Colors.green),
       tooltip: 'Player actions',
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(),
       onPressed: () {
         showDialog(
           context: context,
