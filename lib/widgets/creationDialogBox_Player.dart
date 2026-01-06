@@ -108,7 +108,7 @@ class _CreationDialogBox_Player extends State<CreationDialogBox_Player> {
                             style: TextStyle(
                                 fontSize: fontSizeMedium,
                                 fontWeight: FontWeight.bold))
-                        : getCountryFlagAndNameWidget(_selectedCountry!),
+                        : CountryFlagAndName(country: _selectedCountry!),
                     subtitle: _selectedCountry == null
                         ? null
                         : Text('Selected country', style: styleItalicBlueGrey),

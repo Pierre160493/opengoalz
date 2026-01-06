@@ -246,7 +246,8 @@ class _HomePageState extends State<GamesPage> {
                     Row(
                       children: [
                         club.getClubNameClickable(context),
-                        Text(' Games for season $_seasonNumberDisplayed'),
+                        Text(' Games for season $_seasonNumberDisplayed',
+                            style: TextStyle(fontSize: fontSizeLarge)),
                       ],
                     ),
                   ],
@@ -256,7 +257,8 @@ class _HomePageState extends State<GamesPage> {
                   if (_seasonNumberDisplayed > 1)
                     IconButton(
                       tooltip: 'Previous season',
-                      icon: Icon(Icons.remove, color: Colors.green),
+                      icon: Icon(Icons.remove,
+                          size: iconSizeLarge, color: Colors.green),
                       onPressed: () {
                         setState(() {
                           _seasonNumberForStream = _seasonNumberDisplayed - 1;
@@ -266,7 +268,8 @@ class _HomePageState extends State<GamesPage> {
                     ),
                   IconButton(
                     tooltip: 'Reset to current season',
-                    icon: Icon(Icons.refresh, color: Colors.green),
+                    icon: Icon(Icons.refresh,
+                        size: iconSizeLarge, color: Colors.green),
                     onPressed: () {
                       setState(() {
                         _seasonNumberForStream = null;
@@ -276,7 +279,8 @@ class _HomePageState extends State<GamesPage> {
                   ),
                   IconButton(
                     tooltip: 'Next season',
-                    icon: Icon(Icons.add, color: Colors.green),
+                    icon: Icon(Icons.add,
+                        size: iconSizeLarge, color: Colors.green),
                     onPressed: () {
                       setState(() {
                         _seasonNumberForStream = _seasonNumberDisplayed + 1;
@@ -370,8 +374,9 @@ class _HomePageState extends State<GamesPage> {
 
   Widget _buildGameList(List<Game> games) {
     if (games.isEmpty) {
-      return const Center(
-        child: Text('No games found'),
+      return Center(
+        child:
+            Text('No games found', style: TextStyle(fontSize: fontSizeMedium)),
       );
     }
     return Column(
@@ -417,7 +422,8 @@ class _HomePageState extends State<GamesPage> {
                     size: 36,
                     color: Colors.blueGrey,
                   ),
-                  title: Text('Week ${club.teamComps[index].weekNumber}'),
+                  title: Text('Week ${club.teamComps[index].weekNumber}',
+                      style: TextStyle(fontSize: fontSizeMedium)),
                   subtitle: Row(
                     children: [
                       const Icon(
@@ -431,9 +437,10 @@ class _HomePageState extends State<GamesPage> {
                               : 'Game ${club.teamComps[index].weekNumber - 10} of the interseason games of season ${club.teamComps[index].seasonNumber}',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.blueGrey,
                             fontStyle: FontStyle.italic,
+                            fontSize: fontSizeSmall,
                           ),
                         ),
                       ),

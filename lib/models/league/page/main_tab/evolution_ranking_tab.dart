@@ -73,7 +73,7 @@ class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
         .then((data) {
       // Map all data as a list of ClubData
       final List<ClubDataHistory> allClubDataHistory =
-          (data as List).map((map) => ClubDataHistory.fromMap(map)).toList();
+          (data).map((map) => ClubDataHistory.fromMap(map)).toList();
 
       for (ClubDataHistory ClubDataHistoryData in allClubDataHistory) {
         league.clubsLeague
@@ -167,7 +167,9 @@ class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
                   curveTypes[_selectedCurveType] != null
                       ? '${curveTypes[_selectedCurveType]} Evolution'
                       : 'Unknown Chart Type',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: fontSizeMedium,
+                  ),
                 ),
                 Tooltip(
                   message: 'Zoom Graph',

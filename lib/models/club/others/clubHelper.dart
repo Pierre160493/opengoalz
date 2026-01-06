@@ -49,7 +49,9 @@ Widget clubEloRow(BuildContext context, int? idClub, int? eloValue) {
           ),
           Text(eloValue.toString(),
               style: TextStyle(
-                  fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  fontSize: fontSizeMedium,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueGrey)),
         ],
       ),
     ),

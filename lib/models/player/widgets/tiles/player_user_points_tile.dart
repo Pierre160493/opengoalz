@@ -24,13 +24,14 @@ class PlayerUserPointsTile extends StatelessWidget {
         ),
         title: Text(
           'Player not embodied',
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
+            fontSize: fontSizeMedium,
           ),
         ),
         subtitle: Text(
           'No user assigned',
-          style: styleItalicBlueGrey,
+          style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
         ),
       );
     }
@@ -44,25 +45,29 @@ class PlayerUserPointsTile extends StatelessWidget {
       ),
       title: Row(
         children: [
-          Text('User training points available: '),
+          Text('User training points available: ',
+              style: TextStyle(fontSize: fontSizeMedium)),
           Text(
             player.userPointsAvailable.toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: player.userPointsAvailable < 0 ? Colors.red : Colors.green,
+              fontSize: fontSizeMedium,
             ),
           ),
         ],
       ),
       subtitle: Row(
         children: [
-          Text('User training points used: ', style: styleItalicBlueGrey),
+          Text('User training points used: ',
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
           TextButton(
             child: Text(
               player.userPointsUsed.toString(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.green,
+                fontSize: fontSizeMedium,
               ),
             ),
             onPressed: () {
@@ -103,17 +108,22 @@ class PlayerUserPointsTile extends StatelessWidget {
                       for (var field in fieldsToPlot) {
                         if (historyData.any((item) => item[field] == null)) {
                           return AlertDialog(
-                            title: Text('Data Error'),
+                            title: Text('Data Error',
+                                style: TextStyle(
+                                    fontSize: fontSizeMedium,
+                                    fontWeight: FontWeight.bold)),
                             content: Text(
                               'Error: Missing data for field "$field".',
                               style: TextStyle(
                                   color: Colors.red,
-                                  fontWeight: FontWeight.bold),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: fontSizeMedium),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(),
-                                child: Text('OK'),
+                                child: Text('OK',
+                                    style: TextStyle(fontSize: fontSizeMedium)),
                               ),
                             ],
                           );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/functions/positionString.dart';
 import 'package:opengoalz/models/game/gamePlayerStatsDialog.dart';
@@ -43,7 +44,7 @@ Widget getGameIcon(BuildContext context, Game game) {
         : game.isFriendly
             ? Icons.handshake
             : Icons.emoji_events_outlined,
-    size: 60,
+    size: 2 * iconSizeLarge,
     color: Colors.yellow,
   );
 
@@ -53,6 +54,7 @@ Widget getGameIcon(BuildContext context, Game game) {
         ? ' ${game.weekNumber}/10'
         : ' Inter ${game.weekNumber - 10}',
     style: TextStyle(
+      fontSize: fontSizeMedium,
       color: Colors.blueGrey,
     ),
   );

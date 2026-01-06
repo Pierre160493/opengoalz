@@ -30,7 +30,7 @@ Widget gameStatsWidget(Game game) {
                     label: Text('Weights',
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: fontSizeLarge,
                             decoration: TextDecoration.underline))),
                 DataColumn(label: game.leftClub.getClubNameClickable(context)),
                 DataColumn(label: game.rightClub.getClubNameClickable(context)),
@@ -106,8 +106,10 @@ DataRow _buildDataRow(
             ],
           );
         },
-        child:
-            Text(title, style: TextStyle(decoration: TextDecoration.underline)),
+        child: Text(title,
+            style: TextStyle(
+                fontSize: fontSizeMedium,
+                decoration: TextDecoration.underline)),
       ),
     ),
     DataCell(_getDataCellRow(
@@ -127,7 +129,10 @@ Widget _getDataCellRow(
       children: [
         Text(
           value.toStringAsFixed(1),
-          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+          style: TextStyle(
+              fontSize: fontSizeMedium,
+              fontWeight: FontWeight.bold,
+              color: color),
         ),
       ],
     ),

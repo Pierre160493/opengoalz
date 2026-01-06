@@ -61,7 +61,8 @@ extension PlayerWidgetsHelper on Player {
           Icon(iconAge, size: iconSizeSmall, color: Colors.green),
           Text(
             age.toStringAsFixed(0),
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style:
+                TextStyle(fontSize: fontSizeSmall, fontWeight: FontWeight.bold),
           ),
         ],
       ),

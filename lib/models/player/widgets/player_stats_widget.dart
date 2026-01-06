@@ -140,19 +140,21 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
             ),
             title: Row(
               children: [
-                Text('Points gained this season: '),
+                Text('Points gained this season: ',
+                    style: TextStyle(fontSize: fontSizeMedium)),
                 Text(widget.player.trainingPointsUsed.floor().toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: widget.player.trainingPointsUsed < 0
                           ? Colors.red
                           : Colors.green,
+                      fontSize: fontSizeMedium,
                     )),
               ],
             ),
             subtitle: Text(
               'Progression is based on the training coef and the staff',
-              style: styleItalicBlueGrey,
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
             ),
             onTap: () {
               showDialog(
@@ -217,10 +219,11 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
               size: iconSizeMedium,
               color: Colors.green,
             ),
-            title: Text(widget.player.size.toString()),
+            title: Text(widget.player.size.toString(),
+                style: TextStyle(fontSize: fontSizeMedium)),
             subtitle: Text(
               'Player\'s size (in cm)',
-              style: styleItalicBlueGrey,
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
             ),
             shape: shapePersoRoundedBorder(),
           ),
@@ -263,7 +266,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
             _playerHistoricStatsLength > 0
                 ? 'Player Stats History'
                 : 'No Stats History',
-            // style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: fontSizeMedium),
           ),
           Row(
             children: [
@@ -319,7 +322,7 @@ class _PlayerCardStatsWidgetState extends State<PlayerCardStatsWidget> {
             : _weekOffsetToCompareWithNow == 1
                 ? 'Compare with last week'
                 : 'Compare with ${_weekOffsetToCompareWithNow} weeks ago',
-        style: styleItalicBlueGrey,
+        style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
       ),
       shape: shapePersoRoundedBorder(),
     );

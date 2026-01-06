@@ -149,7 +149,8 @@ class _TransferPageState extends State<TransferPage>
             return loadingCircularAndText('Loading transfers...');
           } else if (snapshot.hasError) {
             return Center(
-              child: Text('ERROR: ${snapshot.error}'),
+              child: Text('ERROR: ${snapshot.error}',
+                  style: TextStyle(fontSize: fontSizeMedium)),
             );
           } else {
             final players = snapshot.data ?? [];
@@ -164,8 +165,7 @@ class _TransferPageState extends State<TransferPage>
                   title: Text(
                     'Transfer Page',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontSize: fontSizeLarge,
                     ),
                   ),
                   leading: goBackIconButton(context),
@@ -231,8 +231,9 @@ class _TransferPageState extends State<TransferPage>
 
   Widget _playersTransferWidget(List<Player> players) {
     if (players.isEmpty) {
-      return const Center(
-        child: Text('No active transfers found'),
+      return Center(
+        child: Text('No active transfers found',
+            style: TextStyle(fontSize: fontSizeMedium)),
       );
     }
     return Column(

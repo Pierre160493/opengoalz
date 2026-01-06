@@ -121,6 +121,7 @@ extension ClubWidgetHelper on Club {
           ? Text(
               'No last results',
               style: TextStyle(
+                fontSize: fontSizeSmall,
                 fontStyle: FontStyle.italic,
                 color:
                     Colors.blueGrey, // Replace "bluerey" with the desired color
@@ -171,28 +172,43 @@ extension ClubWidgetHelper on Club {
       }
     }
 
-    const boldTextStyle = TextStyle(fontWeight: FontWeight.bold);
-
     return Tooltip(
       message:
           'Last 10 results: $victories victories / $draws draws / $losses losses',
       child: Row(
         children: [
-          Icon(Icons.emoji_events, color: Colors.yellow),
+          Icon(
+            Icons.emoji_events,
+            size: iconSizeSmall,
+            color: Colors.yellow,
+          ),
           formSpacer3, // Assuming formSpacer3 is defined elsewhere
           Text(
             victories.toString(),
-            style: boldTextStyle.copyWith(color: Colors.green),
+            // style: boldTextStyle.copyWith(color: Colors.green),
+            style: TextStyle(
+              fontSize: fontSizeMedium,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
           ),
-          Text(' / '),
+          Text(' / ', style: TextStyle(fontSize: fontSizeMedium)),
           Text(
             draws.toString(),
-            style: boldTextStyle.copyWith(color: Colors.grey),
+            style: TextStyle(
+              fontSize: fontSizeMedium,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueGrey,
+            ),
           ),
-          Text(' / '),
+          Text(' / ', style: TextStyle(fontSize: fontSizeMedium)),
           Text(
             losses.toString(),
-            style: boldTextStyle.copyWith(color: Colors.red),
+            style: TextStyle(
+              fontSize: fontSizeMedium,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
           ),
         ],
       ),
@@ -211,6 +227,7 @@ extension ClubWidgetHelper on Club {
           Text(
             '${goalDifference > 0 ? '+' : ''}$goalDifference',
             style: TextStyle(
+              fontSize: fontSizeMedium,
               color: goalDifference > 0
                   ? Colors.green
                   : goalDifference == 0
@@ -219,24 +236,27 @@ extension ClubWidgetHelper on Club {
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(' ('), // Preserving original spacing
+          Text(' (', style: TextStyle(fontSize: fontSizeMedium)),
           Text(
             goalsFor.toString(),
             style: TextStyle(
+              fontSize: fontSizeMedium,
               color: Colors.green,
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text('/'),
+          Text('/', style: TextStyle(fontSize: fontSizeMedium)),
           Text(
             goalsAgainst.toString(),
             style: TextStyle(
+              fontSize: fontSizeMedium,
               color: Colors.red,
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(') '), // Preserving original spacing
-          Icon(Icons.sports_soccer, color: Colors.blueGrey),
+          Text(') ', style: TextStyle(fontSize: fontSizeMedium)),
+          Icon(Icons.sports_soccer,
+              size: iconSizeSmall, color: Colors.blueGrey),
         ],
       ),
     );

@@ -49,10 +49,11 @@ class _CountryPlayersTabState extends State<CountryPlayersTab> {
           ),
           title: Text(
             '${playersCount} Players from ${widget.country.name}',
+            style: TextStyle(fontSize: fontSizeMedium),
           ),
           subtitle: Text(
             'Total: $totalPlayersCount players for all multiverses',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
           trailing: PlayerSortButton(
             players: _sortedPlayers,

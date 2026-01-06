@@ -21,7 +21,7 @@ class EmbodiedUserIconButton extends StatelessWidget {
       tooltip: 'Embodied by: $userName',
       icon: Icon(
         iconUser,
-        size: iconSizeSmall,
+        size: iconSizeMedium,
         color: Colors.blue,
       ),
       padding: EdgeInsets.zero,

@@ -67,8 +67,6 @@ class _ScoutsPageState extends State<ScoutsPage> {
               return ErrorWithBackButton(
                   errorMessage: snapshot.error.toString());
             } else {
-              print(
-                  'ScoutsPage: _user.selectedClub!.playersFavorite: ${_user.selectedClub!.playersFavorite.length}');
               final players = snapshot.data ?? [];
               // for (Player player in players) {
               //   print('ScoutsPage: player: ${player.id}');
@@ -77,14 +75,20 @@ class _ScoutsPageState extends State<ScoutsPage> {
               //   player.poaching = _user.selectedClub!.playersPoached
               //       .firstWhere((pp) => pp.idPlayer == player.id);
               // }
-              print('ScoutsPage2: snapshot.data: ${snapshot.data}');
 
               return Scaffold(
                 appBar: AppBar(
                   title: Row(
                     children: [
-                      Text('Scouting Network of '),
-                      _user.selectedClub!.getClubNameClickable(context),
+                      Text(
+                        'Scouting Network of ',
+                        style: TextStyle(fontSize: fontSizeLarge),
+                      ),
+                      DefaultTextStyle.merge(
+                        style: TextStyle(fontSize: fontSizeLarge),
+                        child:
+                            _user.selectedClub!.getClubNameClickable(context),
+                      ),
                     ],
                   ),
                   actions: [
@@ -97,7 +101,8 @@ class _ScoutsPageState extends State<ScoutsPage> {
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                title: Text('Scouting System Help'),
+                                title: Text('Scouting System Help',
+                                    style: TextStyle(fontSize: fontSizeLarge)),
                                 content: Text(
                                   'The scouting system allows you to manage and track the expenses and skills of your scouting network.\n\n'
                                   'Every week, you can invest a sum of money into the scouting network to build up its strength.\n\n'
@@ -105,10 +110,13 @@ class _ScoutsPageState extends State<ScoutsPage> {
                                   'As you continue to invest, the scouting network strength will increase.\n\n'
                                   'Once the scouting strength reaches ${_costForNewPlayer}, you can call the scouts to find a new player.\n\n'
                                   'You can also view the historical data of scouting expenses and the strength of your scouting network over time.',
+                                  style: TextStyle(fontSize: fontSizeMedium),
                                 ),
                                 actions: <Widget>[
                                   TextButton(
-                                    child: Text('Close'),
+                                    child: Text('Close',
+                                        style: TextStyle(
+                                            fontSize: fontSizeMedium)),
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
@@ -196,7 +204,8 @@ class _ScoutsPageState extends State<ScoutsPage> {
                         itemBuilder: (context, index) {
                           Player player = playersFavorite[index];
                           return player.favorite == null
-                              ? Text('null')
+                              ? Text('null',
+                                  style: TextStyle(fontSize: fontSizeMedium))
                               : PlayerCard(
                                   player: player,
                                   index: index + 1,

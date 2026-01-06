@@ -147,7 +147,8 @@ class _PlayersPageState extends State<PlayersPage> {
                   IconButton(
                     tooltip: 'Refresh players',
                     onPressed: _initializeFuture,
-                    icon: Icon(Icons.refresh, color: Colors.blue),
+                    icon: Icon(Icons.refresh,
+                        size: iconSizeLarge, color: Colors.blue),
                   ),
                 IconButton(
                   tooltip: 'Modify Search Criterias',
@@ -208,19 +209,22 @@ class _PlayersPageState extends State<PlayersPage> {
             return Scaffold(
               appBar: AppBar(
                 title: players.isEmpty
-                    ? Text('No Players Found')
+                    ? Text('No Players Found',
+                        style: TextStyle(fontSize: fontSizeLarge))
                     : players.length == 1
                         ? PlayerNameTooltip(player: players.first)
                         : Text(
                             '${players.length} Players',
+                            style: TextStyle(fontSize: fontSizeLarge),
                           ),
                 leading: goBackIconButton(context),
                 actions: [
                   if (_hasUpdates)
                     IconButton(
-                      tooltip: 'Refresh players',
+                      tooltip: 'Refresh page',
                       onPressed: _initializeFuture,
-                      icon: Icon(Icons.refresh, color: Colors.blue),
+                      icon: Icon(Icons.refresh,
+                          size: iconSizeLarge, color: Colors.blue),
                     ),
                   if (widget.playerSearchCriterias.idPlayerRemove.isNotEmpty)
                     IconButton(
@@ -259,7 +263,8 @@ class _PlayersPageState extends State<PlayersPage> {
                         }
                       });
                     },
-                    icon: Icon(Icons.person_search, color: Colors.green),
+                    icon: Icon(Icons.person_search,
+                        size: iconSizeLarge, color: Colors.green),
                   ),
                   PlayerSortButton(
                     players: players,

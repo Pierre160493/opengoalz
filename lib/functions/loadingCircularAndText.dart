@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 
 Widget loadingCircularAndText(String text) => Center(
       child: Column(
@@ -9,7 +10,7 @@ Widget loadingCircularAndText(String text) => Center(
             text,
             style: TextStyle(
               color: Colors.blueGrey,
-              fontSize: 36,
+              fontSize: fontSizeMedium,
               decoration: TextDecoration.none,
             ),
           ),

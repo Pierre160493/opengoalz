@@ -38,11 +38,13 @@ Widget buildToolTip(BuildContext context, Function setState,
     child: InkWell(
       child: Row(
         children: [
-          Text(isAscending ? 'ASC ' : 'DESC '),
+          Text(isAscending ? 'ASC ' : 'DESC ',
+              style: TextStyle(fontSize: fontSizeMedium)),
           isAscending ? option.rowLeft : option.rowRight,
           Transform.rotate(
             angle: 3.14159 / 2, // π/2 radians
-            child: Icon(Icons.arrow_outward, color: Colors.green),
+            child: Icon(Icons.arrow_outward,
+                size: iconSizeMedium, color: Colors.green),
           ),
           isAscending ? option.rowRight : option.rowLeft,
         ],
@@ -66,35 +68,53 @@ void showSortingOptions(
       title: 'Age',
       // hint: 'Order by birth date',
       iconMain: iconAge,
-      rowLeft: Row(children: [Icon(Icons.child_friendly)]),
-      rowRight: Row(children: [Icon(Icons.elderly)]),
+      rowLeft: Row(children: [Icon(Icons.child_friendly, size: iconSizeSmall)]),
+      rowRight: Row(children: [Icon(Icons.elderly, size: iconSizeSmall)]),
       variableName: 'dateBirth',
     ),
     SortingOption(
       title: 'Surname',
       iconMain: Icons.sort_by_alpha_outlined,
-      rowLeft: Row(
-          children: [Text('A', style: TextStyle(fontWeight: FontWeight.bold))]),
-      rowRight: Row(
-          children: [Text('Z', style: TextStyle(fontWeight: FontWeight.bold))]),
+      rowLeft: Row(children: [
+        Text('A',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: fontSizeMedium))
+      ]),
+      rowRight: Row(children: [
+        Text('Z',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: fontSizeMedium))
+      ]),
       variableName: 'surName',
     ),
     SortingOption(
       title: 'Last Name',
       iconMain: Icons.sort_by_alpha_outlined,
-      rowLeft: Row(
-          children: [Text('A', style: TextStyle(fontWeight: FontWeight.bold))]),
-      rowRight: Row(
-          children: [Text('Z', style: TextStyle(fontWeight: FontWeight.bold))]),
+      rowLeft: Row(children: [
+        Text('A',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: fontSizeMedium))
+      ]),
+      rowRight: Row(children: [
+        Text('Z',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: fontSizeMedium))
+      ]),
       variableName: 'lastName',
     ),
     SortingOption(
       title: 'First Name',
       iconMain: Icons.sort_by_alpha_outlined,
-      rowLeft: Row(
-          children: [Text('A', style: TextStyle(fontWeight: FontWeight.bold))]),
-      rowRight: Row(
-          children: [Text('Z', style: TextStyle(fontWeight: FontWeight.bold))]),
+      rowLeft: Row(children: [
+        Text('A',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: fontSizeMedium))
+      ]),
+      rowRight: Row(children: [
+        Text('Z',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: fontSizeMedium))
+      ]),
       variableName: 'firstName',
     ),
     SortingOption(
@@ -107,10 +127,8 @@ void showSortingOptions(
     SortingOption(
       title: 'Expanses',
       iconMain: iconMoney,
-      rowLeft: Row(
-          children: [Text('1', style: TextStyle(fontWeight: FontWeight.bold))]),
-      rowRight: Row(
-          children: [Text('9', style: TextStyle(fontWeight: FontWeight.bold))]),
+      rowLeft: Row(children: [Icon(Icons.filter_1)]),
+      rowRight: Row(children: [Icon(Icons.filter_9)]),
       variableName: 'expanses',
     ),
     SortingOption(
@@ -245,7 +263,9 @@ void showSortingOptions(
                               ),
                             Text(
                               option.title,
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: fontSizeLarge,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),

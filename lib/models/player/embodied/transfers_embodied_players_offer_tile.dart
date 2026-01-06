@@ -16,11 +16,13 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
         color: isHandled ? Colors.grey : Colors.green, size: iconSizeMedium),
     title: Row(
       children: [
-        getClubNameClickable(context, null, offer.idClub),
-        Text(' offers weekly expenses of '),
+        ClubNameClickable(club: null, idClub: offer.idClub),
+        Text(' offers weekly expenses of ',
+            style: TextStyle(fontSize: fontSizeMedium)),
         Text(
           offer.expensesOffered.toString(),
           style: TextStyle(
+            fontSize: fontSizeMedium,
             fontWeight: FontWeight.bold,
             color: Colors.green,
           ),
@@ -30,10 +32,11 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
     subtitle: offer.isAccepted == null
         ? Row(
             children: [
-              Text('Creation date: '),
+              Text('Creation date: ',
+                  style: TextStyle(fontSize: fontSizeSmall)),
               Text(
                 DateFormat(persoDateFormat).format(offer.createdAt),
-                style: styleItalicBlueGrey,
+                style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
               ),
             ],
           )
@@ -41,24 +44,28 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
             ? Row(
                 children: [
                   Icon(iconCalendar, color: Colors.green),
-                  Text('Accepted on '),
+                  Text('Accepted on ',
+                      style: TextStyle(fontSize: fontSizeSmall)),
                   Text(
                     offer.dateHandled != null
                         ? DateFormat(persoDateFormat).format(offer.dateHandled!)
                         : 'Unknown date',
-                    style: styleItalicBlueGrey,
+                    style:
+                        styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
                   ),
                 ],
               )
             : Row(
                 children: [
                   Icon(iconCalendar, color: Colors.red),
-                  Text('Refused on '),
+                  Text('Refused on ',
+                      style: TextStyle(fontSize: fontSizeSmall)),
                   Text(
                     offer.dateHandled != null
                         ? DateFormat(persoDateFormat).format(offer.dateHandled!)
                         : 'Unknown date',
-                    style: styleItalicBlueGrey,
+                    style:
+                        styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
                   ),
                 ],
               ),
@@ -82,8 +89,9 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
               children: [
                 Text(
                   'Offer from ',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: fontSizeMedium,
                   ),
                 ),
                 getClubNameClickable(context, null, offer.idClub),
@@ -106,7 +114,8 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
                         children: [
                           Icon(Icons.share_arrival_time,
                               color: Colors.green, size: iconSizeSmall),
-                          Text(' Decide Later'),
+                          Text(' Decide Later',
+                              style: TextStyle(fontSize: fontSizeSmall)),
                         ],
                       ),
                     ),
@@ -136,7 +145,8 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
                         children: [
                           Icon(Icons.cancel,
                               color: Colors.red, size: iconSizeSmall),
-                          Text(' Refuse'),
+                          Text(' Refuse',
+                              style: TextStyle(fontSize: fontSizeSmall)),
                         ],
                       ),
                     ),
@@ -173,8 +183,9 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
                         child: Row(
                           children: [
                             Icon(iconSuccessfulOperation,
-                                color: Colors.green, size: iconSizeSmall),
-                            Text(' Accept'),
+                                color: Colors.green, size: iconSizeMedium),
+                            Text(' Accept',
+                                style: TextStyle(fontSize: fontSizeMedium)),
                           ],
                         ),
                       ),

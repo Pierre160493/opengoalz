@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/models/league/page/league_page.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
@@ -38,13 +39,16 @@ class LeagueOtherLeaguesSelectionWidget extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.arrow_circle_up,
+                    size: iconSizeMedium,
                     color: league.idUpperLeague == null
                         ? Colors.blueGrey
                         : Colors.green,
                   ),
-                  const Text('Upper League'),
+                  Text('Upper League',
+                      style: TextStyle(fontSize: fontSizeMedium)),
                   Icon(
                     Icons.arrow_circle_up,
+                    size: iconSizeMedium,
                     color: league.idUpperLeague == null
                         ? Colors.blueGrey
                         : Colors.green,
@@ -58,7 +62,7 @@ class LeagueOtherLeaguesSelectionWidget extends StatelessWidget {
         /// Opposite league button
         if (league.level != 0)
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               /// Opposite league button
               InkWell(
@@ -82,11 +86,14 @@ class LeagueOtherLeaguesSelectionWidget extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.compare_arrows,
+                      size: iconSizeMedium,
                       color: league.level == 1 ? Colors.blueGrey : Colors.green,
                     ),
-                    const Text('Opposite'),
+                    Text('Opposite',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                     Icon(
                       Icons.compare_arrows,
+                      size: iconSizeMedium,
                       color: league.level == 1 ? Colors.blueGrey : Colors.green,
                     ),
                   ],
@@ -118,15 +125,17 @@ class LeagueOtherLeaguesSelectionWidget extends StatelessWidget {
               },
               child: Row(
                 children: [
-                  const Text(
+                  Text(
                     'Lower Left',
                     style: TextStyle(
+                      fontSize: fontSizeMedium,
                       color: Colors.grey,
                     ),
                   ),
-                  const SizedBox(width: 3),
+                  formSpacer3,
                   Icon(
                     Icons.arrow_circle_down,
+                    size: iconSizeMedium,
                     color: league.idLowerLeague != null
                         ? Colors.green
                         : Colors.grey,
@@ -155,14 +164,16 @@ class LeagueOtherLeaguesSelectionWidget extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.arrow_circle_down,
+                    size: iconSizeMedium,
                     color: league.idLowerLeague != null
                         ? Colors.green
                         : Colors.grey,
                   ),
-                  const SizedBox(width: 6),
-                  const Text(
+                  formSpacer3,
+                  Text(
                     'Lower Right',
                     style: TextStyle(
+                      fontSize: fontSizeMedium,
                       color: Colors.grey,
                     ),
                   ),

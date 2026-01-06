@@ -44,16 +44,20 @@ extension GameClassWidgetHelper on Game {
             children: [
               Icon(
                 Icons.balance,
+                size: iconSizeSmall,
                 color: Colors.green,
               ),
               expectedEloResult == null
                   ? Text('?',
                       style: TextStyle(
-                          color: Colors.orange, fontWeight: FontWeight.bold))
+                          fontSize: fontSizeMedium,
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold))
                   : InkWell(
                       child: Text(
                         expectedEloResult!.last.toStringAsFixed(2),
                         style: TextStyle(
+                          fontSize: fontSizeMedium,
                           color: Colors.blueGrey,
                           fontWeight: FontWeight.bold,
                         ),
@@ -83,6 +87,7 @@ extension GameClassWidgetHelper on Game {
                     children: [
                       Icon(
                         Icons.swap_horizontal_circle,
+                        size: iconSizeSmall,
                         color: Colors.green,
                       ),
                       Text(
@@ -90,6 +95,7 @@ extension GameClassWidgetHelper on Game {
                             ? '?'
                             : eloExchangedPoints.toString(),
                         style: TextStyle(
+                          fontSize: fontSizeMedium,
                           color: Colors.blueGrey,
                           fontWeight: FontWeight.bold,
                         ),

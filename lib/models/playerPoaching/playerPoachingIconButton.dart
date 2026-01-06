@@ -83,6 +83,7 @@ class _PlayerPoachingIconButtonState extends State<PlayerPoachingIconButton> {
           ? 'Poach this player'
           : 'Open poaching settings',
       icon: Icon(iconPoaching,
+          size: iconSizeMedium,
           color:
               widget.player.poaching == null ? Colors.blueGrey : Colors.orange),
       iconSize: iconSizeSmall,

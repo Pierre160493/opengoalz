@@ -61,15 +61,16 @@ class GameCardWidget extends StatelessWidget {
                           },
                           child: Row(
                             children: [
-                              Icon(Icons.queue_play_next, color: Colors.green),
+                              Icon(Icons.queue_play_next,
+                                  size: iconSizeMedium, color: Colors.green),
                               formSpacer3,
                               Text('First Leg Game: ',
-                                  style: TextStyle(color: Colors.blueGrey)),
+                                  style: TextStyle(
+                                      color: Colors.blueGrey,
+                                      fontSize: fontSizeSmall)),
                               getScoreRowFromScore(game.scorePreviousLeft,
                                   game.scorePreviousRight, false,
                                   isLeftClubSelected: game.isLeftClubSelected),
-                              // Text(
-                              //     '${scorePrehhhviousLeft == null ? '?' : scorePreviousLeft} - ${scorePreviousRight == null ? '?' : scorePreviousRight}'),
                             ],
                           )),
                     ],
@@ -77,8 +78,9 @@ class GameCardWidget extends StatelessWidget {
                 game.getGameEloRow(context, game.eloLeft, game.eloRight),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.description,
+                      size: iconSizeSmall,
                       color: Colors.green,
                     ),
                     Expanded(
@@ -87,9 +89,10 @@ class GameCardWidget extends StatelessWidget {
                         game.description,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.blueGrey,
                           fontStyle: FontStyle.italic,
+                          fontSize: fontSizeSmall,
                         ),
                       ),
                     ),
@@ -99,22 +102,28 @@ class GameCardWidget extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.timer_outlined,
+                      size: iconSizeSmall,
                       color: Colors.green,
                     ),
                     Text(
                       DateFormat(' dd/MM HH:mm').format(game.dateStart),
                       style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueGrey,
+                          fontSize: fontSizeSmall),
                     ),
                     Spacer(),
                     Icon(
                       Icons.calendar_month_outlined,
+                      size: iconSizeSmall,
                       color: Colors.green,
                     ),
                     Text(
                       ' S${game.seasonNumber} W${game.weekNumber}',
                       style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueGrey,
+                          fontSize: fontSizeSmall),
                     ),
                   ],
                 ),
