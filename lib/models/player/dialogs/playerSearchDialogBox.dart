@@ -250,28 +250,22 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                             playerSearchCriterias.retired == false,
                           ],
                           onPressed: (int index) {
-                        trailing: ToggleButtons(
-                          isSelected: [
-                            playerSearchCriterias.retired == null,
-                            playerSearchCriterias.retired == true,
-                            playerSearchCriterias.retired == false,
-                          ],
-                          onPressed: (int index) {
                             setState(() {
                               if (index == 0) {
                                 playerSearchCriterias.retired = null;
                               } else if (index == 1) {
                                 playerSearchCriterias.retired = true;
-                              if (index == 0) {
-                                playerSearchCriterias.retired = null;
-                              } else if (index == 1) {
-                                playerSearchCriterias.retired = true;
-                                playerSearchCriterias.defaultMinAge = 0;
-                                playerSearchCriterias.defaultMaxAge = 99;
-                              } else if (index == 2) {
-                                playerSearchCriterias.retired = false;
-                              } else if (index == 2) {
-                                playerSearchCriterias.retired = false;
+                                if (index == 0) {
+                                  playerSearchCriterias.retired = null;
+                                } else if (index == 1) {
+                                  playerSearchCriterias.retired = true;
+                                  playerSearchCriterias.defaultMinAge = 0;
+                                  playerSearchCriterias.defaultMaxAge = 99;
+                                } else if (index == 2) {
+                                  playerSearchCriterias.retired = false;
+                                } else if (index == 2) {
+                                  playerSearchCriterias.retired = false;
+                                }
                               }
                             });
                           },
