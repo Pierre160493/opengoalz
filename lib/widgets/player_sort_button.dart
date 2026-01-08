@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/players_sorting_function.dart';
 
@@ -24,6 +25,7 @@ class PlayerSortButton extends StatelessWidget {
       },
       icon: Icon(
         Icons.align_horizontal_left_rounded,
+        size: iconSizeLarge,
         color: Colors.green,
       ),
     );

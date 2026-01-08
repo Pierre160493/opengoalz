@@ -204,77 +204,6 @@ class _RankingPageState extends State<LeaguePage> {
         ;
   }
 
-  // Future<void> _updateClubStatistics(League league) async {
-  //   /// Clear previous statistics
-
-  //   league.clubsLeague.forEach((club) {
-  //     club.goalsScored = 0;
-  //     club.goalsTaken = 0;
-  //     club.points = 0;
-  //     club.victories = 0;
-  //     club.draws = 0;
-  //     club.defeats = 0;
-  //     club.lisPoints = [0];
-  //   });
-
-  //   /// Loop through each week of the league
-  //   for (int i = 1; i <= 10; i++) {
-  //     league.clubsLeague.forEach((club) {
-  //       club.lisPoints.add(-1);
-  //     });
-
-  //     /// Loop through each game of the week
-  //     for (Game game
-  //         in league.games.where((Game game) => game.weekNumber == i)) {
-  //       if (game.isPlaying == false) {
-  //         print(
-  //             'Club IDs: ${league.clubsLeague.map((club) => club.id).toList()}');
-  //         print(
-  //             'game: ${game.id}: ${game.idClubLeft} vs ${game.idClubRight} [${game.scoreLeft} - ${game.scoreRight}]');
-  //         Club leftClub = league.clubsLeague.firstWhere(
-  //           (Club club) => club.id == game.idClubLeft,
-  //           orElse: () => throw Exception(
-  //               'DATABASE ERROR: Club not found for the left club with id: ${game.idClubLeft} for the game with id: ${game.id}'),
-  //         );
-  //         Club rightClub = league.clubsLeague.firstWhere(
-  //           (Club club) => club.id == game.idClubRight,
-  //           orElse: () => throw Exception(
-  //               'DATABASE ERROR: Club not found for the right club with id: ${game.idClubRight} for the game with id: ${game.id}'),
-  //         );
-
-  //         leftClub.goalsScored += game.scoreLeft!;
-  //         rightClub.goalsTaken += game.scoreLeft!;
-  //         leftClub.goalsTaken += game.scoreRight!;
-  //         rightClub.goalsScored += game.scoreRight!;
-
-  //         if (game.scoreLeft! > game.scoreRight!) {
-  //           leftClub.points += 3;
-  //           leftClub.victories += 1;
-  //           rightClub.defeats += 1;
-  //         } else if (game.scoreLeft! < game.scoreRight!) {
-  //           leftClub.defeats += 1;
-  //           rightClub.victories += 1;
-  //           rightClub.points += 3;
-  //         } else {
-  //           leftClub.draws += 1;
-  //           leftClub.points += 1;
-  //           rightClub.draws += 1;
-  //           rightClub.points += 1;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   league.clubsLeague.sort((a, b) {
-  //     int compare = b.points.compareTo(a.points);
-  //     if (compare != 0) {
-  //       return compare;
-  //     } else {
-  //       return (b.goalsScored - b.goalsTaken)
-  //           .compareTo(a.goalsScored - a.goalsTaken);
-  //     }
-  //   });
-  // }
-
   Future<void> _showSeasonInputDialog(League league) async {
     final TextEditingController seasonController = TextEditingController();
 
@@ -291,8 +220,8 @@ class _RankingPageState extends State<LeaguePage> {
                 parsedSeason != league.selectedSeasonNumber;
 
             return persoAlertDialogWithConstrainedContent(
-              title: const Text('Modify Selected Season',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text('Modify Selected Season',
+                  style: TextStyle(fontSize: fontSizeLarge)),
               content: Column(
                 children: [
                   ListTile(
@@ -302,11 +231,13 @@ class _RankingPageState extends State<LeaguePage> {
                         league.selectedSeasonNumber.toString(),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          fontSize: fontSizeMedium,
                         ),
                       ),
                       subtitle: Text(
                         'Currently selected season',
-                        style: styleItalicBlueGrey,
+                        style: styleItalicBlueGrey.copyWith(
+                            fontSize: fontSizeSmall),
                       ),
                       shape: shapePersoRoundedBorder(Colors.green)),
                   TextField(
@@ -314,6 +245,7 @@ class _RankingPageState extends State<LeaguePage> {
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       hintText: 'Select a season number',
+                      hintStyle: TextStyle(fontSize: fontSizeSmall),
                     ),
                     onChanged: (value) {
                       // Trigger a rebuild of the dialog's state when text changes
@@ -396,7 +328,8 @@ class _RankingPageState extends State<LeaguePage> {
                         Tooltip(
                             message:
                                 '${positionWithIndex(league.number)} league of ${positionWithIndex(league.level)} division of ${league.continent}',
-                            child: Text('League ${league.name.toString()}')),
+                            child: Text('League ${league.name.toString()}',
+                                style: TextStyle(fontSize: fontSizeLarge))),
                       ],
                     ),
                     leading: goBackIconButton(context),
@@ -404,8 +337,11 @@ class _RankingPageState extends State<LeaguePage> {
                       /// Refresh button to reload the league data
                       IconButton(
                         tooltip: 'Refresh Page',
-                        icon: Icon(Icons.refresh,
-                            size: iconSizeMedium, color: Colors.green),
+                        icon: Icon(
+                          Icons.refresh,
+                          size: iconSizeLarge,
+                          color: Colors.green,
+                        ),
                         onPressed: () {
                           setState(() {
                             _fetchLeagueData();
@@ -416,8 +352,11 @@ class _RankingPageState extends State<LeaguePage> {
                       /// Change season button
                       IconButton(
                         tooltip: 'Previous Season',
-                        icon: Icon(Icons.arrow_back,
-                            size: iconSizeMedium, color: Colors.green),
+                        icon: Icon(
+                          Icons.arrow_back,
+                          size: iconSizeLarge,
+                          color: Colors.green,
+                        ),
                         onPressed: () {
                           setState(() {
                             _selectedSeason =
@@ -443,8 +382,11 @@ class _RankingPageState extends State<LeaguePage> {
 
                       IconButton(
                         tooltip: 'Next Season',
-                        icon: Icon(Icons.arrow_forward,
-                            size: iconSizeMedium, color: Colors.green),
+                        icon: Icon(
+                          Icons.arrow_forward,
+                          size: iconSizeLarge,
+                          color: Colors.green,
+                        ),
                         onPressed: () {
                           setState(() {
                             _selectedSeason = _selectedSeason + 1;
@@ -456,8 +398,11 @@ class _RankingPageState extends State<LeaguePage> {
                       /// Open other related leagues
                       IconButton(
                         tooltip: 'Open related leagues',
-                        icon: Icon(Icons.dataset_linked,
-                            size: iconSizeMedium, color: Colors.green),
+                        icon: Icon(
+                          Icons.dataset_linked,
+                          size: iconSizeLarge,
+                          color: Colors.green,
+                        ),
                         onPressed: () {
                           showDialog(
                             context: context,
@@ -465,9 +410,7 @@ class _RankingPageState extends State<LeaguePage> {
                               return persoAlertDialogWithConstrainedContent(
                                 title: Text(
                                   'Related Leagues',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20),
+                                  style: TextStyle(fontSize: fontSizeLarge),
                                 ),
                                 content: LeagueOtherLeaguesSelectionWidget(
                                     league: league),

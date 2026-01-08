@@ -66,7 +66,7 @@ class CountryTile extends StatelessWidget {
     return ListTile(
       title: Text(
         country.name,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: TextStyle(fontSize: fontSizeMedium, fontWeight: FontWeight.bold),
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: ContinentRowWidget(
@@ -162,7 +162,9 @@ class CountryFlagAndName extends StatelessWidget {
           Expanded(
             child: Text(
               country.name,
-              style: nameStyle ?? const TextStyle(fontWeight: FontWeight.bold),
+              style: nameStyle ??
+                  TextStyle(
+                      fontSize: fontSizeLarge, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -209,9 +211,4 @@ Widget getCountryTileFromCountry(
 @Deprecated('Use CountryFlagWidget widget instead')
 Widget getCountryFlag(String countryCode) {
   return CountryFlagWidget(countryCode: countryCode);
-}
-
-@Deprecated('Use CountryFlagAndName widget instead')
-Widget getCountryFlagAndNameWidget(Country country) {
-  return CountryFlagAndName(country: country);
 }

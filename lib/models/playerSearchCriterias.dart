@@ -135,11 +135,14 @@ class PlayerSearchCriterias {
           children: [
             Text(
               'Age Range:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
             ),
             SizedBox(width: 12.0),
             Text(
-                '[${selectedMinAge.toString()} - ${selectedMaxAge.toString()}]'),
+              '[${selectedMinAge.toString()} - ${selectedMaxAge.toString()}]',
+              style: TextStyle(fontSize: fontSizeSmall),
+            ),
           ],
         ),
         subtitle: RangeSlider(

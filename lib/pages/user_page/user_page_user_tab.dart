@@ -25,7 +25,11 @@ class UserPageUserTab extends StatelessWidget {
             color: Colors.green,
             size: iconSizeMedium,
           ),
-          title: Text('Username: ${user.username}'),
+          title: Text('Username: ${user.username}',
+              style: TextStyle(
+                fontSize: fontSizeMedium,
+                fontWeight: FontWeight.bold,
+              )),
           subtitle: Row(
             children: [
               Icon(
@@ -35,7 +39,7 @@ class UserPageUserTab extends StatelessWidget {
               ),
               Text(
                 'Since: ${DateFormat.yMMMMd('en_US').format(user.createdAt)}',
-                style: styleItalicBlueGrey,
+                style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
               ),
             ],
           ),
@@ -145,16 +149,22 @@ class UserPageUserTab extends StatelessWidget {
           ),
           title: Row(
             children: [
-              const Text('Available Credits: '),
+              Text('Available Credits: ',
+                  style: TextStyle(
+                    fontSize: fontSizeMedium,
+                  )),
               Text(user.creditsAvailable.toString(),
-                  style: const TextStyle(
+                  style: TextStyle(
+                    fontSize: fontSizeMedium,
                     fontWeight: FontWeight.bold,
+                    color: Colors.green,
                   )),
             ],
           ),
-          subtitle: const Text(
-              'Use credits to manage more clubs and players and more',
-              style: styleItalicBlueGrey),
+          subtitle: Text(
+            'Use credits to manage more clubs and players and more',
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
+          ),
           trailing: IconButton(
             icon:
                 Icon(Icons.add_card, size: iconSizeMedium, color: Colors.green),
@@ -166,7 +176,8 @@ class UserPageUserTab extends StatelessWidget {
                 builder: (BuildContext context) {
                   return persoAlertDialogWithConstrainedContent(
                     title: Text(
-                        '${user.creditsAvailable} credits available, get more !'),
+                        '${user.creditsAvailable} credits available, get more !',
+                        style: TextStyle(fontSize: fontSizeLarge)),
                     content: Column(
                       children: [
                         AddCreditsTile(

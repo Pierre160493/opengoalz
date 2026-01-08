@@ -53,8 +53,7 @@ class PlayerStatLinearTile extends StatelessWidget {
         children: [
           formSpacer6,
           SizedBox(
-            width: 100,
-            child: Text(label),
+            child: Text(label, style: TextStyle(fontSize: fontSizeMedium)),
           ),
         ],
       ),

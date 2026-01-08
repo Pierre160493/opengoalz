@@ -26,7 +26,8 @@ class AddCreditsTile extends StatelessWidget {
       title: Row(
         children: [
           Text('$creditsToAdd',
-              style: const TextStyle(
+              style: TextStyle(
+                fontSize: fontSizeMedium,
                 fontWeight: FontWeight.bold,
               )),
           if (creditsGifted > 0) ...[
@@ -55,7 +56,8 @@ class AddCreditsTile extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     '+$creditsGifted Gifted (${creditsGiftedPercentage.toStringAsFixed(1)}%)',
-                    style: const TextStyle(
+                    style: TextStyle(
+                      fontSize: fontSizeSmall,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -71,17 +73,18 @@ class AddCreditsTile extends StatelessWidget {
         children: [
           Text(
             'Add ',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
           Text((creditsToAdd + creditsGifted).toString(),
-              style: const TextStyle(
+              style: TextStyle(
+                fontSize: fontSizeSmall,
                 fontWeight: FontWeight.bold,
                 fontStyle: FontStyle.italic,
                 color: Colors.green,
               )),
           Text(
             ' credits to your account.',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
         ],
       ),

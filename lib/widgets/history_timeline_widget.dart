@@ -39,9 +39,15 @@ Widget historyTimelineWidget(BuildContext context, List<Map> listDataHistory,
           endChild: ListTile(
               // leading: Icon(iconHistory,
               //     color: Colors.green, size: iconSizeMedium),
-              title: RichText(
-                text: stringParser(
-                    context, history['description'] ?? 'No description'),
+              title: DefaultTextStyle(
+                style: TextStyle(
+                  fontSize: fontSizeMedium,
+                  color: Colors.white,
+                ),
+                child: RichText(
+                  text: stringParser(
+                      context, history['description'] ?? 'No description'),
+                ),
               ),
               subtitle: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -56,7 +62,8 @@ Widget historyTimelineWidget(BuildContext context, List<Map> listDataHistory,
                       Text(
                         DateFormat(persoDateFormat)
                             .format(DateTime.parse(history['created_at'])),
-                        style: styleItalicBlueGrey,
+                        style: styleItalicBlueGrey.copyWith(
+                            fontSize: fontSizeSmall),
                       ),
                     ],
                   ),
@@ -71,7 +78,8 @@ Widget historyTimelineWidget(BuildContext context, List<Map> listDataHistory,
                         Text(
                           getAgeString(calculateAge(dateStart, multiverseSpeed,
                               dateEnd: DateTime.parse(history['created_at']))),
-                          style: styleItalicBlueGrey,
+                          style: styleItalicBlueGrey.copyWith(
+                              fontSize: fontSizeSmall),
                         ),
                       ],
                     ),
@@ -86,6 +94,7 @@ Widget historyTimelineWidget(BuildContext context, List<Map> listDataHistory,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    fontSize: fontSizeMedium,
                   ),
                 ),
               )),

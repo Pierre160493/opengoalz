@@ -28,9 +28,11 @@ class UserPageAddPlayerTile extends StatelessWidget {
       ),
       title: Row(
         children: [
-          Text('Number of Players: '),
+          Text('Number of Players: ',
+              style: TextStyle(fontSize: fontSizeMedium)),
           Text(playerCount.toString(),
-              style: const TextStyle(
+              style: TextStyle(
+                fontSize: fontSizeMedium,
                 fontWeight: FontWeight.bold,
               )),
         ],
@@ -39,7 +41,7 @@ class UserPageAddPlayerTile extends StatelessWidget {
           canCreatePlayer
               ? 'You can handle another player for ${creditsRequiredForPlayer} credits !'
               : 'Missing ${creditsRequiredForPlayer - user.creditsAvailable} credits to handle another player',
-          style: styleItalicBlueGrey),
+          style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
       trailing: IconButton(
         icon: Icon(Icons.person_add_alt_1,
             size: iconSizeMedium, color: playerColor),

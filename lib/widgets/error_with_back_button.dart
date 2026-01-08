@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opengoalz/constants.dart';
 
 class ErrorWithBackButton extends StatelessWidget {
   final String errorMessage;
@@ -40,7 +41,8 @@ class ErrorWithBackButton extends StatelessWidget {
                   Navigator.of(context).pop(); // Return to the previous page
                 },
                 icon: Icon(Icons.arrow_back),
-                label: const Text('Go Back'),
+                label:
+                    Text('Go Back', style: TextStyle(fontSize: fontSizeMedium)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.redAccent,
                   shape: RoundedRectangleBorder(

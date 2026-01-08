@@ -10,7 +10,6 @@ import 'package:opengoalz/models/player/widgets/tiles/player_staff_coef_tile.dar
 import 'package:opengoalz/models/player/widgets/tiles/player_age_tile.dart';
 import 'package:opengoalz/models/player/widgets/player_icon.dart';
 import 'package:opengoalz/models/player/widgets/player_small_notes_icon.dart';
-import 'package:opengoalz/models/player/widgets/player_widgets.dart';
 import 'package:opengoalz/models/player/widgets/player_status_row.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/postgresql_requests.dart';
@@ -70,7 +69,8 @@ class StaffDetailTab extends StatelessWidget {
                 },
                 icon: Icon(iconScout,
                     color: Colors.red, size: iconSizeLarge * 2)),
-            Text('$title not assigned, click to recruit a new one'),
+            Text('$title not assigned, click to recruit a new one',
+                style: TextStyle(fontSize: fontSizeMedium)),
           ],
         ));
       } else {
@@ -80,7 +80,9 @@ class StaffDetailTab extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(iconError, color: Colors.red, size: iconSizeLarge * 2),
-            Text('ERROR: $title is not a valid staff member'),
+            Text('ERROR: $title is not a valid staff member',
+                style: TextStyle(
+                    fontSize: fontSizeLarge, fontWeight: FontWeight.bold)),
           ],
         ));
       }

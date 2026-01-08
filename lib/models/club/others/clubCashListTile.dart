@@ -21,13 +21,14 @@ Widget getClubCashListTile(BuildContext context, Club club) {
               .replaceAll(',', ' '),
           style: TextStyle(
               color: club.clubData.cash >= 0 ? Colors.green : Colors.red,
+              fontSize: fontSizeMedium,
               fontWeight: FontWeight.bold),
         ),
       ],
     ),
     subtitle: Text(
       'Available Cash',
-      style: styleItalicBlueGrey,
+      style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
     ),
     onTap: () async {
       ClubData.showClubDataHistoryChartDialog(

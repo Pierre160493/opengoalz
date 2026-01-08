@@ -37,7 +37,7 @@ class ContinentRowWidget extends StatelessWidget {
                 },
           child: Text(
             continentName ?? 'International',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
         ),
       ],

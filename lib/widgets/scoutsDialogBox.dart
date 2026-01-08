@@ -49,7 +49,8 @@ class _ScoutsDialogState extends State<ScoutsDialog> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return AlertDialog(
-          title: Text('Scout a young player'),
+          title: Text('Scout a young player',
+              style: TextStyle(fontSize: fontSizeLarge)),
           content: SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -61,10 +62,12 @@ class _ScoutsDialogState extends State<ScoutsDialog> {
                 children: [
                   /// Points to distribute
                   ListTile(
-                    title: Text('Points to distribute: $_pointsToDistribute'),
+                    title: Text('Points to distribute: $_pointsToDistribute',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                     subtitle: Text(
                         'Points to be distributed to the player stats',
-                        style: styleItalicBlueGrey),
+                        style: styleItalicBlueGrey.copyWith(
+                            fontSize: fontSizeSmall)),
                     leading: Icon(iconStats, color: Colors.green),
                     shape: shapePersoRoundedBorder(),
                   ),
@@ -75,7 +78,8 @@ class _ScoutsDialogState extends State<ScoutsDialog> {
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('${key}: ${_playerWeigths[key]['value']}'),
+                          Text('${key}: ${_playerWeigths[key]['value']}',
+                              style: TextStyle(fontSize: fontSizeMedium)),
                           Row(
                             children: [
                               IconButton(
@@ -226,7 +230,8 @@ class _ScoutsDialogState extends State<ScoutsDialog> {
                                 color: Colors.green,
                               ),
                               formSpacer3,
-                              Text('Call the scouts'),
+                              Text('Call the scouts',
+                                  style: TextStyle(fontSize: fontSizeMedium)),
                             ],
                           ),
                   ),

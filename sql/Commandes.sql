@@ -3,6 +3,8 @@ SET statement_timeout = '600min';
 
 SELECT main_handle_multiverse(ARRAY(SELECT id FROM multiverses));
 
+SELECT main_handle_multiverse(ARRAY[2]);
+
 CALL clean_data();
 
 SELECT jobid, jobname, schedule, command, username, active FROM cron.job;
@@ -13,7 +15,6 @@ from cron.job_run_details order by start_time DESC limit 120;
 
 
 
-SELECT * FROM players WHERE expenses_target = 0
 
 
-UPDATE multiverses m SET is_active = true WHERE id = 2
+SELECT * FROM players WHERE id in (8055, 7380)

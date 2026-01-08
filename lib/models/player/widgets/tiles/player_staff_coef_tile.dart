@@ -51,6 +51,7 @@ class PlayerStaffCoefTile extends StatelessWidget {
           Text(
             value.toString(),
             style: TextStyle(
+              fontSize: fontSizeMedium,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -58,7 +59,7 @@ class PlayerStaffCoefTile extends StatelessWidget {
       ),
       subtitle: Text(
         '$title coefficient',
-        style: styleItalicBlueGrey,
+        style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
       ),
       onTap: () async {
         await showDialog(

@@ -163,18 +163,21 @@ class _TeamCompPageState extends State<TeamCompPage> {
             return loadingCircularAndText('Loading team comp...');
           } else if (snapshot.hasError) {
             return Center(
-              child: Text('ERROR: ${snapshot.error}'),
+              child: Text('ERROR: ${snapshot.error}',
+                  style: TextStyle(fontSize: fontSizeMedium)),
             );
           } else if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(
-              child: Text('No data available'),
+            return Center(
+              child: Text('No data available',
+                  style: TextStyle(fontSize: fontSizeMedium)),
             );
           } else {
             Club club = snapshot.data!;
 
             if (club.selectedTeamComp == null) {
-              return const Center(
-                child: Text('No team comp found'),
+              return Center(
+                child: Text('No team comp found',
+                    style: TextStyle(fontSize: fontSizeMedium)),
               );
             }
 
@@ -184,7 +187,8 @@ class _TeamCompPageState extends State<TeamCompPage> {
                   children: [
                     club.getClubNameClickable(context),
                     Text(
-                        ' TeamComp (Week ${club.selectedTeamComp!.weekNumber} of Season ${club.selectedTeamComp!.seasonNumber})'),
+                        ' TeamComp (Week ${club.selectedTeamComp!.weekNumber} of Season ${club.selectedTeamComp!.seasonNumber})',
+                        style: TextStyle(fontSize: fontSizeLarge)),
                   ],
                 ),
                 leading: goBackIconButton(context),

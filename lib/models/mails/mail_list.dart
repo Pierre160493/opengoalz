@@ -19,7 +19,10 @@ class MailList extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.inbox, size: 100, color: Colors.blueGrey),
-            Text(isTrash ? 'Your delete box is empty' : 'Your inbox is empty'),
+            Text(
+              isTrash ? 'Your delete box is empty' : 'Your inbox is empty',
+              style: TextStyle(fontSize: fontSizeLarge),
+            ),
           ],
         ),
       );
@@ -127,7 +130,10 @@ class MailList extends StatelessWidget {
           children: [
             icon,
             SizedBox(width: 3),
-            Text(textMessage),
+            Text(
+              textMessage,
+              style: TextStyle(fontSize: fontSizeMedium),
+            ),
           ],
         ),
       ),

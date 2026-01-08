@@ -11,7 +11,8 @@ import 'package:opengoalz/widgets/graph_widget.dart';
 Widget getPlayersPoachingTab(List<Player> playersPoached, Profile user) {
   if (playersPoached.isEmpty) {
     return Center(
-      child: Text('No poached players'),
+      child: Text('No poached players',
+          style: TextStyle(fontSize: fontSizeMedium)),
     );
   }
   return Column(
@@ -19,9 +20,10 @@ Widget getPlayersPoachingTab(List<Player> playersPoached, Profile user) {
       ListTile(
         leading: Icon(iconPoaching, color: Colors.green, size: iconSizeMedium),
         title: Text('${playersPoached.length} Poached Players',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: fontSizeLarge)),
         subtitle: Text('List of players your scouting network are working on',
-            style: styleItalicBlueGrey),
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
         shape: shapePersoRoundedBorder(Colors.green, 3),
       ),
       Expanded(
@@ -43,8 +45,10 @@ Widget buildPlayerPoachingTile(
   if (player.poaching == null) {
     return ListTile(
       leading: Icon(Icons.error, color: Colors.red),
-      title: Text('Player not found'),
-      subtitle: Text('Player ID: ${player.id}'),
+      title:
+          Text('Player not found', style: TextStyle(fontSize: fontSizeMedium)),
+      subtitle: Text('Player ID: ${player.id}',
+          style: TextStyle(fontSize: fontSizeSmall)),
       shape: shapePersoRoundedBorder(Colors.red),
     );
   }
@@ -74,10 +78,11 @@ Widget buildPlayerPoachingTile(
                       : Colors.red),
               Text(
                 playerPoaching.investmentTarget.toString(),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
               ),
               Text(' Weekly scouting staff investment',
-                  style: styleItalicBlueGrey),
+                  style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
             ],
           ),
           onTap: () async {
@@ -107,9 +112,11 @@ Widget buildPlayerPoachingTile(
                           : Colors.green),
               Text(
                 playerPoaching.affinity.toString(),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
               ),
-              Text(' Club Affinity', style: styleItalicBlueGrey),
+              Text(' Club Affinity',
+                  style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
               if (diffLastWeekAffinity != null)
                 Tooltip(
                   message: 'Compared to last week',
@@ -119,7 +126,8 @@ Widget buildPlayerPoachingTile(
                         color: diffLastWeekAffinity < 0
                             ? Colors.red
                             : Colors.green,
-                        fontWeight: FontWeight.bold),
+                        fontWeight: FontWeight.bold,
+                        fontSize: fontSizeSmall),
                   ),
                 ),
             ],
@@ -153,9 +161,11 @@ Widget buildPlayerPoachingTile(
                           : Colors.red),
               Text(
                 player.motivation.toString(),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
               ),
-              Text(' Motivation', style: styleItalicBlueGrey),
+              Text(' Motivation',
+                  style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
             ],
           ),
           onTap: () async {

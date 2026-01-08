@@ -38,6 +38,7 @@ dependencies:
   flutter_radar_chart: ^0.2.1
   intl: ^0.19.0
   provider: ^6.1.2
+  flutter_screenutil: ^5.9.0
   fl_chart: ^0.66.2
   fluttertoast: ^8.2.4
   country_flags: ^3.0.0

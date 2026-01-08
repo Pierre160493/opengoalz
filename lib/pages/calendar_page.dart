@@ -118,7 +118,10 @@ class _CalendarPageState extends State<CalendarPage> {
             appBar: AppBar(
               title: Row(
                 children: [
-                  Text('Calendar'),
+                  Text('Calendar',
+                      style: TextStyle(
+                        fontSize: fontSizeLarge,
+                      )),
                   formSpacer6,
                   // club.multiverse.getWidget(context)
                   getMultiverseIconFromId_Clickable(context, club.idMultiverse),
@@ -238,8 +241,14 @@ class _CalendarPageState extends State<CalendarPage> {
               color: Colors.green,
               shape: BoxShape.circle,
             ),
-            todayTextStyle: TextStyle(color: Colors.white),
-            selectedTextStyle: TextStyle(color: Colors.white),
+            todayTextStyle: TextStyle(
+                color: Colors.white,
+                fontSize: fontSizeSmall,
+                fontWeight: FontWeight.bold),
+            selectedTextStyle: TextStyle(
+                color: Colors.white,
+                fontSize: fontSizeSmall,
+                fontWeight: FontWeight.bold),
           ),
         ),
         Expanded(
@@ -260,14 +269,18 @@ class _CalendarPageState extends State<CalendarPage> {
                   children: [
                     Icon(Icons.sports_soccer),
                     formSpacer3,
-                    Text(event.values.first),
+                    Text(event.values.first,
+                        style: TextStyle(
+                          fontSize: fontSizeMedium,
+                        )),
                   ],
                 ),
                 subtitle: Row(
                   children: [
                     const Icon(Icons.calendar_today),
                     formSpacer3,
-                    Text(DateFormat('d MMM, HH:mm').format(event.keys.first)),
+                    Text(DateFormat('d MMM, HH:mm').format(event.keys.first),
+                        style: TextStyle(fontSize: fontSizeSmall)),
                   ],
                 ),
               );

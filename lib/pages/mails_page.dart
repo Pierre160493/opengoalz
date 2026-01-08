@@ -65,7 +65,8 @@ class _MailsPageState extends State<MailsPage> {
             title: Row(
               children: [
                 club.getClubNameClickable(context),
-                Text(' Mails (${mailsAll.length})'),
+                Text(' Mails (${mailsAll.length})',
+                    style: TextStyle(fontSize: fontSizeLarge)),
               ],
             ),
             leading: goBackIconButton(context),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/pages/login_page.dart';
@@ -29,7 +30,7 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
+        title: Text('Settings', style: TextStyle(fontSize: fontSizeLarge)),
         leading: goBackIconButton(context),
       ),
       body: MaxWidthContainer(
@@ -39,9 +40,10 @@ class SettingsPage extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.brightness_6,
                   color: Colors.yellow, size: iconSizeMedium),
-              title: Text('Dark Theme'),
+              title: Text('Dark Theme',
+                  style: TextStyle(fontSize: fontSizeMedium)),
               subtitle: Text('Switch between light and dark theme',
-                  style: styleItalicBlueGrey),
+                  style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
               trailing: Switch(
                 value: Provider.of<ThemeProvider>(context).isDarkTheme,
                 onChanged: (value) {
@@ -56,7 +58,8 @@ class SettingsPage extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.local_activity,
                   color: Colors.green, size: iconSizeMedium),
-              title: Text('Invite someone to create his account'),
+              title: Text('Invite someone to create his account',
+                  style: TextStyle(fontSize: fontSizeMedium)),
               onTap: () async {
                 context
                     .showSnackBarError('This feature is not implemented yet.');
@@ -113,7 +116,8 @@ class SettingsPage extends StatelessWidget {
                   return ListTile(
                     title: Tooltip(
                       message: 'Release version',
-                      child: Text('Loading version...'),
+                      child: Text('Loading version...',
+                          style: TextStyle(fontSize: fontSizeSmall)),
                     ),
                     shape: shapePersoRoundedBorder(),
                   );
@@ -121,7 +125,8 @@ class SettingsPage extends StatelessWidget {
                   return ListTile(
                     title: Tooltip(
                       message: 'Release version',
-                      child: Text('Error loading version'),
+                      child: Text('Error loading version',
+                          style: TextStyle(fontSize: fontSizeSmall)),
                     ),
                     shape: shapePersoRoundedBorder(),
                   );
@@ -129,10 +134,12 @@ class SettingsPage extends StatelessWidget {
                   return ListTile(
                     leading: Icon(Icons.info,
                         color: Colors.blue, size: iconSizeMedium),
-                    title: Text('Version ${snapshot.data}'),
+                    title: Text('Version ${snapshot.data}',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                     subtitle: Text(
                       'Version of the app you are currently using.',
-                      style: styleItalicBlueGrey,
+                      style:
+                          styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
                     ),
                     shape: shapePersoRoundedBorder(),
                   );
@@ -145,23 +152,33 @@ class SettingsPage extends StatelessWidget {
               future: _readVersion(),
               builder: (context, snapshot) {
                 return ListTile(
-                  title: AboutListTile(
-                    icon: Icon(Icons.info),
-                    applicationIcon: Container(
-                      width: 120, // Set width
-                      height: 120, // Set height
-                      child: Image.asset('assets/icon/opengoalz.png'),
-                    ),
-                    applicationName: 'OpenGoalZ',
-                    applicationVersion: snapshot.data ?? 'Unknown',
-                    applicationLegalese: '© OpenGoalZ 2024',
-                    aboutBoxChildren: <Widget>[
-                      Text('Thank you for using our app !'),
-                      Text('Hope you\'re enjoying it.'),
-                      Text(
-                          'Feel free to contact us on our discord server if you have questions.'),
-                    ],
-                  ),
+                  leading: Icon(Icons.info,
+                      size: iconSizeMedium, color: Colors.blue),
+                  title: Text('About OpenGoalZ',
+                      style: TextStyle(fontSize: fontSizeMedium)),
+                  onTap: () {
+                    showAboutDialog(
+                      context: context,
+                      applicationIcon: Container(
+                        width: 120.w,
+                        height: 120.w,
+                        child: Image.asset('assets/icon/opengoalz.png'),
+                      ),
+                      applicationName: 'OpenGoalZ',
+                      applicationVersion: snapshot.data ?? 'Unknown',
+                      applicationLegalese: '© OpenGoalZ 2024',
+                      children: <Widget>[
+                        SizedBox(height: 16),
+                        Text('Thank you for using our app !',
+                            style: TextStyle(fontSize: fontSizeSmall)),
+                        Text('Hope you\'re enjoying it.',
+                            style: TextStyle(fontSize: fontSizeSmall)),
+                        Text(
+                            'Feel free to contact us on our discord server if you have questions.',
+                            style: TextStyle(fontSize: fontSizeSmall)),
+                      ],
+                    );
+                  },
                   shape: shapePersoRoundedBorder(),
                 );
               },
@@ -171,9 +188,10 @@ class SettingsPage extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.language,
                   color: Colors.green, size: iconSizeMedium),
-              title: Text('Change Language'),
+              title: Text('Change Language',
+                  style: TextStyle(fontSize: fontSizeMedium)),
               subtitle: Text('Select your preferred language',
-                  style: styleItalicBlueGrey),
+                  style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
               onTap: () {
                 context.showSnackBarError(
                   'Language selection is not implemented yet.',
@@ -190,10 +208,11 @@ class SettingsPage extends StatelessWidget {
                 color: Colors.red,
                 size: iconSizeMedium,
               ),
-              title: Text('Delete your account'),
+              title: Text('Delete your account',
+                  style: TextStyle(fontSize: fontSizeMedium)),
               subtitle: Text(
                 'Permanently delete your account and all associated data.',
-                style: styleItalicBlueGrey,
+                style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
               ),
               onTap: () async {
                 // Prompt confirmation dialog before deleting the account

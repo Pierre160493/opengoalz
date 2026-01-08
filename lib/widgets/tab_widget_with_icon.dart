@@ -11,10 +11,10 @@ Widget buildTabWithIcon({
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (icon != null) ...[
-          Icon(icon, color: iconColor),
+          Icon(icon, color: iconColor, size: iconSizeMedium),
           formSpacer3,
         ],
-        Text(text),
+        Text(text, style: TextStyle(fontSize: fontSizeMedium)),
       ],
     ),
   );

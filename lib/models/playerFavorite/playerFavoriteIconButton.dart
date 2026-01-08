@@ -49,8 +49,11 @@ class _PlayerFavoriteIconButtonState extends State<PlayerFavoriteIconButton> {
       tooltip:
           widget.player.favorite == null ? 'Set as favorite' : 'Open favorite',
       icon: Icon(iconFavorite,
+          size: iconSizeMedium,
           color: widget.player.favorite == null ? Colors.blueGrey : Colors.red),
       iconSize: iconSizeSmall,
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(),
       onPressed: () async {
         showDialog<void>(
           context: context,

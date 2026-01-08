@@ -158,6 +158,9 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                             )
                           : Text(
                               (widget.index!).toString(),
+                              style: TextStyle(
+                                  fontSize: fontSizeMedium,
+                                  fontWeight: FontWeight.bold),
                             ),
                     ),
                     shape: shapePersoRoundedBorder(),
@@ -205,6 +208,8 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                               : Icons.expand_circle_down_outlined),
                           iconSize: iconSizeSmall,
                           color: Colors.green,
+                          // padding: EdgeInsets.zero,
+                          // constraints: BoxConstraints(),
                           onPressed: () {
                             setState(() {
                               _developed = !_developed;

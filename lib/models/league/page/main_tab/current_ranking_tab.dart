@@ -40,7 +40,8 @@ class CurrentRankingTab extends StatelessWidget {
           shape: shapePersoRoundedBorder(Colors.green, 3),
           title: Text(
             league.getLeagueDescription(),
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
           ),
 
           /// Season number and continent
@@ -55,7 +56,8 @@ class CurrentRankingTab extends StatelessWidget {
                   ),
                   Text(
                     'Season ${league.selectedSeasonNumber}: $percentageText',
-                    style: styleItalicBlueGrey,
+                    style:
+                        styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
                   ),
                 ],
               ),
@@ -84,7 +86,7 @@ class CurrentRankingTab extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 6),
                 child: Text(
                   'Rankings',
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(color: Colors.grey, fontSize: fontSizeSmall),
                 ),
               ),
               Expanded(
@@ -142,7 +144,10 @@ class CurrentRankingTab extends StatelessWidget {
                     backgroundColor: rankingColors[index],
                     child: Text(
                       '${index + 1}',
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          fontSize: fontSizeLarge),
                     ),
                   ),
                 ),
@@ -177,7 +182,10 @@ class CurrentRankingTab extends StatelessWidget {
                   backgroundColor: Colors.grey,
                   child: Text(
                     '${club.clubData.leaguePoints.toString()}',
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: fontSizeLarge,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               );

@@ -34,7 +34,8 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       return AlertDialog(
-        title: Text('Searching Criterias for Players'),
+        title: Text('Searching Criterias for Players',
+            style: TextStyle(fontSize: fontSizeLarge)),
         content: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -75,7 +76,8 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                             children: [
                               Icon(iconError, color: Colors.red),
                               formSpacer6,
-                              Text('Select Multiverse'),
+                              Text('Select Multiverse',
+                                  style: TextStyle(fontSize: fontSizeMedium)),
                             ],
                           )
                         : Row(
@@ -84,7 +86,8 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                                   color: Colors.green),
                               formSpacer6,
                               Text(
-                                  'Multiverse: ${playerSearchCriterias.multiverse!.name}'),
+                                  'Multiverse: ${playerSearchCriterias.multiverse!.name}',
+                                  style: TextStyle(fontSize: fontSizeMedium)),
                             ],
                           ),
                   ),
@@ -128,9 +131,11 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                       children: [
                         Icon(iconCountries, color: Colors.green),
                         formSpacer6,
-                        Text(playerSearchCriterias.countries.isEmpty
-                            ? 'Select a country'
-                            : 'Add a country'),
+                        Text(
+                            playerSearchCriterias.countries.isEmpty
+                                ? 'Select a country'
+                                : 'Add a country',
+                            style: TextStyle(fontSize: fontSizeMedium)),
                       ],
                     ),
                   ),
@@ -147,7 +152,8 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                                 side:
                                     BorderSide(color: Colors.green, width: 1.0),
                               ),
-                              title: Text('${country.name}'),
+                              title: Text('${country.name}',
+                                  style: TextStyle(fontSize: fontSizeSmall)),
                               trailing: IconButton(
                                 tooltip:
                                     'Remove ${country.name} from the search criteria',
@@ -186,7 +192,8 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                     children: [
                       Icon(Icons.signpost, color: Colors.green),
                       formSpacer6,
-                      Text('Player Status'),
+                      Text('Player Status',
+                          style: TextStyle(fontSize: fontSizeMedium)),
                     ],
                   ),
                   subtitle: Column(
@@ -205,7 +212,8 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                           children: [
                             Icon(iconTransfers, color: Colors.green),
                             formSpacer6,
-                            Text('On Transfer List'),
+                            Text('On Transfer List',
+                                style: TextStyle(fontSize: fontSizeSmall)),
                           ],
                         ),
                         trailing: Switch(
@@ -231,9 +239,17 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                                     ? Colors.green
                                     : Colors.orange),
                             formSpacer6,
-                            Text('Retired'),
+                            Text('Retired',
+                                style: TextStyle(fontSize: fontSizeSmall)),
                           ],
                         ),
+                        trailing: ToggleButtons(
+                          isSelected: [
+                            playerSearchCriterias.retired == null,
+                            playerSearchCriterias.retired == true,
+                            playerSearchCriterias.retired == false,
+                          ],
+                          onPressed: (int index) {
                         trailing: ToggleButtons(
                           isSelected: [
                             playerSearchCriterias.retired == null,
@@ -246,25 +262,34 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                                 playerSearchCriterias.retired = null;
                               } else if (index == 1) {
                                 playerSearchCriterias.retired = true;
+                              if (index == 0) {
+                                playerSearchCriterias.retired = null;
+                              } else if (index == 1) {
+                                playerSearchCriterias.retired = true;
                                 playerSearchCriterias.defaultMinAge = 0;
                                 playerSearchCriterias.defaultMaxAge = 99;
+                              } else if (index == 2) {
+                                playerSearchCriterias.retired = false;
                               } else if (index == 2) {
                                 playerSearchCriterias.retired = false;
                               }
                             });
                           },
-                          children: const [
+                          children: [
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text('Any'),
+                              child: Text('Any',
+                                  style: TextStyle(fontSize: fontSizeSmall)),
                             ),
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text('Retired'),
+                              child: Text('Retired',
+                                  style: TextStyle(fontSize: fontSizeSmall)),
                             ),
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text('Not Retired'),
+                              child: Text('Not Retired',
+                                  style: TextStyle(fontSize: fontSizeSmall)),
                             ),
                           ],
                         ),
@@ -338,9 +363,12 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                           children: [
                             Icon(Icons.person, color: Colors.green),
                             formSpacer6,
-                            Text(playerSearchCriterias.firstName == null
-                                ? 'First Name Contains'
-                                : 'First Name Contains ${playerSearchCriterias.firstName}'),
+                            Text(
+                              playerSearchCriterias.firstName == null
+                                  ? 'First Name Contains'
+                                  : 'First Name Contains ${playerSearchCriterias.firstName}',
+                              style: TextStyle(fontSize: fontSizeMedium),
+                            ),
                           ],
                         ),
                       ),
@@ -400,9 +428,12 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                           children: [
                             Icon(Icons.person, color: Colors.green),
                             formSpacer6,
-                            Text(playerSearchCriterias.lastName == null
-                                ? 'Last Name Contains'
-                                : 'Last Name Contains ${playerSearchCriterias.lastName}'),
+                            Text(
+                              playerSearchCriterias.lastName == null
+                                  ? 'Last Name Contains'
+                                  : 'Last Name Contains ${playerSearchCriterias.lastName}',
+                              style: TextStyle(fontSize: fontSizeMedium),
+                            ),
                           ],
                         ),
                       ),
@@ -472,7 +503,8 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                       children: [
                         Icon(iconStats, color: Colors.green),
                         formSpacer6,
-                        Text('Select stats'),
+                        Text('Select stats',
+                            style: TextStyle(fontSize: fontSizeMedium)),
                       ],
                     ),
                   ),
@@ -490,7 +522,8 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                                     BorderSide(color: Colors.green, width: 1.0),
                               ),
                               title: Text(
-                                  '${entry.key[0].toUpperCase()}${entry.key.substring(1)} [${entry.value!.start} - ${entry.value!.end}]'),
+                                  '${entry.key[0].toUpperCase()}${entry.key.substring(1)} [${entry.value!.start} - ${entry.value!.end}]',
+                                  style: TextStyle(fontSize: fontSizeSmall)),
                               subtitle: RangeSlider(
                                 values: entry.value!,
                                 min: 0,
@@ -540,7 +573,10 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: persoCancelRow(),
+                child: DefaultTextStyle(
+                  style: TextStyle(fontSize: fontSizeMedium),
+                  child: persoCancelRow(),
+                ),
               ),
               FutureBuilder<List<int>>(
                 future: playerSearchCriterias.fetchPlayerIds(),
@@ -568,8 +604,6 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                     },
                     child: Row(
                       children: [
-                        // if (snapshot.connectionState == ConnectionState.waiting)
-                        //   CircularProgressIndicator(),
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) ...[
                           LoadingIndicator(),
@@ -578,7 +612,8 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                             children: [
                               Icon(iconError, color: Colors.red),
                               formSpacer3,
-                              Text('Error fetching players'),
+                              Text('Error fetching players',
+                                  style: TextStyle(fontSize: fontSizeMedium)),
                             ],
                           ),
                         ] else if (snapshot.hasData) ...[
@@ -593,18 +628,21 @@ class _playerSearchDialogBoxState extends State<playerSearchDialogBox> {
                                         ? Colors.red
                                         : Colors.green),
                                 formSpacer3,
-                                Text('Search '),
+                                Text('Search ',
+                                    style: TextStyle(fontSize: fontSizeMedium)),
                                 Text(
                                   tooManyResults
                                       ? '999+'
                                       : snapshot.data!.length.toString(),
                                   style: TextStyle(
+                                    fontSize: fontSizeMedium,
                                     color: tooManyResults
                                         ? Colors.red
                                         : Colors.green,
                                   ),
                                 ),
-                                Text(' Players'),
+                                Text(' Players',
+                                    style: TextStyle(fontSize: fontSizeMedium)),
                               ],
                             ),
                           ),
@@ -661,7 +699,7 @@ class _LoadingIndicatorState extends State<LoadingIndicator>
           child: Icon(Icons.hourglass_empty, color: Colors.green),
         ),
         SizedBox(width: 8),
-        Text('Pre loading players'),
+        Text('Pre loading players', style: TextStyle(fontSize: fontSizeSmall)),
       ],
     );
   }
@@ -733,13 +771,16 @@ class _StatusSelectorState extends State<StatusSelector> {
     switch (status) {
       case PlayerStatus.all:
         icon = Icon(Icons.join_full, color: Colors.green);
-        text = Text('All');
+        text = Text('All', style: TextStyle(fontSize: fontSizeSmall));
+        break;
       case PlayerStatus.transferList:
         icon = Icon(iconTransfers, color: Colors.green);
-        text = Text('Transfer List');
+        text = Text('Transfer List', style: TextStyle(fontSize: fontSizeSmall));
+        break;
       case PlayerStatus.freePlayer:
         icon = Icon(Icons.wallet_giftcard, color: Colors.green);
-        text = Text('Free Player');
+        text = Text('Free Player', style: TextStyle(fontSize: fontSizeSmall));
+        break;
     }
     return Row(children: [
       icon,

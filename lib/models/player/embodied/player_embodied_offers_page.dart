@@ -106,7 +106,7 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
           appBar: AppBar(
             title: Row(
               children: [
-                Text('Offers for '),
+                Text('Offers for ', style: TextStyle(fontSize: fontSizeLarge)),
                 player.getPlayerNameClickable(context),
               ],
             ),
@@ -116,7 +116,7 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
                 tooltip: 'Order offers by',
                 icon: Icon(
                   Icons.sort,
-                  size: iconSizeMedium,
+                  size: iconSizeLarge,
                   color: Colors.green,
                 ),
                 onSelected: (value) {
@@ -139,19 +139,23 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
                 itemBuilder: (context) => [
                   PopupMenuItem(
                     value: 'dateDesc',
-                    child: Text('Newest first'),
+                    child: Text('Newest first',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                   ),
                   PopupMenuItem(
                     value: 'dateAsc',
-                    child: Text('Oldest first'),
+                    child: Text('Oldest first',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                   ),
                   PopupMenuItem(
                     value: 'expensesDesc',
-                    child: Text('Highest expenses first'),
+                    child: Text('Highest expenses first',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                   ),
                   PopupMenuItem(
                     value: 'expensesAsc',
-                    child: Text('Lowest expenses first'),
+                    child: Text('Lowest expenses first',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                   ),
                 ],
               ),
@@ -161,7 +165,7 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
                 tooltip: 'Place an offer from your club',
                 icon: Icon(
                   iconTransfers,
-                  size: iconSizeMedium,
+                  size: iconSizeLarge,
                   color: colorIsSelected,
                 ),
                 onPressed: () {
@@ -217,7 +221,7 @@ class _PlayerEmbodiedOffersPageState extends State<PlayerEmbodiedOffersPage>
               ? 'No handled offers yet'
               : 'You don\'t have any pending offers',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: fontSizeMedium,
             fontWeight: FontWeight.bold,
             color: Colors.blueGrey,
           ),

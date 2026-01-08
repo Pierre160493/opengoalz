@@ -44,7 +44,8 @@ class PlayerEmbodiedTile extends StatelessWidget {
         children: [
           Text(
             'Embodied player',
-            style: const TextStyle(
+            style: TextStyle(
+              fontSize: fontSizeMedium,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -54,7 +55,7 @@ class PlayerEmbodiedTile extends StatelessWidget {
         children: [
           Text(
             'User: ',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
           getUserNameClickable(context, userName: player.userName),
         ],
