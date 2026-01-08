@@ -304,7 +304,10 @@ class _PlayerTeamCompCardState extends State<TeamCompPlayerCard> {
                           player: player,
                           size: iconSizeLarge,
                         ),
-                  PlayerNameTooltip(player: player),
+                  PlayerNameTooltip(
+                    player: player,
+                    fontSize: fontSizeSmall,
+                  ),
                 ],
               ),
               Row(

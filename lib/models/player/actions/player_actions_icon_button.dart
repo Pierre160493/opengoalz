@@ -19,13 +19,17 @@ class PlayerActionsIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.pending_actions_outlined, color: Colors.green),
+      icon: Icon(Icons.pending_actions_outlined,
+          size: iconSizeMedium, color: Colors.green),
       tooltip: 'Player actions',
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(),
       onPressed: () {
         showDialog(
           context: context,
           builder: (context) => persoAlertDialogWithConstrainedContent(
-            title: Text('Actions for ${player.getFullName()}'),
+            title: Text('Actions for ${player.getFullName()}',
+                style: TextStyle(fontSize: fontSizeLarge)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,7 +39,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                   ListTile(
                     leading: Icon(Icons.open_in_new,
                         color: Colors.green, size: iconSizeMedium),
-                    title: Text('Open Page'),
+                    title: Text('Open Page',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                     onTap: () {
                       Navigator.pop(context); // Close dialog
                       Navigator.push(
@@ -48,7 +53,9 @@ class PlayerActionsIconButton extends StatelessWidget {
                         ),
                       );
                     },
-                    subtitle: Text('Open ${player.getFullName()}\'s page'),
+                    subtitle: Text('Open ${player.getFullName()}\'s page',
+                        style: styleItalicBlueGrey.copyWith(
+                            fontSize: fontSizeSmall)),
                     shape: shapePersoRoundedBorder(),
                   ),
 
@@ -59,7 +66,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                     ListTile(
                       leading: Icon(iconTransfers,
                           color: Colors.red, size: iconSizeMedium),
-                      title: Text('Sell'),
+                      title: Text('Sell',
+                          style: TextStyle(fontSize: fontSizeMedium)),
                       onTap: () {
                         Navigator.pop(context); // Close dialog
                         showDialog(
@@ -70,7 +78,9 @@ class PlayerActionsIconButton extends StatelessWidget {
                         );
                       },
                       subtitle: Text(
-                          'Put ${player.getFullName()} in auction for sale'),
+                          'Put ${player.getFullName()} in auction for sale',
+                          style: styleItalicBlueGrey.copyWith(
+                              fontSize: fontSizeSmall)),
                       shape: shapePersoRoundedBorder(),
                     ),
 
@@ -78,7 +88,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                     ListTile(
                       leading: Icon(iconLeaveClub,
                           color: Colors.red, size: iconSizeMedium),
-                      title: Text('Fire'),
+                      title: Text('Fire',
+                          style: TextStyle(fontSize: fontSizeMedium)),
                       onTap: () {
                         Navigator.pop(context); // Close dialog
                         showDialog(
@@ -89,8 +100,10 @@ class PlayerActionsIconButton extends StatelessWidget {
                           },
                         );
                       },
-                      subtitle:
-                          Text('Fire ${player.getFullName()} from your club'),
+                      subtitle: Text(
+                          'Fire ${player.getFullName()} from your club',
+                          style: styleItalicBlueGrey.copyWith(
+                              fontSize: fontSizeSmall)),
                       shape: shapePersoRoundedBorder(),
                     ),
                   ] else ...[
@@ -98,7 +111,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                     ListTile(
                       leading: Icon(Icons.cancel,
                           color: Colors.green, size: iconSizeMedium),
-                      title: Text('Unfire'),
+                      title: Text('Unfire',
+                          style: TextStyle(fontSize: fontSizeMedium)),
                       onTap: () async {
                         Navigator.pop(context); // Close dialog
                         await operationInDB(context, 'UPDATE', 'players',
@@ -109,8 +123,10 @@ class PlayerActionsIconButton extends StatelessWidget {
                             messageSuccess: player.getFullName() +
                                 ' is glad to stay in your club !');
                       },
-                      subtitle:
-                          Text('Unfire ${player.getFullName()} from your club'),
+                      subtitle: Text(
+                          'Unfire ${player.getFullName()} from your club',
+                          style: styleItalicBlueGrey.copyWith(
+                              fontSize: fontSizeSmall)),
                       shape: shapePersoRoundedBorder(),
                     ),
                   ]
@@ -122,7 +138,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                   ListTile(
                     leading: Icon(Icons.cancel,
                         color: Colors.red, size: iconSizeMedium),
-                    title: Text('Unembody'),
+                    title: Text('Unembody',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                     onTap: () async {
                       /// Dialog prompting are you sure to unembody the player
                       final confirmation = await showDialog<bool>(
@@ -130,7 +147,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             content: Text(
-                                'Are you sure you want to stop embodying ${player.getFullName()} ?'),
+                                'Are you sure you want to stop embodying ${player.getFullName()} ?',
+                                style: TextStyle(fontSize: fontSizeMedium)),
                             actions: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -176,7 +194,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                               player.getFullName());
                     },
                     subtitle: Text('Stop embodying ${player.getFullName()}',
-                        style: styleItalicBlueGrey),
+                        style: styleItalicBlueGrey.copyWith(
+                            fontSize: fontSizeSmall)),
                     shape: shapePersoRoundedBorder(),
                   ),
 
@@ -184,7 +203,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                   ListTile(
                     leading: Icon(iconRetired,
                         color: Colors.red, size: iconSizeMedium),
-                    title: Text('Retire'),
+                    title: Text('Retire',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                     onTap: () async {
                       /// Dialog prompting are you sure to unembody the player
                       final confirmation = await showDialog<bool>(
@@ -192,7 +212,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             content: Text(
-                                'Are you sure you want to retire ${player.getFullName()} ?'),
+                                'Are you sure you want to retire ${player.getFullName()} ?',
+                                style: TextStyle(fontSize: fontSizeMedium)),
                             actions: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -238,7 +259,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                       if (isOK) Navigator.pop(context);
                     },
                     subtitle: Text('Retire ${player.getFullName()}',
-                        style: styleItalicBlueGrey),
+                        style: styleItalicBlueGrey.copyWith(
+                            fontSize: fontSizeSmall)),
                     shape: shapePersoRoundedBorder(),
                   ),
                 ],
@@ -249,7 +271,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                   ListTile(
                     leading: Icon(iconUser,
                         color: Colors.green, size: iconSizeMedium),
-                    title: Text('Embody'),
+                    title: Text('Embody',
+                        style: TextStyle(fontSize: fontSizeMedium)),
                     onTap: () async {
                       /// Dialog prompting are you sure to unembody the player
                       final confirmation = await showDialog<bool>(
@@ -257,9 +280,11 @@ class PlayerActionsIconButton extends StatelessWidget {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: Text(
-                                'Are you sure you want to mbody ${player.getFullName()}'),
+                                'Are you sure you want to mbody ${player.getFullName()}',
+                                style: TextStyle(fontSize: fontSizeLarge)),
                             content: Text(
-                                'This will make you the player\'s user and you will be able to control his decisions and actions.'),
+                                'This will make you the player\'s user and you will be able to control his decisions and actions.',
+                                style: TextStyle(fontSize: fontSizeMedium)),
                             actions: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -305,7 +330,8 @@ class PlayerActionsIconButton extends StatelessWidget {
                               'You are now embodying ' + player.getFullName());
                     },
                     subtitle: Text('Start embodying ${player.getFullName()}',
-                        style: styleItalicBlueGrey),
+                        style: styleItalicBlueGrey.copyWith(
+                            fontSize: fontSizeSmall)),
                     shape: shapePersoRoundedBorder(),
                   ),
               ],

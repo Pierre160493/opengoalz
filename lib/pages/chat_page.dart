@@ -59,7 +59,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: Text('Chat', style: TextStyle(fontSize: fontSizeLarge)),
         leading: goBackIconButton(context),
       ),
       body: StreamBuilder<List<Message>>(
@@ -71,8 +71,11 @@ class _ChatPageState extends State<ChatPage> {
               children: [
                 Expanded(
                   child: messages.isEmpty
-                      ? const Center(
-                          child: Text('Start your conversation now :)'),
+                      ? Center(
+                          child: Text(
+                            'Start your conversation now :)',
+                            style: TextStyle(fontSize: fontSizeMedium),
+                          ),
                         )
                       : ListView.builder(
                           reverse: true,
@@ -132,6 +135,7 @@ class _MessageBarState extends State<_MessageBar> {
                   maxLines: null,
                   autofocus: true,
                   controller: _textController,
+                  style: TextStyle(fontSize: fontSizeMedium),
                   decoration: const InputDecoration(
                     hintText: 'Type a message',
                     border: InputBorder.none,
@@ -142,7 +146,7 @@ class _MessageBarState extends State<_MessageBar> {
               ),
               TextButton(
                 onPressed: () => _submitMessage(),
-                child: const Text('Send'),
+                child: Text('Send', style: TextStyle(fontSize: fontSizeMedium)),
               ),
             ],
           ),
@@ -200,7 +204,10 @@ class _ChatBubble extends StatelessWidget {
         CircleAvatar(
           child: profile == null
               ? preloader
-              : Text(profile!.username.substring(0, 2)),
+              : Text(
+                  profile!.username.substring(0, 2),
+                  style: TextStyle(fontSize: fontSizeSmall),
+                ),
         ),
       const SizedBox(width: 12),
       Flexible(
@@ -215,11 +222,17 @@ class _ChatBubble extends StatelessWidget {
                 : Colors.grey[300],
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(message.content),
+          child: Text(
+            message.content,
+            style: TextStyle(fontSize: fontSizeMedium),
+          ),
         ),
       ),
       const SizedBox(width: 12),
-      Text(format(message.createdAt, locale: 'en_short')),
+      Text(
+        format(message.createdAt, locale: 'en_short'),
+        style: TextStyle(fontSize: fontSizeSmall, color: Colors.grey[600]),
+      ),
       const SizedBox(width: 60),
     ];
     if (message.isMine) {

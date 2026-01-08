@@ -32,8 +32,10 @@ class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
               ),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isHandled ? Colors.blueGrey : Colors.green)),
-          subtitle: Text('Weekly expenses offered', style: styleItalicBlueGrey),
+                  color: isHandled ? Colors.blueGrey : Colors.green,
+                  fontSize: fontSizeMedium)),
+          subtitle: Text('Weekly expenses offered',
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
           shape: shapePersoRoundedBorder(),
         ),
 
@@ -47,8 +49,10 @@ class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
           title: Text(DateFormat(persoDateFormat).format(offer.createdAt),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isHandled ? Colors.blueGrey : Colors.green)),
-          subtitle: Text('Creation date', style: styleItalicBlueGrey),
+                  color: isHandled ? Colors.blueGrey : Colors.green,
+                  fontSize: fontSizeMedium)),
+          subtitle: Text('Creation date',
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
           shape: shapePersoRoundedBorder(),
         ),
 
@@ -65,9 +69,10 @@ class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
                     : 'No date limit',
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: isHandled ? Colors.blueGrey : Colors.green)),
-            subtitle:
-                Text('Date limit of the offer', style: styleItalicBlueGrey),
+                    color: isHandled ? Colors.blueGrey : Colors.green,
+                    fontSize: fontSizeMedium)),
+            subtitle: Text('Date limit of the offer',
+                style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
             shape: shapePersoRoundedBorder(),
           ),
 
@@ -81,8 +86,10 @@ class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
           title: Text(offer.numberSeason.toString(),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isHandled ? Colors.blueGrey : Colors.green)),
-          subtitle: Text('Number of seasons', style: styleItalicBlueGrey),
+                  color: isHandled ? Colors.blueGrey : Colors.green,
+                  fontSize: fontSizeMedium)),
+          subtitle: Text('Number of seasons',
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
           shape: shapePersoRoundedBorder(),
         ),
 
@@ -96,8 +103,10 @@ class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
           title: Text(offer.commentForPlayer.toString(),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isHandled ? Colors.blueGrey : Colors.green)),
-          subtitle: Text('Comment', style: styleItalicBlueGrey),
+                  color: isHandled ? Colors.blueGrey : Colors.green,
+                  fontSize: fontSizeMedium)),
+          subtitle: Text('Comment',
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
           shape: shapePersoRoundedBorder(),
         ),
 
@@ -115,7 +124,8 @@ class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
                   title: Text('Offer accepted',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: isHandled ? Colors.blueGrey : Colors.green)),
+                          color: isHandled ? Colors.blueGrey : Colors.green,
+                          fontSize: fontSizeMedium)),
                   subtitle: Row(
                     children: [
                       Icon(
@@ -128,7 +138,8 @@ class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
                               ? DateFormat(persoDateFormat)
                                   .format(offer.dateHandled!)
                               : 'Unknown date',
-                          style: styleItalicBlueGrey),
+                          style: styleItalicBlueGrey.copyWith(
+                              fontSize: fontSizeSmall)),
                     ],
                   ),
                   shape: shapePersoRoundedBorder(),
@@ -144,7 +155,8 @@ class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
                   title: Text('Offer refused',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: isHandled ? Colors.blueGrey : Colors.green)),
+                          color: isHandled ? Colors.blueGrey : Colors.green,
+                          fontSize: fontSizeMedium)),
                   subtitle: Row(
                     children: [
                       Icon(
@@ -157,7 +169,8 @@ class TransfersEmbodiedPlayersOfferColumn extends StatelessWidget {
                               ? DateFormat(persoDateFormat)
                                   .format(offer.dateHandled!)
                               : 'Unknown date',
-                          style: styleItalicBlueGrey),
+                          style: styleItalicBlueGrey.copyWith(
+                              fontSize: fontSizeSmall)),
                     ],
                   ),
                   shape: shapePersoRoundedBorder(),

@@ -88,8 +88,9 @@ BEGIN
             expenses_missed = 0,
             motivation = 60 + random() * 30,
             transfer_price = 100,
-            date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse))
-            WHERE id_club = NEW.id;
+            date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse)),
+            transfer_status = 'Free Player'
+        WHERE id_club = NEW.id;
     
         -- Reset the default teamcomps of the club to NULL everywhere
         FOR teamcomp IN

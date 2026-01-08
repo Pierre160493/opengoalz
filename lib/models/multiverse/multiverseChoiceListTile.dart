@@ -19,6 +19,7 @@ class MultiverseChoiceListTile extends StatelessWidget {
     return ListTile(
       leading: Icon(
         iconMultiverseSpeed,
+        size: iconSizeMedium,
         color: selectedMultiverse == null ? Colors.red : Colors.green,
       ),
       shape: shapePersoRoundedBorder(
@@ -27,16 +28,19 @@ class MultiverseChoiceListTile extends StatelessWidget {
           selectedMultiverse == null
               ? 'Select Multiverse'
               : selectedMultiverse!.name,
-          style: TextStyle(fontWeight: FontWeight.bold)),
+          style:
+              TextStyle(fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
       subtitle: selectedMultiverse == null
           ? null
-          : Text('Selected multiverse', style: styleItalicBlueGrey),
+          : Text('Selected multiverse',
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
       trailing: selectedMultiverse == null
           ? null
           : IconButton(
               tooltip: 'Reset the selected multiverse',
               onPressed: onMultiverseReset,
-              icon: Icon(Icons.delete_forever, color: Colors.red),
+              icon: Icon(Icons.delete_forever,
+                  size: iconSizeMedium, color: Colors.red),
             ),
       onTap: () async {
         final multiverse = await Navigator.push<Multiverse>(

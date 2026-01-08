@@ -45,10 +45,11 @@ Widget getMultiverseSpeedRow(Multiverse multiverse) {
         Icon(iconMultiverseSpeed,
             color: getMultiverseSyncColor(multiverse), size: iconSizeMedium),
         formSpacer3,
-        Text('X '),
+        Text('X ', style: TextStyle(fontSize: fontSizeMedium)),
         Text(
           multiverse.speed.toString(),
           style: TextStyle(
+            fontSize: fontSizeMedium,
             fontWeight: FontWeight.bold,
             fontStyle: FontStyle.italic,
           ),
@@ -220,7 +221,8 @@ Widget multiverseSpeedTile(Multiverse multiverse) {
       children: [
         Text(
           multiverse.name,
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style:
+              TextStyle(fontSize: fontSizeMedium, fontWeight: FontWeight.bold),
         ),
         getMultiverseSpeedRow(multiverse),
       ],
@@ -230,10 +232,10 @@ Widget multiverseSpeedTile(Multiverse multiverse) {
       children: [
         Row(
           children: [
-            Icon(Icons.speed, color: Colors.green, size: iconSizeSmall),
+            Icon(Icons.speed, size: iconSizeSmall, color: Colors.green),
             formSpacer3,
             Text(getMultiverseSpeedDescription(multiverse.speed),
-                style: styleItalicBlueGrey),
+                style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
           ],
         ),
         Row(
@@ -245,12 +247,12 @@ Widget multiverseSpeedTile(Multiverse multiverse) {
               color: syncColor,
               size: iconSizeSmall,
             ),
-            SizedBox(width: 4),
+            formSpacer3,
             Text(
                 multiverse.dateDelete != null
                     ? 'Deleting: ${formatDate(multiverse.dateDelete!)}'
                     : 'Active',
-                style: styleItalicBlueGrey),
+                style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
           ],
         ),
       ],
@@ -262,34 +264,37 @@ Widget multiverseSpeedTile(Multiverse multiverse) {
 Widget multiverseSeasonTile(Multiverse multiverse) {
   return ListTile(
     leading:
-        Icon(Icons.calendar_today, color: Colors.green, size: iconSizeMedium),
-    title: Text('Currently playing season ${multiverse.seasonNumber}'),
+        Icon(Icons.calendar_today, size: iconSizeMedium, color: Colors.green),
+    title: Text('Currently playing season ${multiverse.seasonNumber}',
+        style: TextStyle(fontSize: fontSizeMedium)),
     subtitle: Text('Week ${multiverse.weekNumber} Day ${multiverse.dayNumber}',
-        style: styleItalicBlueGrey),
+        style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
     shape: shapePersoRoundedBorder(),
   );
 }
 
 Widget multiverseDateRangeTile(Multiverse multiverse) {
   return ListTile(
-    leading: Icon(Icons.date_range, color: Colors.green, size: iconSizeMedium),
+    leading: Icon(Icons.date_range, size: iconSizeMedium, color: Colors.green),
     title: Text(
-        'From ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonStart)} to ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonEnd)}'),
+        'From ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonStart)} to ${DateFormat('E d MMM \'at\' HH\'h:\'mm').format(multiverse.dateSeasonEnd)}',
+        style: TextStyle(fontSize: fontSizeMedium)),
     subtitle: Text(
         multiverse.dateSeasonEnd.difference(DateTime.now()).inDays > 0
             ? 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inDays} day(s)'
             : 'Ends in ${multiverse.dateSeasonEnd.difference(DateTime.now()).inHours} hour(s)',
-        style: styleItalicBlueGrey),
+        style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
     shape: shapePersoRoundedBorder(),
   );
 }
 
 Widget multiverseCashTile(Multiverse multiverse) {
   return ListTile(
-    leading: Icon(iconMoney, color: Colors.green, size: iconSizeMedium),
-    title: Text(persoFormatCurrency(multiverse.cashPrinted)),
+    leading: Icon(iconMoney, size: iconSizeMedium, color: Colors.green),
+    title: Text(persoFormatCurrency(multiverse.cashPrinted),
+        style: TextStyle(fontSize: fontSizeMedium)),
     subtitle: Text('Amount of fixed money circulating in the multiverse',
-        style: styleItalicBlueGrey),
+        style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
     shape: shapePersoRoundedBorder(),
   );
 }

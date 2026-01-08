@@ -6,8 +6,7 @@ CREATE OR REPLACE FUNCTION public.transfers_handle_transfers(inp_id_multiverse i
 AS $function$
 DECLARE
     rec_player RECORD; -- Record variable to store each row from the query
-    last_bid RECORD; -- Record variable to store the last bid for each player
-    teamcomp RECORD; -- Record variable to store the teamcomp
+    rec_teamcomp RECORD; -- Record variable to store the teamcomp
     loc_tmp INT8; -- Variable to store the count of rows affected by the query
 BEGIN
 
@@ -37,7 +36,7 @@ BEGIN
     LEFT JOIN multiverses ON players.id_multiverse = multiverses.id
     WHERE 
         players.date_bid_end < NOW()
-        AND players.id_game_currently_playing = NULL
+        AND players.id_game_currently_playing IS NULL
         AND players.username IS NULL -- Exclude embodied players
         AND (
             inp_id_multiverse IS NULL
@@ -136,13 +135,13 @@ RAISE NOTICE '### Player is clubless and has no bids, already handled in bulk up
                     WHERE id = rec_player.id;
 
                     -- Remove the player from the club's teamcomps where he appears
-                    FOR teamcomp IN (
+                    FOR rec_teamcomp IN (
                         SELECT id FROM games_teamcomp
                         WHERE id_club = rec_player.id_club
                         AND is_played = FALSE)
                     LOOP
                         PERFORM teamcomp_check_or_correct_errors(
-                            inp_id_teamcomp := teamcomp.id,
+                            inp_id_teamcomp := rec_teamcomp.id,
                             inp_bool_try_to_correct := TRUE,
                             inp_bool_notify_user := FALSE);
                     END LOOP;
@@ -265,13 +264,13 @@ RAISE NOTICE '### Player is clubless and has no bids, already handled in bulk up
                     WHERE id = rec_player.id_club;
 
                 -- Remove the player from the club's teamcomps where he appears
-                FOR teamcomp IN (
+                FOR rec_teamcomp IN (
                     SELECT id FROM games_teamcomp
                     WHERE id_club = rec_player.id_club
                     AND is_played = FALSE)
                 LOOP
                     PERFORM teamcomp_check_or_correct_errors(
-                        inp_id_teamcomp := teamcomp.id,
+                        inp_id_teamcomp := rec_teamcomp.id,
                         inp_bool_try_to_correct := TRUE,
                         inp_bool_notify_user := FALSE);
                 END LOOP;

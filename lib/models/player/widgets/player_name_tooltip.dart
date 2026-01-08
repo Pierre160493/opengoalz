@@ -5,17 +5,20 @@ import 'package:opengoalz/models/player/class/player.dart';
 class PlayerNameTooltip extends StatelessWidget {
   final Player player;
   final bool isSurname;
+  final double? fontSize;
 
   const PlayerNameTooltip({
     Key? key,
     required this.player,
     this.isSurname = false,
+    this.fontSize,
   }) : super(key: key);
 
-  Widget _getPlayerNameTextWidget(BuildContext context) {
+  Widget _getPlayerNameTextWidget(BuildContext context, {double? fontSize}) {
     return Text(
       player.getPlayerNameString(),
       style: TextStyle(
+        fontSize: fontSize ?? this.fontSize ?? fontSizeMedium,
         fontWeight: FontWeight.bold,
         color: player.isEmbodiedByCurrentUser
             ? colorIsMine
@@ -34,7 +37,7 @@ class PlayerNameTooltip extends StatelessWidget {
     return Tooltip(
       message:
           '${player.firstName} ${player.lastName.toUpperCase()} (${player.id})',
-      child: _getPlayerNameTextWidget(context),
+      child: _getPlayerNameTextWidget(context, fontSize: fontSize),
     );
   }
 }

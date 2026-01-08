@@ -21,11 +21,8 @@ class TeamCompTab extends StatefulWidget {
 class _TeamCompTabState extends State<TeamCompTab> {
   @override
   Widget build(BuildContext context) {
-    print('Size: ' + MediaQuery.of(context).size.width.toString());
-    print('Size: ' + maxWidth.toString());
     double width =
         (min(MediaQuery.of(context).size.width, maxWidth) ~/ 6).toDouble();
-    print('width: ' + width.toString());
 
     if (widget.teamcomp == null) {
       return Center(
@@ -38,7 +35,7 @@ class _TeamCompTabState extends State<TeamCompTab> {
               'No teamcomp selected',
               style: TextStyle(
                 color: Colors.red,
-                fontSize: 24,
+                fontSize: fontSizeLarge,
                 decoration: TextDecoration.none,
               ),
             ),
@@ -80,14 +77,15 @@ class _TeamCompTabState extends State<TeamCompTab> {
             /// If the game is not played yet, the user can clean the teamcomp or apply a default teamcomp
             ListTile(
               shape: shapePersoRoundedBorder(),
-              title: Text(selectedTeamcomp.name),
+              title: Text(selectedTeamcomp.name,
+                  style: TextStyle(fontSize: fontSizeMedium)),
               leading: Icon(
                 iconTeamComp,
                 color: Colors.green,
                 size: iconSizeMedium,
               ),
               subtitle: Text(selectedTeamcomp.description,
-                  style: styleItalicBlueGrey),
+                  style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
               trailing: selectedTeamcomp.isPlayed
                   ? null
                   : Tooltip(
@@ -434,7 +432,9 @@ class _TeamCompTabState extends State<TeamCompTab> {
           children: [
             Column(
               children: [
-                Text('Substitutes'),
+                Text('Substitutes',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 Icon(Icons.weekend, size: iconSizeLarge),
               ],
             ),

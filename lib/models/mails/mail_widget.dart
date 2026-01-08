@@ -42,14 +42,15 @@ class MailWidget extends StatelessWidget {
                     }
                   },
                 ),
-                Text('From'),
+                Text('From', style: TextStyle(fontSize: fontSizeMedium)),
                 formSpacer3,
                 if (mail.userNameFrom == null)
                   Row(
                     children: [
                       Icon(iconStaff, color: Colors.green),
                       formSpacer3,
-                      Text(mail.senderRole!),
+                      Text(mail.senderRole!,
+                          style: TextStyle(fontSize: fontSizeMedium)),
                     ],
                   ),
               ],
@@ -142,6 +143,7 @@ class MailWidget extends StatelessWidget {
               mail.createdAt.year == DateTime.now().year
                   ? DateFormat('MMM dd, kk:mm').format(mail.createdAt)
                   : DateFormat('MMM dd, yyyy, kk:mm').format(mail.createdAt),
+              style: TextStyle(fontSize: fontSizeSmall),
             ),
           ],
         ),
@@ -151,7 +153,8 @@ class MailWidget extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: mail.message == null
-                  ? Text('Empty message')
+                  ? Text('Empty message',
+                      style: TextStyle(fontSize: fontSizeMedium))
                   : RichText(
                       text: stringParser(context, mail.message!),
                     ),

@@ -185,9 +185,9 @@ class _PlayerEmbodiedOfferDialogBoxState
         return persoAlertDialogWithConstrainedContent(
           title: Row(
             children: [
+              Text('Place an offer on embodied player ',
+                  style: TextStyle(fontSize: fontSizeLarge)),
               PlayerNameTooltip(player: player),
-              Spacer(),
-              Text('Place an offer for an embodied player'),
             ],
           ),
           content: Column(
@@ -202,14 +202,17 @@ class _PlayerEmbodiedOfferDialogBoxState
                     title: Text(
                       'You already have an offer for this player',
                       style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.black),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          fontSize: fontSizeMedium),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Weekly expenses offered: ${NumberFormat('#,###').format(_existingClubOffer!.expensesOffered)}',
-                          style: TextStyle(color: Colors.blueGrey),
+                          style: TextStyle(
+                              color: Colors.blueGrey, fontSize: fontSizeSmall),
                         ),
                       ],
                     ),
@@ -229,10 +232,12 @@ class _PlayerEmbodiedOfferDialogBoxState
                 title: TextFormField(
                   controller: _bidController,
                   keyboardType: TextInputType.number,
+                  style: TextStyle(fontSize: fontSizeMedium),
                   decoration: InputDecoration(
                     labelText: _offerAmount == null
                         ? 'Enter your offer (weekly expenses)'
                         : 'Your weekly expenses offer',
+                    labelStyle: TextStyle(fontSize: fontSizeSmall),
                     border: OutlineInputBorder(
                       borderSide: BorderSide(
                         color: offerColor,
@@ -271,6 +276,7 @@ class _PlayerEmbodiedOfferDialogBoxState
                             style: TextStyle(
                               color: Colors.green,
                               fontWeight: FontWeight.bold,
+                              fontSize: fontSizeMedium,
                             ),
                           ),
                         ),
@@ -308,6 +314,7 @@ class _PlayerEmbodiedOfferDialogBoxState
                             style: TextStyle(
                               color: Colors.red,
                               fontWeight: FontWeight.bold,
+                              fontSize: fontSizeMedium,
                             ),
                           ),
                         ),
@@ -352,31 +359,33 @@ class _PlayerEmbodiedOfferDialogBoxState
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: isSelected ? Colors.white : Colors.green,
-                          fontSize: 16,
+                          fontSize: fontSizeMedium,
                         ),
                       ),
                       color: isSelected ? Colors.green : Colors.grey[200],
                       style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                          (states) =>
-                              isSelected ? Colors.green : Colors.grey[200]!,
-                        ),
-                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(
-                              color: isSelected ? Colors.green : Colors.grey,
-                              width: 2,
-                            ),
+
+                          /// Had to rollback hover color to solid due to flutter issue with version
+                          // backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                          //   (states) =>
+                          //       isSelected ? Colors.green : Colors.grey[200]!,
+                          // ),
+                          // shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          //   RoundedRectangleBorder(
+                          //     borderRadius: BorderRadius.circular(8),
+                          //     side: BorderSide(
+                          //       color: isSelected ? Colors.green : Colors.grey,
+                          //       width: 2,
+                          //     ),
+                          //   ),
+                          // ),
                           ),
-                        ),
-                      ),
                     );
                   }),
                 ),
                 subtitle: Text(
                   'Number of seasons for the contract (1 to 5)',
-                  style: styleItalicBlueGrey,
+                  style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
                 ),
               ),
               // ListTile(
@@ -443,8 +452,10 @@ class _PlayerEmbodiedOfferDialogBoxState
               ListTile(
                 leading: Icon(iconUser, color: Colors.green),
                 title: TextFormField(
+                  style: TextStyle(fontSize: fontSizeMedium),
                   decoration: InputDecoration(
                     labelText: 'Comment for the user (optional)',
+                    labelStyle: TextStyle(fontSize: fontSizeSmall),
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) {
@@ -460,8 +471,10 @@ class _PlayerEmbodiedOfferDialogBoxState
               ListTile(
                 leading: Icon(iconClub, color: Colors.green),
                 title: TextFormField(
+                  style: TextStyle(fontSize: fontSizeMedium),
                   decoration: InputDecoration(
                     labelText: 'Comment for the club (optional)',
+                    labelStyle: TextStyle(fontSize: fontSizeSmall),
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) {
@@ -515,9 +528,11 @@ class _PlayerEmbodiedOfferDialogBoxState
                       children: [
                         Icon(Icons.gavel, color: Colors.green),
                         formSpacer3,
-                        Text(_existingClubOffer == null
-                            ? 'Place an Offer on '
-                            : 'Update Offer on '),
+                        Text(
+                            _existingClubOffer == null
+                                ? 'Place an Offer on '
+                                : 'Update Offer on ',
+                            style: TextStyle(fontSize: fontSizeMedium)),
                         PlayerNameTooltip(player: player)
                       ],
                     ),

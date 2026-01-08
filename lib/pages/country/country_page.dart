@@ -146,13 +146,13 @@ class _CountryPageState extends State<CountryPage>
 
           return Scaffold(
             appBar: AppBar(
-              // title: Text('Country: ${country.name}'),
-              title: getCountryFlagAndNameWidget(country),
+              title: CountryFlagAndName(country: country),
               leading: goBackIconButton(context),
               actions: [
                 IconButton(
                   tooltip: 'Change the country',
-                  icon: Icon(iconCountries, color: Colors.green),
+                  icon: Icon(iconCountries,
+                      size: iconSizeLarge, color: Colors.green),
                   onPressed: () async {
                     _selectedCountry = await Navigator.push<Country>(
                       context,
@@ -167,6 +167,7 @@ class _CountryPageState extends State<CountryPage>
                 IconButton(
                   tooltip: 'Change the multiverse',
                   icon: Icon(iconMultiverseSpeed,
+                      size: iconSizeLarge,
                       color: _selectedMultiverse == null
                           ? Colors.orange
                           : Colors.green),
@@ -233,10 +234,14 @@ class _CountryPageState extends State<CountryPage>
             isClickable: false),
         ListTile(
           title: Text(
-              'Clubs: ${country.clubsSelected.length} ${_selectedMultiverse == null ? '' : '(${country.clubsAll.length})'}'),
-          subtitle: Text('Total number of clubs in this country',
-              style: styleItalicBlueGrey),
-          leading: Icon(iconClub, color: Colors.green),
+            'Clubs: ${country.clubsSelected.length} ${_selectedMultiverse == null ? '' : '(${country.clubsAll.length})'}',
+            style: TextStyle(fontSize: fontSizeMedium),
+          ),
+          subtitle: Text(
+            'Total number of clubs in this country',
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
+          ),
+          leading: Icon(iconClub, color: Colors.green, size: iconSizeMedium),
           shape: shapePersoRoundedBorder(),
           onTap: () {
             _tabController.animateTo(1); // Open the third tab
@@ -244,10 +249,14 @@ class _CountryPageState extends State<CountryPage>
         ),
         ListTile(
           title: Text(
-              'Players: ${country.playersSelected.length} ${_selectedMultiverse == null ? '' : '(${country.playersAll.length})'}'),
-          subtitle: Text('Total number of players in this country',
-              style: styleItalicBlueGrey),
-          leading: Icon(iconPlayers, color: Colors.green),
+            'Players: ${country.playersSelected.length} ${_selectedMultiverse == null ? '' : '(${country.playersAll.length})'}',
+            style: TextStyle(fontSize: fontSizeMedium),
+          ),
+          subtitle: Text(
+            'Total number of players in this country',
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
+          ),
+          leading: Icon(iconPlayers, color: Colors.green, size: iconSizeMedium),
           shape: shapePersoRoundedBorder(),
           onTap: () {
             _tabController.animateTo(2); // Open the third tab
@@ -270,22 +279,28 @@ class _CountryPageState extends State<CountryPage>
         Club club = country.clubsSelected[index];
 
         return ListTile(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              club.getClubNameClickable(context),
-              club.getLastResultsWidget(context),
-            ],
+          title: DefaultTextStyle(
+            style: TextStyle(fontSize: fontSizeMedium),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                club.getClubNameClickable(context),
+                club.getLastResultsWidget(context),
+              ],
+            ),
           ),
-          subtitle: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              clubEloRow(context, club.id, club.clubData.eloPoints),
-              _selectedMultiverse == null
-                  ? getMultiverseIconFromId_Clickable(
-                      context, club.idMultiverse)
-                  : club.getClubRankingRow(context),
-            ],
+          subtitle: DefaultTextStyle(
+            style: TextStyle(fontSize: fontSizeSmall),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                clubEloRow(context, club.id, club.clubData.eloPoints),
+                _selectedMultiverse == null
+                    ? getMultiverseIconFromId_Clickable(
+                        context, club.idMultiverse)
+                    : club.getClubRankingRow(context),
+              ],
+            ),
           ),
           leading: Icon(iconClub, size: iconSizeMedium, color: Colors.green),
           shape: shapePersoRoundedBorder(),

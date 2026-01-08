@@ -46,9 +46,12 @@ class _AppDrawerState extends State<AppDrawer> {
     Club? selectedClub = currentUser.selectedClub;
 
     if (selectedClub == null) {
-      return const Drawer(
+      return Drawer(
         child: Center(
-          child: Text('No club selected'),
+          child: Text(
+            'No club selected',
+            style: TextStyle(fontSize: fontSizeLarge),
+          ),
         ),
       );
     }
@@ -60,7 +63,8 @@ class _AppDrawerState extends State<AppDrawer> {
           CustomListTile(
             title: currentUser.getUserName(context),
             subtitle: !currentUser.isConnectedUser
-                ? Text('Currently visiting this profile')
+                ? Text('Currently visiting this profile',
+                    style: TextStyle(fontSize: fontSizeSmall))
                 : null,
             page: const UserPage(),
           ),
@@ -79,8 +83,9 @@ class _AppDrawerState extends State<AppDrawer> {
             key: Key('Desktop_${_expandedTile == 'Desktop'}'),
             leading:
                 Icon(Icons.event_seat, size: iconSizeLarge, color: Colors.blue),
-            title: Text('Desktop'),
-            subtitle: Text('Main club actions', style: styleItalicBlueGrey),
+            title: Text('Desktop', style: TextStyle(fontSize: fontSizeLarge)),
+            subtitle: Text('Main club actions',
+                style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
             shape: shapePersoRoundedBorder(Colors.blue),
             initiallyExpanded: _expandedTile == 'Desktop',
             onExpansionChanged: (bool expanded) {
@@ -94,7 +99,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingIcon: iconCalendar,
                 leadingIconSize: iconSizeMedium,
-                title: Text('Calendar'),
+                title: Text('Calendar',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: CalendarPage(idClub: selectedClub.id),
               ),
@@ -103,8 +110,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingWidget: mailToolTip(context, currentUser),
                 leadingIconSize: iconSizeMedium,
-                title: Text('Mails'),
-                // shape: shapePersoRoundedBorder(),
+                title: Text('Mails',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 page: MailsPage(),
               ),
 
@@ -112,7 +120,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingIcon: iconCash,
                 leadingIconSize: iconSizeMedium,
-                title: Text('Finances'),
+                title: Text('Finances',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 subtitle: Row(
                   children: [
                     Icon(iconMoney,
@@ -127,6 +137,7 @@ class _AppDrawerState extends State<AppDrawer> {
                             ? Colors.green
                             : Colors.red,
                         fontWeight: FontWeight.bold,
+                        fontSize: fontSizeSmall,
                       ),
                     ),
                   ],
@@ -139,9 +150,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingIcon: iconStaff,
                 leadingIconSize: iconSizeMedium,
-                title: Text(
-                  'Staff',
-                ),
+                title: Text('Staff',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: StaffPage(idClub: selectedClub.id),
               ),
@@ -150,7 +161,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingIcon: iconScouts,
                 leadingIconSize: iconSizeMedium,
-                title: Text('Scouts'),
+                title: Text('Scouts',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: ScoutsPage(), // Pass the updated user here
               ),
@@ -159,7 +172,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingIcon: iconTransfers,
                 leadingIconSize: iconSizeMedium,
-                title: Text('Transfers'),
+                title: Text('Transfers',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 page: TransferPage(idClub: selectedClub.id),
                 // shape: shapePersoRoundedBorder(),
               ),
@@ -170,8 +185,9 @@ class _AppDrawerState extends State<AppDrawer> {
           ExpansionTile(
             key: Key('MainTeam_${_expandedTile == 'Main Team'}'),
             leading: Icon(Icons.group, size: iconSizeLarge, color: Colors.blue),
-            title: Text('Main Team'),
-            subtitle: Text('Team management', style: styleItalicBlueGrey),
+            title: Text('Main Team', style: TextStyle(fontSize: fontSizeLarge)),
+            subtitle: Text('Team management',
+                style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
             shape: shapePersoRoundedBorder(Colors.blue),
             initiallyExpanded: _expandedTile == 'Main Team',
             onExpansionChanged: (bool expanded) {
@@ -184,7 +200,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingIcon: iconPlayers,
                 leadingIconSize: iconSizeMedium,
-                title: Text('Players'),
+                title: Text('Players',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: PlayersPage(
                   playerSearchCriterias: PlayerSearchCriterias(
@@ -196,7 +214,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingIcon: iconGames,
                 leadingIconSize: iconSizeMedium,
-                title: Text('Games'),
+                title: Text('Games',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: GamesPage(idClub: selectedClub.id),
               ),
@@ -205,7 +225,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingIcon: iconTeamComp,
                 leadingIconSize: iconSizeMedium,
-                title: Text('TeamComps'),
+                title: Text('TeamComps',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: TeamCompsPage(
                     idClub: selectedClub.id,
@@ -217,7 +239,9 @@ class _AppDrawerState extends State<AppDrawer> {
               CustomListTile(
                 leadingIcon: iconLeague,
                 leadingIconSize: iconSizeMedium,
-                title: Text('League'),
+                title: Text('League',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: LeaguePage(
                   idLeague: selectedClub.idLeague,
@@ -234,8 +258,9 @@ class _AppDrawerState extends State<AppDrawer> {
             key: Key('Other_${_expandedTile == 'Other'}'),
             leading: Icon(Icons.playlist_add_outlined,
                 size: iconSizeLarge, color: Colors.blue),
-            title: Text('Other'),
-            subtitle: Text('Other', style: styleItalicBlueGrey),
+            title: Text('Other', style: TextStyle(fontSize: fontSizeLarge)),
+            subtitle: Text('Other',
+                style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
             shape: shapePersoRoundedBorder(Colors.blue),
             initiallyExpanded: _expandedTile == 'Other',
             onExpansionChanged: (bool expanded) {
@@ -247,7 +272,9 @@ class _AppDrawerState extends State<AppDrawer> {
               /// Chat Tile
               CustomListTile(
                 leadingIcon: iconChat,
-                title: Text('Chat'),
+                title: Text('Chat',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: const ChatPage(),
               ),
@@ -255,7 +282,9 @@ class _AppDrawerState extends State<AppDrawer> {
               /// Multiverse Tile
               CustomListTile(
                 leadingIcon: iconMultiverseSpeed,
-                title: Text('Multiverses'),
+                title: Text('Multiverses',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: MultiversePage(
                     idMultiverse: currentUser.selectedClub!.idMultiverse),
@@ -264,7 +293,9 @@ class _AppDrawerState extends State<AppDrawer> {
               /// Countries Tile
               CustomListTile(
                 leadingIcon: iconCountries,
-                title: Text('Countries'),
+                title: Text('Countries',
+                    style: TextStyle(
+                        fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
                 // shape: shapePersoRoundedBorder(),
                 page: CountryPage(
                     idCountry: currentUser.selectedClub!.idCountry,

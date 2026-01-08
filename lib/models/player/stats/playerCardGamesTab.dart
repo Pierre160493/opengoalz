@@ -174,11 +174,14 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                   children: [
                     Row(
                       children: [
-                        Text('Season Number: '),
+                        Text('Season Number: ',
+                            style: TextStyle(fontSize: fontSizeMedium)),
                         Text(
                           _selectedSeasonNumber.toString(),
                           style: TextStyle(
-                              color: Colors.green, fontWeight: FontWeight.bold),
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                              fontSize: fontSizeMedium),
                         ),
                       ],
                     ),
@@ -221,18 +224,22 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                       children: [
                         Icon(Icons.sports_soccer,
                             color: Colors.green, size: iconSizeSmall),
-                        Text(' Games played: '),
+                        Text(' Games played: ',
+                            style: TextStyle(fontSize: fontSizeSmall)),
                         Text(filteredGames.length.toString(),
                             style: TextStyle(
                                 color: Colors.green,
-                                fontWeight: FontWeight.bold)),
+                                fontWeight: FontWeight.bold,
+                                fontSize: fontSizeMedium)),
                       ],
                     ),
                     bestSeasonGame == null
-                        ? Text('No Games played this season')
+                        ? Text('No Games played this season',
+                            style: TextStyle(fontSize: fontSizeSmall))
                         : Row(
                             children: [
-                              Text(' Best season game: '),
+                              Text(' Best season game: ',
+                                  style: TextStyle(fontSize: fontSizeSmall)),
                               InkWell(
                                 child: Text(
                                   'Weight: ' +
@@ -241,7 +248,8 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                                           .toString(),
                                   style: TextStyle(
                                       color: Colors.green,
-                                      fontWeight: FontWeight.bold),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: fontSizeSmall),
                                 ),
                                 onTap: () {
                                   showDialog(
@@ -278,7 +286,8 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
                                           .toString(),
                                       style: TextStyle(
                                           color: Colors.yellow,
-                                          fontWeight: FontWeight.bold),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: fontSizeMedium),
                                     ),
                                   ],
                                 ),

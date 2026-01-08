@@ -55,13 +55,15 @@ class PlayerPerformanceScoreTile extends StatelessWidget {
       title: Text(
         player.performanceScoreReal.toStringAsFixed(0),
         style: titleStyle ??
-            const TextStyle(
+            TextStyle(
+              fontSize: fontSizeMedium,
               fontWeight: FontWeight.bold,
             ),
       ),
       subtitle: Text(
         'Performance Score',
-        style: subtitleStyle ?? styleItalicBlueGrey,
+        style: subtitleStyle ??
+            styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
       ),
       onTap: () => _showPerformanceHistoryDialog(context),
     );

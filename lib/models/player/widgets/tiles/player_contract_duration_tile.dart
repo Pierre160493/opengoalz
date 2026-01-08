@@ -25,8 +25,9 @@ class PlayerCardContractDurationTile extends StatelessWidget {
         ),
         title: Text(
           'Player does not have a contract end date',
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
+            fontSize: fontSizeMedium,
           ),
         ),
       );
@@ -43,6 +44,9 @@ class PlayerCardContractDurationTile extends StatelessWidget {
         children: [
           Text(
             'Contract: ',
+            style: TextStyle(
+              fontSize: fontSizeMedium,
+            ),
           ),
           Text(
             calculateAge(
@@ -50,11 +54,12 @@ class PlayerCardContractDurationTile extends StatelessWidget {
               player.multiverseSpeed,
               dateEnd: player.dateEndContract,
             ).toStringAsFixed(1),
-            style: const TextStyle(
+            style: TextStyle(
+              fontSize: fontSizeMedium,
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(' seasons left'),
+          Text(' seasons left', style: TextStyle(fontSize: fontSizeMedium)),
         ],
       ),
       subtitle: Row(
@@ -62,7 +67,7 @@ class PlayerCardContractDurationTile extends StatelessWidget {
         children: [
           Text(
             'End date: ${player.dateEndContract != null ? formatDate(player.dateEndContract!) : 'N/A'}',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
           tickingTimeWidget(player.dateEndContract!)
         ],
@@ -80,7 +85,10 @@ class PlayerCardContractDurationTile extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (context) => persoAlertDialogWithConstrainedContent(
-                    title: Text('Manage ${player.getFullName()}\'s contract'),
+                    title: Text(
+                      'Manage ${player.getFullName()}\'s contract',
+                      style: TextStyle(fontSize: fontSizeMedium),
+                    ),
                     content: Column(
                       children: [
                         /// Contract end date
@@ -92,9 +100,11 @@ class PlayerCardContractDurationTile extends StatelessWidget {
                           ),
                           title: Text(
                             '${player.dateEndContract != null ? formatDate(player.dateEndContract!) : 'N/A'}',
+                            style: TextStyle(fontSize: fontSizeMedium),
                           ),
                           subtitle: Text('Contract end date',
-                              style: styleItalicBlueGrey),
+                              style: styleItalicBlueGrey.copyWith(
+                                  fontSize: fontSizeSmall)),
                           shape: shapePersoRoundedBorder(),
                         ),
 
@@ -105,9 +115,13 @@ class PlayerCardContractDurationTile extends StatelessWidget {
                             size: iconSizeMedium,
                             color: Colors.green,
                           ),
-                          title: tickingTimeWidget(player.dateEndContract!),
+                          title: DefaultTextStyle(
+                            style: TextStyle(fontSize: fontSizeMedium),
+                            child: tickingTimeWidget(player.dateEndContract!),
+                          ),
                           subtitle: Text('Time left before contract expires',
-                              style: styleItalicBlueGrey),
+                              style: styleItalicBlueGrey.copyWith(
+                                  fontSize: fontSizeSmall)),
                           shape: shapePersoRoundedBorder(),
                         ),
 
@@ -120,9 +134,11 @@ class PlayerCardContractDurationTile extends StatelessWidget {
                           ),
                           title: Text(
                             '${calculateAge(DateTime.now(), player.multiverseSpeed, dateEnd: player.dateEndContract!).toStringAsFixed(1)} seasons left',
+                            style: TextStyle(fontSize: fontSizeMedium),
                           ),
                           subtitle: Text('Number of seasons left',
-                              style: styleItalicBlueGrey),
+                              style: styleItalicBlueGrey.copyWith(
+                                  fontSize: fontSizeSmall)),
                           shape: shapePersoRoundedBorder(),
                         ),
                       ],
@@ -162,11 +178,13 @@ class PlayerCardContractDurationTile extends StatelessWidget {
                                 children: [
                                   Icon(
                                     Icons.exit_to_app,
-                                    size: iconSizeSmall,
+                                    size: iconSizeMedium,
                                     color: Colors.red,
                                   ),
                                   formSpacer3,
-                                  Text('End contract'),
+                                  Text('End contract',
+                                      style:
+                                          TextStyle(fontSize: fontSizeMedium)),
                                 ],
                               ),
                             ),

@@ -22,21 +22,23 @@ class ScoutsMainTab extends StatelessWidget {
           leading: Icon(iconScouts, size: iconSizeMedium, color: Colors.green),
           title: Row(
             children: [
-              Text('Scouting Network expenses: '),
+              Text('Scouting Network expenses: ',
+                  style: TextStyle(fontSize: fontSizeMedium)),
               Icon(
                 iconMoney,
                 size: iconSizeSmall,
               ),
-              SizedBox(width: 3.0),
+              formSpacer3,
               Text(
                 stringValueSeparated(club.clubData.expensesScoutsTarget),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
               ),
             ],
           ),
-          subtitle: const Text(
+          subtitle: Text(
             'Theoretical Expenses dedicated for scouting network per week',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
           shape: shapePersoRoundedBorder(),
           trailing: IconButton(
@@ -48,22 +50,25 @@ class ScoutsMainTab extends StatelessWidget {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text('Update Scouting Network Expenses'),
+                      title: Text('Update Scouting Network Expenses',
+                          style: TextStyle(fontSize: fontSizeLarge)),
                       content: TextField(
                         controller: controller,
                         keyboardType: TextInputType.number,
+                        style: TextStyle(fontSize: fontSizeMedium),
                         decoration: InputDecoration(
-                            hintText: "Enter new scouting network expenses"),
+                            hintText: "Enter new scouting network expenses",
+                            hintStyle: TextStyle(fontSize: fontSizeMedium)),
                       ),
                       actions: <Widget>[
                         TextButton(
-                          child: Text('Cancel'),
+                          child: persoCancelRow(),
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
                         ),
                         TextButton(
-                          child: Text('Update'),
+                          child: persoValidRow('Update'),
                           onPressed: () async {
                             int? newExpenses = int.tryParse(controller.text);
                             if (newExpenses == null) {
@@ -117,7 +122,8 @@ class ScoutsMainTab extends StatelessWidget {
               Icon(iconPoaching, size: iconSizeMedium, color: Colors.green),
           title: Row(
             children: [
-              Text('Poaching expenses: '),
+              Text('Poaching expenses: ',
+                  style: TextStyle(fontSize: fontSizeMedium)),
               Text(
                 stringValueSeparated(club.playersPoached.isEmpty
                     ? 0
@@ -125,13 +131,15 @@ class ScoutsMainTab extends StatelessWidget {
                         .map((e) => e.investmentTarget)
                         .reduce((a, b) => a + b)),
                 style: TextStyle(
-                    fontWeight: FontWeight.bold, color: Colors.orange),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                    fontSize: fontSizeMedium),
               ),
             ],
           ),
           subtitle: Text(
             'Weekly scouting network investment due to poaching ${club.playersPoached.length} players',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
           shape: shapePersoRoundedBorder(),
           onTap: () {
@@ -145,16 +153,18 @@ class ScoutsMainTab extends StatelessWidget {
               Icon(Icons.thermostat, size: iconSizeMedium, color: Colors.green),
           title: Row(
             children: [
-              Text('Scouting Network Strength: '),
+              Text('Scouting Network Strength: ',
+                  style: TextStyle(fontSize: fontSizeMedium)),
               Text(
                 stringValueSeparated(club.clubData.scoutsWeight.round()),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
               ),
             ],
           ),
-          subtitle: const Text(
+          subtitle: Text(
             'Strength of the scouting network for searching young players',
-            style: styleItalicBlueGrey,
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
           ),
           shape: shapePersoRoundedBorder(),
           onTap: () async {
@@ -179,10 +189,11 @@ class ScoutsMainTab extends StatelessWidget {
                 color: club.clubData.scoutsWeight < _costForNewPlayer
                     ? Colors.orange
                     : Colors.green),
-            title: Text('Call the scouts !'),
+            title: Text('Call the scouts !',
+                style: TextStyle(fontSize: fontSizeLarge)),
             subtitle: Text(
               'Spend ${_costForNewPlayer.toString()} scouting strength to find a new player',
-              style: styleItalicBlueGrey,
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
             ),
             shape: shapePersoRoundedBorder(
                 club.clubData.scoutsWeight < _costForNewPlayer

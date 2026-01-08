@@ -170,27 +170,32 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
             Club club = snapshot.data!;
             return Scaffold(
               appBar: AppBar(
-                title: Text('TeamComps for season ${_seasonNumber}'),
+                title: Text('TeamComps for season ${_seasonNumber}',
+                    style: TextStyle(fontSize: fontSizeLarge)),
                 leading: goBackIconButton(context),
                 actions: [
                   if (_seasonNumber > 1)
                     IconButton(
+                      tooltip: 'Previous season',
                       onPressed: () {
                         setState(() {
                           _seasonNumber -=
                               1; // Modify the state variable instead of the widget property
                         });
                       },
-                      icon: Icon(Icons.arrow_circle_left, size: iconSizeSmall),
+                      icon: Icon(Icons.arrow_circle_left,
+                          size: iconSizeLarge, color: Colors.green),
                     ),
                   IconButton(
+                    tooltip: 'Next season',
                     onPressed: () {
                       setState(() {
                         _seasonNumber +=
                             1; // Modify the state variable instead of the widget property
                       });
                     },
-                    icon: Icon(Icons.arrow_circle_right, size: iconSizeSmall),
+                    icon: Icon(Icons.arrow_circle_right,
+                        size: iconSizeLarge, color: Colors.green),
                   ),
                 ],
               ), //Row presentation of the game
@@ -258,53 +263,52 @@ class _TeamCompsPageState extends State<TeamCompsPage> {
                                   ),
 
                             /// Season teamcomps
-                            Text('testTeamcomp'),
-                            // club.teamComps.length == 0
-                            //     ? Center(
-                            //         child: Text(
-                            //             'No teamcomps found for season $_seasonNumber...'))
-                            //     : DefaultTabController(
-                            //         length: club.teamComps
-                            //             .length, // Number of tabs for the outer TabController
-                            //         child: Column(
-                            //           crossAxisAlignment:
-                            //               CrossAxisAlignment.start,
-                            //           children: [
-                            //             TabBar(
-                            //               isScrollable: true,
-                            //               tabs: List<Widget>.generate(
-                            //                 club.teamComps.length,
-                            //                 (index) => Tab(
-                            //                   child: Text(
-                            //                     (index + 1).toString(),
-                            //                     style: TextStyle(
-                            //                         color:
-                            //                             // If played, show default color, if error == null show green, else show red
-                            //                             club.teamComps[index]
-                            //                                     .isPlayed
-                            //                                 ? null
-                            //                                 : club.teamComps[index]
-                            //                                             .errors ==
-                            //                                         null
-                            //                                     ? Colors.green
-                            //                                     : Colors.red),
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //             ),
-                            //             // Expanded(
-                            //             //   child: TabBarView(
-                            //             //     children: List<Widget>.generate(
-                            //             //         14,
-                            //             //         (index) => TeamCompWidget(
-                            //             //             teamComp:
-                            //             //                 club.teamComps[index])),
-                            //             //   ),
-                            //             // ),
-                            //             Text('testTeamcomp')
-                            //           ],
-                            //         ),
-                            //       ),
+                            club.teamComps.length == 0
+                                ? Center(
+                                    child: Text(
+                                        'No teamcomps found for season $_seasonNumber...'))
+                                : DefaultTabController(
+                                    length: club.teamComps
+                                        .length, // Number of tabs for the outer TabController
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        TabBar(
+                                          isScrollable: true,
+                                          tabs: List<Widget>.generate(
+                                            club.teamComps.length,
+                                            (index) => Tab(
+                                              child: Text(
+                                                (index + 1).toString(),
+                                                style: TextStyle(
+                                                    color:
+                                                        // If played, show default color, if error == null show green, else show red
+                                                        club.teamComps[index]
+                                                                .isPlayed
+                                                            ? null
+                                                            : club.teamComps[index]
+                                                                        .errors ==
+                                                                    null
+                                                                ? Colors.green
+                                                                : Colors.red),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: TabBarView(
+                                            children: List<Widget>.generate(
+                                                14,
+                                                (index) => TeamCompMainTab(
+                                                    context,
+                                                    currentUser,
+                                                    club.teamComps[index])),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                           ],
                         ),
                       )

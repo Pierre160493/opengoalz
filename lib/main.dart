@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:opengoalz/pages/splash_page.dart';
 import 'package:opengoalz/config/supabase_config.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding
@@ -49,11 +50,18 @@ class MyApp extends StatelessWidget {
       create: (_) => ThemeProvider(),
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            theme: getTheme(context, themeProvider.isDarkTheme),
-            title: 'OpenGoalz v$version',
-            home: SplashPage(),
+          return ScreenUtilInit(
+            designSize: Size(393, 852), // Samsung Galaxy S23 logical size
+            minTextAdapt: true,
+            splitScreenMode: true,
+            builder: (context, child) {
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                theme: getTheme(context, themeProvider.isDarkTheme),
+                title: 'OpenGoalz v$version',
+                home: SplashPage(),
+              );
+            },
           );
         },
       ),

@@ -209,7 +209,8 @@ END IF;
         expenses_won_available = expenses_won_available + expenses_payed,
         user_points_available = user_points_available + 2.0 * expenses_payed::NUMERIC / expenses_target
     WHERE id_multiverse = inp_multiverse.id
-    AND date_death IS NULL;
+    AND date_death IS NULL
+    AND id_club IS NOT NULL;
 
     -- Update the clubs revenues and expenses in the list
     UPDATE clubs SET

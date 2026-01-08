@@ -64,10 +64,21 @@ class Profile {
   Widget getUserName(BuildContext context) {
     return Row(
       children: [
-        Icon(iconUser, color: isConnectedUser ? colorIsSelected : Colors.blue),
-        formSpacer3,
-        Text(username),
-        formSpacer3,
+        Icon(iconUser,
+            color: isConnectedUser ? colorIsSelected : Colors.blue,
+            size: iconSizeLarge),
+        // formSpacer3,
+        Flexible(
+          child: Tooltip(
+            message: username,
+            child: Text(
+              username,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+              style: TextStyle(fontSize: fontSizeLarge),
+            ),
+          ),
+        ),
         // if (isConnectedUser)
         // Icon(isConnectedUser ? Icons.check_circle : Icons.portable_wifi_off,
         //     color: isConnectedUser ? Colors.green : Colors.red),
@@ -142,8 +153,8 @@ class Profile {
             Provider.of<ThemeProvider>(context, listen: false)
                 .setOtherThemeWhenSelectedUserIsNotConnectedUser(
                     Provider.of<UserSessionProvider>(context, listen: false)
-                            .user
-                            .isConnectedUser);
+                        .user
+                        .isConnectedUser);
 
             /// Launch UserPage Page
             Navigator.of(context)
@@ -172,9 +183,13 @@ Widget getUserName(BuildContext context, {String? userName, int? idClub}) {
 
   return Row(
     children: [
-      Icon(iconUser, color: isSelected ? colorIsSelected : Colors.blue),
+      Icon(
+        iconUser,
+        color: isSelected ? colorIsSelected : Colors.blue,
+        size: iconSizeSmall,
+      ),
       formSpacer3,
-      Text(userName),
+      Text(userName, style: TextStyle(fontSize: fontSizeSmall)),
       if (isSelected) // If the user is the connected user
         Icon(Icons.check_circle, color: Colors.green),
       if (!isSelected) // If the user is not the connected user

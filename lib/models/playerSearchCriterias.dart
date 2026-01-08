@@ -135,11 +135,14 @@ class PlayerSearchCriterias {
           children: [
             Text(
               'Age Range:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: fontSizeMedium),
             ),
             SizedBox(width: 12.0),
             Text(
-                '[${selectedMinAge.toString()} - ${selectedMaxAge.toString()}]'),
+              '[${selectedMinAge.toString()} - ${selectedMaxAge.toString()}]',
+              style: TextStyle(fontSize: fontSizeSmall),
+            ),
           ],
         ),
         subtitle: RangeSlider(
@@ -294,8 +297,7 @@ class PlayerSearchCriterias {
     final data = await query; // Now query includes the filter if it was applied
 
     // Extract the IDs and add them to the playerIds list
-    List<int> playerIds =
-        (data as List).map((item) => item['id'] as int).toList();
+    List<int> playerIds = (data).map((item) => item['id'] as int).toList();
 
     return playerIds;
   }

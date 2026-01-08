@@ -163,14 +163,16 @@ class _UserPageState extends State<UserPage> {
 
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(
+          color: Colors.green,
+        ),
         title: user.getUserName(context),
         actions: [
           /// Account deletion notice
           if (user.dateDelete != null)
             IconButton(
               tooltip: 'Account scheduled for deletion',
-              icon:
-                  Icon(Icons.warning, size: iconSizeMedium, color: Colors.red),
+              icon: Icon(Icons.warning, size: iconSizeLarge, color: Colors.red),
               onPressed: () {
                 _showAccountDeletionDialog(context, user);
               },
@@ -183,7 +185,7 @@ class _UserPageState extends State<UserPage> {
               Navigator.of(context).push(SettingsPage.route());
             },
             icon:
-                Icon(Icons.settings, size: iconSizeMedium, color: Colors.green),
+                Icon(Icons.settings, size: iconSizeLarge, color: Colors.green),
           ),
 
           /// Reload page button
@@ -200,8 +202,7 @@ class _UserPageState extends State<UserPage> {
                   .pushAndRemoveUntil(UserPage.route(), (route) => false);
               context.showSnackBarSuccess('User and Page reloaded');
             },
-            icon:
-                Icon(Icons.refresh, size: iconSizeMedium, color: Colors.green),
+            icon: Icon(Icons.refresh, size: iconSizeLarge, color: Colors.green),
           ),
           user.isConnectedUser
               ? mailToolTip(context, user)
@@ -213,7 +214,7 @@ class _UserPageState extends State<UserPage> {
                           idClub: user.selectedClub!.id,
                           username: user.username);
                     },
-                    icon: Icon(Icons.quick_contacts_mail, size: iconSizeMedium),
+                    icon: Icon(Icons.quick_contacts_mail, size: iconSizeLarge),
                   ),
                 ),
           user.isConnectedUser
@@ -231,7 +232,7 @@ class _UserPageState extends State<UserPage> {
                       }
                     },
                     icon: Icon(Icons.logout,
-                        size: iconSizeMedium, color: Colors.red),
+                        size: iconSizeLarge, color: Colors.red),
                   ),
                 )
               : Provider.of<UserSessionProvider>(context, listen: false)

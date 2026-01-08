@@ -14,11 +14,14 @@ Widget getScoreRowFromGame(Game game) {
       ],
     );
   else if (game.scoreLeft == null && game.scoreRight == null)
-    return Text('ERROR: Unknown left and right score of the game $game.id');
+    return Text('ERROR: Unknown left and right score of the game $game.id',
+        style: TextStyle(fontSize: fontSizeSmall));
   else if (game.scoreRight == null)
-    return Text('ERROR: Unknown left score of the game $game.id');
+    return Text('ERROR: Unknown left score of the game $game.id',
+        style: TextStyle(fontSize: fontSizeSmall));
   else if (game.scoreRight == null)
-    return Text('ERROR: Unknown right score of the game $game.id');
+    return Text('ERROR: Unknown right score of the game $game.id',
+        style: TextStyle(fontSize: fontSizeSmall));
 
   return getScoreRowFromScore(game.isLeftForfeit ? -1 : game.scoreLeft!,
       game.isRightForfeit ? -1 : game.scoreRight!, game.isCup,
@@ -112,7 +115,7 @@ Widget getScoreRowFromScore(
                   ? '0(F)'
                   : scoreLeft.toString(),
           style: TextStyle(
-            // color: scorePenaltyLeft == null ? colorLeftPenalty : null,
+            fontSize: fontSizeMedium,
             color: leftColor,
             fontWeight: FontWeight.bold,
           ),
@@ -121,18 +124,24 @@ Widget getScoreRowFromScore(
           Text(
             ' [${scorePenaltyLeft.toString()}]',
             style: TextStyle(
+              fontSize: fontSizeMedium,
               color: colorLeftPenalty,
               fontWeight: FontWeight.bold,
             ),
           ),
         Text(
           ' : ',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+          style: TextStyle(
+            fontSize: fontSizeMedium,
+            fontWeight: FontWeight.bold,
+            color: Colors.blueGrey,
+          ),
         ),
         if (scorePenaltyRight != null)
           Text(
             '[${scorePenaltyRight.toString()}] ',
             style: TextStyle(
+              fontSize: fontSizeMedium,
               color: colorRightPenalty,
               fontWeight: FontWeight.bold,
             ),
@@ -144,7 +153,7 @@ Widget getScoreRowFromScore(
                   ? '0(F)'
                   : scoreRight.toString(),
           style: TextStyle(
-            // color: scorePenaltyRight == null ? colorRightPenalty : null,
+            fontSize: fontSizeMedium,
             color: rightColor,
             fontWeight: FontWeight.bold,
           ),

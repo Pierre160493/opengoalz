@@ -29,17 +29,10 @@ class PlayerExpensesTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Color colorIfMissedExpenses =
-    //     player.expensesMissed > player.expensesExpected
-    //         ? Colors.red
-    //         : player.expensesMissed > 0
-    //             ? Colors.orange
-    //             : Colors.green;
     return ListTile(
       shape: shapePersoRoundedBorder(),
       leading: Icon(
         iconMoney,
-        // color: colorIfMissedExpenses,
         color: Colors.green,
         size: iconSizeMedium,
       ),
@@ -52,7 +45,10 @@ class PlayerExpensesTile extends StatelessWidget {
               children: [
                 Text(
                   player.expensesExpected.toString(),
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: fontSizeMedium,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -75,6 +71,7 @@ class PlayerExpensesTile extends StatelessWidget {
                     Text(
                       player.expensesMissed.toString(),
                       style: TextStyle(
+                        fontSize: fontSizeSmall,
                         fontWeight: FontWeight.bold,
                         color: Colors.red,
                       ),
@@ -86,6 +83,7 @@ class PlayerExpensesTile extends StatelessWidget {
                           Text(
                             '(${player.expensesMissedToPayInPriority.toString()})',
                             style: TextStyle(
+                              fontSize: fontSizeSmall,
                               fontWeight: FontWeight.bold,
                               color: Colors.orange,
                             ),
@@ -100,7 +98,7 @@ class PlayerExpensesTile extends StatelessWidget {
       ),
       subtitle: Text(
         'Weekly Expenses',
-        style: styleItalicBlueGrey,
+        style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
       ),
 
       /// Show missed expenses warning button if there are any

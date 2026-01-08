@@ -21,13 +21,14 @@ extension ClubWidgetHelper on Club {
             ? colorIsMine
             : colorDefault;
 
-    Text text = Text(
+    Widget text = Text(
       name,
       style: TextStyle(
         fontWeight: FontWeight.bold,
         color: color,
+        fontSize: fontSizeMedium,
       ),
-      overflow: TextOverflow.fade, // or TextOverflow.ellipsis
+      overflow: TextOverflow.ellipsis,
       maxLines: 1,
       softWrap: false,
     );
@@ -94,12 +95,12 @@ extension ClubWidgetHelper on Club {
         );
       },
       child: Row(children: [
-        Icon(iconLeague, color: Colors.green),
+        Icon(iconLeague, color: Colors.green, size: iconSizeSmall),
         formSpacer3,
         Text(
             positionWithIndex(clubData.posLeague) +
                 ' with ${clubData.leaguePoints} points',
-            style: styleItalicBlueGrey),
+            style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
       ]),
     );
   }
@@ -120,6 +121,7 @@ extension ClubWidgetHelper on Club {
           ? Text(
               'No last results',
               style: TextStyle(
+                fontSize: fontSizeSmall,
                 fontStyle: FontStyle.italic,
                 color:
                     Colors.blueGrey, // Replace "bluerey" with the desired color
@@ -170,28 +172,43 @@ extension ClubWidgetHelper on Club {
       }
     }
 
-    const boldTextStyle = TextStyle(fontWeight: FontWeight.bold);
-
     return Tooltip(
       message:
           'Last 10 results: $victories victories / $draws draws / $losses losses',
       child: Row(
         children: [
-          Icon(Icons.emoji_events, color: Colors.yellow),
+          Icon(
+            Icons.emoji_events,
+            size: iconSizeSmall,
+            color: Colors.yellow,
+          ),
           formSpacer3, // Assuming formSpacer3 is defined elsewhere
           Text(
             victories.toString(),
-            style: boldTextStyle.copyWith(color: Colors.green),
+            // style: boldTextStyle.copyWith(color: Colors.green),
+            style: TextStyle(
+              fontSize: fontSizeMedium,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
           ),
-          Text(' / '),
+          Text(' / ', style: TextStyle(fontSize: fontSizeMedium)),
           Text(
             draws.toString(),
-            style: boldTextStyle.copyWith(color: Colors.grey),
+            style: TextStyle(
+              fontSize: fontSizeMedium,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueGrey,
+            ),
           ),
-          Text(' / '),
+          Text(' / ', style: TextStyle(fontSize: fontSizeMedium)),
           Text(
             losses.toString(),
-            style: boldTextStyle.copyWith(color: Colors.red),
+            style: TextStyle(
+              fontSize: fontSizeMedium,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
           ),
         ],
       ),
@@ -210,6 +227,7 @@ extension ClubWidgetHelper on Club {
           Text(
             '${goalDifference > 0 ? '+' : ''}$goalDifference',
             style: TextStyle(
+              fontSize: fontSizeMedium,
               color: goalDifference > 0
                   ? Colors.green
                   : goalDifference == 0
@@ -218,43 +236,44 @@ extension ClubWidgetHelper on Club {
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(' ('), // Preserving original spacing
+          Text(' (', style: TextStyle(fontSize: fontSizeMedium)),
           Text(
             goalsFor.toString(),
             style: TextStyle(
+              fontSize: fontSizeMedium,
               color: Colors.green,
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text('/'),
+          Text('/', style: TextStyle(fontSize: fontSizeMedium)),
           Text(
             goalsAgainst.toString(),
             style: TextStyle(
+              fontSize: fontSizeMedium,
               color: Colors.red,
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(') '), // Preserving original spacing
-          Icon(Icons.sports_soccer, color: Colors.blueGrey),
+          Text(') ', style: TextStyle(fontSize: fontSizeMedium)),
+          Icon(Icons.sports_soccer,
+              size: iconSizeSmall, color: Colors.blueGrey),
         ],
       ),
     );
   }
 
   Widget getQuickAccessWidget(BuildContext context, Profile user) {
-    double containerWidth = 80;
-    double containerImgRadius = 24;
+    // Use icon and font size constants for scalable, consistent sizing
+    double containerWidth = iconSizeLarge * 2.6;
+    double containerImgRadius = iconSizeMedium * 0.8;
     return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
       /// Players box
       Container(
-        width: containerWidth, // Fixed width for each tile
-        height: containerWidth, // Fixed height for each tile
+        width: containerWidth,
+        height: containerWidth,
         decoration: BoxDecoration(
-          borderRadius:
-              BorderRadius.circular(6), // Adjust border radius as needed
-          border: Border.all(
-            color: Colors.green, // Border color
-          ),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: Colors.green),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -274,63 +293,52 @@ extension ClubWidgetHelper on Club {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Text(user.selectedClub!.numberPlayers.toString(),
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(' Players'),
+                  Text(
+                    user.selectedClub!.numberPlayers.toString(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: fontSizeSmall,
+                    ),
+                  ),
+                  Text(
+                    ' Players',
+                    style: TextStyle(fontSize: fontSizeSmall),
+                  ),
                 ],
               ),
             ),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              /// Favorite icon button for opening scouts page
-              SizedBox(
-                width: iconSizeSmall * 1.5,
-                height: iconSizeSmall * 1.5,
-                child: IconButton(
-                  tooltip:
-                      '${user.selectedClub!.playersFavorite.length} Favorite Players',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ScoutsPage(
-                            initialTab: ScoutsPageTab.followedPlayers),
-                      ),
-                    );
-                  },
-                  icon: Icon(iconFavorite,
-                      color: Colors.red, size: iconSizeSmall),
-                ),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+              IconButton(
+                tooltip:
+                    '${user.selectedClub!.playersFavorite.length} Favorite Players',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ScoutsPage(initialTab: ScoutsPageTab.followedPlayers),
+                    ),
+                  );
+                },
+                icon:
+                    Icon(iconFavorite, color: Colors.red, size: iconSizeSmall),
               ),
-
-              /// Poaching icon button for opening scouts page
-              SizedBox(
-                width: iconSizeSmall * 1.5,
-                height: iconSizeSmall * 1.5,
-                child: IconButton(
-                  tooltip:
-                      '${user.selectedClub!.playersPoached.length} Poached Players',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ScoutsPage(
-                            initialTab: ScoutsPageTab.poachedPlayers),
-                      ),
-                    );
-                  },
-                  icon: Icon(iconPoaching,
-                      color: Colors.red, size: iconSizeSmall),
-                ),
+              IconButton(
+                tooltip:
+                    '${user.selectedClub!.playersPoached.length} Poached Players',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ScoutsPage(initialTab: ScoutsPageTab.poachedPlayers),
+                    ),
+                  );
+                },
+                icon:
+                    Icon(iconPoaching, color: Colors.red, size: iconSizeSmall),
               ),
             ]),
-
-            // CircleAvatar(
-            //   radius: containerImgRadius,
-            //   child: Icon(
-            //     iconPlayers,
-            //     size: containerImgRadius,
-            //   ),
-            // ),
           ],
         ),
       ),
@@ -350,24 +358,21 @@ extension ClubWidgetHelper on Club {
             );
           },
           child: Container(
-            width: containerWidth, // Fixed width for each tile
-            height: containerWidth, // Fixed height for each tile
+            width: containerWidth,
+            height: containerWidth,
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(6), // Adjust border radius as needed
-              border: Border.all(
-                color: Colors.green, // Border color
-              ),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.green),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Transfers'),
+                Text('Transfers', style: TextStyle(fontSize: fontSizeSmall)),
                 CircleAvatar(
                   radius: containerImgRadius,
                   child: Icon(
                     iconTransfers,
-                    size: containerImgRadius,
+                    size: iconSizeMedium,
                   ),
                 ),
               ],
@@ -392,24 +397,21 @@ extension ClubWidgetHelper on Club {
             );
           },
           child: Container(
-            width: containerWidth, // Fixed width for each tile
-            height: containerWidth, // Fixed height for each tile
+            width: containerWidth,
+            height: containerWidth,
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(6), // Adjust border radius as needed
-              border: Border.all(
-                color: Colors.green, // Border color
-              ),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.green),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Games'),
+                Text('Games', style: TextStyle(fontSize: fontSizeSmall)),
                 CircleAvatar(
                   radius: containerImgRadius,
                   child: Icon(
                     iconGames,
-                    size: containerImgRadius,
+                    size: iconSizeMedium,
                   ),
                 ),
               ],
@@ -434,24 +436,21 @@ extension ClubWidgetHelper on Club {
             );
           },
           child: Container(
-            width: containerWidth, // Fixed width for each tile
-            height: containerWidth, // Fixed height for each tile
+            width: containerWidth,
+            height: containerWidth,
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(6), // Adjust border radius as needed
-              border: Border.all(
-                color: Colors.green, // Border color
-              ),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.green),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('League'),
+                Text('League', style: TextStyle(fontSize: fontSizeSmall)),
                 CircleAvatar(
                   radius: containerImgRadius,
                   child: Icon(
                     iconLeague,
-                    size: containerImgRadius,
+                    size: iconSizeMedium,
                   ),
                 ),
               ],

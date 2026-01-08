@@ -157,9 +157,10 @@ class LeaguePageStatsTab extends StatelessWidget {
                         : Colors.blue,
             child: Text(
               '${rank}.',
-              style: TextStyle(color: Colors.black
-                  // , fontSize: 24
-                  ),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: fontSizeLarge,
+                  fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -184,7 +185,10 @@ class LeaguePageStatsTab extends StatelessWidget {
             backgroundColor: Colors.blueGrey, // Set the background color,
             child: Text(
               '${entry.value}',
-              style: TextStyle(color: Colors.black),
+              style: TextStyle(
+                  fontSize: fontSizeLarge,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
             ),
           ),
         );
