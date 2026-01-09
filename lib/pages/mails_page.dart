@@ -72,8 +72,9 @@ class _MailsPageState extends State<MailsPage> {
             leading: goBackIconButton(context),
             actions: [
               IconButton(
+                tooltip: 'Filter mails',
                 icon: Icon(
-                  Icons.filter_list,
+                  Icons.filter_list, size: iconSizeLarge,
                   color: _areAllFiltersTrue() ? Colors.green : Colors.orange,
                 ),
                 onPressed: () async {

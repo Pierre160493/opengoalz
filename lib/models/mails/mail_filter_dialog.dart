@@ -28,7 +28,7 @@ Future<void> showMailFilterDialog(
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Text('Filter Mails'),
+            title: Text('Filter Mails', style: TextStyle(fontSize: fontSizeLarge, fontWeight: FontWeight.bold)),
             content: Container(
               width: maxWidth * 0.8, // Set the desired width here
               child: Column(
@@ -50,10 +50,11 @@ Future<void> showMailFilterDialog(
                                 color: _filterGameResult
                                     ? Colors.green
                                     : Colors.red,
+                                fontSize: fontSizeMedium,
                               ),
                             ),
                             formSpacer6,
-                            Text('Game Result'),
+                            Text('Game Result', style: TextStyle(fontSize: fontSizeMedium)),
                           ],
                         ),
                         Checkbox(
@@ -139,10 +140,11 @@ Future<void> showMailFilterDialog(
                                 color: _filterTransferInfo
                                     ? Colors.green
                                     : Colors.red,
+                                fontSize: fontSizeMedium,
                               ),
                             ),
                             formSpacer6,
-                            Text('Transfer Info'),
+                            Text('Transfer Info', style: TextStyle(fontSize: fontSizeMedium)),
                           ],
                         ),
                         Checkbox(
@@ -228,10 +230,11 @@ Future<void> showMailFilterDialog(
                                 color: _filterSeasonInfo
                                     ? Colors.green
                                     : Colors.red,
+                                fontSize: fontSizeMedium,
                               ),
                             ),
                             formSpacer6,
-                            Text('Season Info'),
+                            Text('Season Info', style: TextStyle(fontSize: fontSizeMedium)),
                           ],
                         ),
                         Checkbox(
@@ -316,10 +319,11 @@ Future<void> showMailFilterDialog(
                                 fontWeight: FontWeight.bold,
                                 color:
                                     _filterClubInfo ? Colors.green : Colors.red,
+                                fontSize: fontSizeMedium,
                               ),
                             ),
                             formSpacer6,
-                            Text('Club Info'),
+                            Text('Club Info', style: TextStyle(fontSize: fontSizeMedium)),
                           ],
                         ),
                         Checkbox(
@@ -409,7 +413,7 @@ Future<void> showMailFilterDialog(
                       children: [
                         Icon(Icons.done_all, color: Colors.green),
                         formSpacer3,
-                        Text('Set all filters'),
+                        Text('Set all filters', style: TextStyle(fontSize: fontSizeMedium)),
                       ],
                     ),
                   ),
@@ -421,7 +425,7 @@ Future<void> showMailFilterDialog(
                       children: [
                         Icon(iconSuccessfulOperation, color: Colors.green),
                         formSpacer3,
-                        Text('Apply'),
+                        Text('Apply', style: TextStyle(fontSize: fontSizeMedium)),
                       ],
                     ),
                   ),
