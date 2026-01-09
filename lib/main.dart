@@ -3,7 +3,6 @@ import 'package:opengoalz/app_theme.dart';
 import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 
@@ -12,11 +11,10 @@ import 'package:opengoalz/config/supabase_config.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding
-      .ensureInitialized(); // Ensure WidgetsBinding is initialized
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure WidgetsBinding is initialized
 
-  await dotenv.load(fileName: ".env");
 
+  // Use centralized SupabaseConfig for environment variables
   await Supabase.initialize(
     url: SupabaseConfig.supabaseUrl,
     anonKey: SupabaseConfig.supabaseKey,
