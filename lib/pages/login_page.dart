@@ -147,7 +147,9 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: Center(
             child: Text(
-                'Welcome to $appName ! Login to manage your club and players')),
+          'Welcome to $appName ! Login to manage your club and players',
+          style: TextStyle(fontSize: fontSizeLarge),
+        )),
       ),
       body: MaxWidthContainer(
         child: ListView(
@@ -160,7 +162,9 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _inputController,
                   decoration: InputDecoration(
                     labelText: 'Email or Username',
+                    labelStyle: TextStyle(fontSize: fontSizeMedium),
                   ),
+                  style: TextStyle(fontSize: fontSizeMedium),
                   keyboardType: TextInputType.emailAddress,
                 )),
               ],
@@ -168,7 +172,11 @@ class _LoginPageState extends State<LoginPage> {
             formSpacer6,
             TextFormField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
+              decoration: InputDecoration(
+                labelText: 'Password',
+                labelStyle: TextStyle(fontSize: fontSizeMedium),
+              ),
+              style: TextStyle(fontSize: fontSizeMedium),
               obscureText: true,
               onFieldSubmitted: (value) {
                 if (!_isLoading) {
@@ -186,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     const Icon(Icons.login),
                     formSpacer6,
-                    const Text('Login'),
+                    Text('Login', style: TextStyle(fontSize: fontSizeMedium)),
                   ],
                 ),
               ),
@@ -195,12 +203,12 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () {
                 Navigator.of(context).push(RegisterPage.route());
               },
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.person_add),
                   formSpacer6,
-                  const Text('I don\'t have an account'),
+                  Text("I don't have an account", style: TextStyle(fontSize: fontSizeSmall)),
                 ],
               ),
             ),
@@ -211,12 +219,12 @@ class _LoginPageState extends State<LoginPage> {
                 context.showSnackBarError(
                     'This feature is not implemented yet.'); // TODO: Implement reset password
               },
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.lock_open),
                   formSpacer6,
-                  const Text('Forgot Password ?'),
+                  Text('Forgot Password ?', style: TextStyle(fontSize: fontSizeSmall)),
                 ],
               ),
             ),

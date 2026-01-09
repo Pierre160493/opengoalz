@@ -129,7 +129,7 @@ class _UserPageState extends State<UserPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('User not found, please try again'),
+            Text('User not found, please try again', style: TextStyle(fontSize: fontSizeMedium)),
             formSpacer12,
             ElevatedButton(
               onPressed: () async {
@@ -139,7 +139,7 @@ class _UserPageState extends State<UserPage> {
                   (route) => false,
                 );
               },
-              child: const Text('Reset App'),
+              child: Text('Reset App', style: TextStyle(fontSize: fontSizeMedium)),
             ),
           ],
         ),
@@ -293,9 +293,11 @@ class _UserPageState extends State<UserPage> {
       builder: (BuildContext context) {
         return persoAlertDialogWithConstrainedContent(
           title: ListTile(
-            leading: Icon(Icons.warning, color: Colors.red),
+            leading: Icon(Icons.warning, color: Colors.red, size: iconSizeLarge),
             title: Text(
-                'Account scheduled for deletion on ${formatDate(user.dateDelete!)}.'),
+              'Account scheduled for deletion on ${formatDate(user.dateDelete!)}.',
+              style: TextStyle(fontSize: fontSizeMedium, fontWeight: FontWeight.bold),
+            ),
             subtitle: tickingTimeWidget(user.dateDelete!),
             shape: shapePersoRoundedBorder(),
           ),
@@ -309,18 +311,18 @@ class _UserPageState extends State<UserPage> {
                   TextButton(
                     onPressed: () async {
                       bool cancelConfirmed = await context.showConfirmationDialog(
-                          'Are you sure you want to cancel the account deletion?');
+                        'Are you sure you want to cancel the account deletion?');
                       if (cancelConfirmed == true) {
                         /// Cancel deletion by setting date_delete to null
                         await operationInDB(context, 'UPDATE', 'profiles',
-                            data: {
-                              'date_delete': null, // Cancel the deletion
-                            },
-                            matchCriteria: {
-                              'uuid_user': supabase.auth.currentUser!.id
-                            },
-                            messageSuccess:
-                                'Account deletion cancelled successfully. Glad to have you back!');
+                          data: {
+                            'date_delete': null, // Cancel the deletion
+                          },
+                          matchCriteria: {
+                            'uuid_user': supabase.auth.currentUser!.id
+                          },
+                          messageSuccess:
+                            'Account deletion cancelled successfully. Glad to have you back!');
 
                         await supabase.auth.signOut(); // Sign out the user
                         Navigator.of(context).pushAndRemoveUntil(
@@ -341,7 +343,13 @@ class _UserPageState extends State<UserPage> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: persoValidRow('Ok'),
+                  child: Row(
+                    children: [
+                      Icon(iconSuccessfulOperation, size: iconSizeMedium, color: Colors.green),
+                      formSpacer3,
+                      Text('Ok', style: TextStyle(fontSize: fontSizeMedium)),
+                    ],
+                  ),
                 ),
               ],
             ),

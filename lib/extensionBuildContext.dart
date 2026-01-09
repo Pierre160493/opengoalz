@@ -55,17 +55,18 @@ extension ConfirmationDialog on BuildContext {
           builder: (BuildContext context) {
             return AlertDialog(
               // title: Text('Confirmation'),
-              content: Text(text),
+              content: Text(text, style: TextStyle(fontSize: fontSizeMedium)),
               actions: <Widget>[
                 TextButton(
                   child: Row(
                     children: [
                       Icon(
                         iconSuccessfulOperation,
+                        size: iconSizeMedium,
                         color: Colors.green,
                       ),
-                      SizedBox(width: 3.0),
-                      Text('Confirm'),
+                      formSpacer3,
+                      Text('Confirm', style: TextStyle(fontSize: fontSizeMedium)),
                     ],
                   ),
                   onPressed: () {
