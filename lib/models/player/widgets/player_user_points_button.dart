@@ -15,7 +15,7 @@ class PlayerUserPointsButton extends StatelessWidget {
       tooltip: 'Use training points',
       icon: Icon(
         iconStats,
-        // size: iconSizeMedium,
+        size: iconSizeLarge,
         color: colorIsMine,
       ),
       onPressed: () {

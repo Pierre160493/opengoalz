@@ -19,7 +19,7 @@ class PlayerEmbodiedOffersButton extends StatelessWidget {
       tooltip: 'Embodied player offers',
       icon: Icon(
         Icons.description,
-        // size: iconSizeMedium,
+        size: iconSizeLarge,
         color: player.isEmbodiedByCurrentUser ? colorIsMine : Colors.green,
       ),
       onPressed: () {

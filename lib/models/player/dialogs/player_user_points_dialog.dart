@@ -52,7 +52,10 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
   @override
   Widget build(BuildContext context) {
     return persoAlertDialogWithConstrainedContent(
-      title: Text('Use training points for ${widget.player.getFullName()}'),
+      title: Text(
+        'Use training points for ${widget.player.getFullName()}',
+        style: TextStyle(fontSize: fontSizeLarge),
+      ),
       content: Column(
         children: [
           /// Display the current user points available
@@ -66,24 +69,26 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
               children: [
                 Text(
                   userPointsAvailable.toString(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: fontSizeMedium,
                   ),
                 ),
                 if (userPointsUsed > 0)
                   Text(
                     ' (-$userPointsUsed)',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red,
                       fontStyle: FontStyle.italic,
+                      fontSize: fontSizeSmall,
                     ),
                   ),
               ],
             ),
             subtitle: Text(
               'Number of user training points available',
-              style: styleItalicBlueGrey,
+              style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall),
             ),
             shape: shapePersoRoundedBorder(),
           ),
@@ -105,20 +110,25 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
                 children: [
                   Row(
                     children: [
-                      Text('$statName: '),
+                      Text(
+                        '$statName: ',
+                        style: TextStyle(fontSize: fontSizeSmall),
+                      ),
                       Text(
                         value.toStringAsFixed(1),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          fontSize: fontSizeSmall,
                         ),
                       ),
                       if (increase > 0)
                         Text(
                           ' (+$increase)',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.green,
                             fontStyle: FontStyle.italic,
+                            fontSize: fontSizeSmall,
                           ),
                         ),
                     ],
@@ -127,6 +137,7 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
                     children: [
                       /// Decrease button
                       IconButton(
+                        tooltip: 'Decrease $statName',
                         icon: Icon(Icons.remove,
                             color: increase > 0 ? Colors.red : Colors.grey),
                         onPressed: increase > 0
@@ -145,6 +156,7 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
 
                       /// Increase button
                       IconButton(
+                        tooltip: 'Increase $statName',
                         icon: Icon(Icons.add,
                             color: userPointsAvailable > 0
                                 ? Colors.green
@@ -203,53 +215,55 @@ class _PlayerUserPointsDialogState extends State<PlayerUserPointsDialog> {
             ),
 
             /// Reset button
-            TextButton(
-              child: persoRowWithIcon(
-                Icons.refresh,
-                'Reset',
-                color: Colors.orange,
+            if (userPointsUsed > 0)
+              TextButton(
+                child: persoRowWithIcon(
+                  Icons.refresh,
+                  'Reset',
+                  color: Colors.orange,
+                ),
+                onPressed: userPointsUsed > 0
+                    ? () {
+                        setState(() {
+                          _initializeStats(); // Reset stats to initial values
+                        });
+                      }
+                    : null,
               ),
-              onPressed: userPointsUsed > 0
-                  ? () {
-                      setState(() {
-                        _initializeStats(); // Reset stats to initial values
-                      });
-                    }
-                  : null,
-            ),
 
             /// Confirm button
-            TextButton(
-              child: persoValidRow('Confirm using $userPointsUsed points'),
-              onPressed: userPointsUsed > 0
-                  ? () async {
-                      // Prepare the array of increases in the correct order
-                      final List<int> increases = [
-                        playerStats['Keeper']!['increase']!.toInt(),
-                        playerStats['Defense']!['increase']!.toInt(),
-                        playerStats['Passes']!['increase']!.toInt(),
-                        playerStats['Playmaking']!['increase']!.toInt(),
-                        playerStats['Winger']!['increase']!.toInt(),
-                        playerStats['Scoring']!['increase']!.toInt(),
-                        playerStats['Freekick']!['increase']!.toInt(),
-                      ];
+            if (userPointsUsed > 0)
+              TextButton(
+                child: persoValidRow('Confirm using $userPointsUsed points'),
+                onPressed: userPointsUsed > 0
+                    ? () async {
+                        // Prepare the array of increases in the correct order
+                        final List<int> increases = [
+                          playerStats['Keeper']!['increase']!.toInt(),
+                          playerStats['Defense']!['increase']!.toInt(),
+                          playerStats['Passes']!['increase']!.toInt(),
+                          playerStats['Playmaking']!['increase']!.toInt(),
+                          playerStats['Winger']!['increase']!.toInt(),
+                          playerStats['Scoring']!['increase']!.toInt(),
+                          playerStats['Freekick']!['increase']!.toInt(),
+                        ];
 
-                      bool isOk = await operationInDB(
-                        context,
-                        'FUNCTION',
-                        'players_increase_stats_from_training_points',
-                        data: {
-                          'inp_id_player': widget.player.id,
-                          'inp_increase_points': increases,
-                          'inp_user_uuid': supabase.auth.currentUser!.id,
-                        },
-                        messageSuccess:
-                            'Successfully used $userPointsUsed training points for ${widget.player.getFullName()}',
-                      );
-                      if (isOk) Navigator.of(context).pop();
-                    }
-                  : null,
-            )
+                        bool isOk = await operationInDB(
+                          context,
+                          'FUNCTION',
+                          'players_increase_stats_from_training_points',
+                          data: {
+                            'inp_id_player': widget.player.id,
+                            'inp_increase_points': increases,
+                            'inp_user_uuid': supabase.auth.currentUser!.id,
+                          },
+                          messageSuccess:
+                              'Successfully used $userPointsUsed training points for ${widget.player.getFullName()}',
+                        );
+                        if (isOk) Navigator.of(context).pop();
+                      }
+                    : null,
+              )
           ],
         ),
       ],
