@@ -30,18 +30,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_svg: ^1.0.0
+  flutter_svg: ^2.2.3
   cupertino_icons: ^1.0.2
   supabase_flutter: ^2.3.4
-  flutter_dotenv: ^5.1.0
+  flutter_dotenv: ^6.0.0
   timeago: ^3.6.1
   flutter_radar_chart: ^0.2.1
-  intl: ^0.19.0
+  intl: ^0.20.2
   provider: ^6.1.2
   flutter_screenutil: ^5.9.0
-  fl_chart: ^0.66.2
-  fluttertoast: ^8.2.4
-  country_flags: ^3.0.0
+  fl_chart: ^1.1.1
+  fluttertoast: ^9.0.0
+  country_flags: ^4.1.1
   table_calendar: ^3.1.2
   quiver: ^3.2.2
   timeline_tile: ^2.0.0
@@ -49,7 +49,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter_launcher_icons:
   android: "launcher_icon"
