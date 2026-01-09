@@ -127,6 +127,7 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
                   ? TextField(
                       onChanged: _updateSearchQuery,
                       autofocus: true,
+                      style: TextStyle(fontSize: fontSizeLarge),
                       decoration: InputDecoration(
                         hintText: 'Search countries...',
                         border: InputBorder.none,
@@ -138,19 +139,22 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
                         onTap: () {
                           _startSearch();
                         },
-                        child: Text('Countries'),
+                        child: Text('Countries',
+                            style: TextStyle(fontSize: fontSizeLarge)),
                       ),
                     ),
               actions: [
                 _isSearching
                     ? IconButton(
                         tooltip: 'Clear Search',
-                        icon: Icon(Icons.clear),
+                        icon: Icon(Icons.clear,
+                            size: iconSizeLarge, color: Colors.red),
                         onPressed: _stopSearch,
                       )
                     : IconButton(
                         tooltip: 'Search Countries',
-                        icon: Icon(Icons.search),
+                        icon: Icon(Icons.search,
+                            size: iconSizeLarge, color: Colors.green),
                         onPressed: _startSearch,
                       ),
               ],
@@ -160,7 +164,7 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(6.0),
                     child: DropdownButton<String>(
                       value: _selectedContinent,
                       onChanged: (String? newValue) {
@@ -175,12 +179,14 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
                           child: Row(
                             children: [
                               Icon(Icons.flag,
+                                  size: iconSizeMedium,
                                   color: continent == 'Others'
                                       ? Colors.red
                                       : Colors.green),
                               SizedBox(width: 8),
                               Text(
-                                  '$continent (${countriesByContinent[continent]!.length})'),
+                                  '$continent (${countriesByContinent[continent]!.length})',
+                                  style: TextStyle(fontSize: fontSizeMedium)),
                             ],
                           ),
                         );
@@ -197,16 +203,24 @@ class _CountriesSelectionPageState extends State<CountriesSelectionPage> {
                         return ListTile(
                           leading: getCountryFlag(country.iso2),
                           title: Text(country.name,
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                              style: TextStyle(
+                                  fontSize: fontSizeMedium,
+                                  fontWeight: FontWeight.bold)),
                           subtitle: Row(
                             children: [
                               if (country.localName == null)
                                 Text(
-                                    'No local name found, please tell us what you call your country !'),
+                                    'No local name found, please tell us what you call your country !',
+                                    style: TextStyle(
+                                      fontSize: fontSizeSmall,
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.red,
+                                    )),
                               if (country.localName != null)
                                 Text(
                                   country.localName!,
                                   style: TextStyle(
+                                    fontSize: fontSizeSmall,
                                     fontStyle: FontStyle.italic,
                                     color: Colors.blueGrey,
                                   ),

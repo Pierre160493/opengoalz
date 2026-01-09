@@ -113,10 +113,10 @@ class CountryFlagWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CountryFlag.fromCountryCode(
-      shape: shape,
+      // shape: shape,
       countryCode,
-      width: width,
-      height: height,
+      // width: width,
+      // height: height,
     );
   }
 }
