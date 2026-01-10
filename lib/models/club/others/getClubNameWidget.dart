@@ -49,8 +49,9 @@ class ClubNameClickable extends StatelessWidget {
   Widget _buildNoClubWidget() {
     return Row(
       children: [
-        Icon(iconClub),
-        Text(' No Club'),
+        Icon(iconClub, size: iconSizeSmall, color: Colors.orange),
+        Text(' No Club',
+            style: TextStyle(fontSize: fontSizeMedium, color: Colors.orange)),
       ],
     );
   }
