@@ -8,13 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final supabase = Supabase.instance.client;
 
 /// App Name
-// const appName = 'OpenGoalZ';
 const appName = 'OpenGoalZ';
-
-/// App Bar Text
-// const appBarTxt = '$appName: The Open Source Football Manager Game';
-const appBarTxt = appName;
-// const appBarTxt = '$appName: AppBarTxt';
 
 /// Simple preloader inside a Center widget
 const preloader = Center(child: CircularProgressIndicator(color: Colors.green));
