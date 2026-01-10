@@ -1,14 +1,17 @@
 # PowerShell script to read .env and run Flutter with --dart-define
-# Usage: powershell -ExecutionPolicy Bypass -File run_flutter.ps1 [-Device windows|chrome] [-- <extra flutter args>]
+# Usage: .\run_flutter.ps1 [-Device windows|chrome] [-- <extra flutter args>]
 
 param(
-    [string]$Device = "windows",
-    [Parameter(ValueFromRemainingArguments = $true)]
-    [string[]]$ExtraArgs
+    [string]$Device = "windows"
 )
+
 
 # Path to your .env file
 $envFile = ".env"
+if (-not (Test-Path $envFile)) {
+    Write-Error ".env file not found. Please create a .env file in the project root containing key=value pairs.\nRequired variables:\nSUPABASE_URL=\nSUPABASE_KEY="
+    exit 1
+}
 
 # Read .env file and extract variables
 $envVars = Get-Content $envFile | Where-Object { $_ -match "^\s*\w+=" } | ForEach-Object {
@@ -20,6 +23,6 @@ $envVars = Get-Content $envFile | Where-Object { $_ -match "^\s*\w+=" } | ForEac
 $dartDefines = ($envVars | ForEach-Object { "--dart-define=$($_.Key)=$($_.Value)" }) -join ' '
 
 # Build the flutter run command
-$cmd = "flutter run -d $Device $dartDefines $($ExtraArgs -join ' ')"
+$cmd = "flutter run -d $Device $dartDefines"
 Write-Host "Running: flutter run -d $Device with --dart-define arguments from .env (values hidden)"
 Invoke-Expression $cmd
