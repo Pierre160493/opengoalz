@@ -2,8 +2,10 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.8
--- Dumped by pg_dump version 17.4
+\restrict fY6T5xXYmZuy43MhlCgp20Mwd8FDtnebL8Nn0JgdXyTNzmyEW82wCCRR5nahvC6
+
+-- Dumped from database version 17.6
+-- Dumped by pg_dump version 18.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -178,20 +180,6 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
--- Name: pgjwt; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS pgjwt WITH SCHEMA extensions;
-
-
---
--- Name: EXTENSION pgjwt; Type: COMMENT; Schema: -; Owner: 
---
-
-COMMENT ON EXTENSION pgjwt IS 'JSON Web Token API for Postgresql';
-
-
---
 -- Name: supabase_vault; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -270,6 +258,55 @@ CREATE TYPE auth.factor_type AS ENUM (
 ALTER TYPE auth.factor_type OWNER TO supabase_auth_admin;
 
 --
+-- Name: oauth_authorization_status; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TYPE auth.oauth_authorization_status AS ENUM (
+    'pending',
+    'approved',
+    'denied',
+    'expired'
+);
+
+
+ALTER TYPE auth.oauth_authorization_status OWNER TO supabase_auth_admin;
+
+--
+-- Name: oauth_client_type; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TYPE auth.oauth_client_type AS ENUM (
+    'public',
+    'confidential'
+);
+
+
+ALTER TYPE auth.oauth_client_type OWNER TO supabase_auth_admin;
+
+--
+-- Name: oauth_registration_type; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TYPE auth.oauth_registration_type AS ENUM (
+    'dynamic',
+    'manual'
+);
+
+
+ALTER TYPE auth.oauth_registration_type OWNER TO supabase_auth_admin;
+
+--
+-- Name: oauth_response_type; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TYPE auth.oauth_response_type AS ENUM (
+    'code'
+);
+
+
+ALTER TYPE auth.oauth_response_type OWNER TO supabase_auth_admin;
+
+--
 -- Name: one_time_token_type; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -322,6 +359,20 @@ CREATE TYPE public.game_context AS (
 
 
 ALTER TYPE public.game_context OWNER TO postgres;
+
+--
+-- Name: transfer_status; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.transfer_status AS ENUM (
+    'Asked to leave',
+    'Fired',
+    'Transfered',
+    'Free Player'
+);
+
+
+ALTER TYPE public.transfer_status OWNER TO postgres;
 
 --
 -- Name: action; Type: TYPE; Schema: realtime; Owner: supabase_admin
@@ -397,6 +448,19 @@ CREATE TYPE realtime.wal_rls AS (
 
 
 ALTER TYPE realtime.wal_rls OWNER TO supabase_admin;
+
+--
+-- Name: buckettype; Type: TYPE; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TYPE storage.buckettype AS ENUM (
+    'STANDARD',
+    'ANALYTICS',
+    'VECTOR'
+);
+
+
+ALTER TYPE storage.buckettype OWNER TO supabase_storage_admin;
 
 --
 -- Name: email(); Type: FUNCTION; Schema: auth; Owner: supabase_auth_admin
@@ -800,6 +864,7 @@ COMMENT ON FUNCTION extensions.set_graphql_placeholder() IS 'Reintroduces placeh
 
 CREATE FUNCTION pgbouncer.get_auth(p_usename text) RETURNS TABLE(username text, password text)
     LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
     AS $_$
   BEGIN
       RAISE DEBUG 'PgBouncer auth request: %', p_usename;
@@ -858,34 +923,40 @@ ALTER FUNCTION public.clamp(value double precision, min_value double precision, 
 CREATE PROCEDURE public.clean_data()
     LANGUAGE plpgsql
     AS $$
-DECLARE
-    rec_multiverse RECORD; -- Record for the multiverses loop
 BEGIN
 
-    FOR rec_multiverse IN (
-        SELECT * FROM multiverses
-        ORDER BY id
-    )
-    LOOP
-    
-        -- Clean the old games
-        DELETE FROM games WHERE id_multiverse = rec_multiverse.id AND season_number < rec_multiverse.season_number - 30;
+    -- Clean the old games
+    DELETE FROM games g
+    WHERE g.season_number < (
+        SELECT m.season_number - 30 FROM multiverses m WHERE m.id = g.id_multiverse
+    );
 
-        -- -- Delete the old games_teamcomp ==> games_orders
-        -- DELETE FROM games_teamcomp
-        -- USING clubs
-        -- WHERE games_teamcomp.id_club = clubs.id
-        -- AND clubs.id_multiverse = inp_multiverse_id
-        -- AND games_teamcomp.season_number < (SELECT season_number FROM multiverses WHERE id = inp_multiverse_id) - 30
-        -- AND games_teamcomp.season_number > 0;
+    -- Delete the game_player_stats_all because it takes too much space
+    DELETE FROM game_player_stats_all gpsa
+    WHERE gpsa.id_game IN (
+        SELECT g.id FROM games g
+        WHERE g.season_number < (
+            SELECT m.season_number FROM multiverses m WHERE m.id = g.id_multiverse
+        )
+    );
 
-        -- Delete the game_player_stats_all because it takes too much space
-        DELETE FROM game_player_stats_all WHERE id_game IN (
-            SELECT id FROM games 
-            WHERE id_multiverse = rec_multiverse.id
-            AND season_number < rec_multiverse.season_number); -- Keep only last season stats
-    
-    END LOOP;
+    -- Delete old data from clubs
+    DELETE FROM clubs_history_weekly chw
+    WHERE chw.season_number < (
+        SELECT m.season_number - 30
+        FROM clubs c
+        JOIN multiverses m ON c.id_multiverse = m.id
+        WHERE c.id = chw.id_club
+    );
+
+    -- Delete old data from players
+    DELETE FROM players_history_stats phs
+    WHERE phs.season_number < (
+        SELECT m.season_number - 30
+        FROM players p
+        JOIN multiverses m ON p.id_multiverse = m.id
+        WHERE p.id = phs.id_player
+    );
 
     -- Delete mails that must be deleted
     DELETE FROM mails WHERE now() > date_delete;
@@ -903,7 +974,7 @@ BEGIN
         SELECT id
         FROM ranked_mails
         WHERE rn > 900
-    );    
+    );
 
     ------ Delete the players poaching
     DELETE FROM players_poaching
@@ -918,11 +989,127 @@ BEGIN
         WHERE NOW() >= date_delete
     );
 
+    ------ Delete multiverses scheduled for deletion
+    CALL clean_multiverse_to_delete();
+
 END;
 $$;
 
 
 ALTER PROCEDURE public.clean_data() OWNER TO postgres;
+
+--
+-- Name: clean_multiverse_to_delete(); Type: PROCEDURE; Schema: public; Owner: postgres
+--
+
+CREATE PROCEDURE public.clean_multiverse_to_delete()
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    v_multiverse_record RECORD;
+    v_rows_deleted INT;
+    v_batch_size INT := 1000; -- Adjust batch size based on your IO limits
+    v_start_time TIMESTAMP;
+    v_step_start_time TIMESTAMP;
+BEGIN
+    FOR v_multiverse_record IN SELECT id FROM multiverses WHERE date_delete < NOW() LOOP
+        v_start_time := clock_timestamp();
+        RAISE WARNING '%: Starting deletion of multiverse %', clock_timestamp(), v_multiverse_record.id;
+
+        ---------------------------------------------------------------------------
+        -- 1. Delete Games (and cascading game_events, stats, etc.)
+        ---------------------------------------------------------------------------
+        v_step_start_time := clock_timestamp();
+        RAISE WARNING '%: Deleting games...', clock_timestamp();
+        
+        -- 1a. Break self-references to avoid FK violations during batch deletion
+        RAISE WARNING '%: Breaking self-references in games...', clock_timestamp();
+        UPDATE games
+        SET id_game_club_left = NULL,
+            id_game_club_right = NULL,
+            is_return_game_id_game_first_round = NULL
+        WHERE id_multiverse = v_multiverse_record.id;
+        COMMIT;
+        
+        -- 1b. Delete all games
+        RAISE WARNING '%: Deleting all games...', clock_timestamp();
+        LOOP
+            DELETE FROM games
+            WHERE id IN (
+                SELECT id FROM games
+                WHERE id_multiverse = v_multiverse_record.id
+                LIMIT v_batch_size
+            );
+            
+            GET DIAGNOSTICS v_rows_deleted = ROW_COUNT;
+            RAISE WARNING '%: Deleted % games', clock_timestamp(), v_rows_deleted;
+            
+            -- Exit if no more rows to delete
+            EXIT WHEN v_rows_deleted = 0;
+            
+            COMMIT; -- Commit each batch to free up resources
+        END LOOP;
+        RAISE WARNING '%: Games deletion completed in %', clock_timestamp(), clock_timestamp() - v_step_start_time;
+
+        ---------------------------------------------------------------------------
+        -- 2. Delete Players (and cascading history, stats, etc.)
+        ---------------------------------------------------------------------------
+        v_step_start_time := clock_timestamp();
+        RAISE WARNING '%: Deleting players...', clock_timestamp();
+-- Kill players before delete because of cascade delete errors
+update players set date_death = now() where id_multiverse=v_multiverse_record.id;
+        LOOP
+            DELETE FROM players
+            WHERE id IN (
+                SELECT id FROM players
+                WHERE id_multiverse = v_multiverse_record.id
+                LIMIT v_batch_size
+            );
+            
+            GET DIAGNOSTICS v_rows_deleted = ROW_COUNT;
+            RAISE WARNING '%: Deleted % players', clock_timestamp(), v_rows_deleted;
+            
+            EXIT WHEN v_rows_deleted = 0;
+            COMMIT;
+        END LOOP;
+        RAISE WARNING '%: Players deletion completed in %', clock_timestamp(), clock_timestamp() - v_step_start_time;
+
+        ---------------------------------------------------------------------------
+        -- 3. Delete Clubs (and cascading history, finances, etc.)
+        ---------------------------------------------------------------------------
+        v_step_start_time := clock_timestamp();
+        RAISE WARNING '%: Deleting clubs...', clock_timestamp();
+        LOOP
+            DELETE FROM clubs
+            WHERE id IN (
+                SELECT id FROM clubs
+                WHERE id_multiverse = v_multiverse_record.id
+                LIMIT v_batch_size
+            );
+            
+            GET DIAGNOSTICS v_rows_deleted = ROW_COUNT;
+            RAISE WARNING '%: Deleted % clubs', clock_timestamp(), v_rows_deleted;
+            
+            EXIT WHEN v_rows_deleted = 0;
+            COMMIT;
+        END LOOP;
+        RAISE WARNING '%: Clubs deletion completed in %', clock_timestamp(), clock_timestamp() - v_step_start_time;
+
+        ---------------------------------------------------------------------------
+        -- 4. Delete Multiverse
+        ---------------------------------------------------------------------------
+        v_step_start_time := clock_timestamp();
+        RAISE WARNING '%: Deleting multiverse record...', clock_timestamp();
+        DELETE FROM multiverses WHERE id = v_multiverse_record.id;
+        RAISE WARNING '%: Multiverse record deletion completed in %', clock_timestamp(), clock_timestamp() - v_step_start_time;
+        
+        RAISE WARNING '%: Multiverse % deleted successfully. Total duration: %', clock_timestamp(), v_multiverse_record.id, clock_timestamp() - v_start_time;
+    END LOOP;
+END;
+$$;
+
+
+ALTER PROCEDURE public.clean_multiverse_to_delete() OWNER TO postgres;
 
 --
 -- Name: club_create_players(bigint); Type: FUNCTION; Schema: public; Owner: postgres
@@ -1364,8 +1551,9 @@ BEGIN
             expenses_missed = 0,
             motivation = 60 + random() * 30,
             transfer_price = 100,
-            date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse))
-            WHERE id_club = NEW.id;
+            date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / (SELECT speed FROM multiverses WHERE id = NEW.id_multiverse)),
+            transfer_status = 'Free Player'
+        WHERE id_club = NEW.id;
     
         -- Reset the default teamcomps of the club to NULL everywhere
         FOR teamcomp IN
@@ -1469,8 +1657,6 @@ BEGIN
     ------ Generate name of the club
     UPDATE clubs SET name = 'Club ' || loc_id_club WHERE clubs.id = loc_id_club;
 
-    ------ INSERT Init finance for this new club
-    INSERT INTO finances (id_club, amount, description) VALUES (loc_id_club, 250000, 'Club Initialisation');
     ------ INSERT Init club_history for this new club
     INSERT INTO clubs_history (id_club, description) VALUES (loc_id_club, 'Creation of the club');
 
@@ -1792,6 +1978,7 @@ DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
     lock_exists BOOLEAN;   -- Variable to check if the lock exists
 BEGIN
+    RAISE NOTICE '############ PROCEDURE main_cron called';
 
     ------ Uncomment the following line to deactivate the cron
     -- RAISE EXCEPTION '************ KILL THE CRON !!!';
@@ -1803,7 +1990,7 @@ BEGIN
     ------------------------------------------------------------------------------------------------------------------------------------------------
     ------ Loop through all multiverses
     FOR rec_multiverse IN (
-        SELECT * FROM multiverses
+        SELECT id FROM multiverses
         WHERE error IS NULL -- Do not run multiverses on error to save time and resources
         ORDER BY id
     )
@@ -1811,6 +1998,7 @@ BEGIN
         -- Start a new transaction for each multiverse
         BEGIN
             ---- Handle the multiverse
+            RAISE NOTICE '######### Calling main_handle_multiverse for multiverse with id: %', rec_multiverse.id;
             PERFORM main_handle_multiverse(ARRAY[rec_multiverse.id]);
 
         EXCEPTION
@@ -1821,7 +2009,8 @@ BEGIN
 
                 -- Store the error message in the multiverse record
                 UPDATE multiverses SET
-                    error = SQLERRM
+                    error = SQLERRM,
+                    last_run = NOW()
                 WHERE id = rec_multiverse.id;
         END;
         
@@ -2127,120 +2316,212 @@ CREATE FUNCTION public.main_handle_clubs(inp_multiverse record) RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    club RECORD; -- Record for the clubs loop
-    loc_id_player bigint; -- Variable to store the player's id
+    rec_club RECORD; -- Record for the clubs loop
+    rec_player RECORD; -- Record for the players loop
+    loc_cash NUMERIC; -- Variable to store the club's cash
+    loc_cash_save NUMERIC; -- Variable to store the initial cash
+    loc_revenues NUMERIC; -- Variable to store the club's revenues from sponsors
+    v_expenses_payed NUMERIC; -- Variable to store the expenses payed to the
+    loc_expenses_training_applied NUMERIC; -- Variable for training expenses applied
+    loc_expenses_scouts_applied NUMERIC; -- Variable for scouts expenses applied
+    loc_expenses_tax NUMERIC; -- Variable for tax applied
+    v_expenses_expected_payed_total NUMERIC; -- Variable to store the total expected expenses payed
+    v_expenses_missed_payed_in_priority_total NUMERIC; -- Variable to store the total missed expenses payed
+    v_expenses_missed_payed_total NUMERIC; -- Variable to store the total missed expenses payed
 BEGIN
 
-    ------ Store the clubs' revenues and expenses in the history_weekly table
-    INSERT INTO public.clubs_history_weekly (
-        id_club, season_number, week_number,
-        number_fans, training_weight, scouts_weight,
-        cash, revenues_sponsors, revenues_transfers_done, revenues_total,
-        expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
-        league_points, pos_league, league_goals_for, league_goals_against,
-        elo_points, expenses_players_ratio_target, expenses_players_ratio,
-        expenses_training_target, expenses_scouts_target
-    )
-    SELECT
-        id, inp_multiverse.season_number, inp_multiverse.week_number,
-        number_fans, training_weight, scouts_weight,
-        cash, revenues_sponsors, revenues_transfers_done, revenues_total,
-        expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
-        league_points, pos_league, league_goals_for, league_goals_against,
-        elo_points, expenses_players_ratio_target, expenses_players_ratio,
-        expenses_training_target, expenses_scouts_target
-    FROM clubs
-    WHERE id_multiverse = inp_multiverse.id;
-
-    WITH clubs_finances AS (
+    ------ Loop through the list of clubs of the multiverse
+    FOR rec_club IN (
         SELECT
-            clubs.id AS id_club, -- Club's id
-            clubs.cash, -- Club's cash
-            -- Training expenses applied this week
-            CASE
-                WHEN clubs.cash >= 3 * clubs.expenses_training_target THEN clubs.expenses_training_target
-                ELSE 0
-            END AS expenses_training_applied,
-            -- Scouting network expenses applied this week
-            CASE
-                WHEN clubs.cash >= 3 * clubs.expenses_scouts_target THEN clubs.expenses_scouts_target
-                ELSE 0
-            END AS expenses_scouts_applied,
-            -- Players expenses ratio applied this week
-            CASE
-                WHEN clubs.cash > 0 THEN expenses_players_ratio_target
-                ELSE 0
-            END AS expenses_players_ratio_applied,
-            -- Total expenses missed for the players
-            SUM(LEAST(players.expenses_missed, players.expenses_expected)) AS total_expenses_missed_to_pay
+            id,
+            cash,
+            revenues_sponsors,
+            expenses_training_target,
+            expenses_scouts_target
         FROM clubs
-        LEFT JOIN players ON players.id_club = clubs.id
-        WHERE clubs.id_multiverse = inp_multiverse.id
-        GROUP BY clubs.id
-    ),
-    -- Update players' expenses
-    player_expenses AS (
-        UPDATE players SET
-            expenses_payed = CEIL(expenses_expected * clubs_finances.expenses_players_ratio_applied)
-                + CASE
-                    WHEN clubs_finances.cash > 3 * clubs_finances.total_expenses_missed_to_pay THEN
-                        LEAST(expenses_missed, expenses_expected)
-                    ELSE 0
-                END
-        FROM clubs_finances
-        WHERE players.id_club = clubs_finances.id_club),
-    ------ Insert messages for clubs that paid missed expenses
-    message_debt_payed AS (
+        WHERE id_multiverse = inp_multiverse.id
+    ) LOOP
+
+        loc_cash := rec_club.cash + rec_club.revenues_sponsors; -- Club's available cash
+        loc_cash_save := loc_cash; -- Save the initial cash
+        loc_revenues := rec_club.revenues_sponsors; -- Club's revenues from sponsors
+
+        -- Loop through the players of the club to pay their expected expenses
+        FOR rec_player IN (
+            SELECT 
+                id, 
+                expenses_expected
+            FROM players
+            WHERE id_club = rec_club.id
+            ORDER BY date_arrival
+        ) LOOP
+
+            -- Calculate how much can be paid
+            v_expenses_payed := LEAST(rec_player.expenses_expected, loc_cash);
+
+            -- Update the player's expenses
+            UPDATE players SET
+                expenses_payed = expenses_payed + v_expenses_payed
+            WHERE id = rec_player.id;
+
+            -- Deduct from club's cash
+            loc_cash := loc_cash - v_expenses_payed;
+
+        END LOOP; -- End of players loop
+
+        -- Calculate the total expected expenses paid
+        v_expenses_expected_payed_total := loc_cash_save - loc_cash;
+IF rec_club.id = 3577 THEN
+RAISE NOTICE '✅ Club %: Expected expenses paid: %', rec_club.id, v_expenses_expected_payed_total;
+END IF;
+
+        -- If the club has enough cash, pay the players missed expenses in priority
+        IF loc_cash > 0 THEN
+
+            -- Loop through players with missed expenses for this club
+            FOR rec_player IN (
+                SELECT 
+                    id, 
+                    expenses_missed,
+                    expenses_missed_to_pay_in_priority
+                FROM players
+                WHERE id_club = rec_club.id
+                    AND expenses_missed > 0
+                    AND expenses_missed_to_pay_in_priority > 0
+                ORDER BY date_arrival
+            ) LOOP
+
+                -- Calculate how much can be paid
+                v_expenses_payed := LEAST(rec_player.expenses_missed, rec_player.expenses_missed_to_pay_in_priority, loc_cash);
+
+                -- Pay the player
+                UPDATE players SET
+                    expenses_payed = expenses_payed + v_expenses_payed
+                WHERE id = rec_player.id;
+
+                -- Deduct from club's cash
+                loc_cash := loc_cash - v_expenses_payed;
+
+            END LOOP; -- End of players loop
+
+            v_expenses_missed_payed_in_priority_total := loc_cash_save - v_expenses_expected_payed_total - loc_cash; -- Calculate the total missed expenses payed
+IF rec_club.id = 3577 THEN
+    RAISE NOTICE '✅ Club %: Missed expenses paid (priority): %', rec_club.id, v_expenses_missed_payed_in_priority_total;
+END IF;
+
+        ELSE
+            v_expenses_missed_payed_in_priority_total := 0; -- No missed expenses payed in priority
+
+        END IF; -- End of if cash > 0
+
+        -- If the club has enough cash, pay the players missed expenses
+        IF loc_cash > 0 THEN
+
+            -- Loop through players with missed expenses for this club
+            FOR rec_player IN (
+                SELECT 
+                    id, 
+                    expenses_missed
+                FROM players
+                WHERE id_club = rec_club.id
+                    AND expenses_missed > 0
+                ORDER BY date_arrival
+            ) LOOP
+
+                -- Calculate how much can be paid
+                v_expenses_payed := LEAST(rec_player.expenses_missed, loc_cash);
+
+                -- Pay the player
+                UPDATE players SET
+                    expenses_payed = expenses_payed + v_expenses_payed
+                WHERE id = rec_player.id;
+
+                -- Deduct from club's cash
+                loc_cash := loc_cash - v_expenses_payed;
+
+            END LOOP; -- End of players loop
+
+            v_expenses_missed_payed_total := loc_cash_save - v_expenses_expected_payed_total - v_expenses_missed_payed_in_priority_total - loc_cash; -- Calculate the total missed expenses payed
+IF rec_club.id = 3577 THEN
+    RAISE NOTICE '✅ Club %: Missed expenses paid (total): %', rec_club.id, v_expenses_missed_payed_total;
+END IF;
+
+        ELSE
+            v_expenses_missed_payed_total := 0; -- No missed expenses payed
+
+        END IF; -- End of if cash > 0
+
+        -- Calculate the other expenses of the club
+        loc_expenses_training_applied := LEAST(rec_club.expenses_training_target, loc_cash);
+        loc_expenses_scouts_applied := LEAST(rec_club.expenses_scouts_target, loc_cash - loc_expenses_training_applied);
+
+        -- Calculate the new available cash after paying expenses
+        loc_cash := loc_cash - loc_expenses_training_applied - loc_expenses_scouts_applied;
+
+        -- Calculate the 1% weekly tax on the available cash
+        loc_expenses_tax := GREATEST(0, FLOOR(loc_cash * 0.05));
+
+        -- Update the club's cash after paying expenses
+        loc_cash := loc_cash - loc_expenses_tax;
+IF rec_club.id = 3577 THEN
+    RAISE NOTICE '✅ Club %: Training expenses applied: %, Scouts expenses applied: %, Tax: %, Cash left: %', rec_club.id, loc_expenses_training_applied, loc_expenses_scouts_applied, loc_expenses_tax, loc_cash;
+END IF;
+
+        ------ Update the clubs fields with the new expenses
+        UPDATE clubs SET
+            -- Club's available cash
+            cash = loc_cash,
+            -- Tax is 1% of the available cash
+            expenses_tax = loc_expenses_tax,
+            -- Players expenses are the expected expenses of the players * the ratio applied by the club
+            expenses_players = COALESCE((SELECT SUM(expenses_payed)
+                FROM players 
+                WHERE id_club = clubs.id AND date_retire IS NULL), 0),
+            expenses_staff = COALESCE((SELECT SUM(expenses_payed)
+                FROM players 
+                WHERE id_club = clubs.id AND date_retire IS NOT NULL), 0),
+            -- Write the expenses applied to the club
+            expenses_training_applied = loc_expenses_training_applied,
+            expenses_scouts_applied = loc_expenses_scouts_applied,
+            -- Update the staff weight of the club 
+            training_weight = FLOOR((training_weight +
+                (loc_expenses_training_applied * (1 +
+                    COALESCE((SELECT coef_coach FROM players WHERE players.id = clubs.id_coach), 0) / 100.0 +
+                    COALESCE((SELECT coef_coach FROM players WHERE players.id = clubs.id_scout), 0) / 200.0
+                    )
+                )) * 0.5),
+            -- Update the scouting network weight of the clubs
+            scouts_weight = FLOOR(scouts_weight * 0.99) + loc_expenses_scouts_applied * (1 +
+                    COALESCE((SELECT coef_scout FROM players WHERE players.id = clubs.id_coach), 0) /100.0)
+        WHERE id = rec_club.id;
+
+        -- Send a mail for the club with detailed breakdown
         INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
-    SELECT 
-        id_club AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_club_info,
-        clubs_finances.total_expenses_missed_to_pay || 'Missed Expenses Paid' AS title,
-        'The previous missed expenses (' || clubs_finances.total_expenses_missed_to_pay || ') have been paid for week ' || inp_multiverse.week_number || '. The club now has available cash: ' || cash || '.' AS message
-    FROM clubs_finances
-    WHERE cash > 3 * total_expenses_missed_to_pay
-    AND total_expenses_missed_to_pay > 0)
-    -- Update clubs' finances based on calculations
-    UPDATE clubs SET
-        expenses_training_applied = clubs_finances.expenses_training_applied,
-        expenses_scouts_applied = clubs_finances.expenses_scouts_applied,
-        expenses_players_ratio = clubs_finances.expenses_players_ratio_applied
-    FROM clubs_finances
-    WHERE clubs.id = clubs_finances.id_club;
+        VALUES (
+            rec_club.id, 'Treasurer', TRUE,
+            'Weekly Expenses Summary',
+            'Players expenses paid: ' || COALESCE(v_expenses_expected_payed_total, 0)
+            || (CASE WHEN COALESCE(v_expenses_missed_payed_in_priority_total, 0) > 0 THEN E'\nMissed expenses paid (priority): ' || COALESCE(v_expenses_missed_payed_in_priority_total, 0) ELSE '' END)
+            || (CASE WHEN COALESCE(v_expenses_missed_payed_total, 0) > 0 THEN E'\nMissed expenses paid (total): ' || COALESCE(v_expenses_missed_payed_total, 0) ELSE '' END)
+            || E'\nTraining expenses: ' || COALESCE(loc_expenses_training_applied, 0)
+            || E'\nScouts expenses: ' || COALESCE(loc_expenses_scouts_applied, 0)
+            || E'\nTax: ' || COALESCE(loc_expenses_tax, 0)
+            || E'\nRemaining cash: ' || COALESCE(loc_cash, 0)
+        );
 
-    ------ Send mail for clubs that are in debt
-    INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
-        SELECT 
-            id AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_club_info,
-            'Negative Cash: Staff, Souts and Players not paid' AS title,
-            'The club is in debt (available cash: ' || cash || ') for week ' || inp_multiverse.week_number || ': The staff, scouts and players will not be paid this week because the club is in debt, rectify the situation quickly !' AS message
-        FROM 
-            clubs
-        WHERE 
-            id_multiverse = inp_multiverse.id
-            AND cash < 0;
+    END LOOP; -- End of clubs loop
 
-    ------ Update the clubs finances
-    UPDATE clubs SET
-        -- Tax is 1% of the available cash
-        expenses_tax = GREATEST(0, FLOOR(cash * 0.05)),
-        -- Players expenses are the expected expenses of the players * the ratio applied by the club
-        expenses_players = COALESCE((SELECT SUM(expenses_payed)
-            FROM players 
-            WHERE id_club = clubs.id AND date_retire IS NULL), 0),
-        expenses_staff = COALESCE((SELECT SUM(expenses_payed)
-            FROM players 
-            WHERE id_club = clubs.id AND date_retire IS NOT NULL), 0),
-        -- Update the staff weight of the club 
-        training_weight = FLOOR((training_weight +
-            (expenses_training_applied * (1 +
-                COALESCE((SELECT coef_coach FROM players WHERE players.id = clubs.id_coach), 0) / 100.0 +
-                COALESCE((SELECT coef_coach FROM players WHERE players.id = clubs.id_scout), 0) / 200.0
-                )
-            )) * 0.5),
-        -- Update the scouting network weight of the clubs
-        scouts_weight = FLOOR(scouts_weight * 0.99) + expenses_scouts_applied * (1 +
-                COALESCE((SELECT coef_scout FROM players WHERE players.id = clubs.id_coach), 0) /100.0)
-    WHERE id_multiverse = inp_multiverse.id;
+    ------ Calculate the players expenses payed
+    UPDATE players SET
+        -- Update the expenses missed for the player
+        expenses_missed = GREATEST(0,
+            expenses_missed + expenses_expected - expenses_payed),
+        expenses_won_total = expenses_won_total + expenses_payed,
+        expenses_won_available = expenses_won_available + expenses_payed,
+        user_points_available = user_points_available + 2.0 * expenses_payed::NUMERIC / expenses_target
+    WHERE id_multiverse = inp_multiverse.id
+    AND date_death IS NULL
+    AND id_club IS NOT NULL;
 
     -- Update the clubs revenues and expenses in the list
     UPDATE clubs SET
@@ -2253,15 +2534,6 @@ BEGIN
             expenses_transfers_done
     WHERE id_multiverse = inp_multiverse.id;
 
-    ------ Update the club's cash
-    UPDATE clubs SET
-        cash = cash + revenues_total - expenses_total
-        -- We need to handle the revenues and expenses that were already paid in the cash
-            - revenues_transfers_done + expenses_transfers_done,
-        revenues_transfers_done = 0,
-        expenses_transfers_done = 0
-    WHERE id_multiverse = inp_multiverse.id;
-
     ------ Update the leagues cash by paying club expenses and players salaries and cash last season
     UPDATE leagues SET
         cash = cash + (
@@ -2272,6 +2544,18 @@ BEGIN
             FROM clubs WHERE id_league = leagues.id)
     WHERE id_multiverse = inp_multiverse.id
     AND level > 0;
+
+    ------ Send mail for clubs that are in debt
+    INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
+        SELECT 
+            id AS id_club_to, 'Treasurer' AS sender_role, TRUE AS is_club_info,
+            'Negative Cash: Staff, Souts and Players not paid' AS title,
+            'The club is in debt (available cash: ' || cash || ') for week ' || inp_multiverse.week_number || ': The staff, scouts and players will not be paid this week because the club is in debt, rectify the situation quickly !' AS message
+        FROM 
+            clubs
+        WHERE 
+            id_multiverse = inp_multiverse.id
+            AND cash < 0;
 
 END;
 $$;
@@ -2288,31 +2572,37 @@ CREATE FUNCTION public.main_handle_multiverse(id_multiverses bigint[]) RETURNS v
     AS $$
 DECLARE
     rec_multiverse RECORD; -- Record for the multiverses loop
+    loc_start_time_global TIMESTAMP;
+    loc_start_time_function TIMESTAMP;
 BEGIN
 
-    RAISE NOTICE '****** START: main_handle_multiverse !';
+    -- RAISE NOTICE '****** START: main_handle_multiverse !';
 
-    -- Loop through all multiverses that need handling
+    ------ Loop through all multiverses that need handling
     FOR rec_multiverse IN (
         SELECT *
         FROM multiverses
         WHERE id = ANY(id_multiverses)
-        AND is_active = TRUE
+        AND date_delete IS NULL -- Handle only multiverses that are not marked for deletion
     )
     LOOP
-        RAISE NOTICE '*** Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
+        RAISE NOTICE '###### Processing Multiverse [%]: S%W%D%: date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.season_number, rec_multiverse.week_number, rec_multiverse.day_number, rec_multiverse.date_handling, now();
+        loc_start_time_global := clock_timestamp();
 
-        -- Handle the transfers
-        PERFORM transfers_handle_transfers(
-            inp_multiverse := rec_multiverse
-        );
+        ---- Handle the transfers
+        RAISE NOTICE '### Multiverse [%]: transfers_handle_transfers', rec_multiverse.name;
+        loc_start_time_function := clock_timestamp();
+        PERFORM transfers_handle_transfers(ARRAY[rec_multiverse.id]);
+        RAISE NOTICE '### Multiverse [%]: transfers_handle_transfers (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
 
-                -- Simulate the week games
-                PERFORM main_simulate_week_games(rec_multiverse);
+        ---- Simulate the week games
+        RAISE NOTICE '### Multiverse [%]: main_simulate_week_games', rec_multiverse.name;
+        loc_start_time_function := clock_timestamp();
+        PERFORM main_simulate_week_games(rec_multiverse);
+        RAISE NOTICE '### Multiverse [%]: main_simulate_week_games (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
 
-RAISE NOTICE 'PG1 *** Multiverse [%]: Handling date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.date_handling, now();
+        ---- Check if it's time to pass to the nex day of the multiverse
         IF now() >= rec_multiverse.date_handling THEN
-RAISE NOTICE 'PG2 *** Multiverse [%]: Handling date_handling= % (NOW()=%)', rec_multiverse.name, rec_multiverse.date_handling, now();
 
             -- Handle weekly and seasonal updates if it's the end of the week (match day)
             IF rec_multiverse.day_number = 7 THEN
@@ -2330,10 +2620,79 @@ RAISE NOTICE 'PG2 *** Multiverse [%]: Handling date_handling= % (NOW()=%)', rec_
                     EXIT; -- Exit the loop
                 END IF;
 
-                -- Handle clubs, players, and season updates
+                ------ Handle clubs, players, and season updates
+                -- Start timer for main_handle_clubs
+                RAISE NOTICE '### Multiverse [%]: main_handle_clubs', rec_multiverse.name;
+                loc_start_time_function := clock_timestamp();
                 PERFORM main_handle_clubs(rec_multiverse);
+                RAISE NOTICE '### Multiverse [%]: main_handle_clubs (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
+
+                -- Start timer for main_handle_players
+                RAISE NOTICE '### Multiverse [%]: main_handle_players', rec_multiverse.name;
+                loc_start_time_function := clock_timestamp();
                 PERFORM main_handle_players(rec_multiverse);
+                RAISE NOTICE '### Multiverse [%]: main_handle_players (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
+
+                -- Start timer for main_handle_season
+                RAISE NOTICE '### Multiverse [%]: main_handle_season', rec_multiverse.name;
+                loc_start_time_function := clock_timestamp();
                 PERFORM main_handle_season(rec_multiverse);
+                RAISE NOTICE '### Multiverse [%]: main_handle_season (%)', rec_multiverse.name, clock_timestamp() - loc_start_time_function;
+
+                -- Store the clubs' revenues and expenses in the history_weekly table
+                INSERT INTO public.clubs_history_weekly (
+                    id_club, season_number, week_number,
+                    number_fans, training_weight, scouts_weight,
+                    cash, revenues_sponsors, revenues_transfers_done, revenues_total,
+                    expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+                    league_points, pos_league, league_goals_for, league_goals_against,
+                    elo_points, expenses_players_ratio_target, expenses_players_ratio,
+                    expenses_training_target, expenses_scouts_target)
+                SELECT
+                    id, rec_multiverse.season_number, rec_multiverse.week_number,
+                    number_fans, training_weight, scouts_weight,
+                    cash, revenues_sponsors, revenues_transfers_done, revenues_total,
+                    expenses_training_applied, expenses_players, expenses_staff, expenses_scouts_applied, expenses_tax, expenses_transfers_done, expenses_total,
+                    league_points, pos_league, league_goals_for, league_goals_against,
+                    elo_points, expenses_players_ratio_target, expenses_players_ratio,
+                    expenses_training_target, expenses_scouts_target
+                FROM clubs
+                WHERE id_multiverse = rec_multiverse.id;
+
+                -- Reset the clubs revenues and expenses for the next week
+                UPDATE clubs SET
+                    revenues_transfers_done = 0,
+                    expenses_transfers_done = 0
+                WHERE id_multiverse = rec_multiverse.id;
+
+                -- Store player's stats in the history table
+                INSERT INTO public.players_history_stats
+                    (created_at, season_number, week_number,
+                    id_player, performance_score_real, performance_score_theoretical, 
+                    expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
+                    keeper, defense, passes, playmaking, winger, scoring, freekick,
+                    motivation, form, stamina, energy, experience,
+                    loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
+                    coef_coach, coef_scout,
+                    training_points_used, user_points_available, user_points_used)
+                SELECT
+                    rec_multiverse.date_handling, rec_multiverse.season_number, rec_multiverse.week_number,
+                    id, performance_score_real, performance_score_theoretical,
+                    expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
+                    keeper, defense, passes, playmaking, winger, scoring, freekick,
+                    motivation, form, stamina, energy, experience,
+                    loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
+                    coef_coach, coef_scout,
+                    training_points_used, user_points_available, user_points_used
+                FROM players
+                WHERE id_multiverse = rec_multiverse.id
+                AND date_death IS NULL;
+
+                -- Reset the players' expenses for the next week
+                UPDATE players SET
+                    expenses_payed = 0
+                WHERE id_multiverse = rec_multiverse.id;
+
             END IF;
 
             ---- Increase players energy
@@ -2343,6 +2702,7 @@ RAISE NOTICE 'PG2 *** Multiverse [%]: Handling date_handling= % (NOW()=%)', rec_
             WHERE id_multiverse = rec_multiverse.id
             AND date_death IS NULL;
 
+            ---- Handle the players' age and death
             WITH players1 AS (
                 SELECT 
                     players.id,
@@ -2390,7 +2750,7 @@ RAISE NOTICE 'PG2 *** Multiverse [%]: Handling date_handling= % (NOW()=%)', rec_
             error = NULL
         WHERE id = rec_multiverse.id;
 
-        RAISE NOTICE '*** Multiverse [%]: Successfully processed.', rec_multiverse.name;
+        RAISE NOTICE '*** Multiverse [%]: Successfully processed in: %', rec_multiverse.name, clock_timestamp() - loc_start_time_global;
     END LOOP;
 
     RAISE NOTICE '****** END: main_handle_multiverse !';
@@ -2411,41 +2771,6 @@ DECLARE
     rec_player RECORD; -- Record for the player selection
     rec_poaching RECORD; -- Record for the list of poaching players
 BEGIN
-
-    ------ Store player's stats in the history
-    INSERT INTO players_history_stats
-        (created_at, id_player, performance_score_real, performance_score_theoretical, 
-        expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
-        keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, energy, experience,
-        loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
-        coef_coach, coef_scout,
-        training_points_used, user_points_available, user_points_used)
-    SELECT
-        inp_multiverse.date_handling, id, performance_score_real, performance_score_theoretical,
-        expenses_payed, expenses_expected, expenses_missed, expenses_target, expenses_won_total,
-        keeper, defense, passes, playmaking, winger, scoring, freekick,
-        motivation, form, stamina, energy, experience,
-        loyalty, leadership, discipline, communication, aggressivity, composure, teamwork,
-        coef_coach, coef_scout,
-        training_points_used, user_points_available, user_points_used
-    FROM players
-    WHERE id_multiverse = inp_multiverse.id
-    AND date_death IS NULL;
-
-    ------ Update the players expenses_missed
-    UPDATE players SET
-        expenses_missed = CASE
-            WHEN id_club IS NULL THEN 0
-            ELSE GREATEST(
-                0,
-                expenses_missed - expenses_payed + expenses_expected)
-        END,
-        expenses_won_total = expenses_won_total + expenses_payed,
-        expenses_won_available = expenses_won_available + expenses_payed,
-        user_points_available = user_points_available + 2.0 + expenses_payed::NUMERIC / expenses_target
-    WHERE id_multiverse = inp_multiverse.id
-    AND date_death IS NULL;
 
     ---- Update the clubs scouts weight based on the players_poaching table
     UPDATE clubs SET
@@ -2493,27 +2818,26 @@ BEGIN
         GROUP BY players.id, multiverses.speed, players.id_club, clubs.username
     )
     UPDATE players SET
-        motivation = LEAST(100, GREATEST(0,
-            motivation + (random() * 20 - 8) -- Random [-8, +12]
+        motivation = clamp(0, 100, motivation
+            + (random() * 20 - 8) -- Random [-8, +12]
             + ((70 - motivation) / 10) -- +7; -3 based on value
-            - ((expenses_missed / expenses_expected) ^ 0.5) * 10
+            - ((expenses_missed / expenses_expected) ^ 0.5) * 10 -- Reduce motivation based on expenses_missed
             -- Lower motivation if player is being poached
             - players1.affinity_max * (0.1 + RANDOM()) -- Reduce motivation based on the max affinity
             - (players1.poaching_count ^ 0.5) -- Reduce motivation for each poaching attempt
-            ------ Lower motivation based on age for bot clubs from 30 years old
+            ------ Lower motivation based on age for unretired bot players from 30 years old
             - CASE
-            ---- Not for retired players nor embodied players
-                WHEN players1.date_retire IS NOT NULL OR players1.username IS NOT NULL THEN 0
-                ELSE GREATEST(0, players1.age - 30) * RANDOM()
+                WHEN players1.date_retire IS NULL THEN
+                    GREATEST(0, players1.age - 30) * RANDOM() -- Reduce motivation based on age for unretired bot players from 35 years old
+                ELSE 0
             END
-            )
-        ),
-        form = LEAST(100, GREATEST(0,
+            ),
+        form = clamp(0, 100,
             form + (random() * 20 - 10) + ((70 - form) / 10)
-            )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
-        stamina = LEAST(100, GREATEST(0,
+            ), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
+        stamina = clamp(0, 100,
             stamina + (random() * 20 - 10) + ((70 - stamina) / 10)
-            )), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
+            ), -- Random [-10, +10] AND [+7; -3] based on value AND clamped between 0 and 100
         experience = experience + 0.05,
         loyalty = clamp(loyalty + random() - 0.5, 0, 100),
         leadership = clamp(leadership + random() - 0.5, 0, 100),
@@ -2847,7 +3171,9 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK10', inp_multi
                     WHEN pos_league = 3 THEN '3rd'
                     ELSE pos_league || 'th'
                 END
-                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := leagues.id) || ' of ' || leagues.continent AS description
+                || ' of ' || string_parser(inp_entity_type := 'idLeague', inp_id := leagues.id)
+                -- || ' of ' || string_parser(inp_entity_type := 'Continent', inp_text := leagues.continent) AS description
+                || ' of ' || string_parser(inp_entity_type := 'Continent', inp_text := 'Europe') AS description
             FROM clubs
             JOIN leagues ON clubs.id_league = leagues.id
             WHERE clubs.id_multiverse = inp_multiverse.id;
@@ -2929,6 +3255,7 @@ RAISE NOTICE '*** MAIN: Multiverse [%] S%W%D%: HANDLE SEASON: WEEK14', inp_multi
                 pos_league = pos_league_next_season,
                 pos_league_next_season = NULL,
                 league_points = 0,
+                lis_last_results = ARRAY[]::integer[], -- Reset the last results of the clubs
                 id_games = ARRAY[]::integer[], -- Reset the games of the club (for better performance in games page)
                 league_goals_for = 0,
                 league_goals_against = 0
@@ -3276,14 +3603,22 @@ DECLARE
     club RECORD;
     pos INT;
     is_league_game_finished BOOLEAN;
+
+    -- Add execution time tracking
+    loc_start_time TIMESTAMP := clock_timestamp();
+    loc_end_time TIMESTAMP;
 BEGIN
+
     -- Loop through all leagues of the multiverse
     FOR league IN (
         SELECT * FROM leagues WHERE id_multiverse = inp_multiverse.id)
     LOOP
         -- Loop through the games that need to be played for the current week of the current league
         FOR game IN (
-            SELECT id FROM games
+            SELECT
+                id,
+                (date_start < now() - INTERVAL '1 day') AS is_running_late
+            FROM games
             WHERE id_league = league.id
             AND date_end IS NULL
             AND season_number <= inp_multiverse.season_number
@@ -3292,7 +3627,12 @@ BEGIN
             ORDER BY season_number, week_number, id)
         LOOP
             -- Simulate the game
-            PERFORM simulate_game_main(inp_id_game := game.id);
+            IF game.is_running_late = TRUE THEN
+                -- RAISE NOTICE 'Game %: Simulate game main (SPEEDY)', game.id;
+                PERFORM simulate_game_speedy(inp_id_game := game.id);
+            ELSE
+                PERFORM simulate_game_main(inp_id_game := game.id);
+            END IF;
         END LOOP;
 
         -- Set to FALSE by default
@@ -3345,6 +3685,13 @@ BEGIN
             END IF;
         END IF;
     END LOOP;
+
+    -- Calculate execution time at the end of the function
+    loc_end_time := clock_timestamp();
+
+    -- Log the execution time
+    RAISE NOTICE 'Execution time for main_simulate_week_games: %', loc_end_time - loc_start_time;
+    -- RAISE EXCEPTION 'Execution time for main_simulate_week_games: %', loc_end_time - loc_start_time;
 END;
 $$;
 
@@ -3803,55 +4150,55 @@ BEGIN
                 loc_tmp + 10 * (1 + random()), -- Keeper: BaseValue(age) + Random(10 ==> 20)
                 loc_tmp + 10 * random(), -- Defense: BaseValue(age) + Random(0 ==> 5)
                 loc_tmp + 10 * random(), -- Passes: BaseValue(age) + Random(0 ==> 5)
-                loc_tmp * random(), -- Playmaking: Random(0 ==> BaseValue(age))
-                loc_tmp * random(), -- Winger: Random(0 ==> BaseValue(age))
-                loc_tmp * random(), -- Scoring: Random(0 ==> BaseValue(age))
+                10 * random(), -- Playmaking: Random(0 ==> BaseValue(age))
+                10 * random(), -- Winger: Random(0 ==> BaseValue(age))
+                10 * random(), -- Scoring: Random(0 ==> BaseValue(age))
                 loc_tmp + 10 * random()] -- Freekick
             ---- Back Wingers
             WHEN inp_shirt_number IN (2, 3, 13) THEN ARRAY[
-                0, -- Keeper
+                10 * random(), -- Keeper
                 loc_tmp + 10 * (1 + random()), -- Defense
                 loc_tmp + 10 * random(), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * (1 + random()), -- Winger
-                0, -- Scoring
-                0] -- Freekick
+                10 * random(), -- Scoring
+                10 * random()] -- Freekick
             ---- Central Backs
             WHEN inp_shirt_number IN (4, 5, 14) THEN ARRAY[
-                0, -- Keeper
+                10 * random(), -- Keeper
                 loc_tmp + 10 * (1 + random()), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp * 10 * random(), -- Playmaking
-                0, -- Winger
-                0, -- Scoring
-                0] -- Freekick
+                10 * random(), -- Winger
+                10 * random(), -- Scoring
+                10 * random()] -- Freekick
             ---- Midfielders
             WHEN inp_shirt_number IN (6, 10, 15) THEN ARRAY[
-                0, -- Keeper
+                10 * random(), -- Keeper
                 loc_tmp + 10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * (1 + random()), -- Playmaking
-                0, -- Winger
-                0, -- Scoring
-                0] -- Freekick
+                10 * random(), -- Winger
+                10 * random(), -- Scoring
+                10 * random()] -- Freekick
             ---- Wingers
             WHEN inp_shirt_number IN (7, 8, 16) THEN ARRAY[
-                0, -- Keeper
+                10 * random(), -- Keeper
                 loc_tmp + 10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * (1 + random()), -- Winger
                 loc_tmp + 10 * random(), -- Scoring
-                0] -- Freekick
+                10 * random()] -- Freekick
             ---- Strikers
             WHEN inp_shirt_number IN (9, 11, 17) THEN ARRAY[
-                0, -- Keeper
-                0, -- Defense
+                10 * random(), -- Keeper
+                10 * random(), -- Defense
                 loc_tmp + 10 * (1 + random()), -- Passes
                 loc_tmp + 10 * random(), -- Playmaking
                 loc_tmp + 10 * random(), -- Winger
                 loc_tmp + 10 * (1 + random()), -- Scoring
-                0] -- Freekick
+                10 * random()] -- Freekick
             ---- Coach
             WHEN inp_notes = 'Coach' THEN ARRAY[0, 0, 0, 0, 0, 0, 0]
             ELSE NULL -- Placeholder for invalid shirt_number
@@ -4169,7 +4516,7 @@ BEGIN
     
     -- Store the name in the player row
     IF (NEW.first_name IS NULL OR NEW.first_name = '') THEN
-        NEW.first_name = 
+        NEW.first_name = initcap(
             COALESCE(
                 -- Attempt 1: Get a random name from country
                 (SELECT name FROM players_generation.first_names
@@ -4178,10 +4525,11 @@ BEGIN
                 -- Fallback: If no name found from country, get a random name from anywhere
                 (SELECT name FROM players_generation.first_names
                 ORDER BY RANDOM() LIMIT 1)
-            );
+            )
+        );
     END IF;
     IF (NEW.last_name IS NULL OR NEW.last_name = '') THEN
-        NEW.last_name =
+        NEW.last_name = initcap(
             COALESCE(
                 -- Attempt 1: Get a random name from country
                 (SELECT name FROM players_generation.last_names
@@ -4190,7 +4538,8 @@ BEGIN
                 -- Fallback: If no name found from country, get a random name from anywhere
                 (SELECT name FROM players_generation.last_names
                 ORDER BY RANDOM() LIMIT 1)
-            );
+            )
+        );
     END IF;
 
     ------ Store the multiverse speed
@@ -4286,18 +4635,26 @@ ALTER FUNCTION public.players_increase_stats_from_training_points(inp_id_player 
 CREATE FUNCTION public.players_pay_expenses_missed() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
+DECLARE
+    expenses_missed_being_payed integer;
 BEGIN
+    -- Calculate missed expenses being paid
+    expenses_missed_being_payed := NEW.expenses_missed_payed - OLD.expenses_missed_payed;
 
     -- Check if the club has enough cash to pay the missed expenses
-    IF (SELECT cash FROM clubs
-        WHERE id = NEW.id_club) < NEW.expenses_missed THEN
-        RAISE EXCEPTION 'Club does not have enough cash to pay the missed expenses';
+    IF (SELECT cash FROM clubs WHERE id = NEW.id_club) < expenses_missed_being_payed THEN
+        RAISE EXCEPTION 'Club [%] does not have enough cash to pay the [%] missed expenses of player [%]', NEW.id_club, expenses_missed_being_payed, NEW.id;
     END IF;
 
     -- Deduct the missed expenses from the club's cash
     UPDATE clubs
-    SET cash = cash - OLD.expenses_missed
+    SET cash = cash - expenses_missed_being_payed
     WHERE id = NEW.id_club;
+
+    -- Reduce the expenses_missed
+    --UPDATE players SET
+    --    expenses_missed = expenses_missed - expenses_missed_being_payed
+    --    expenses
 
     RETURN NEW;
 END;
@@ -4986,7 +5343,7 @@ BEGIN
 
             ------ Update player to say they are currently playing a game
         UPDATE players SET
-            is_playing = TRUE,
+            id_game_currently_playing = rec_game.id,
             id_games_played = id_games_played || rec_game.id
         WHERE id = ANY(loc_array_players_id_left)
            OR id = ANY(loc_array_players_id_right);
@@ -5087,9 +5444,6 @@ BEGIN
                 --     period_start := loc_date_start_period,
                 --     score := loc_score_right - loc_score_left,
                 --     game := rec_game);
-
-
-
 
                 ------ Calculate the weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
                 ---- Initialize the team weights
@@ -5268,7 +5622,8 @@ BEGIN
     ------------ Store the results
     ------ Store the score
     UPDATE games SET
-        date_end = date_start + (loc_minute_period_end * INTERVAL '1 minute'),
+        date_end = date_start + ((loc_minute_period_end * INTERVAL '1 minute')
+            / (SELECT speed FROM multiverses WHERE id = rec_game.id_multiverse)), -- Divide by multiverse speed
         -- date_end = date_start + INTERVAL '5 minutes', -- For testing purposes, set the end date to 5 minutes after the start date
         ---- Score of the game
         score_left = CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END,
@@ -5669,7 +6024,7 @@ BEGIN
             FROM players
             WHERE id_club = rec_game.id_club_overall_loser;
 
-    -- First leg games of barrage 1 games
+    -- B1W11: First leg games of barrage 1 games
     ELSEIF rec_game.id_games_description = 211 THEN
         -- Draw
         IF rec_game.score_diff = 0 THEN
@@ -5684,7 +6039,7 @@ BEGIN
             text_message_loser := text_message_loser || '. Unfortunately we have lost the first leg of the barrage. Nothing is lost, we can still make it in the second leg, let''s go !';
         END IF; --End right club won
 
-    -- Return game of the first barrage (between firsts of opposite leagues)
+    -- B1W12: Return game of the first barrage (between firsts of opposite leagues)
     ELSIF rec_game.id_games_description = 212 THEN
 
         -- Send messages
@@ -5714,8 +6069,7 @@ BEGIN
             string_parser(inp_entity_type := 'idClub', inp_id := rec_game.id_club_overall_winner) || ' won the barrage 1 ' || rec_game.game_presentation || ' against ' || string_parser(inp_entity_type := 'idClub', inp_id := rec_game.id_club_overall_loser) ||
             '. Next season we will play in ' || string_parser(inp_entity_type := 'idLeague', inp_id := (SELECT id_league FROM clubs WHERE id = rec_game.id_club_overall_winner)));
 
-
-    -- First leg games of barrage 1 games
+    -- B1W13: First leg game of second games of barrage 1 (between 4th of upper league and loser of barrage 1)
     ELSIF rec_game.id_games_description = 213 THEN
         -- Draw
         IF rec_game.score_diff = 0 THEN
@@ -5770,12 +6124,19 @@ BEGIN
 
         END IF;
 
+    -- First games of the barrage 2 (between 2nd and 3rd of opposite leagues)
     ELSEIF rec_game.id_games_description IN (311, 312) THEN
-    -- IF rec_game.id_games_description IN (311, 312, 331) THEN
         text_title_winner := text_title_winner || ': BARRAGE2 Game1 Victory';
-        text_title_loser := text_title_loser || ': BARRAGE2 Defeat';
+        text_title_loser := text_title_loser || ': BARRAGE2 Game1 Defeat';
         text_message_winner := text_message_winner || '. Great victory in the first game of the barrage2, we are so close to promotion, keep the team focused !';
         text_message_loser := text_message_loser || '. Unfortunately we have lost the first game of the barrage. We won''t go up this season but we can make it next season ! We will play some friendly games for the rest of the interseason, use this time to prepare for the next season and try out new tactics and players !';
+
+    -- Second game of the barrage 2 between winners of the first games
+    ELSEIF rec_game.id_games_description = 321 THEN
+        text_title_winner := text_title_winner || ': BARRAGE2 Game2 Victory';
+        text_title_loser := text_title_loser || ': BARRAGE2 Game2 Defeat';
+        text_message_winner := text_message_winner || '. Great victory in the second game of the barrage2, we are so close to promotion, keep the team focused !';
+        text_message_loser := text_message_loser || '. Unfortunately we have lost the second game of the barrage2. We won''t go up this season but we can make it next season ! We will play some friendly games for the rest of the interseason, use this time to prepare for the next season and try out new tactics and players !';
 
     -- Return game of the barrage 3 (week 14) between the 4th of the upper league and the winner of the 2nd round of the barrage 3
     ELSEIF rec_game.id_games_description = 332 THEN
@@ -5822,7 +6183,6 @@ BEGIN
         (rec_game.id_club_overall_winner, 'Coach', TRUE, text_title_winner, text_message_winner),
         (rec_game.id_club_overall_loser, 'Coach', TRUE, text_title_loser, text_message_loser);
 
-
     ------ Set the game as played
     UPDATE games SET
         is_playing = FALSE,
@@ -5831,7 +6191,7 @@ BEGIN
 
     ------ Update player to say they are not playing anymore
     UPDATE players SET
-        is_playing = FALSE
+        id_game_currently_playing = NULL
     WHERE id_club IN (rec_game.id_club_left, rec_game.id_club_right);
 
     ------ Insert a new row in the table game_player_stats_best
@@ -5909,6 +6269,497 @@ $$;
 
 
 ALTER FUNCTION public.simulate_game_set_is_played(inp_id_game bigint) OWNER TO postgres;
+
+--
+-- Name: simulate_game_speedy(bigint); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.simulate_game_speedy(inp_id_game bigint) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    rec_game RECORD; -- Record of the game
+    loc_array_players_id_left int8[21]; -- Array of players id for 21 slots of players
+    loc_array_players_id_right int8[21]; -- Array of players id for 21 slots of players
+    loc_array_substitutes_left int4[21] := ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; -- Array for storing substitutions
+    loc_array_substitutes_right int4[21] := ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; -- Array for storing substitutions
+    loc_matrix_player_stats_left float4[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
+    loc_matrix_player_stats_right float4[21][12]; -- Matrix to hold player stats [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
+    loc_array_team_weights_left float4[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
+    loc_array_team_weights_right float4[7]; -- Array for team weights [left defense, central defense, right defense, midfield, left attack, central attack, right attack]
+    array_player_stats float4[12]; -- Array for player stats {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}
+    array_player_weights float4[7]; -- Array for player weights {left defense, central defense, right defense, midfield, left attack, central attack, right attack}
+    energy_coef float4; -- Coefficient for energy (calculated each turn based on the energy of the players)
+    loc_period_game int; -- The period of the game (e.g., first half, second half, extra time)
+    loc_minute_period_start int; -- The minute where the period starts
+    loc_minute_period_end int := 0; -- The minute where the period ends
+    loc_minute_period_extra_time int; -- The extra time for the period
+    loc_minute_game int; -- The minute of the game
+    loc_date_start_period timestamp; -- The date and time of the period
+    loc_score_left int := 0; -- The score of the left team
+    loc_score_right int := 0; -- The score of the right team
+    loc_score_penalty_left int; -- The score of the left team for the penalty shootout
+    loc_score_penalty_right int; -- The score of the right team for the penalty shootout
+    loc_score_left_previous int := 0; -- The score of the left team previous game
+    loc_score_right_previous int := 0; -- The score of the right team with previous game
+    minutes_half_time int8 := 45; -- 45
+    minutes_extra_time int8 := 15; -- 15
+    penalty_number int8; -- The number of penalties
+    context game_context; -- Game context
+    index_player int; -- Index of the player
+    loc_tmp float4; -- Temporary variable for calculations
+BEGIN
+    ------------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------------
+    ------------ Step 1: Get game details and initial checks
+    SELECT games.*,
+        games_description.elo_weight,
+        gtl.id AS id_teamcomp_club_left, 
+        gtr.id AS id_teamcomp_club_right,
+        cl.name AS name_club_left, cl.username AS username_club_left,
+        cr.name AS name_club_right, cr.username AS username_club_right
+    INTO rec_game 
+    FROM games
+    JOIN games_description ON games.id_games_description = games_description.id
+    JOIN games_teamcomp gtl ON games.id_club_left = gtl.id_club AND games.season_number = gtl.season_number AND games.week_number = gtl.week_number
+    JOIN games_teamcomp gtr ON games.id_club_right = gtr.id_club AND games.season_number = gtr.season_number AND games.week_number = gtr.week_number
+    JOIN clubs cl ON games.id_club_left = cl.id
+    JOIN clubs cr ON games.id_club_right = cr.id
+    WHERE 
+        games.id = inp_id_game;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Game [%] does not exist or the teamcomp was not found for the JOIN', inp_id_game;
+    ELSIF rec_game.date_end IS NOT NULL THEN
+        RAISE EXCEPTION 'Game [%] has already being played', inp_id_game;
+    ELSIF rec_game.id_club_left IS NULL THEN
+        RAISE EXCEPTION 'Game [%] doesnt have any left club defined', inp_id_game;
+    ELSIF rec_game.id_club_right IS NULL THEN
+        RAISE EXCEPTION 'Game [%] doesnt have any right club defined', inp_id_game;
+    ELSIF rec_game.id_teamcomp_club_left IS NULL THEN
+        RAISE EXCEPTION 'Game [%]: Teamcomp not found for club % for season % and week %', inp_id_game, rec_game.id_club_left, rec_game.season_number, rec_game.week_number;
+    ELSIF rec_game.id_teamcomp_club_right IS NULL THEN
+        RAISE EXCEPTION 'Game [%]: Teamcomp not found for club % for season % and week %', inp_id_game, rec_game.id_club_right, rec_game.season_number, rec_game.week_number;
+    END IF;
+
+
+    ------ Set that the game is_playing
+    UPDATE games SET
+        is_playing = TRUE
+    WHERE id = rec_game.id;
+
+    ------ Update the games teamcomp to say that the game is played
+    UPDATE games_teamcomp SET
+        is_played = TRUE
+    WHERE id IN (rec_game.id_teamcomp_club_left, rec_game.id_teamcomp_club_right);
+
+    ------------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------------
+    ------------ Step 2: Check teamcomps
+    ------ Check if there is an error in the left teamcomp
+--RAISE NOTICE '###### Game [%] - Checking teamcomps % - %', inp_id_game, rec_game.id_club_left, rec_game.id_club_right;
+--RAISE NOTICE '###### Game [%] - Club% [%] VS Club% [%]', inp_id_game, rec_game.id_club_left, (SELECT array_agg(id) FROM players where id_club = rec_game.id_club_left), rec_game.id_club_right, (SELECT array_agg(id) FROM players where id_club = rec_game.id_club_right);
+    BEGIN 
+        ---- If the left teamcomp has an error, then try to correct it
+        IF teamcomp_check_and_try_populate_if_error(
+            inp_id_teamcomp := rec_game.id_teamcomp_club_left)
+        IS NOT TRUE THEN
+            loc_score_left := -1;
+        END IF;
+    EXCEPTION
+        WHEN OTHERS THEN
+            loc_score_left := -1;
+    END;
+    
+    ------ Check if there is an error in the right teamcomp
+    BEGIN
+        ---- If the right teamcomp has an error, then try to correct it
+        IF teamcomp_check_and_try_populate_if_error(
+            inp_id_teamcomp := rec_game.id_teamcomp_club_right)
+        IS NOT TRUE THEN
+            loc_score_right := -1;
+        END IF;
+    EXCEPTION
+        WHEN OTHERS THEN
+            loc_score_right := -1;
+    END;
+
+-- RAISE NOTICE 'Game [%] - Club% [% - %] Club%', inp_id_game, rec_game.id_club_left, loc_score_left, loc_score_right, rec_game.id_club_right;
+
+    ------ If one of the clubs is forfeit
+    IF loc_score_left = -1 OR loc_score_right = -1 THEN
+        ---- If both clubs are forfeit
+        IF loc_score_left = -1 AND loc_score_right = -1 THEN
+
+            -- Send mails to the clubs
+            INSERT INTO mails (id_club_to, created_at, sender_role, is_game_result, title, message)
+            VALUES
+                (rec_game.id_club_left, rec_game.date_start, 'Referee', TRUE,
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' but they didnt either, we will see what the league decides but it might end with a draw'),
+                (rec_game.id_club_right, rec_game.date_start, 'Referee', TRUE,
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' but they didnt either, we will see what the league decides but it might end with a draw');
+
+        ---- If the left club is forfeit
+        ELSEIF loc_score_left = -1 THEN
+            loc_score_right := 3; -- Set the right club as winner by 3-0
+
+            -- Send mails to the clubs
+            INSERT INTO mails (id_club_to, created_at, sender_role, is_game_result, title, message)
+            VALUES
+                (rec_game.id_club_left, rec_game.date_start, 'Referee', TRUE,
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_right || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat'),
+                (rec_game.id_club_right, rec_game.date_start, 'Referee', TRUE,
+                    'ERROR TEAMCOMP: For ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number,
+                    rec_game.name_club_left || ', our opponent for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory');
+
+        ---- If the right club is forfeit
+        ELSE
+            loc_score_left := 3; -- Set the left club as winner by 3-0
+
+            -- Send mails to the clubs
+            INSERT INTO mails (id_club_to, created_at, sender_role, is_game_result, title, message)
+            VALUES
+                (rec_game.id_club_left, rec_game.date_start, 'Referee', TRUE,
+                    string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Opponent has no valid teamcomp',
+                    rec_game.name_club_right || ', our opponent for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' was not able to give a valid teamcomp, we will see what the league decides but it might end with a 3-0 victory'),
+                (rec_game.id_club_right, rec_game.date_start, 'Referee', TRUE,
+                    string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ': Cannot validate teamcomp',
+                    'We were not able to give a valid teamcomp for the ' || string_parser(inp_entity_type := 'idGame', inp_id := rec_game.id) || ' of S' || rec_game.season_number || 'W' || rec_game.week_number || ' against ' || rec_game.name_club_left || ' is not valid, we will see what the league decides but it might end with a 3-0 defeat');
+
+        END IF;
+
+    ------ If the game needs to be simulated, then set the initial score
+    ELSE
+        ------------------------------------------------------------------------------------------------------------------------------------------------
+        ------------------------------------------------------------------------------------------------------------------------------------------------
+        ------------ Step 2: Fetch, calculate and store data in arrays
+        ------ Fetch players id of the club for this game
+        loc_array_players_id_left := teamcomp_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_left);
+        loc_array_players_id_right := teamcomp_fetch_players_id(inp_id_teamcomp := rec_game.id_teamcomp_club_right);
+
+            ------ Update player to say they are currently playing a game
+        UPDATE players SET
+            is_playing = TRUE,
+            id_games_played = id_games_played || rec_game.id
+        WHERE id = ANY(loc_array_players_id_left)
+           OR id = ANY(loc_array_players_id_right);
+        
+        ------ Fetch constant player stats matrix [21 players x {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}]
+        loc_matrix_player_stats_left := simulate_game_fetch_player_stats(loc_array_players_id_left);
+        loc_matrix_player_stats_right := simulate_game_fetch_player_stats(loc_array_players_id_right);
+
+        ------------------------------------------------------------------------------------------------------------------------------------------------
+        ------------------------------------------------------------------------------------------------------------------------------------------------
+        ------------ Step 3: Simulate game
+        ------ Loop through the periods of the game (e.g., first half, second half, extra time)
+        FOR loc_period_game IN 1..4 LOOP
+
+            ---- Set the minute where the period ends
+            IF loc_period_game = 1 THEN
+                loc_date_start_period := rec_game.date_start; -- Start date of the first period is the start date of the game
+                loc_minute_period_start := 0; -- Start minute of the first period
+                loc_minute_period_end := loc_minute_period_start + minutes_half_time; -- Start minute of the first period
+                loc_minute_period_extra_time := 2 + ROUND(random() * 3); -- Extra time for the period
+            ELSEIF loc_period_game = 2 THEN
+                loc_date_start_period := loc_date_start_period + (45 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the second period is the start date of the game plus 45 minutes + extra time
+                loc_minute_period_start := 45; -- Start minute of the second period
+                loc_minute_period_end := loc_minute_period_start + minutes_half_time; -- Start minute of the first period
+                loc_minute_period_extra_time := 3 + ROUND(random() * 5); -- Extra time for the period
+
+                ------ Update players energy
+                FOR I IN 1..21 LOOP
+                    ---- Increase energy
+                    loc_matrix_player_stats_left[I][12] := loc_matrix_player_stats_left[I][12] + 10.0 * (1.0 + loc_matrix_player_stats_left[I][11]/100.0);
+                    loc_matrix_player_stats_right[I][12] := loc_matrix_player_stats_right[I][12] + 10.0 * (1.0 + loc_matrix_player_stats_right[I][11]/100.0);
+                END LOOP;
+
+            ELSEIF loc_period_game = 3 THEN
+                loc_score_left_previous := COALESCE(rec_game.score_previous_left, 0);
+                loc_score_right_previous := COALESCE(rec_game.score_previous_right, 0);
+                -- Check if the game is over already (e.g., if the game is not a cup game or if the scores are different)
+                IF rec_game.is_cup = FALSE THEN
+                    EXIT; -- If the game is not a cup game, then exit the loop
+                ELSIF (loc_score_left + loc_score_left_previous) <> (loc_score_right + loc_score_right_previous) THEN
+                    EXIT; -- If the cup game is not a draw, then exit the loop
+                END IF;
+                loc_date_start_period := loc_date_start_period + (45 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the first prolongation is the start date of the second half plus 45 minutes + extra time
+                loc_minute_period_start := 90; -- Start minute of the first period
+                loc_minute_period_end := loc_minute_period_start + minutes_extra_time; -- Start minute of the first period
+                loc_minute_period_extra_time := ROUND(random() * 2); -- Extra time for the period
+
+                ------ Update players energy
+                FOR I IN 1..21 LOOP
+                    ---- Increase energy
+                    loc_matrix_player_stats_left[I][12] := loc_matrix_player_stats_left[I][12] + 5.0 * (1.0 + loc_matrix_player_stats_left[I][11]/100.0);
+                    loc_matrix_player_stats_right[I][12] := loc_matrix_player_stats_right[I][12] + 5.0 * (1.0 + loc_matrix_player_stats_right[I][11]/100.0);
+                END LOOP;
+
+            ELSE
+                loc_date_start_period := loc_date_start_period + (15 + loc_minute_period_extra_time) * INTERVAL '1 minute'; -- Start date of the second prolongation is the start date of the first prolongation plus 15 minutes + extra time
+                loc_minute_period_start := 105; -- Start minute of the first period
+                loc_minute_period_end := loc_minute_period_start + minutes_extra_time; -- Start minute of the first period
+                loc_minute_period_extra_time := 2 + ROUND(random() * 4); -- Extra time for the period
+
+                ------ Update players energy
+                FOR I IN 1..21 LOOP
+                    ---- Increase energy
+                    loc_matrix_player_stats_left[I][12] := loc_matrix_player_stats_left[I][12] + 5.0 * (1.0 + loc_matrix_player_stats_left[I][11]/100.0);
+                    loc_matrix_player_stats_right[I][12] := loc_matrix_player_stats_right[I][12] + 5.0 * (1.0 + loc_matrix_player_stats_right[I][11]/100.0);
+                END LOOP;
+            END IF;
+
+            ------ Cheat CODE to calculate only once
+            ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+            --loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
+            --loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
+
+            ------ Iterate through the minutes of the game to generate the events of the game
+            FOR loc_minute_game IN loc_minute_period_start..loc_minute_period_end + loc_minute_period_extra_time LOOP
+     
+                ------------------------------------------------------------------------
+                ------------------------------------------------------------------------
+                ------ Handle orders
+                -- Handle orders for left club
+                -- loc_array_substitutes_left := simulate_game_handle_orders(
+                --     inp_teamcomp_id := rec_game.id_teamcomp_club_left,
+                --     array_players_id := loc_array_players_id_left,
+                --     array_substitutes := loc_array_substitutes_left,
+                --     game_minute := loc_minute_game,
+                --     game_period := loc_period_game,
+                --     period_start := loc_date_start_period,
+                --     score := loc_score_left - loc_score_right,
+                --     game := rec_game);
+
+                -- -- Handle orders for right club
+                -- loc_array_substitutes_right := simulate_game_handle_orders(
+                --     inp_teamcomp_id := rec_game.id_teamcomp_club_right,
+                --     array_players_id := loc_array_players_id_right,
+                --     array_substitutes := loc_array_substitutes_right,
+                --     game_minute := loc_minute_game,
+                --     game_period := loc_period_game,
+                --     period_start := loc_date_start_period,
+                --     score := loc_score_right - loc_score_left,
+                --     game := rec_game);
+
+                ------ Calculate the weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+                ---- Initialize the team weights
+                loc_array_team_weights_left := '{100,100,100,100,100,100,100}';
+                loc_array_team_weights_right := '{100,100,100,100,100,100,100}';
+                ---- Loop through the 14 available positions of a game
+                FOR I IN 1..14 LOOP
+
+                    ---- Get the index of the player playing at the position I
+                    index_player := loc_array_substitutes_left[I];
+
+                    ---- If there is a player playing at the position I
+                    IF loc_array_players_id_left[index_player] IS NOT NULL THEN
+                        
+                        -- Fetch the stats of the player {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}
+                        FOR J IN 1..12 LOOP
+                            array_player_stats[J] := loc_matrix_player_stats_left[index_player][J];
+                        END LOOP;
+                        -- Sum only the first 10 stats (not stamina and energy)
+                        loc_tmp := (SELECT SUM(val) FROM unnest(array_player_stats[1:10]) AS val) / 10.0; -- Average stats for the player
+
+                        -- Fetch the weights of the player playing at the position I {LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack}
+                        -- array_player_weights := players_calculate_player_weight(array_player_stats, I);
+
+                        -- Calculate the energy coefficient of the player
+                        energy_coef := array_player_stats[12] / 100.0;
+
+                        -- Add the player weights to the team weights
+                        FOR J IN 1..7 LOOP
+                            -- array_player_weights[J] := array_player_weights[J] * energy_coef;
+                            -- loc_array_team_weights_left[J] := loc_array_team_weights_left[J] + array_player_weights[J];
+                            array_player_weights[J] := loc_tmp * energy_coef;
+                            loc_array_team_weights_left[J] := loc_array_team_weights_left[J] + array_player_weights[J];
+                        END LOOP;
+
+                        --Store the player weights in the game_player_stats_all table
+                        INSERT INTO game_player_stats_all (id_game, id_player, position, period, minute, is_left_club_player, weights, sum_weights)
+                        VALUES (
+                            rec_game.id, 
+                            loc_array_players_id_left[index_player], 
+                            I, loc_period_game, loc_minute_game, TRUE, -- Position, period, minute of the game and if the player is from the left club
+                            array_player_weights,
+                            (SELECT SUM(val) FROM unnest(array_player_weights) AS val)
+                        );
+
+                        ---- Increase stats based on the player's position
+                        ---- Reduce energy
+                        loc_matrix_player_stats_left[index_player][12] := GREATEST(0,
+                            loc_matrix_player_stats_left[index_player][12] - 1 + loc_matrix_player_stats_left[index_player][11] / 200.0);
+                        ---- Increase experience
+                        -- loc_matrix_player_stats_left[index_player][10] := LEAST(100,
+                        --     loc_matrix_player_stats_left[index_player][10] + 0.015);
+
+                    END IF;
+
+                    ---- Get the index of the player playing at the position I
+                    index_player := loc_array_substitutes_right[I];
+
+                    ---- If there is a player playing at the position I
+                    IF loc_array_players_id_right[index_player] IS NOT NULL THEN
+                        
+                        -- Fetch the stats of the player {keeper, defense, passes, playmaking, winger, scoring, freekick, motivation, form, experience, stamina, energy}
+                        FOR J IN 1..12 LOOP
+                            array_player_stats[J] := loc_matrix_player_stats_right[index_player][J];
+                        END LOOP;
+                        -- Sum only the first 10 stats (not stamina and energy)
+                        loc_tmp := (SELECT SUM(val) FROM unnest(array_player_stats[1:10]) AS val) / 10.0; -- Average stats for the player
+
+                        -- Fetch the weights of the player playing at the position I {LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack}
+                        -- array_player_weights := players_calculate_player_weight(array_player_stats, I);
+
+                        -- Calculate the energy coefficient of the player
+                        energy_coef := array_player_stats[12] / 100.0;
+
+                        -- Add the player weights to the team weights
+                        FOR J IN 1..7 LOOP
+                            -- array_player_weights[J] := array_player_weights[J] * energy_coef;
+                            -- loc_array_team_weights_right[J] := loc_array_team_weights_right[J] + array_player_weights[J];
+                            array_player_weights[J] := loc_tmp * energy_coef;
+                            loc_array_team_weights_right[J] := loc_array_team_weights_right[J] + loc_tmp;
+                        END LOOP;
+
+                        --Store the player weights in the game_player_stats_all table
+                        INSERT INTO game_player_stats_all (id_game, id_player, position, period, minute, is_left_club_player, weights, sum_weights)
+                        VALUES (
+                            rec_game.id, 
+                            loc_array_players_id_right[index_player], 
+                            I, loc_period_game, loc_minute_game, FALSE, -- Position, period, minute of the game and if the player is from the left club
+                            array_player_weights,
+                            (SELECT SUM(val) FROM unnest(array_player_weights) AS val)
+                        );
+
+                        ---- Increase stats based on the player's position
+                        ---- Reduce energy
+                        loc_matrix_player_stats_right[index_player][12] := GREATEST(0,
+                            loc_matrix_player_stats_right[index_player][12] - 1 + loc_matrix_player_stats_right[index_player][11] / 200.0);
+                        ---- Increase experience
+                        -- loc_matrix_player_stats_right[index_player][10] := LEAST(100,
+                        --     loc_matrix_player_stats_right[index_player][10] + 0.015);
+
+                    END IF;
+
+                END LOOP;
+
+                ------ Insert a new row in the game_stats table
+                INSERT INTO game_stats (id_game, period, minute, weights_left, weights_right)
+                VALUES (rec_game.id, loc_period_game, loc_minute_game, loc_array_team_weights_left, loc_array_team_weights_right);
+
+                ------ Calculate team weights (Array of 7 floats: LeftDefense, CentralDefense, RightDefense, MidField, LeftAttack, CentralAttack, RightAttack)
+                -- loc_array_team_weights_left := simulate_game_calculate_game_weights(loc_matrix_player_stats_left, loc_array_substitutes_left);
+                -- loc_array_team_weights_right := simulate_game_calculate_game_weights(loc_matrix_player_stats_right, loc_array_substitutes_right);
+
+                ------ Set the game context
+                context := ROW(
+                    loc_array_players_id_left,
+                    loc_array_players_id_right,
+                    loc_array_substitutes_left,
+                    loc_array_substitutes_right,
+                    loc_matrix_player_stats_left,
+                    loc_matrix_player_stats_right,
+                    loc_array_team_weights_left,
+                    loc_array_team_weights_right,
+                    loc_period_game,
+                    loc_minute_game,
+                    loc_date_start_period
+                )::game_context;
+
+                ------ Simulate a minute of the game and update the scores
+                SELECT simulate_game_minute.loc_score_left, simulate_game_minute.loc_score_right
+                INTO loc_score_left, loc_score_right
+                FROM simulate_game_minute(
+                    rec_game := rec_game,
+                    context := context,
+                    inp_score_left := loc_score_left,
+                    inp_score_right := loc_score_right
+                );
+
+            END LOOP; -- End loop on the minutes of the game
+
+            -- If the game went to extra time and the scores are still equal, then simulate a penalty shootout
+            IF loc_period_game = 4
+            AND rec_game.is_cup IS TRUE
+            AND (loc_score_left + loc_score_left_previous) = (loc_score_right + loc_score_right_previous) THEN
+                -- Simulate a penalty shootout
+                penalty_number := 1; -- Initialize the loop counter
+                loc_score_penalty_left := 0; -- Initialize the score of the left team for the penalty shootout
+                loc_score_penalty_right := 0; -- Initialize the score of the right team for the penalty shootout
+                WHILE penalty_number <= 5 OR loc_score_penalty_left = loc_score_penalty_right LOOP
+                    IF random() < 0.5 THEN
+                        loc_score_penalty_left := loc_score_penalty_left + 1;
+                    END IF;
+                    IF random() < 0.5 THEN
+                        loc_score_penalty_right := loc_score_penalty_right + 1;
+                    END IF;
+                    penalty_number := penalty_number + 1;
+                END LOOP;
+                loc_minute_period_extra_time := loc_minute_period_extra_time + (2 * penalty_number);
+            END IF;
+        END LOOP; -- End loop on the first half, second half and extra time for cup
+        
+        ------ Calculate the end time of the game
+        loc_minute_period_end := loc_minute_period_end + loc_minute_period_extra_time;
+
+    END IF; -- End if the game needs to be simulated
+
+    ------ Store the players stats
+    FOR I IN 1..21 LOOP
+        IF loc_array_players_id_left[I] IS NOT NULL THEN
+            UPDATE players SET
+                -- training_points_available = training_points_available + 5,
+                energy = loc_matrix_player_stats_left[I][12],
+                experience = loc_matrix_player_stats_left[I][10]
+            WHERE id = loc_array_players_id_left[I];
+        END IF;
+        IF loc_array_players_id_right[I] IS NOT NULL THEN
+            UPDATE players SET
+                -- training_points_available = training_points_available + 5,
+                energy = loc_matrix_player_stats_right[I][12],
+                experience = loc_matrix_player_stats_right[I][10]
+            WHERE id = loc_array_players_id_right[I];
+        END IF;
+    END LOOP;
+
+    ------------ Store the results
+    ------ Store the score
+    UPDATE games SET
+        date_end = date_start + ((loc_minute_period_end * INTERVAL '1 minute')
+            / (SELECT speed FROM multiverses WHERE id = rec_game.id_multiverse)), -- Divide by multiverse speed
+        -- date_end = date_start + INTERVAL '5 minutes', -- For testing purposes, set the end date to 5 minutes after the start date
+        ---- Score of the game
+        score_left = CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END,
+        score_right = CASE WHEN loc_score_right = -1 THEN 0 ELSE loc_score_right END,
+        is_left_forfeit = CASE WHEN loc_score_left = -1 THEN TRUE ELSE FALSE END,
+        is_right_forfeit = CASE WHEN loc_score_right = -1 THEN TRUE ELSE FALSE END,
+        ---- Score of the penalty shootout
+        score_penalty_left = loc_score_penalty_left,
+        score_penalty_right = loc_score_penalty_right,
+        ---- Score (cumulative) of the game with penalty shootout / 1000
+        score_cumul_with_penalty_left = loc_score_left_previous +
+            + CASE WHEN loc_score_left = -1 THEN 0 ELSE loc_score_left END
+            + COALESCE(loc_score_penalty_left, 0) / 1000.0,
+        score_cumul_with_penalty_right = loc_score_right_previous +
+            + CASE WHEN loc_score_right = -1 THEN 0 ELSE loc_score_right END
+            + COALESCE(loc_score_penalty_right, 0) / 1000.0
+    WHERE id = rec_game.id;
+
+    ------ Store the score if ever a game is a return game of this one
+    UPDATE games SET
+        score_previous_left = CASE WHEN loc_score_right = - 1 THEN 0 ELSE loc_score_right END,
+        score_previous_right = CASE WHEN loc_score_left = - 1 THEN 0 ELSE loc_score_left END
+    WHERE is_return_game_id_game_first_round = rec_game.id;
+
+END;
+$$;
+
+
+ALTER FUNCTION public.simulate_game_speedy(inp_id_game bigint) OWNER TO postgres;
 
 --
 -- Name: simulate_week_games(record, bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
@@ -6032,7 +6883,7 @@ DECLARE
 BEGIN
     -- Validate input based on entity type
     CASE inp_entity_type
-        WHEN 'idPlayer', 'idClub', 'idLeague', 'idGame', 'idTeamcomp', 'idCountry' THEN
+        WHEN 'idPlayer', 'idClub', 'idLeague', 'idGame', 'idTeamcomp', 'idCountry', 'Continent' THEN
             IF inp_id IS NULL THEN
                 -- RAISE EXCEPTION 'inp_id must be provided for entity type %', inp_entity_type;
                 RETURN 'NOT FOUND';
@@ -6065,6 +6916,9 @@ BEGIN
         WHEN 'idCountry' THEN
             SELECT id::TEXT, name INTO loc_record FROM countries WHERE id = inp_id;
             loc_name := COALESCE(inp_text, loc_record.name);
+         WHEN 'Continent' THEN
+            -- Since continents are not stored in a table with IDs, we directly use inp_text as the continent name.
+            RETURN '{' || inp_entity_type || '0,:' || inp_text || '}';
         WHEN 'uuidUser' THEN
             SELECT uuid_user::TEXT AS id, username AS name INTO loc_record FROM profiles WHERE uuid_user = inp_uuid_user;
             loc_name := COALESCE(inp_text, loc_record.name);
@@ -6872,76 +7726,107 @@ $$;
 ALTER FUNCTION public.transfers_handle_new_embodied_player_offer(inp_id_player bigint, inp_id_club bigint, inp_expenses_offered smallint, inp_date_limit timestamp with time zone, inp_number_season smallint, inp_comment_for_player text, inp_comment_for_club text) OWNER TO postgres;
 
 --
--- Name: transfers_handle_transfers(record); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: transfers_handle_transfers(bigint[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.transfers_handle_transfers(inp_multiverse record) RETURNS void
+CREATE FUNCTION public.transfers_handle_transfers(inp_id_multiverse bigint[] DEFAULT NULL::bigint[]) RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
     rec_player RECORD; -- Record variable to store each row from the query
-    last_bid RECORD; -- Record variable to store the last bid for each player
-    teamcomp RECORD; -- Record variable to store the teamcomp
+    rec_teamcomp RECORD; -- Record variable to store the teamcomp
     loc_tmp INT8; -- Variable to store the count of rows affected by the query
 BEGIN
 
     ------ Query to select rows to process (bids finished and player is not currently playing a game)
-    FOR rec_player IN (
-        SELECT *,
-            player_get_full_name(id) AS full_name,
-            string_parser(inp_entity_type := 'idPlayer', inp_id := id) AS special_string_player,
-            CASE WHEN id_club IS NULL THEN
-                'NO CLUB'
+    -- Drop the temporary table if it exists
+    DROP TABLE IF EXISTS temp_player_bids;
+
+    -- Create a temporary table to store the query results
+    CREATE TEMP TABLE temp_player_bids AS
+    SELECT 
+        players.id, players.transfer_status, players.id_club,
+        player_get_full_name(players.id) AS full_name,
+        string_parser(inp_entity_type := 'idPlayer', inp_id := players.id) AS magic_string_player,
+        CASE 
+            WHEN players.id_club IS NULL THEN 'NO CLUB'
+            ELSE string_parser(inp_entity_type := 'idClub', inp_id := players.id_club)
+        END AS magic_string_club,
+        players.id_multiverse, players.id_country, players.shirt_number,
+        multiverses.speed AS multiverse_speed,
+        multiverses.date_handling,
+        COUNT(transfers_bids.id) AS bid_count, -- Number of bids for the player
+        MAX(transfers_bids.id_club) AS highest_bid_id_club, -- Highest club bidder
+        string_parser(inp_entity_type := 'idClub', inp_id := MAX(transfers_bids.id_club)) AS magic_string_highest_bid_club, -- Club with the highest bid
+        MAX(transfers_bids.amount) AS highest_bid_amount -- Highest bid amount
+    FROM players
+    LEFT JOIN transfers_bids ON players.id = transfers_bids.id_player
+    LEFT JOIN multiverses ON players.id_multiverse = multiverses.id
+    WHERE 
+        players.date_bid_end < NOW()
+        AND players.id_game_currently_playing IS NULL
+        AND players.username IS NULL -- Exclude embodied players
+        AND (
+            inp_id_multiverse IS NULL
+            OR players.id_multiverse = ANY(inp_id_multiverse)
+        )
+    GROUP BY 
+        players.id, players.transfer_status, players.id_club, multiverses.speed, multiverses.date_handling;
+
+    -- Bulk update for all clubless players without bids
+    UPDATE players SET
+        date_bid_end = CASE
+            -- If the player has been clubless for more than a season, he leaves the transfer market
+            WHEN (NOW() - date_arrival) > INTERVAL '14 weeks' / temp_player_bids.multiverse_speed
+                THEN NULL
+            -- Otherwise, extend the bid end date to next week (TODO: Add random number of days ???)
             ELSE
-                string_parser(inp_entity_type := 'idClub', inp_id := id_club)
-            END AS special_string_club
-        FROM players
-        WHERE date_bid_end < NOW()
-        AND is_playing = FALSE
-        AND id_multiverse = inp_multiverse.id
-        AND username IS NULL -- Exclude embodied players
+                date_trunc('minute', NOW() + (INTERVAL '1 week' / temp_player_bids.multiverse_speed))
+            END,
+        expenses_expected = CEIL(0.1 * expenses_target + 0.5 * expenses_expected),
+        transfer_price = 100,
+        -- Decrease motivation
+        motivation = motivation - 5.0 * random()
+    FROM temp_player_bids
+    WHERE players.id = temp_player_bids.id
+        AND temp_player_bids.transfer_status = 'Free Player'
+        AND temp_player_bids.bid_count = 0;
+
+    -- Loop over each player that needs to be handled
+    FOR rec_player IN (
+        SELECT * FROM temp_player_bids
+        WHERE NOT (transfer_status = 'Free Player' AND bid_count = 0)
     ) LOOP
     
-        -- Get the last bid on the player
-        SELECT *, 
-            string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS special_string_buying_club
-        INTO last_bid
-        FROM transfers_bids
-        WHERE id_player = rec_player.id
-        ORDER BY amount DESC
-        LIMIT 1;
+        -- Process each player and their bids
+        RAISE NOTICE 'Processing player [%] with highest bid [%]', rec_player.id, rec_player.highest_bid_amount;
 
         ------ If no bids are found
-        IF NOT FOUND THEN
+        IF rec_player.bid_count = 0 THEN
 
             ---- If the player is clubless
             IF rec_player.id_club IS NULL THEN
 
-                -- Update player to make bidding next week
-                UPDATE players SET
-                    date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / inp_multiverse.speed),
-                    expenses_expected = CEIL(0.1 * expenses_target + 0.5 * expenses_expected),
-                    transfer_price = 100,
-                    motivation = motivation - 5.0 * (expenses_expected / expenses_target)
-                WHERE id = rec_player.id;
-            
+------ DO NOTHING BECAUSE HANDLED IN BULK UPDATE ABOVE
+RAISE NOTICE '### Player is clubless and has no bids, already handled in bulk update.';
+
             ---- If the player has a club
             ELSE
 
                 -- If the player asked to leave the club or was fired ==> Player leaves the club
-                IF rec_player.transfer_price = -100 THEN
+                IF rec_player.transfer_status IN ('Fired', 'Asked to leave') THEN
 
                     -- Insert a message to say that the player left the club
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message) VALUES
                         (rec_player.id_club, 'Treasurer', TRUE,
-                        rec_player.special_string_player || ' found no bidder and leaves the club',
-                        rec_player.special_string_player || ' has not received any bid, the selling is over and he is not part of the club anymore. He is now clubless and was removed from the club''s teamcomps.');
+                        rec_player.magic_string_player || ' found no bidder and leaves the club',
+                        rec_player.magic_string_player || ' has not received any bid, the selling is over and he is not part of the club anymore. He is now clubless and was removed from the club''s teamcomps.');
 
                     -- Send mail to the clubs following the player
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     SELECT DISTINCT id_club, 'Scouts', TRUE,
-                        rec_player.special_string_player || ' (followed) found no bidder and leaves ' || rec_player.special_string_club,
-                        'The transfer of ' || rec_player.special_string_player || ' (followed) has been canceled because no bids were made. He is now clubless'
+                        rec_player.magic_string_player || ' (followed) found no bidder and leaves ' || rec_player.magic_string_club,
+                        'The transfer of ' || rec_player.magic_string_player || ' (followed) has been canceled because no bids were made. He is now clubless'
                     FROM (
                         SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                         UNION
@@ -6953,7 +7838,7 @@ BEGIN
                         (id_club, description)
                         VALUES (
                             rec_player.id_club,
-                            rec_player.special_string_player || ' left the club and is now clubless because no bids were made on him'
+                            rec_player.magic_string_player || ' left the club and is now clubless because no bids were made on him'
                     );
 
                     -- Insert a new row in the players_history table
@@ -6961,29 +7846,30 @@ BEGIN
                         (id_player, id_club, is_transfer_description, description)
                         VALUES (
                             rec_player.id, rec_player.id_club, TRUE,
-                            'Left ' || rec_player.special_string_club || ' because no bids were made on him'
+                            'Left ' || rec_player.magic_string_club || ' because no bids were made on him'
                     );
 
                     -- Update the player to set him as clubless
                     UPDATE players SET
                         id_club = NULL,
                         date_arrival = date_bid_end,
+                        transfer_status = 'Free Player',
                         shirt_number = NULL,
                         expenses_payed = 0,
                         expenses_missed = 0,
                         motivation = 60 + random() * 30,
                         transfer_price = 100,
-                        date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / inp_multiverse.speed)
+                        date_bid_end = date_trunc('minute', NOW()) + (INTERVAL '1 week' / rec_player.multiverse_speed)
                     WHERE id = rec_player.id;
 
                     -- Remove the player from the club's teamcomps where he appears
-                    FOR teamcomp IN (
+                    FOR rec_teamcomp IN (
                         SELECT id FROM games_teamcomp
                         WHERE id_club = rec_player.id_club
                         AND is_played = FALSE)
                     LOOP
                         PERFORM teamcomp_check_or_correct_errors(
-                            inp_id_teamcomp := teamcomp.id,
+                            inp_id_teamcomp := rec_teamcomp.id,
                             inp_bool_try_to_correct := TRUE,
                             inp_bool_notify_user := FALSE);
                     END LOOP;
@@ -7016,17 +7902,17 @@ BEGIN
 
                     -- Insert a message to say that the player was not sold
                     INSERT INTO mails (
-                        id_club_to, created_at, sender_role, is_transfer_info, title, message)
+                        id_club_to, sender_role, is_transfer_info, title, message)
                     VALUES
-                        (rec_player.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
-                        rec_player.special_string_player || ' not sold and stays in the club',
-                        rec_player.special_string_player || ' has not received any bid, the selling is canceled and he will stay in the club');
+                        (rec_player.id_club, 'Treasurer', TRUE,
+                        rec_player.magic_string_player || ' not sold and stays in the club',
+                        rec_player.magic_string_player || ' has not received any bid, the selling is canceled and he will stay in the club');
 
                     -- Send mail to the clubs following the player
                     INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                     SELECT DISTINCT id_club, 'Scouts', TRUE,
-                        rec_player.special_string_player || ' (followed) found no bidder so stays in ' || rec_player.special_string_club,
-                        'The transfer of ' || rec_player.special_string_player || ' (followed) has been canceled because no bids were made. He stays in ' || rec_player.special_string_club
+                        rec_player.magic_string_player || ' (followed) found no bidder so stays in ' || rec_player.magic_string_club,
+                        'The transfer of ' || rec_player.magic_string_player || ' (followed) has been canceled because no bids were made. He stays in ' || rec_player.magic_string_club
                     FROM (
                         SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                         UNION
@@ -7038,13 +7924,14 @@ BEGIN
                         (id_player, id_club, is_transfer_description, description)
                     VALUES (
                         rec_player.id, rec_player.id_club, TRUE,
-                        'Put on transfer list by ' || rec_player.special_string_club || ' but no bids were made'
+                        'Put on transfer list by ' || rec_player.magic_string_club || ' but no bids were made'
                     );
 
                     -- Update the player to remove the date bid end
                     UPDATE players SET
                         date_bid_end = NULL,
-                        transfer_price = NULL
+                        transfer_price = NULL,
+                        transfer_status = NULL
                     WHERE id = rec_player.id;
 
                 END IF;
@@ -7057,17 +7944,17 @@ BEGIN
 
                 -- Insert a message to say that the player was sold
                 INSERT INTO mails (
-                    id_club_to, created_at, sender_role, is_transfer_info, title, message)
+                    id_club_to, sender_role, is_transfer_info, title, message)
                 VALUES
-                    (last_bid.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
-                    rec_player.special_string_player || ' (clubless player) bought for ' || last_bid.amount,
-                    rec_player.special_string_player || ' who was clubless has been bought for ' || last_bid.amount);
+                    (rec_player.highest_bid_id_club, 'Treasurer', TRUE,
+                    rec_player.magic_string_player || ' (clubless player) bought for ' || rec_player.highest_bid_amount,
+                    rec_player.magic_string_player || ' who was clubless has been bought for ' || rec_player.highest_bid_amount);
                 
                 -- Send mail to the clubs following the player
                 INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                 SELECT DISTINCT id_club, 'Scouts', TRUE,
-                    rec_player.special_string_player || ' (followed) sold for ' || last_bid.amount,
-                    rec_player.special_string_player || ' (followed) who was clubless has been sold for ' || last_bid.amount || ' to ' || last_bid.special_string_buying_club || '.'
+                    rec_player.magic_string_player || ' (followed) sold for ' || rec_player.highest_bid_amount,
+                    rec_player.magic_string_player || ' (followed) who was clubless has been sold for ' || rec_player.highest_bid_amount || ' to ' || rec_player.magic_string_highest_bid_club || '.'
                 FROM (
                     SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                     UNION
@@ -7078,19 +7965,19 @@ BEGIN
 
                 -- Insert a message to say that the player was sold
                 INSERT INTO mails
-                    (id_club_to, created_at, sender_role, is_transfer_info, title, message)
+                    (id_club_to, sender_role, is_transfer_info, title, message)
                 VALUES
-                    (rec_player.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
-                        rec_player.special_string_player || ' sold for ' || last_bid.amount,
-                        rec_player.special_string_player || ' has been sold for ' || last_bid.amount || ' to ' || last_bid.special_string_buying_club || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
-                    (last_bid.id_club, rec_player.date_bid_end, 'Treasurer', TRUE,
-                        rec_player.special_string_player || ' has been bought for ' || last_bid.amount || '. I hope he will be a good addition to our team !');
+                    (rec_player.id_club, 'Treasurer', TRUE,
+                        rec_player.magic_string_player || ' sold for ' || rec_player.highest_bid_amount,
+                        rec_player.magic_string_player || ' has been sold for ' || rec_player.highest_bid_amount || ' to ' || rec_player.magic_string_highest_bid_club || '. He is now not part of the club anymore and has been removed from the club''s teamcomps'),
+                    (rec_player.highest_bid_id_club, 'Treasurer', TRUE,
+                        rec_player.magic_string_player || ' has been bought for ' || rec_player.highest_bid_amount || '. I hope he will be a good addition to our team !');
 
                 -- Send mail to the clubs following the player
                 INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
                 SELECT DISTINCT id_club, 'Scouts', TRUE,
-                    rec_player.special_string_player || ' (followed) sold for ' || last_bid.amount,
-                    rec_player.special_string_player || ' (followed) has been sold for ' || last_bid.amount || ' from ' || rec_player.special_string_club || ' to ' || last_bid.special_string_buying_club || '.'
+                    rec_player.magic_string_player || ' (followed) sold for ' || rec_player.highest_bid_amount,
+                    rec_player.magic_string_player || ' (followed) has been sold for ' || rec_player.highest_bid_amount || ' from ' || rec_player.magic_string_club || ' to ' || rec_player.magic_string_highest_bid_club || '.'
                 FROM (
                     SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
                     UNION
@@ -7099,19 +7986,19 @@ BEGIN
 
                 -- Update the selling club's cash
                 UPDATE clubs SET
-                    cash = cash + last_bid.amount,
-                    revenues_transfers_expected = revenues_transfers_expected - last_bid.amount,
-                    revenues_transfers_done = revenues_transfers_done + last_bid.amount
+                    cash = cash + rec_player.highest_bid_amount,
+                    revenues_transfers_expected = revenues_transfers_expected - rec_player.highest_bid_amount,
+                    revenues_transfers_done = revenues_transfers_done + rec_player.highest_bid_amount
                     WHERE id = rec_player.id_club;
 
                 -- Remove the player from the club's teamcomps where he appears
-                FOR teamcomp IN (
+                FOR rec_teamcomp IN (
                     SELECT id FROM games_teamcomp
                     WHERE id_club = rec_player.id_club
                     AND is_played = FALSE)
                 LOOP
                     PERFORM teamcomp_check_or_correct_errors(
-                        inp_id_teamcomp := teamcomp.id,
+                        inp_id_teamcomp := rec_teamcomp.id,
                         inp_bool_try_to_correct := TRUE,
                         inp_bool_notify_user := FALSE);
                 END LOOP;
@@ -7120,16 +8007,16 @@ BEGIN
 
             -- Update the buying club's cash
             UPDATE clubs SET
-                expenses_transfers_expected = expenses_transfers_expected - last_bid.amount,
-                expenses_transfers_done = expenses_transfers_done + last_bid.amount
-            WHERE id = last_bid.id_club;
+                expenses_transfers_expected = expenses_transfers_expected - rec_player.highest_bid_amount,
+                expenses_transfers_done = expenses_transfers_done + rec_player.highest_bid_amount
+            WHERE id = rec_player.highest_bid_id_club;
 
             -- Insert a new row in the clubs_history table
             INSERT INTO clubs_history
                 (id_club, description)
             VALUES (
-                last_bid.id_club,
-                rec_player.special_string_player || ' joined the club for ' || last_bid.amount
+                rec_player.highest_bid_id_club,
+                rec_player.magic_string_player || ' joined the club for ' || rec_player.highest_bid_amount
             );
 
             -- Insert a new row in the players_history table
@@ -7137,7 +8024,7 @@ BEGIN
                 (id_player, id_club, is_transfer_description, description)
                 VALUES (
                     rec_player.id, rec_player.id_club, TRUE,
-                    'Joined ' || last_bid.special_string_buying_club || ' for ' || last_bid.amount
+                    'Joined ' || rec_player.magic_string_highest_bid_club || ' for ' || rec_player.highest_bid_amount
                 );
 
             -- Update the players from the clubs_poaching tables
@@ -7148,12 +8035,13 @@ BEGIN
 
             -- Update the player
             UPDATE players SET
-                id_club = last_bid.id_club,
+                id_club = rec_player.highest_bid_id_club,
                 date_arrival = date_bid_end,
                 motivation = 70 + random() * 30,
                 expenses_expected = expenses_expected *
-                    (125 - COALESCE((SELECT affinity FROM players_poaching WHERE id_player = rec_player.id AND id_club = last_bid.id_club), 0)) / 100.0,
+                    (125 - COALESCE((SELECT affinity FROM players_poaching WHERE id_player = rec_player.id AND id_club = rec_player.highest_bid_id_club), 0)) / 100.0,
                 transfer_price = NULL,
+                transfer_status = NULL,
                 date_bid_end = NULL
             WHERE id = rec_player.id;
 
@@ -7190,27 +8078,29 @@ BEGIN
     ------ Handle players that have their contract ended
     FOR rec_player IN (
         SELECT *, player_get_full_name(id) AS full_name,
-            string_parser(inp_entity_type := 'idPlayer', inp_id := id) AS special_string_player,
-            string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS special_string_club
-            FROM players
-            WHERE date_end_contract < NOW()
-            AND is_playing = FALSE
-            AND id_multiverse = inp_multiverse.id
+            string_parser(inp_entity_type := 'idPlayer', inp_id := id) AS magic_string_player,
+            string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS magic_string_club
+        FROM players
+        WHERE date_end_contract < NOW()
+            AND id_game_currently_playing IS NULL
+            AND (
+                inp_id_multiverse IS NULL
+                OR id_multiverse = ANY(inp_id_multiverse)
+            )
     ) LOOP
 
         ---- Insert a message to say that the embodied player has left the club
-        INSERT INTO mails (
-            id_club_to, created_at, sender_role, is_transfer_info, title, message)
+        INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
         VALUES
-            (rec_player.id_club, rec_player.date_end_contract, 'Coach', TRUE,
-            rec_player.special_string_player || ' contract ended',
-            rec_player.special_string_player || ' contract ended, he left the club, lets hope he will find what he is looking for');
+            (rec_player.id_club, 'Coach', TRUE,
+            rec_player.magic_string_player || ' contract ended',
+            rec_player.magic_string_player || ' contract ended, he left the club, let''s hope he will find what he is looking for');
 
         ---- Send mail to the clubs following and poaching the player
         INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
         SELECT DISTINCT id_club, 'Scouts', TRUE,
-            rec_player.special_string_player || ' (followed) contract ended',
-            rec_player.special_string_player || ' (followed) contract ended and he is now clubless, its probably a good time to make a move !'
+            rec_player.magic_string_player || ' (followed) contract ended',
+            rec_player.magic_string_player || ' (followed) contract ended and he is now clubless, it''s probably a good time to make a move !'
         FROM (
             SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
             UNION
@@ -7232,7 +8122,7 @@ BEGIN
             (id_player, id_club, is_transfer_description, description)
         VALUES (
             rec_player.id, rec_player.id_club, TRUE,
-            'Contract ended and left ' || rec_player.special_string_club
+            'Contract ended and left ' || rec_player.magic_string_club
         );
 
     END LOOP;
@@ -7248,11 +8138,42 @@ BEGIN
     AND id_club IS NULL
     AND motivation < 10;
 
+    -- Drop the temporary table at the end of the function
+    DROP TABLE IF EXISTS temp_player_bids;
+
 END;
 $$;
 
 
-ALTER FUNCTION public.transfers_handle_transfers(inp_multiverse record) OWNER TO postgres;
+ALTER FUNCTION public.transfers_handle_transfers(inp_id_multiverse bigint[]) OWNER TO postgres;
+
+--
+-- Name: trg_club_name_history(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.trg_club_name_history() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+    IF (OLD.name IS DISTINCT FROM NEW.name) THEN
+        INSERT INTO public.clubs_history (
+            id_club,
+            description,
+            is_ranking_description,
+            is_transfer_description
+        ) VALUES (
+            NEW.id,
+            format('"%s" was renamed to "%s"', OLD.name, NEW.name),
+            FALSE,
+            FALSE
+        );
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.trg_club_name_history() OWNER TO postgres;
 
 --
 -- Name: trg_update_elo_expected_result(); Type: FUNCTION; Schema: public; Owner: postgres
@@ -7351,14 +8272,20 @@ BEGIN
         description_mail := 'Scout Update: ' || description_mail; -- Improved message
     END IF;
 
-    ------ Update the player table to set the is_staff field
-    UPDATE players SET
-        is_staff = is_hired
-    WHERE id = loc_id_player;
+--raise notice 'testPG1: %', loc_id_player;
+    
+    -- Only if player still exists: because of cascade player delete
+    IF EXISTS (SELECT 1 FROM players WHERE id = loc_id_player) THEN
 
-    ------ Insert a new row in the history table
-    INSERT INTO players_history (id_player, id_club, description)
-    VALUES (loc_id_player, NEW.id, description_history);
+        ------ Update the player table to set the is_staff field
+        UPDATE players SET
+            is_staff = is_hired
+        WHERE id = loc_id_player;
+
+        ------ Insert a new row in the history table
+        INSERT INTO players_history (id_player, id_club, description)
+        VALUES (loc_id_player, NEW.id, description_history);
+    END IF;
 
     ------ Send mails to the club to inform them of the staff update
     INSERT INTO mails (id_club_to, sender_role, is_club_info, title, message)
@@ -7541,8 +8468,6 @@ CREATE FUNCTION public.trigger_players_stats_update_recalculate_all() RETURNS tr
     AS $$
 BEGIN
 
-RAISE NOTICE 'Trigger players_stats_update_recalculate_all called for player ID: %', NEW.id;
-
 -- Update the players table with recalculated values
 UPDATE players SET
     performance_score_real = players_calculate_player_best_weight(
@@ -7637,6 +8562,7 @@ BEGIN
             date_arrival = NOW(),
             motivation = 70 + random() * 30,
             expenses_expected = NEW.expenses_offered,
+            expenses_missed = 0,
             transfer_price = NULL,
             date_end_contract = NOW() +
                 (INTERVAL '14 weeks' * NEW.number_season / (
@@ -8392,27 +9318,31 @@ ALTER FUNCTION realtime.quote_wal2json(entity regclass) OWNER TO supabase_admin;
 CREATE FUNCTION realtime.send(payload jsonb, event text, topic text, private boolean DEFAULT true) RETURNS void
     LANGUAGE plpgsql
     AS $$
+DECLARE
+  generated_id uuid;
+  final_payload jsonb;
 BEGIN
   BEGIN
+    -- Generate a new UUID for the id
+    generated_id := gen_random_uuid();
+
+    -- Check if payload has an 'id' key, if not, add the generated UUID
+    IF payload ? 'id' THEN
+      final_payload := payload;
+    ELSE
+      final_payload := jsonb_set(payload, '{id}', to_jsonb(generated_id));
+    END IF;
+
     -- Set the topic configuration
     EXECUTE format('SET LOCAL realtime.topic TO %L', topic);
 
     -- Attempt to insert the message
-    INSERT INTO realtime.messages (payload, event, topic, private, extension)
-    VALUES (payload, event, topic, private, 'broadcast');
+    INSERT INTO realtime.messages (id, payload, event, topic, private, extension)
+    VALUES (generated_id, final_payload, event, topic, private, 'broadcast');
   EXCEPTION
     WHEN OTHERS THEN
       -- Capture and notify the error
-      PERFORM pg_notify(
-          'realtime:system',
-          jsonb_build_object(
-              'error', SQLERRM,
-              'function', 'realtime.send',
-              'event', event,
-              'topic', topic,
-              'private', private
-          )::text
-      );
+      RAISE WARNING 'ErrorSendingBroadcastMessage: %', SQLERRM;
   END;
 END;
 $$;
@@ -8521,6 +9451,28 @@ $$;
 ALTER FUNCTION realtime.topic() OWNER TO supabase_realtime_admin;
 
 --
+-- Name: add_prefixes(text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.add_prefixes(_bucket_id text, _name text) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+    prefixes text[];
+BEGIN
+    prefixes := "storage"."get_prefixes"("_name");
+
+    IF array_length(prefixes, 1) > 0 THEN
+        INSERT INTO storage.prefixes (name, bucket_id)
+        SELECT UNNEST(prefixes) as name, "_bucket_id" ON CONFLICT DO NOTHING;
+    END IF;
+END;
+$$;
+
+
+ALTER FUNCTION storage.add_prefixes(_bucket_id text, _name text) OWNER TO supabase_storage_admin;
+
+--
 -- Name: can_insert_object(text, text, uuid, jsonb); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8540,20 +9492,165 @@ $$;
 ALTER FUNCTION storage.can_insert_object(bucketid text, name text, owner uuid, metadata jsonb) OWNER TO supabase_storage_admin;
 
 --
+-- Name: delete_leaf_prefixes(text[], text[]); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.delete_leaf_prefixes(bucket_ids text[], names text[]) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+    v_rows_deleted integer;
+BEGIN
+    LOOP
+        WITH candidates AS (
+            SELECT DISTINCT
+                t.bucket_id,
+                unnest(storage.get_prefixes(t.name)) AS name
+            FROM unnest(bucket_ids, names) AS t(bucket_id, name)
+        ),
+        uniq AS (
+             SELECT
+                 bucket_id,
+                 name,
+                 storage.get_level(name) AS level
+             FROM candidates
+             WHERE name <> ''
+             GROUP BY bucket_id, name
+        ),
+        leaf AS (
+             SELECT
+                 p.bucket_id,
+                 p.name,
+                 p.level
+             FROM storage.prefixes AS p
+                  JOIN uniq AS u
+                       ON u.bucket_id = p.bucket_id
+                           AND u.name = p.name
+                           AND u.level = p.level
+             WHERE NOT EXISTS (
+                 SELECT 1
+                 FROM storage.objects AS o
+                 WHERE o.bucket_id = p.bucket_id
+                   AND o.level = p.level + 1
+                   AND o.name COLLATE "C" LIKE p.name || '/%'
+             )
+             AND NOT EXISTS (
+                 SELECT 1
+                 FROM storage.prefixes AS c
+                 WHERE c.bucket_id = p.bucket_id
+                   AND c.level = p.level + 1
+                   AND c.name COLLATE "C" LIKE p.name || '/%'
+             )
+        )
+        DELETE
+        FROM storage.prefixes AS p
+            USING leaf AS l
+        WHERE p.bucket_id = l.bucket_id
+          AND p.name = l.name
+          AND p.level = l.level;
+
+        GET DIAGNOSTICS v_rows_deleted = ROW_COUNT;
+        EXIT WHEN v_rows_deleted = 0;
+    END LOOP;
+END;
+$$;
+
+
+ALTER FUNCTION storage.delete_leaf_prefixes(bucket_ids text[], names text[]) OWNER TO supabase_storage_admin;
+
+--
+-- Name: delete_prefix(text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.delete_prefix(_bucket_id text, _name text) RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Check if we can delete the prefix
+    IF EXISTS(
+        SELECT FROM "storage"."prefixes"
+        WHERE "prefixes"."bucket_id" = "_bucket_id"
+          AND level = "storage"."get_level"("_name") + 1
+          AND "prefixes"."name" COLLATE "C" LIKE "_name" || '/%'
+        LIMIT 1
+    )
+    OR EXISTS(
+        SELECT FROM "storage"."objects"
+        WHERE "objects"."bucket_id" = "_bucket_id"
+          AND "storage"."get_level"("objects"."name") = "storage"."get_level"("_name") + 1
+          AND "objects"."name" COLLATE "C" LIKE "_name" || '/%'
+        LIMIT 1
+    ) THEN
+    -- There are sub-objects, skip deletion
+    RETURN false;
+    ELSE
+        DELETE FROM "storage"."prefixes"
+        WHERE "prefixes"."bucket_id" = "_bucket_id"
+          AND level = "storage"."get_level"("_name")
+          AND "prefixes"."name" = "_name";
+        RETURN true;
+    END IF;
+END;
+$$;
+
+
+ALTER FUNCTION storage.delete_prefix(_bucket_id text, _name text) OWNER TO supabase_storage_admin;
+
+--
+-- Name: delete_prefix_hierarchy_trigger(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.delete_prefix_hierarchy_trigger() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    prefix text;
+BEGIN
+    prefix := "storage"."get_prefix"(OLD."name");
+
+    IF coalesce(prefix, '') != '' THEN
+        PERFORM "storage"."delete_prefix"(OLD."bucket_id", prefix);
+    END IF;
+
+    RETURN OLD;
+END;
+$$;
+
+
+ALTER FUNCTION storage.delete_prefix_hierarchy_trigger() OWNER TO supabase_storage_admin;
+
+--
+-- Name: enforce_bucket_name_length(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.enforce_bucket_name_length() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+    if length(new.name) > 100 then
+        raise exception 'bucket name "%" is too long (% characters). Max is 100.', new.name, length(new.name);
+    end if;
+    return new;
+end;
+$$;
+
+
+ALTER FUNCTION storage.enforce_bucket_name_length() OWNER TO supabase_storage_admin;
+
+--
 -- Name: extension(text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
 CREATE FUNCTION storage.extension(name text) RETURNS text
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql IMMUTABLE
     AS $$
 DECLARE
-_parts text[];
-_filename text;
+    _parts text[];
+    _filename text;
 BEGIN
-	select string_to_array(name, '/') into _parts;
-	select _parts[array_length(_parts,1)] into _filename;
-	-- @todo return the last part instead of 2
-	return reverse(split_part(reverse(_filename), '.', 1));
+    SELECT string_to_array(name, '/') INTO _parts;
+    SELECT _parts[array_length(_parts,1)] INTO _filename;
+    RETURN reverse(split_part(reverse(_filename), '.', 1));
 END
 $$;
 
@@ -8583,13 +9680,15 @@ ALTER FUNCTION storage.filename(name text) OWNER TO supabase_storage_admin;
 --
 
 CREATE FUNCTION storage.foldername(name text) RETURNS text[]
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql IMMUTABLE
     AS $$
 DECLARE
-_parts text[];
+    _parts text[];
 BEGIN
-	select string_to_array(name, '/') into _parts;
-	return _parts[1:array_length(_parts,1)-1];
+    -- Split on "/" to get path segments
+    SELECT string_to_array(name, '/') INTO _parts;
+    -- Return everything except the last segment
+    RETURN _parts[1 : array_length(_parts,1) - 1];
 END
 $$;
 
@@ -8597,15 +9696,75 @@ $$;
 ALTER FUNCTION storage.foldername(name text) OWNER TO supabase_storage_admin;
 
 --
+-- Name: get_level(text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.get_level(name text) RETURNS integer
+    LANGUAGE sql IMMUTABLE STRICT
+    AS $$
+SELECT array_length(string_to_array("name", '/'), 1);
+$$;
+
+
+ALTER FUNCTION storage.get_level(name text) OWNER TO supabase_storage_admin;
+
+--
+-- Name: get_prefix(text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.get_prefix(name text) RETURNS text
+    LANGUAGE sql IMMUTABLE STRICT
+    AS $_$
+SELECT
+    CASE WHEN strpos("name", '/') > 0 THEN
+             regexp_replace("name", '[\/]{1}[^\/]+\/?$', '')
+         ELSE
+             ''
+        END;
+$_$;
+
+
+ALTER FUNCTION storage.get_prefix(name text) OWNER TO supabase_storage_admin;
+
+--
+-- Name: get_prefixes(text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.get_prefixes(name text) RETURNS text[]
+    LANGUAGE plpgsql IMMUTABLE STRICT
+    AS $$
+DECLARE
+    parts text[];
+    prefixes text[];
+    prefix text;
+BEGIN
+    -- Split the name into parts by '/'
+    parts := string_to_array("name", '/');
+    prefixes := '{}';
+
+    -- Construct the prefixes, stopping one level below the last part
+    FOR i IN 1..array_length(parts, 1) - 1 LOOP
+            prefix := array_to_string(parts[1:i], '/');
+            prefixes := array_append(prefixes, prefix);
+    END LOOP;
+
+    RETURN prefixes;
+END;
+$$;
+
+
+ALTER FUNCTION storage.get_prefixes(name text) OWNER TO supabase_storage_admin;
+
+--
 -- Name: get_size_by_bucket(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
 CREATE FUNCTION storage.get_size_by_bucket() RETURNS TABLE(size bigint, bucket_id text)
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql STABLE
     AS $$
 BEGIN
     return query
-        select sum((metadata->>'size')::int) as size, obj.bucket_id
+        select sum((metadata->>'size')::bigint) as size, obj.bucket_id
         from "storage".objects as obj
         group by obj.bucket_id;
 END
@@ -8709,6 +9868,241 @@ $_$;
 ALTER FUNCTION storage.list_objects_with_delimiter(bucket_id text, prefix_param text, delimiter_param text, max_keys integer, start_after text, next_token text) OWNER TO supabase_storage_admin;
 
 --
+-- Name: lock_top_prefixes(text[], text[]); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.lock_top_prefixes(bucket_ids text[], names text[]) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+    v_bucket text;
+    v_top text;
+BEGIN
+    FOR v_bucket, v_top IN
+        SELECT DISTINCT t.bucket_id,
+            split_part(t.name, '/', 1) AS top
+        FROM unnest(bucket_ids, names) AS t(bucket_id, name)
+        WHERE t.name <> ''
+        ORDER BY 1, 2
+        LOOP
+            PERFORM pg_advisory_xact_lock(hashtextextended(v_bucket || '/' || v_top, 0));
+        END LOOP;
+END;
+$$;
+
+
+ALTER FUNCTION storage.lock_top_prefixes(bucket_ids text[], names text[]) OWNER TO supabase_storage_admin;
+
+--
+-- Name: objects_delete_cleanup(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.objects_delete_cleanup() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+    v_bucket_ids text[];
+    v_names      text[];
+BEGIN
+    IF current_setting('storage.gc.prefixes', true) = '1' THEN
+        RETURN NULL;
+    END IF;
+
+    PERFORM set_config('storage.gc.prefixes', '1', true);
+
+    SELECT COALESCE(array_agg(d.bucket_id), '{}'),
+           COALESCE(array_agg(d.name), '{}')
+    INTO v_bucket_ids, v_names
+    FROM deleted AS d
+    WHERE d.name <> '';
+
+    PERFORM storage.lock_top_prefixes(v_bucket_ids, v_names);
+    PERFORM storage.delete_leaf_prefixes(v_bucket_ids, v_names);
+
+    RETURN NULL;
+END;
+$$;
+
+
+ALTER FUNCTION storage.objects_delete_cleanup() OWNER TO supabase_storage_admin;
+
+--
+-- Name: objects_insert_prefix_trigger(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.objects_insert_prefix_trigger() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    PERFORM "storage"."add_prefixes"(NEW."bucket_id", NEW."name");
+    NEW.level := "storage"."get_level"(NEW."name");
+
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION storage.objects_insert_prefix_trigger() OWNER TO supabase_storage_admin;
+
+--
+-- Name: objects_update_cleanup(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.objects_update_cleanup() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+    -- NEW - OLD (destinations to create prefixes for)
+    v_add_bucket_ids text[];
+    v_add_names      text[];
+
+    -- OLD - NEW (sources to prune)
+    v_src_bucket_ids text[];
+    v_src_names      text[];
+BEGIN
+    IF TG_OP <> 'UPDATE' THEN
+        RETURN NULL;
+    END IF;
+
+    -- 1) Compute NEW−OLD (added paths) and OLD−NEW (moved-away paths)
+    WITH added AS (
+        SELECT n.bucket_id, n.name
+        FROM new_rows n
+        WHERE n.name <> '' AND position('/' in n.name) > 0
+        EXCEPT
+        SELECT o.bucket_id, o.name FROM old_rows o WHERE o.name <> ''
+    ),
+    moved AS (
+         SELECT o.bucket_id, o.name
+         FROM old_rows o
+         WHERE o.name <> ''
+         EXCEPT
+         SELECT n.bucket_id, n.name FROM new_rows n WHERE n.name <> ''
+    )
+    SELECT
+        -- arrays for ADDED (dest) in stable order
+        COALESCE( (SELECT array_agg(a.bucket_id ORDER BY a.bucket_id, a.name) FROM added a), '{}' ),
+        COALESCE( (SELECT array_agg(a.name      ORDER BY a.bucket_id, a.name) FROM added a), '{}' ),
+        -- arrays for MOVED (src) in stable order
+        COALESCE( (SELECT array_agg(m.bucket_id ORDER BY m.bucket_id, m.name) FROM moved m), '{}' ),
+        COALESCE( (SELECT array_agg(m.name      ORDER BY m.bucket_id, m.name) FROM moved m), '{}' )
+    INTO v_add_bucket_ids, v_add_names, v_src_bucket_ids, v_src_names;
+
+    -- Nothing to do?
+    IF (array_length(v_add_bucket_ids, 1) IS NULL) AND (array_length(v_src_bucket_ids, 1) IS NULL) THEN
+        RETURN NULL;
+    END IF;
+
+    -- 2) Take per-(bucket, top) locks: ALL prefixes in consistent global order to prevent deadlocks
+    DECLARE
+        v_all_bucket_ids text[];
+        v_all_names text[];
+    BEGIN
+        -- Combine source and destination arrays for consistent lock ordering
+        v_all_bucket_ids := COALESCE(v_src_bucket_ids, '{}') || COALESCE(v_add_bucket_ids, '{}');
+        v_all_names := COALESCE(v_src_names, '{}') || COALESCE(v_add_names, '{}');
+
+        -- Single lock call ensures consistent global ordering across all transactions
+        IF array_length(v_all_bucket_ids, 1) IS NOT NULL THEN
+            PERFORM storage.lock_top_prefixes(v_all_bucket_ids, v_all_names);
+        END IF;
+    END;
+
+    -- 3) Create destination prefixes (NEW−OLD) BEFORE pruning sources
+    IF array_length(v_add_bucket_ids, 1) IS NOT NULL THEN
+        WITH candidates AS (
+            SELECT DISTINCT t.bucket_id, unnest(storage.get_prefixes(t.name)) AS name
+            FROM unnest(v_add_bucket_ids, v_add_names) AS t(bucket_id, name)
+            WHERE name <> ''
+        )
+        INSERT INTO storage.prefixes (bucket_id, name)
+        SELECT c.bucket_id, c.name
+        FROM candidates c
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    -- 4) Prune source prefixes bottom-up for OLD−NEW
+    IF array_length(v_src_bucket_ids, 1) IS NOT NULL THEN
+        -- re-entrancy guard so DELETE on prefixes won't recurse
+        IF current_setting('storage.gc.prefixes', true) <> '1' THEN
+            PERFORM set_config('storage.gc.prefixes', '1', true);
+        END IF;
+
+        PERFORM storage.delete_leaf_prefixes(v_src_bucket_ids, v_src_names);
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+
+ALTER FUNCTION storage.objects_update_cleanup() OWNER TO supabase_storage_admin;
+
+--
+-- Name: objects_update_level_trigger(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.objects_update_level_trigger() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    -- Ensure this is an update operation and the name has changed
+    IF TG_OP = 'UPDATE' AND (NEW."name" <> OLD."name" OR NEW."bucket_id" <> OLD."bucket_id") THEN
+        -- Set the new level
+        NEW."level" := "storage"."get_level"(NEW."name");
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION storage.objects_update_level_trigger() OWNER TO supabase_storage_admin;
+
+--
+-- Name: objects_update_prefix_trigger(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.objects_update_prefix_trigger() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    old_prefixes TEXT[];
+BEGIN
+    -- Ensure this is an update operation and the name has changed
+    IF TG_OP = 'UPDATE' AND (NEW."name" <> OLD."name" OR NEW."bucket_id" <> OLD."bucket_id") THEN
+        -- Retrieve old prefixes
+        old_prefixes := "storage"."get_prefixes"(OLD."name");
+
+        -- Remove old prefixes that are only used by this object
+        WITH all_prefixes as (
+            SELECT unnest(old_prefixes) as prefix
+        ),
+        can_delete_prefixes as (
+             SELECT prefix
+             FROM all_prefixes
+             WHERE NOT EXISTS (
+                 SELECT 1 FROM "storage"."objects"
+                 WHERE "bucket_id" = OLD."bucket_id"
+                   AND "name" <> OLD."name"
+                   AND "name" LIKE (prefix || '%')
+             )
+         )
+        DELETE FROM "storage"."prefixes" WHERE name IN (SELECT prefix FROM can_delete_prefixes);
+
+        -- Add new prefixes
+        PERFORM "storage"."add_prefixes"(NEW."bucket_id", NEW."name");
+    END IF;
+    -- Set the new level
+    NEW."level" := "storage"."get_level"(NEW."name");
+
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION storage.objects_update_prefix_trigger() OWNER TO supabase_storage_admin;
+
+--
 -- Name: operation(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8724,49 +10118,124 @@ $$;
 ALTER FUNCTION storage.operation() OWNER TO supabase_storage_admin;
 
 --
+-- Name: prefixes_delete_cleanup(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.prefixes_delete_cleanup() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+    v_bucket_ids text[];
+    v_names      text[];
+BEGIN
+    IF current_setting('storage.gc.prefixes', true) = '1' THEN
+        RETURN NULL;
+    END IF;
+
+    PERFORM set_config('storage.gc.prefixes', '1', true);
+
+    SELECT COALESCE(array_agg(d.bucket_id), '{}'),
+           COALESCE(array_agg(d.name), '{}')
+    INTO v_bucket_ids, v_names
+    FROM deleted AS d
+    WHERE d.name <> '';
+
+    PERFORM storage.lock_top_prefixes(v_bucket_ids, v_names);
+    PERFORM storage.delete_leaf_prefixes(v_bucket_ids, v_names);
+
+    RETURN NULL;
+END;
+$$;
+
+
+ALTER FUNCTION storage.prefixes_delete_cleanup() OWNER TO supabase_storage_admin;
+
+--
+-- Name: prefixes_insert_trigger(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.prefixes_insert_trigger() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    PERFORM "storage"."add_prefixes"(NEW."bucket_id", NEW."name");
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION storage.prefixes_insert_trigger() OWNER TO supabase_storage_admin;
+
+--
 -- Name: search(text, text, integer, integer, integer, text, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
 CREATE FUNCTION storage.search(prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text) RETURNS TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)
+    LANGUAGE plpgsql
+    AS $$
+declare
+    can_bypass_rls BOOLEAN;
+begin
+    SELECT rolbypassrls
+    INTO can_bypass_rls
+    FROM pg_roles
+    WHERE rolname = coalesce(nullif(current_setting('role', true), 'none'), current_user);
+
+    IF can_bypass_rls THEN
+        RETURN QUERY SELECT * FROM storage.search_v1_optimised(prefix, bucketname, limits, levels, offsets, search, sortcolumn, sortorder);
+    ELSE
+        RETURN QUERY SELECT * FROM storage.search_legacy_v1(prefix, bucketname, limits, levels, offsets, search, sortcolumn, sortorder);
+    END IF;
+end;
+$$;
+
+
+ALTER FUNCTION storage.search(prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text) OWNER TO supabase_storage_admin;
+
+--
+-- Name: search_legacy_v1(text, text, integer, integer, integer, text, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.search_legacy_v1(prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text) RETURNS TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)
     LANGUAGE plpgsql STABLE
     AS $_$
 declare
-  v_order_by text;
-  v_sort_order text;
+    v_order_by text;
+    v_sort_order text;
 begin
-  case
-    when sortcolumn = 'name' then
-      v_order_by = 'name';
-    when sortcolumn = 'updated_at' then
-      v_order_by = 'updated_at';
-    when sortcolumn = 'created_at' then
-      v_order_by = 'created_at';
-    when sortcolumn = 'last_accessed_at' then
-      v_order_by = 'last_accessed_at';
-    else
-      v_order_by = 'name';
-  end case;
+    case
+        when sortcolumn = 'name' then
+            v_order_by = 'name';
+        when sortcolumn = 'updated_at' then
+            v_order_by = 'updated_at';
+        when sortcolumn = 'created_at' then
+            v_order_by = 'created_at';
+        when sortcolumn = 'last_accessed_at' then
+            v_order_by = 'last_accessed_at';
+        else
+            v_order_by = 'name';
+        end case;
 
-  case
-    when sortorder = 'asc' then
-      v_sort_order = 'asc';
-    when sortorder = 'desc' then
-      v_sort_order = 'desc';
-    else
-      v_sort_order = 'asc';
-  end case;
+    case
+        when sortorder = 'asc' then
+            v_sort_order = 'asc';
+        when sortorder = 'desc' then
+            v_sort_order = 'desc';
+        else
+            v_sort_order = 'asc';
+        end case;
 
-  v_order_by = v_order_by || ' ' || v_sort_order;
+    v_order_by = v_order_by || ' ' || v_sort_order;
 
-  return query execute
-    'with folders as (
-       select path_tokens[$1] as folder
-       from storage.objects
-         where objects.name ilike $2 || $3 || ''%''
-           and bucket_id = $4
-           and array_length(objects.path_tokens, 1) <> $1
-       group by folder
-       order by folder ' || v_sort_order || '
+    return query execute
+        'with folders as (
+           select path_tokens[$1] as folder
+           from storage.objects
+             where objects.name ilike $2 || $3 || ''%''
+               and bucket_id = $4
+               and array_length(objects.path_tokens, 1) <> $1
+           group by folder
+           order by folder ' || v_sort_order || '
      )
      (select folder as "name",
             null as id,
@@ -8792,7 +10261,175 @@ end;
 $_$;
 
 
-ALTER FUNCTION storage.search(prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text) OWNER TO supabase_storage_admin;
+ALTER FUNCTION storage.search_legacy_v1(prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text) OWNER TO supabase_storage_admin;
+
+--
+-- Name: search_v1_optimised(text, text, integer, integer, integer, text, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.search_v1_optimised(prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text) RETURNS TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)
+    LANGUAGE plpgsql STABLE
+    AS $_$
+declare
+    v_order_by text;
+    v_sort_order text;
+begin
+    case
+        when sortcolumn = 'name' then
+            v_order_by = 'name';
+        when sortcolumn = 'updated_at' then
+            v_order_by = 'updated_at';
+        when sortcolumn = 'created_at' then
+            v_order_by = 'created_at';
+        when sortcolumn = 'last_accessed_at' then
+            v_order_by = 'last_accessed_at';
+        else
+            v_order_by = 'name';
+        end case;
+
+    case
+        when sortorder = 'asc' then
+            v_sort_order = 'asc';
+        when sortorder = 'desc' then
+            v_sort_order = 'desc';
+        else
+            v_sort_order = 'asc';
+        end case;
+
+    v_order_by = v_order_by || ' ' || v_sort_order;
+
+    return query execute
+        'with folders as (
+           select (string_to_array(name, ''/''))[level] as name
+           from storage.prefixes
+             where lower(prefixes.name) like lower($2 || $3) || ''%''
+               and bucket_id = $4
+               and level = $1
+           order by name ' || v_sort_order || '
+     )
+     (select name,
+            null as id,
+            null as updated_at,
+            null as created_at,
+            null as last_accessed_at,
+            null as metadata from folders)
+     union all
+     (select path_tokens[level] as "name",
+            id,
+            updated_at,
+            created_at,
+            last_accessed_at,
+            metadata
+     from storage.objects
+     where lower(objects.name) like lower($2 || $3) || ''%''
+       and bucket_id = $4
+       and level = $1
+     order by ' || v_order_by || ')
+     limit $5
+     offset $6' using levels, prefix, search, bucketname, limits, offsets;
+end;
+$_$;
+
+
+ALTER FUNCTION storage.search_v1_optimised(prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text) OWNER TO supabase_storage_admin;
+
+--
+-- Name: search_v2(text, text, integer, integer, text, text, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE FUNCTION storage.search_v2(prefix text, bucket_name text, limits integer DEFAULT 100, levels integer DEFAULT 1, start_after text DEFAULT ''::text, sort_order text DEFAULT 'asc'::text, sort_column text DEFAULT 'name'::text, sort_column_after text DEFAULT ''::text) RETURNS TABLE(key text, name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)
+    LANGUAGE plpgsql STABLE
+    AS $_$
+DECLARE
+    sort_col text;
+    sort_ord text;
+    cursor_op text;
+    cursor_expr text;
+    sort_expr text;
+BEGIN
+    -- Validate sort_order
+    sort_ord := lower(sort_order);
+    IF sort_ord NOT IN ('asc', 'desc') THEN
+        sort_ord := 'asc';
+    END IF;
+
+    -- Determine cursor comparison operator
+    IF sort_ord = 'asc' THEN
+        cursor_op := '>';
+    ELSE
+        cursor_op := '<';
+    END IF;
+    
+    sort_col := lower(sort_column);
+    -- Validate sort column  
+    IF sort_col IN ('updated_at', 'created_at') THEN
+        cursor_expr := format(
+            '($5 = '''' OR ROW(date_trunc(''milliseconds'', %I), name COLLATE "C") %s ROW(COALESCE(NULLIF($6, '''')::timestamptz, ''epoch''::timestamptz), $5))',
+            sort_col, cursor_op
+        );
+        sort_expr := format(
+            'COALESCE(date_trunc(''milliseconds'', %I), ''epoch''::timestamptz) %s, name COLLATE "C" %s',
+            sort_col, sort_ord, sort_ord
+        );
+    ELSE
+        cursor_expr := format('($5 = '''' OR name COLLATE "C" %s $5)', cursor_op);
+        sort_expr := format('name COLLATE "C" %s', sort_ord);
+    END IF;
+
+    RETURN QUERY EXECUTE format(
+        $sql$
+        SELECT * FROM (
+            (
+                SELECT
+                    split_part(name, '/', $4) AS key,
+                    name,
+                    NULL::uuid AS id,
+                    updated_at,
+                    created_at,
+                    NULL::timestamptz AS last_accessed_at,
+                    NULL::jsonb AS metadata
+                FROM storage.prefixes
+                WHERE name COLLATE "C" LIKE $1 || '%%'
+                    AND bucket_id = $2
+                    AND level = $4
+                    AND %s
+                ORDER BY %s
+                LIMIT $3
+            )
+            UNION ALL
+            (
+                SELECT
+                    split_part(name, '/', $4) AS key,
+                    name,
+                    id,
+                    updated_at,
+                    created_at,
+                    last_accessed_at,
+                    metadata
+                FROM storage.objects
+                WHERE name COLLATE "C" LIKE $1 || '%%'
+                    AND bucket_id = $2
+                    AND level = $4
+                    AND %s
+                ORDER BY %s
+                LIMIT $3
+            )
+        ) obj
+        ORDER BY %s
+        LIMIT $3
+        $sql$,
+        cursor_expr,    -- prefixes WHERE
+        sort_expr,      -- prefixes ORDER BY
+        cursor_expr,    -- objects WHERE
+        sort_expr,      -- objects ORDER BY
+        sort_expr       -- final ORDER BY
+    )
+    USING prefix, bucket_name, limits, levels, start_after, sort_column_after;
+END;
+$_$;
+
+
+ALTER FUNCTION storage.search_v2(prefix text, bucket_name text, limits integer, levels integer, start_after text, sort_order text, sort_column text, sort_column_after text) OWNER TO supabase_storage_admin;
 
 --
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
@@ -8982,7 +10619,8 @@ CREATE TABLE auth.mfa_factors (
     phone text,
     last_challenged_at timestamp with time zone,
     web_authn_credential jsonb,
-    web_authn_aaguid uuid
+    web_authn_aaguid uuid,
+    last_webauthn_challenge_data jsonb
 );
 
 
@@ -8994,6 +10632,113 @@ ALTER TABLE auth.mfa_factors OWNER TO supabase_auth_admin;
 
 COMMENT ON TABLE auth.mfa_factors IS 'auth: stores metadata about factors';
 
+
+--
+-- Name: COLUMN mfa_factors.last_webauthn_challenge_data; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
+--
+
+COMMENT ON COLUMN auth.mfa_factors.last_webauthn_challenge_data IS 'Stores the latest WebAuthn challenge data including attestation/assertion for customer verification';
+
+
+--
+-- Name: oauth_authorizations; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TABLE auth.oauth_authorizations (
+    id uuid NOT NULL,
+    authorization_id text NOT NULL,
+    client_id uuid NOT NULL,
+    user_id uuid,
+    redirect_uri text NOT NULL,
+    scope text NOT NULL,
+    state text,
+    resource text,
+    code_challenge text,
+    code_challenge_method auth.code_challenge_method,
+    response_type auth.oauth_response_type DEFAULT 'code'::auth.oauth_response_type NOT NULL,
+    status auth.oauth_authorization_status DEFAULT 'pending'::auth.oauth_authorization_status NOT NULL,
+    authorization_code text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone DEFAULT (now() + '00:03:00'::interval) NOT NULL,
+    approved_at timestamp with time zone,
+    nonce text,
+    CONSTRAINT oauth_authorizations_authorization_code_length CHECK ((char_length(authorization_code) <= 255)),
+    CONSTRAINT oauth_authorizations_code_challenge_length CHECK ((char_length(code_challenge) <= 128)),
+    CONSTRAINT oauth_authorizations_expires_at_future CHECK ((expires_at > created_at)),
+    CONSTRAINT oauth_authorizations_nonce_length CHECK ((char_length(nonce) <= 255)),
+    CONSTRAINT oauth_authorizations_redirect_uri_length CHECK ((char_length(redirect_uri) <= 2048)),
+    CONSTRAINT oauth_authorizations_resource_length CHECK ((char_length(resource) <= 2048)),
+    CONSTRAINT oauth_authorizations_scope_length CHECK ((char_length(scope) <= 4096)),
+    CONSTRAINT oauth_authorizations_state_length CHECK ((char_length(state) <= 4096))
+);
+
+
+ALTER TABLE auth.oauth_authorizations OWNER TO supabase_auth_admin;
+
+--
+-- Name: oauth_client_states; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TABLE auth.oauth_client_states (
+    id uuid NOT NULL,
+    provider_type text NOT NULL,
+    code_verifier text,
+    created_at timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE auth.oauth_client_states OWNER TO supabase_auth_admin;
+
+--
+-- Name: TABLE oauth_client_states; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
+--
+
+COMMENT ON TABLE auth.oauth_client_states IS 'Stores OAuth states for third-party provider authentication flows where Supabase acts as the OAuth client.';
+
+
+--
+-- Name: oauth_clients; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TABLE auth.oauth_clients (
+    id uuid NOT NULL,
+    client_secret_hash text,
+    registration_type auth.oauth_registration_type NOT NULL,
+    redirect_uris text NOT NULL,
+    grant_types text NOT NULL,
+    client_name text,
+    client_uri text,
+    logo_uri text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    deleted_at timestamp with time zone,
+    client_type auth.oauth_client_type DEFAULT 'confidential'::auth.oauth_client_type NOT NULL,
+    CONSTRAINT oauth_clients_client_name_length CHECK ((char_length(client_name) <= 1024)),
+    CONSTRAINT oauth_clients_client_uri_length CHECK ((char_length(client_uri) <= 2048)),
+    CONSTRAINT oauth_clients_logo_uri_length CHECK ((char_length(logo_uri) <= 2048))
+);
+
+
+ALTER TABLE auth.oauth_clients OWNER TO supabase_auth_admin;
+
+--
+-- Name: oauth_consents; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TABLE auth.oauth_consents (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    client_id uuid NOT NULL,
+    scopes text NOT NULL,
+    granted_at timestamp with time zone DEFAULT now() NOT NULL,
+    revoked_at timestamp with time zone,
+    CONSTRAINT oauth_consents_revoked_after_granted CHECK (((revoked_at IS NULL) OR (revoked_at >= granted_at))),
+    CONSTRAINT oauth_consents_scopes_length CHECK ((char_length(scopes) <= 2048)),
+    CONSTRAINT oauth_consents_scopes_not_empty CHECK ((char_length(TRIM(BOTH FROM scopes)) > 0))
+);
+
+
+ALTER TABLE auth.oauth_consents OWNER TO supabase_auth_admin;
 
 --
 -- Name: one_time_tokens; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
@@ -9148,7 +10893,12 @@ CREATE TABLE auth.sessions (
     refreshed_at timestamp without time zone,
     user_agent text,
     ip inet,
-    tag text
+    tag text,
+    oauth_client_id uuid,
+    refresh_token_hmac_key text,
+    refresh_token_counter bigint,
+    scopes text,
+    CONSTRAINT sessions_scopes_length CHECK ((char_length(scopes) <= 4096))
 );
 
 
@@ -9166,6 +10916,20 @@ COMMENT ON TABLE auth.sessions IS 'Auth: Stores session data associated to a use
 --
 
 COMMENT ON COLUMN auth.sessions.not_after IS 'Auth: Not after is a nullable column that contains a timestamp after which the session should be regarded as expired.';
+
+
+--
+-- Name: COLUMN sessions.refresh_token_hmac_key; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
+--
+
+COMMENT ON COLUMN auth.sessions.refresh_token_hmac_key IS 'Holds a HMAC-SHA256 key used to sign refresh tokens for this session.';
+
+
+--
+-- Name: COLUMN sessions.refresh_token_counter; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
+--
+
+COMMENT ON COLUMN auth.sessions.refresh_token_counter IS 'Holds the ID (counter) of the last issued refresh token.';
 
 
 --
@@ -9200,6 +10964,7 @@ CREATE TABLE auth.sso_providers (
     resource_id text,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
+    disabled boolean,
     CONSTRAINT "resource_id not empty" CHECK (((resource_id = NULL::text) OR (char_length(resource_id) > 0)))
 );
 
@@ -9760,35 +11525,6 @@ COMMENT ON COLUMN public.countries.is_active IS 'Does the country have leagues ?
 
 ALTER TABLE public.countries ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
     SEQUENCE NAME public.countries_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- Name: finances; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.finances (
-    id bigint NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    id_club bigint NOT NULL,
-    amount bigint NOT NULL,
-    description text NOT NULL
-);
-
-
-ALTER TABLE public.finances OWNER TO postgres;
-
---
--- Name: finances_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-ALTER TABLE public.finances ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.finances_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -10446,8 +12182,8 @@ CREATE TABLE public.multiverses (
     day_number smallint DEFAULT '1'::smallint NOT NULL,
     last_run timestamp with time zone DEFAULT now() NOT NULL,
     error text,
-    is_active boolean DEFAULT true NOT NULL,
-    date_handling timestamp with time zone DEFAULT now() NOT NULL
+    date_handling timestamp with time zone DEFAULT now() NOT NULL,
+    date_delete timestamp with time zone
 );
 
 
@@ -10496,6 +12232,13 @@ COMMENT ON COLUMN public.multiverses.name IS 'Name of the multiverse';
 
 
 --
+-- Name: COLUMN multiverses.date_delete; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.multiverses.date_delete IS 'Date when deletion of this multiverse starts';
+
+
+--
 -- Name: players; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -10525,7 +12268,6 @@ CREATE TABLE public.players (
     notes text DEFAULT ''::text,
     multiverse_speed smallint NOT NULL,
     performance_score_real real DEFAULT '0'::real NOT NULL,
-    is_playing boolean DEFAULT false NOT NULL,
     expenses_missed bigint DEFAULT '0'::bigint NOT NULL,
     experience real DEFAULT '0'::real NOT NULL,
     expenses_payed integer DEFAULT 0 NOT NULL,
@@ -10559,6 +12301,9 @@ CREATE TABLE public.players (
     date_end_contract timestamp with time zone,
     expenses_won_total integer DEFAULT 0 NOT NULL,
     expenses_won_available integer DEFAULT 0 NOT NULL,
+    expenses_missed_to_pay_in_priority smallint DEFAULT '0'::smallint NOT NULL,
+    transfer_status public.transfer_status,
+    id_game_currently_playing bigint,
     CONSTRAINT players_first_name_check CHECK ((length(first_name) <= 24)),
     CONSTRAINT players_last_name_check CHECK ((length(last_name) <= 24)),
     CONSTRAINT players_notes_small_check CHECK ((length(notes_small) <= 6)),
@@ -10588,13 +12333,6 @@ COMMENT ON COLUMN public.players.training_points_available IS 'Available trainin
 --
 
 COMMENT ON COLUMN public.players.performance_score_real IS 'Overall preformance score based on stats';
-
-
---
--- Name: COLUMN players.is_playing; Type: COMMENT; Schema: public; Owner: postgres
---
-
-COMMENT ON COLUMN public.players.is_playing IS 'Is the player currently playing';
 
 
 --
@@ -10745,6 +12483,20 @@ COMMENT ON COLUMN public.players.expenses_won_available IS 'Expenses won availab
 
 
 --
+-- Name: COLUMN players.expenses_missed_to_pay_in_priority; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.players.expenses_missed_to_pay_in_priority IS 'Missed expenses to pay in priority';
+
+
+--
+-- Name: COLUMN players.id_game_currently_playing; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.players.id_game_currently_playing IS 'Id of the game currently being played by the player';
+
+
+--
 -- Name: players_favorite; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -10859,7 +12611,9 @@ CREATE TABLE public.players_history_stats (
     performance_score_theoretical real NOT NULL,
     coef_coach smallint NOT NULL,
     coef_scout smallint NOT NULL,
-    expenses_won_total integer NOT NULL
+    expenses_won_total integer NOT NULL,
+    season_number smallint NOT NULL,
+    week_number smallint NOT NULL
 );
 
 
@@ -11185,10 +12939,10 @@ PARTITION BY RANGE (inserted_at);
 ALTER TABLE realtime.messages OWNER TO supabase_realtime_admin;
 
 --
--- Name: messages_2025_06_16; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_07; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_06_16 (
+CREATE TABLE realtime.messages_2026_01_07 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -11200,13 +12954,13 @@ CREATE TABLE realtime.messages_2025_06_16 (
 );
 
 
-ALTER TABLE realtime.messages_2025_06_16 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2026_01_07 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_06_17; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_08; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_06_17 (
+CREATE TABLE realtime.messages_2026_01_08 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -11218,13 +12972,13 @@ CREATE TABLE realtime.messages_2025_06_17 (
 );
 
 
-ALTER TABLE realtime.messages_2025_06_17 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2026_01_08 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_06_18; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_09; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_06_18 (
+CREATE TABLE realtime.messages_2026_01_09 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -11236,13 +12990,13 @@ CREATE TABLE realtime.messages_2025_06_18 (
 );
 
 
-ALTER TABLE realtime.messages_2025_06_18 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2026_01_09 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_06_19; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_10; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_06_19 (
+CREATE TABLE realtime.messages_2026_01_10 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -11254,13 +13008,13 @@ CREATE TABLE realtime.messages_2025_06_19 (
 );
 
 
-ALTER TABLE realtime.messages_2025_06_19 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2026_01_10 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_06_20; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_11; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_06_20 (
+CREATE TABLE realtime.messages_2026_01_11 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -11272,13 +13026,13 @@ CREATE TABLE realtime.messages_2025_06_20 (
 );
 
 
-ALTER TABLE realtime.messages_2025_06_20 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2026_01_11 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_06_21; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_12; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_06_21 (
+CREATE TABLE realtime.messages_2026_01_12 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -11290,13 +13044,13 @@ CREATE TABLE realtime.messages_2025_06_21 (
 );
 
 
-ALTER TABLE realtime.messages_2025_06_21 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2026_01_12 OWNER TO supabase_admin;
 
 --
--- Name: messages_2025_06_22; Type: TABLE; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_13; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
-CREATE TABLE realtime.messages_2025_06_22 (
+CREATE TABLE realtime.messages_2026_01_13 (
     topic text NOT NULL,
     extension text NOT NULL,
     payload jsonb,
@@ -11308,7 +13062,7 @@ CREATE TABLE realtime.messages_2025_06_22 (
 );
 
 
-ALTER TABLE realtime.messages_2025_06_22 OWNER TO supabase_admin;
+ALTER TABLE realtime.messages_2026_01_13 OWNER TO supabase_admin;
 
 --
 -- Name: schema_migrations; Type: TABLE; Schema: realtime; Owner: supabase_admin
@@ -11367,7 +13121,8 @@ CREATE TABLE storage.buckets (
     avif_autodetection boolean DEFAULT false,
     file_size_limit bigint,
     allowed_mime_types text[],
-    owner_id text
+    owner_id text,
+    type storage.buckettype DEFAULT 'STANDARD'::storage.buckettype NOT NULL
 );
 
 
@@ -11379,6 +13134,37 @@ ALTER TABLE storage.buckets OWNER TO supabase_storage_admin;
 
 COMMENT ON COLUMN storage.buckets.owner IS 'Field is deprecated, use owner_id instead';
 
+
+--
+-- Name: buckets_analytics; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TABLE storage.buckets_analytics (
+    name text NOT NULL,
+    type storage.buckettype DEFAULT 'ANALYTICS'::storage.buckettype NOT NULL,
+    format text DEFAULT 'ICEBERG'::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    deleted_at timestamp with time zone
+);
+
+
+ALTER TABLE storage.buckets_analytics OWNER TO supabase_storage_admin;
+
+--
+-- Name: buckets_vectors; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TABLE storage.buckets_vectors (
+    id text NOT NULL,
+    type storage.buckettype DEFAULT 'VECTOR'::storage.buckettype NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE storage.buckets_vectors OWNER TO supabase_storage_admin;
 
 --
 -- Name: migrations; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
@@ -11410,7 +13196,8 @@ CREATE TABLE storage.objects (
     path_tokens text[] GENERATED ALWAYS AS (string_to_array(name, '/'::text)) STORED,
     version text,
     owner_id text,
-    user_metadata jsonb
+    user_metadata jsonb,
+    level integer
 );
 
 
@@ -11422,6 +13209,21 @@ ALTER TABLE storage.objects OWNER TO supabase_storage_admin;
 
 COMMENT ON COLUMN storage.objects.owner IS 'Field is deprecated, use owner_id instead';
 
+
+--
+-- Name: prefixes; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TABLE storage.prefixes (
+    bucket_id text NOT NULL,
+    name text NOT NULL COLLATE pg_catalog."C",
+    level integer GENERATED ALWAYS AS (storage.get_level(name)) STORED NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+ALTER TABLE storage.prefixes OWNER TO supabase_storage_admin;
 
 --
 -- Name: s3_multipart_uploads; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
@@ -11463,52 +13265,71 @@ CREATE TABLE storage.s3_multipart_uploads_parts (
 ALTER TABLE storage.s3_multipart_uploads_parts OWNER TO supabase_storage_admin;
 
 --
--- Name: messages_2025_06_16; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: vector_indexes; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_16 FOR VALUES FROM ('2025-06-16 00:00:00') TO ('2025-06-17 00:00:00');
+CREATE TABLE storage.vector_indexes (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL COLLATE pg_catalog."C",
+    bucket_id text NOT NULL,
+    data_type text NOT NULL,
+    dimension integer NOT NULL,
+    distance_metric text NOT NULL,
+    metadata_configuration jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
 
 
---
--- Name: messages_2025_06_17; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_17 FOR VALUES FROM ('2025-06-17 00:00:00') TO ('2025-06-18 00:00:00');
-
-
---
--- Name: messages_2025_06_18; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_18 FOR VALUES FROM ('2025-06-18 00:00:00') TO ('2025-06-19 00:00:00');
-
+ALTER TABLE storage.vector_indexes OWNER TO supabase_storage_admin;
 
 --
--- Name: messages_2025_06_19; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_07; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_19 FOR VALUES FROM ('2025-06-19 00:00:00') TO ('2025-06-20 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2026_01_07 FOR VALUES FROM ('2026-01-07 00:00:00') TO ('2026-01-08 00:00:00');
 
 
 --
--- Name: messages_2025_06_20; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_08; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_20 FOR VALUES FROM ('2025-06-20 00:00:00') TO ('2025-06-21 00:00:00');
-
-
---
--- Name: messages_2025_06_21; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_21 FOR VALUES FROM ('2025-06-21 00:00:00') TO ('2025-06-22 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2026_01_08 FOR VALUES FROM ('2026-01-08 00:00:00') TO ('2026-01-09 00:00:00');
 
 
 --
--- Name: messages_2025_06_22; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_09; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2025_06_22 FOR VALUES FROM ('2025-06-22 00:00:00') TO ('2025-06-23 00:00:00');
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2026_01_09 FOR VALUES FROM ('2026-01-09 00:00:00') TO ('2026-01-10 00:00:00');
+
+
+--
+-- Name: messages_2026_01_10; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2026_01_10 FOR VALUES FROM ('2026-01-10 00:00:00') TO ('2026-01-11 00:00:00');
+
+
+--
+-- Name: messages_2026_01_11; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2026_01_11 FOR VALUES FROM ('2026-01-11 00:00:00') TO ('2026-01-12 00:00:00');
+
+
+--
+-- Name: messages_2026_01_12; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2026_01_12 FOR VALUES FROM ('2026-01-12 00:00:00') TO ('2026-01-13 00:00:00');
+
+
+--
+-- Name: messages_2026_01_13; Type: TABLE ATTACH; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages ATTACH PARTITION realtime.messages_2026_01_13 FOR VALUES FROM ('2026-01-13 00:00:00') TO ('2026-01-14 00:00:00');
 
 
 --
@@ -11596,6 +13417,62 @@ ALTER TABLE ONLY auth.mfa_factors
 
 ALTER TABLE ONLY auth.mfa_factors
     ADD CONSTRAINT mfa_factors_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_authorizations oauth_authorizations_authorization_code_key; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_authorizations
+    ADD CONSTRAINT oauth_authorizations_authorization_code_key UNIQUE (authorization_code);
+
+
+--
+-- Name: oauth_authorizations oauth_authorizations_authorization_id_key; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_authorizations
+    ADD CONSTRAINT oauth_authorizations_authorization_id_key UNIQUE (authorization_id);
+
+
+--
+-- Name: oauth_authorizations oauth_authorizations_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_authorizations
+    ADD CONSTRAINT oauth_authorizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_client_states oauth_client_states_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_client_states
+    ADD CONSTRAINT oauth_client_states_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_clients oauth_clients_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_clients
+    ADD CONSTRAINT oauth_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_consents oauth_consents_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_consents
+    ADD CONSTRAINT oauth_consents_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_consents oauth_consents_user_client_unique; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_consents
+    ADD CONSTRAINT oauth_consents_user_client_unique UNIQUE (user_id, client_id);
 
 
 --
@@ -11764,14 +13641,6 @@ ALTER TABLE ONLY public.clubs
 
 ALTER TABLE ONLY public.countries
     ADD CONSTRAINT countries_pkey PRIMARY KEY (id);
-
-
---
--- Name: finances finances_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.finances
-    ADD CONSTRAINT finances_pkey PRIMARY KEY (id);
 
 
 --
@@ -11983,14 +13852,6 @@ ALTER TABLE ONLY public.profiles
 
 
 --
--- Name: profiles profiles_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.profiles
-    ADD CONSTRAINT profiles_id_key UNIQUE (uuid_user);
-
-
---
 -- Name: profiles profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -12047,59 +13908,59 @@ ALTER TABLE ONLY realtime.messages
 
 
 --
--- Name: messages_2025_06_16 messages_2025_06_16_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_07 messages_2026_01_07_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_06_16
-    ADD CONSTRAINT messages_2025_06_16_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_06_17 messages_2025_06_17_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_06_17
-    ADD CONSTRAINT messages_2025_06_17_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2026_01_07
+    ADD CONSTRAINT messages_2026_01_07_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
--- Name: messages_2025_06_18 messages_2025_06_18_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_08 messages_2026_01_08_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_06_18
-    ADD CONSTRAINT messages_2025_06_18_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_06_19 messages_2025_06_19_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_06_19
-    ADD CONSTRAINT messages_2025_06_19_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2026_01_08
+    ADD CONSTRAINT messages_2026_01_08_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
--- Name: messages_2025_06_20 messages_2025_06_20_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_09 messages_2026_01_09_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_06_20
-    ADD CONSTRAINT messages_2025_06_20_pkey PRIMARY KEY (id, inserted_at);
-
-
---
--- Name: messages_2025_06_21 messages_2025_06_21_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
---
-
-ALTER TABLE ONLY realtime.messages_2025_06_21
-    ADD CONSTRAINT messages_2025_06_21_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2026_01_09
+    ADD CONSTRAINT messages_2026_01_09_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
--- Name: messages_2025_06_22 messages_2025_06_22_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+-- Name: messages_2026_01_10 messages_2026_01_10_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
-ALTER TABLE ONLY realtime.messages_2025_06_22
-    ADD CONSTRAINT messages_2025_06_22_pkey PRIMARY KEY (id, inserted_at);
+ALTER TABLE ONLY realtime.messages_2026_01_10
+    ADD CONSTRAINT messages_2026_01_10_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2026_01_11 messages_2026_01_11_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2026_01_11
+    ADD CONSTRAINT messages_2026_01_11_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2026_01_12 messages_2026_01_12_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2026_01_12
+    ADD CONSTRAINT messages_2026_01_12_pkey PRIMARY KEY (id, inserted_at);
+
+
+--
+-- Name: messages_2026_01_13 messages_2026_01_13_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY realtime.messages_2026_01_13
+    ADD CONSTRAINT messages_2026_01_13_pkey PRIMARY KEY (id, inserted_at);
 
 
 --
@@ -12119,11 +13980,27 @@ ALTER TABLE ONLY realtime.schema_migrations
 
 
 --
+-- Name: buckets_analytics buckets_analytics_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE ONLY storage.buckets_analytics
+    ADD CONSTRAINT buckets_analytics_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: buckets buckets_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
 ALTER TABLE ONLY storage.buckets
     ADD CONSTRAINT buckets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: buckets_vectors buckets_vectors_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE ONLY storage.buckets_vectors
+    ADD CONSTRAINT buckets_vectors_pkey PRIMARY KEY (id);
 
 
 --
@@ -12151,6 +14028,14 @@ ALTER TABLE ONLY storage.objects
 
 
 --
+-- Name: prefixes prefixes_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE ONLY storage.prefixes
+    ADD CONSTRAINT prefixes_pkey PRIMARY KEY (bucket_id, level, name);
+
+
+--
 -- Name: s3_multipart_uploads_parts s3_multipart_uploads_parts_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -12164,6 +14049,14 @@ ALTER TABLE ONLY storage.s3_multipart_uploads_parts
 
 ALTER TABLE ONLY storage.s3_multipart_uploads
     ADD CONSTRAINT s3_multipart_uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: vector_indexes vector_indexes_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE ONLY storage.vector_indexes
+    ADD CONSTRAINT vector_indexes_pkey PRIMARY KEY (id);
 
 
 --
@@ -12237,6 +14130,13 @@ CREATE INDEX idx_auth_code ON auth.flow_state USING btree (auth_code);
 
 
 --
+-- Name: idx_oauth_client_states_created_at; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX idx_oauth_client_states_created_at ON auth.oauth_client_states USING btree (created_at);
+
+
+--
 -- Name: idx_user_id_auth_method; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -12262,6 +14162,41 @@ CREATE UNIQUE INDEX mfa_factors_user_friendly_name_unique ON auth.mfa_factors US
 --
 
 CREATE INDEX mfa_factors_user_id_idx ON auth.mfa_factors USING btree (user_id);
+
+
+--
+-- Name: oauth_auth_pending_exp_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX oauth_auth_pending_exp_idx ON auth.oauth_authorizations USING btree (expires_at) WHERE (status = 'pending'::auth.oauth_authorization_status);
+
+
+--
+-- Name: oauth_clients_deleted_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX oauth_clients_deleted_at_idx ON auth.oauth_clients USING btree (deleted_at);
+
+
+--
+-- Name: oauth_consents_active_client_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX oauth_consents_active_client_idx ON auth.oauth_consents USING btree (client_id) WHERE (revoked_at IS NULL);
+
+
+--
+-- Name: oauth_consents_active_user_client_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX oauth_consents_active_user_client_idx ON auth.oauth_consents USING btree (user_id, client_id) WHERE (revoked_at IS NULL);
+
+
+--
+-- Name: oauth_consents_user_order_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX oauth_consents_user_order_idx ON auth.oauth_consents USING btree (user_id, granted_at DESC);
 
 
 --
@@ -12370,6 +14305,13 @@ CREATE INDEX sessions_not_after_idx ON auth.sessions USING btree (not_after DESC
 
 
 --
+-- Name: sessions_oauth_client_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX sessions_oauth_client_id_idx ON auth.sessions USING btree (oauth_client_id);
+
+
+--
 -- Name: sessions_user_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -12395,6 +14337,13 @@ CREATE INDEX sso_domains_sso_provider_id_idx ON auth.sso_domains USING btree (ss
 --
 
 CREATE UNIQUE INDEX sso_providers_resource_id_idx ON auth.sso_providers USING btree (lower(resource_id));
+
+
+--
+-- Name: sso_providers_resource_id_pattern_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX sso_providers_resource_id_pattern_idx ON auth.sso_providers USING btree (resource_id text_pattern_ops);
 
 
 --
@@ -12503,6 +14452,13 @@ CREATE INDEX idx_game_player_stats_all_id_player ON public.game_player_stats_all
 
 
 --
+-- Name: idx_game_player_stats_best_id_game; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_game_player_stats_best_id_game ON public.game_player_stats_best USING btree (id_game);
+
+
+--
 -- Name: idx_game_stats_id_game; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -12521,6 +14477,13 @@ CREATE INDEX idx_games_id_multiverse ON public.games USING btree (id_multiverse)
 --
 
 CREATE INDEX idx_games_season_number ON public.games USING btree (season_number);
+
+
+--
+-- Name: idx_games_teamcomp_id_game; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_games_teamcomp_id_game ON public.games_teamcomp USING btree (id_game);
 
 
 --
@@ -12566,6 +14529,62 @@ CREATE INDEX ix_realtime_subscription_entity ON realtime.subscription USING btre
 
 
 --
+-- Name: messages_inserted_at_topic_index; Type: INDEX; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+CREATE INDEX messages_inserted_at_topic_index ON ONLY realtime.messages USING btree (inserted_at DESC, topic) WHERE ((extension = 'broadcast'::text) AND (private IS TRUE));
+
+
+--
+-- Name: messages_2026_01_07_inserted_at_topic_idx; Type: INDEX; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE INDEX messages_2026_01_07_inserted_at_topic_idx ON realtime.messages_2026_01_07 USING btree (inserted_at DESC, topic) WHERE ((extension = 'broadcast'::text) AND (private IS TRUE));
+
+
+--
+-- Name: messages_2026_01_08_inserted_at_topic_idx; Type: INDEX; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE INDEX messages_2026_01_08_inserted_at_topic_idx ON realtime.messages_2026_01_08 USING btree (inserted_at DESC, topic) WHERE ((extension = 'broadcast'::text) AND (private IS TRUE));
+
+
+--
+-- Name: messages_2026_01_09_inserted_at_topic_idx; Type: INDEX; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE INDEX messages_2026_01_09_inserted_at_topic_idx ON realtime.messages_2026_01_09 USING btree (inserted_at DESC, topic) WHERE ((extension = 'broadcast'::text) AND (private IS TRUE));
+
+
+--
+-- Name: messages_2026_01_10_inserted_at_topic_idx; Type: INDEX; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE INDEX messages_2026_01_10_inserted_at_topic_idx ON realtime.messages_2026_01_10 USING btree (inserted_at DESC, topic) WHERE ((extension = 'broadcast'::text) AND (private IS TRUE));
+
+
+--
+-- Name: messages_2026_01_11_inserted_at_topic_idx; Type: INDEX; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE INDEX messages_2026_01_11_inserted_at_topic_idx ON realtime.messages_2026_01_11 USING btree (inserted_at DESC, topic) WHERE ((extension = 'broadcast'::text) AND (private IS TRUE));
+
+
+--
+-- Name: messages_2026_01_12_inserted_at_topic_idx; Type: INDEX; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE INDEX messages_2026_01_12_inserted_at_topic_idx ON realtime.messages_2026_01_12 USING btree (inserted_at DESC, topic) WHERE ((extension = 'broadcast'::text) AND (private IS TRUE));
+
+
+--
+-- Name: messages_2026_01_13_inserted_at_topic_idx; Type: INDEX; Schema: realtime; Owner: supabase_admin
+--
+
+CREATE INDEX messages_2026_01_13_inserted_at_topic_idx ON realtime.messages_2026_01_13 USING btree (inserted_at DESC, topic) WHERE ((extension = 'broadcast'::text) AND (private IS TRUE));
+
+
+--
 -- Name: subscription_subscription_id_entity_filters_key; Type: INDEX; Schema: realtime; Owner: supabase_admin
 --
 
@@ -12587,10 +14606,24 @@ CREATE UNIQUE INDEX bucketid_objname ON storage.objects USING btree (bucket_id, 
 
 
 --
+-- Name: buckets_analytics_unique_name_idx; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE UNIQUE INDEX buckets_analytics_unique_name_idx ON storage.buckets_analytics USING btree (name) WHERE (deleted_at IS NULL);
+
+
+--
 -- Name: idx_multipart_uploads_list; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
 CREATE INDEX idx_multipart_uploads_list ON storage.s3_multipart_uploads USING btree (bucket_id, key, created_at);
+
+
+--
+-- Name: idx_name_bucket_level_unique; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE UNIQUE INDEX idx_name_bucket_level_unique ON storage.objects USING btree (name COLLATE "C", bucket_id, level);
 
 
 --
@@ -12601,6 +14634,20 @@ CREATE INDEX idx_objects_bucket_id_name ON storage.objects USING btree (bucket_i
 
 
 --
+-- Name: idx_objects_lower_name; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE INDEX idx_objects_lower_name ON storage.objects USING btree ((path_tokens[level]), lower(name) text_pattern_ops, bucket_id, level);
+
+
+--
+-- Name: idx_prefixes_lower_name; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE INDEX idx_prefixes_lower_name ON storage.prefixes USING btree (bucket_id, level, ((string_to_array(name, '/'::text))[level]), lower(name) text_pattern_ops);
+
+
+--
 -- Name: name_prefix_search; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -12608,52 +14655,115 @@ CREATE INDEX name_prefix_search ON storage.objects USING btree (name text_patter
 
 
 --
--- Name: messages_2025_06_16_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: objects_bucket_id_level_idx; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_16_pkey;
-
-
---
--- Name: messages_2025_06_17_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_17_pkey;
+CREATE UNIQUE INDEX objects_bucket_id_level_idx ON storage.objects USING btree (bucket_id, level, name COLLATE "C");
 
 
 --
--- Name: messages_2025_06_18_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: vector_indexes_name_bucket_id_idx; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_18_pkey;
-
-
---
--- Name: messages_2025_06_19_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_19_pkey;
+CREATE UNIQUE INDEX vector_indexes_name_bucket_id_idx ON storage.vector_indexes USING btree (name, bucket_id);
 
 
 --
--- Name: messages_2025_06_20_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: messages_2026_01_07_inserted_at_topic_idx; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_20_pkey;
-
-
---
--- Name: messages_2025_06_21_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
---
-
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_21_pkey;
+ALTER INDEX realtime.messages_inserted_at_topic_index ATTACH PARTITION realtime.messages_2026_01_07_inserted_at_topic_idx;
 
 
 --
--- Name: messages_2025_06_22_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+-- Name: messages_2026_01_07_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
 --
 
-ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2025_06_22_pkey;
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2026_01_07_pkey;
+
+
+--
+-- Name: messages_2026_01_08_inserted_at_topic_idx; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_inserted_at_topic_index ATTACH PARTITION realtime.messages_2026_01_08_inserted_at_topic_idx;
+
+
+--
+-- Name: messages_2026_01_08_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2026_01_08_pkey;
+
+
+--
+-- Name: messages_2026_01_09_inserted_at_topic_idx; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_inserted_at_topic_index ATTACH PARTITION realtime.messages_2026_01_09_inserted_at_topic_idx;
+
+
+--
+-- Name: messages_2026_01_09_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2026_01_09_pkey;
+
+
+--
+-- Name: messages_2026_01_10_inserted_at_topic_idx; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_inserted_at_topic_index ATTACH PARTITION realtime.messages_2026_01_10_inserted_at_topic_idx;
+
+
+--
+-- Name: messages_2026_01_10_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2026_01_10_pkey;
+
+
+--
+-- Name: messages_2026_01_11_inserted_at_topic_idx; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_inserted_at_topic_index ATTACH PARTITION realtime.messages_2026_01_11_inserted_at_topic_idx;
+
+
+--
+-- Name: messages_2026_01_11_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2026_01_11_pkey;
+
+
+--
+-- Name: messages_2026_01_12_inserted_at_topic_idx; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_inserted_at_topic_index ATTACH PARTITION realtime.messages_2026_01_12_inserted_at_topic_idx;
+
+
+--
+-- Name: messages_2026_01_12_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2026_01_12_pkey;
+
+
+--
+-- Name: messages_2026_01_13_inserted_at_topic_idx; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_inserted_at_topic_index ATTACH PARTITION realtime.messages_2026_01_13_inserted_at_topic_idx;
+
+
+--
+-- Name: messages_2026_01_13_pkey; Type: INDEX ATTACH; Schema: realtime; Owner: supabase_realtime_admin
+--
+
+ALTER INDEX realtime.messages_pkey ATTACH PARTITION realtime.messages_2026_01_13_pkey;
 
 
 --
@@ -12678,10 +14788,10 @@ CREATE TRIGGER before_insert_game_events BEFORE INSERT ON public.game_events FOR
 
 
 --
--- Name: players check_club_cash_trigger; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: clubs club_name_update_trigger; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
-CREATE TRIGGER check_club_cash_trigger BEFORE UPDATE OF expenses_missed ON public.players FOR EACH ROW WHEN (((old.expenses_missed > 0) AND (new.expenses_missed = 0) AND (new.expenses_missed < old.expenses_missed))) EXECUTE FUNCTION public.players_pay_expenses_missed();
+CREATE TRIGGER club_name_update_trigger AFTER UPDATE OF name ON public.clubs FOR EACH ROW EXECUTE FUNCTION public.trg_club_name_history();
 
 
 --
@@ -12776,6 +14886,48 @@ CREATE TRIGGER tr_check_filters BEFORE INSERT OR UPDATE ON realtime.subscription
 
 
 --
+-- Name: buckets enforce_bucket_name_length_trigger; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TRIGGER enforce_bucket_name_length_trigger BEFORE INSERT OR UPDATE OF name ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.enforce_bucket_name_length();
+
+
+--
+-- Name: objects objects_delete_delete_prefix; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TRIGGER objects_delete_delete_prefix AFTER DELETE ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.delete_prefix_hierarchy_trigger();
+
+
+--
+-- Name: objects objects_insert_create_prefix; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TRIGGER objects_insert_create_prefix BEFORE INSERT ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.objects_insert_prefix_trigger();
+
+
+--
+-- Name: objects objects_update_create_prefix; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TRIGGER objects_update_create_prefix BEFORE UPDATE ON storage.objects FOR EACH ROW WHEN (((new.name <> old.name) OR (new.bucket_id <> old.bucket_id))) EXECUTE FUNCTION storage.objects_update_prefix_trigger();
+
+
+--
+-- Name: prefixes prefixes_create_hierarchy; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TRIGGER prefixes_create_hierarchy BEFORE INSERT ON storage.prefixes FOR EACH ROW WHEN ((pg_trigger_depth() < 1)) EXECUTE FUNCTION storage.prefixes_insert_trigger();
+
+
+--
+-- Name: prefixes prefixes_delete_hierarchy; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE TRIGGER prefixes_delete_hierarchy AFTER DELETE ON storage.prefixes FOR EACH ROW EXECUTE FUNCTION storage.delete_prefix_hierarchy_trigger();
+
+
+--
 -- Name: objects update_objects_updated_at; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -12812,6 +14964,38 @@ ALTER TABLE ONLY auth.mfa_challenges
 
 ALTER TABLE ONLY auth.mfa_factors
     ADD CONSTRAINT mfa_factors_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: oauth_authorizations oauth_authorizations_client_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_authorizations
+    ADD CONSTRAINT oauth_authorizations_client_id_fkey FOREIGN KEY (client_id) REFERENCES auth.oauth_clients(id) ON DELETE CASCADE;
+
+
+--
+-- Name: oauth_authorizations oauth_authorizations_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_authorizations
+    ADD CONSTRAINT oauth_authorizations_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: oauth_consents oauth_consents_client_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_consents
+    ADD CONSTRAINT oauth_consents_client_id_fkey FOREIGN KEY (client_id) REFERENCES auth.oauth_clients(id) ON DELETE CASCADE;
+
+
+--
+-- Name: oauth_consents oauth_consents_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.oauth_consents
+    ADD CONSTRAINT oauth_consents_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 
 --
@@ -12852,6 +15036,14 @@ ALTER TABLE ONLY auth.saml_relay_states
 
 ALTER TABLE ONLY auth.saml_relay_states
     ADD CONSTRAINT saml_relay_states_sso_provider_id_fkey FOREIGN KEY (sso_provider_id) REFERENCES auth.sso_providers(id) ON DELETE CASCADE;
+
+
+--
+-- Name: sessions sessions_oauth_client_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.sessions
+    ADD CONSTRAINT sessions_oauth_client_id_fkey FOREIGN KEY (oauth_client_id) REFERENCES auth.oauth_clients(id) ON DELETE CASCADE;
 
 
 --
@@ -12956,14 +15148,6 @@ ALTER TABLE ONLY public.clubs
 
 ALTER TABLE ONLY public.clubs
     ADD CONSTRAINT clubs_username_fkey FOREIGN KEY (username) REFERENCES public.profiles(username) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: finances finances_id_club_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.finances
-    ADD CONSTRAINT finances_id_club_fkey FOREIGN KEY (id_club) REFERENCES public.clubs(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -13247,6 +15431,14 @@ ALTER TABLE ONLY public.players
 
 
 --
+-- Name: players players_id_game_currently_playing_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.players
+    ADD CONSTRAINT players_id_game_currently_playing_fkey FOREIGN KEY (id_game_currently_playing) REFERENCES public.games(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
 -- Name: players players_id_multiverse_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -13523,7 +15715,7 @@ ALTER TABLE ONLY public.transfers_embodied_players_offers
 --
 
 ALTER TABLE ONLY public.transfers_embodied_players_offers
-    ADD CONSTRAINT transfers_embodied_players_offers_id_player_fkey FOREIGN KEY (id_player) REFERENCES public.players(id) ON UPDATE CASCADE;
+    ADD CONSTRAINT transfers_embodied_players_offers_id_player_fkey FOREIGN KEY (id_player) REFERENCES public.players(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -13540,6 +15732,14 @@ ALTER TABLE ONLY public.transfers_history
 
 ALTER TABLE ONLY storage.objects
     ADD CONSTRAINT "objects_bucketId_fkey" FOREIGN KEY (bucket_id) REFERENCES storage.buckets(id);
+
+
+--
+-- Name: prefixes prefixes_bucketId_fkey; Type: FK CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE ONLY storage.prefixes
+    ADD CONSTRAINT "prefixes_bucketId_fkey" FOREIGN KEY (bucket_id) REFERENCES storage.buckets(id);
 
 
 --
@@ -13564,6 +15764,14 @@ ALTER TABLE ONLY storage.s3_multipart_uploads_parts
 
 ALTER TABLE ONLY storage.s3_multipart_uploads_parts
     ADD CONSTRAINT s3_multipart_uploads_parts_upload_id_fkey FOREIGN KEY (upload_id) REFERENCES storage.s3_multipart_uploads(id) ON DELETE CASCADE;
+
+
+--
+-- Name: vector_indexes vector_indexes_bucket_id_fkey; Type: FK CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE ONLY storage.vector_indexes
+    ADD CONSTRAINT vector_indexes_bucket_id_fkey FOREIGN KEY (bucket_id) REFERENCES storage.buckets_vectors(id);
 
 
 --
@@ -13663,6 +15871,20 @@ ALTER TABLE auth.sso_providers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: first_names Enable read access for all users; Type: POLICY; Schema: players_generation; Owner: postgres
+--
+
+CREATE POLICY "Enable read access for all users" ON players_generation.first_names FOR SELECT USING (true);
+
+
+--
+-- Name: last_names Enable read access for all users; Type: POLICY; Schema: players_generation; Owner: postgres
+--
+
+CREATE POLICY "Enable read access for all users" ON players_generation.last_names FOR SELECT USING (true);
+
+
+--
 -- Name: first_names; Type: ROW SECURITY; Schema: players_generation; Owner: postgres
 --
 
@@ -13742,13 +15964,6 @@ CREATE POLICY "Enable read access for all users" ON public.clubs FOR SELECT USIN
 --
 
 CREATE POLICY "Enable read access for all users" ON public.clubs_history_weekly FOR SELECT USING (true);
-
-
---
--- Name: finances Enable read access for all users; Type: POLICY; Schema: public; Owner: postgres
---
-
-CREATE POLICY "Enable read access for all users" ON public.finances FOR SELECT USING (true);
 
 
 --
@@ -13958,12 +16173,6 @@ ALTER TABLE public.clubs_history_weekly ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.countries ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: finances; Type: ROW SECURITY; Schema: public; Owner: postgres
---
-
-ALTER TABLE public.finances ENABLE ROW LEVEL SECURITY;
-
---
 -- Name: game_events; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
@@ -14120,6 +16329,18 @@ ALTER TABLE realtime.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE storage.buckets ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: buckets_analytics; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE storage.buckets_analytics ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: buckets_vectors; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE storage.buckets_vectors ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: migrations; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -14132,6 +16353,12 @@ ALTER TABLE storage.migrations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: prefixes; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE storage.prefixes ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: s3_multipart_uploads; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -14142,6 +16369,12 @@ ALTER TABLE storage.s3_multipart_uploads ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE storage.s3_multipart_uploads_parts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: vector_indexes; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
+--
+
+ALTER TABLE storage.vector_indexes ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: supabase_realtime; Type: PUBLICATION; Schema: -; Owner: postgres
@@ -14180,13 +16413,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.clubs_history_weekly;
 --
 
 ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.countries;
-
-
---
--- Name: supabase_realtime finances; Type: PUBLICATION TABLE; Schema: public; Owner: postgres
---
-
-ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.finances;
 
 
 --
@@ -14352,7 +16578,7 @@ GRANT USAGE ON SCHEMA auth TO authenticated;
 GRANT USAGE ON SCHEMA auth TO service_role;
 GRANT ALL ON SCHEMA auth TO supabase_auth_admin;
 GRANT ALL ON SCHEMA auth TO dashboard_user;
-GRANT ALL ON SCHEMA auth TO postgres;
+GRANT USAGE ON SCHEMA auth TO postgres;
 
 
 --
@@ -14402,7 +16628,7 @@ GRANT USAGE ON SCHEMA storage TO authenticated;
 GRANT USAGE ON SCHEMA storage TO service_role;
 GRANT ALL ON SCHEMA storage TO supabase_storage_admin;
 GRANT ALL ON SCHEMA storage TO dashboard_user;
-GRANT ALL ON SCHEMA storage TO postgres;
+GRANT USAGE ON SCHEMA storage TO postgres WITH GRANT OPTION;
 
 
 --
@@ -14410,6 +16636,7 @@ GRANT ALL ON SCHEMA storage TO postgres;
 --
 
 GRANT USAGE ON SCHEMA vault TO postgres WITH GRANT OPTION;
+GRANT USAGE ON SCHEMA vault TO service_role;
 
 
 --
@@ -14488,15 +16715,6 @@ GRANT ALL ON FUNCTION cron.unschedule(job_id bigint) TO postgres WITH GRANT OPTI
 --
 
 GRANT ALL ON FUNCTION cron.unschedule(job_name text) TO postgres WITH GRANT OPTION;
-
-
---
--- Name: FUNCTION algorithm_sign(signables text, secret text, algorithm text); Type: ACL; Schema: extensions; Owner: postgres
---
-
-REVOKE ALL ON FUNCTION extensions.algorithm_sign(signables text, secret text, algorithm text) FROM postgres;
-GRANT ALL ON FUNCTION extensions.algorithm_sign(signables text, secret text, algorithm text) TO postgres WITH GRANT OPTION;
-GRANT ALL ON FUNCTION extensions.algorithm_sign(signables text, secret text, algorithm text) TO dashboard_user;
 
 
 --
@@ -14669,12 +16887,10 @@ GRANT ALL ON FUNCTION extensions.hmac(text, text, text) TO dashboard_user;
 
 
 --
--- Name: FUNCTION pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT blk_read_time double precision, OUT blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision); Type: ACL; Schema: extensions; Owner: postgres
+-- Name: FUNCTION pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT shared_blk_read_time double precision, OUT shared_blk_write_time double precision, OUT local_blk_read_time double precision, OUT local_blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision, OUT jit_deform_count bigint, OUT jit_deform_time double precision, OUT stats_since timestamp with time zone, OUT minmax_stats_since timestamp with time zone); Type: ACL; Schema: extensions; Owner: supabase_admin
 --
 
-REVOKE ALL ON FUNCTION extensions.pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT blk_read_time double precision, OUT blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision) FROM postgres;
-GRANT ALL ON FUNCTION extensions.pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT blk_read_time double precision, OUT blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision) TO postgres WITH GRANT OPTION;
-GRANT ALL ON FUNCTION extensions.pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT blk_read_time double precision, OUT blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision) TO dashboard_user;
+GRANT ALL ON FUNCTION extensions.pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT shared_blk_read_time double precision, OUT shared_blk_write_time double precision, OUT local_blk_read_time double precision, OUT local_blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision, OUT jit_deform_count bigint, OUT jit_deform_time double precision, OUT stats_since timestamp with time zone, OUT minmax_stats_since timestamp with time zone) TO postgres WITH GRANT OPTION;
 
 
 --
@@ -14684,15 +16900,6 @@ GRANT ALL ON FUNCTION extensions.pg_stat_statements(showtext boolean, OUT userid
 REVOKE ALL ON FUNCTION extensions.pg_stat_statements_info(OUT dealloc bigint, OUT stats_reset timestamp with time zone) FROM postgres;
 GRANT ALL ON FUNCTION extensions.pg_stat_statements_info(OUT dealloc bigint, OUT stats_reset timestamp with time zone) TO postgres WITH GRANT OPTION;
 GRANT ALL ON FUNCTION extensions.pg_stat_statements_info(OUT dealloc bigint, OUT stats_reset timestamp with time zone) TO dashboard_user;
-
-
---
--- Name: FUNCTION pg_stat_statements_reset(userid oid, dbid oid, queryid bigint); Type: ACL; Schema: extensions; Owner: postgres
---
-
-REVOKE ALL ON FUNCTION extensions.pg_stat_statements_reset(userid oid, dbid oid, queryid bigint) FROM postgres;
-GRANT ALL ON FUNCTION extensions.pg_stat_statements_reset(userid oid, dbid oid, queryid bigint) TO postgres WITH GRANT OPTION;
-GRANT ALL ON FUNCTION extensions.pg_stat_statements_reset(userid oid, dbid oid, queryid bigint) TO dashboard_user;
 
 
 --
@@ -14897,42 +17104,6 @@ GRANT ALL ON FUNCTION extensions.set_graphql_placeholder() TO postgres WITH GRAN
 
 
 --
--- Name: FUNCTION sign(payload json, secret text, algorithm text); Type: ACL; Schema: extensions; Owner: postgres
---
-
-REVOKE ALL ON FUNCTION extensions.sign(payload json, secret text, algorithm text) FROM postgres;
-GRANT ALL ON FUNCTION extensions.sign(payload json, secret text, algorithm text) TO postgres WITH GRANT OPTION;
-GRANT ALL ON FUNCTION extensions.sign(payload json, secret text, algorithm text) TO dashboard_user;
-
-
---
--- Name: FUNCTION try_cast_double(inp text); Type: ACL; Schema: extensions; Owner: postgres
---
-
-REVOKE ALL ON FUNCTION extensions.try_cast_double(inp text) FROM postgres;
-GRANT ALL ON FUNCTION extensions.try_cast_double(inp text) TO postgres WITH GRANT OPTION;
-GRANT ALL ON FUNCTION extensions.try_cast_double(inp text) TO dashboard_user;
-
-
---
--- Name: FUNCTION url_decode(data text); Type: ACL; Schema: extensions; Owner: postgres
---
-
-REVOKE ALL ON FUNCTION extensions.url_decode(data text) FROM postgres;
-GRANT ALL ON FUNCTION extensions.url_decode(data text) TO postgres WITH GRANT OPTION;
-GRANT ALL ON FUNCTION extensions.url_decode(data text) TO dashboard_user;
-
-
---
--- Name: FUNCTION url_encode(data bytea); Type: ACL; Schema: extensions; Owner: postgres
---
-
-REVOKE ALL ON FUNCTION extensions.url_encode(data bytea) FROM postgres;
-GRANT ALL ON FUNCTION extensions.url_encode(data bytea) TO postgres WITH GRANT OPTION;
-GRANT ALL ON FUNCTION extensions.url_encode(data bytea) TO dashboard_user;
-
-
---
 -- Name: FUNCTION uuid_generate_v1(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -15023,15 +17194,6 @@ GRANT ALL ON FUNCTION extensions.uuid_ns_x500() TO dashboard_user;
 
 
 --
--- Name: FUNCTION verify(token text, secret text, algorithm text); Type: ACL; Schema: extensions; Owner: postgres
---
-
-REVOKE ALL ON FUNCTION extensions.verify(token text, secret text, algorithm text) FROM postgres;
-GRANT ALL ON FUNCTION extensions.verify(token text, secret text, algorithm text) TO postgres WITH GRANT OPTION;
-GRANT ALL ON FUNCTION extensions.verify(token text, secret text, algorithm text) TO dashboard_user;
-
-
---
 -- Name: FUNCTION graphql("operationName" text, query text, variables jsonb, extensions jsonb); Type: ACL; Schema: graphql_public; Owner: supabase_admin
 --
 
@@ -15047,7 +17209,6 @@ GRANT ALL ON FUNCTION graphql_public.graphql("operationName" text, query text, v
 
 REVOKE ALL ON FUNCTION pgbouncer.get_auth(p_usename text) FROM PUBLIC;
 GRANT ALL ON FUNCTION pgbouncer.get_auth(p_usename text) TO pgbouncer;
-GRANT ALL ON FUNCTION pgbouncer.get_auth(p_usename text) TO postgres;
 
 
 --
@@ -15096,6 +17257,15 @@ GRANT ALL ON FUNCTION public.clamp(value double precision, min_value double prec
 GRANT ALL ON PROCEDURE public.clean_data() TO anon;
 GRANT ALL ON PROCEDURE public.clean_data() TO authenticated;
 GRANT ALL ON PROCEDURE public.clean_data() TO service_role;
+
+
+--
+-- Name: PROCEDURE clean_multiverse_to_delete(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON PROCEDURE public.clean_multiverse_to_delete() TO anon;
+GRANT ALL ON PROCEDURE public.clean_multiverse_to_delete() TO authenticated;
+GRANT ALL ON PROCEDURE public.clean_multiverse_to_delete() TO service_role;
 
 
 --
@@ -15486,6 +17656,15 @@ GRANT ALL ON FUNCTION public.simulate_game_set_is_played(inp_id_game bigint) TO 
 
 
 --
+-- Name: FUNCTION simulate_game_speedy(inp_id_game bigint); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.simulate_game_speedy(inp_id_game bigint) TO anon;
+GRANT ALL ON FUNCTION public.simulate_game_speedy(inp_id_game bigint) TO authenticated;
+GRANT ALL ON FUNCTION public.simulate_game_speedy(inp_id_game bigint) TO service_role;
+
+
+--
 -- Name: FUNCTION simulate_week_games(multiverse record, inp_season_number bigint, inp_week_number bigint); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -15567,12 +17746,21 @@ GRANT ALL ON FUNCTION public.transfers_handle_new_embodied_player_offer(inp_id_p
 
 
 --
--- Name: FUNCTION transfers_handle_transfers(inp_multiverse record); Type: ACL; Schema: public; Owner: postgres
+-- Name: FUNCTION transfers_handle_transfers(inp_id_multiverse bigint[]); Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT ALL ON FUNCTION public.transfers_handle_transfers(inp_multiverse record) TO anon;
-GRANT ALL ON FUNCTION public.transfers_handle_transfers(inp_multiverse record) TO authenticated;
-GRANT ALL ON FUNCTION public.transfers_handle_transfers(inp_multiverse record) TO service_role;
+GRANT ALL ON FUNCTION public.transfers_handle_transfers(inp_id_multiverse bigint[]) TO anon;
+GRANT ALL ON FUNCTION public.transfers_handle_transfers(inp_id_multiverse bigint[]) TO authenticated;
+GRANT ALL ON FUNCTION public.transfers_handle_transfers(inp_id_multiverse bigint[]) TO service_role;
+
+
+--
+-- Name: FUNCTION trg_club_name_history(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION public.trg_club_name_history() TO anon;
+GRANT ALL ON FUNCTION public.trg_club_name_history() TO authenticated;
+GRANT ALL ON FUNCTION public.trg_club_name_history() TO service_role;
 
 
 --
@@ -15820,6 +18008,7 @@ GRANT ALL ON FUNCTION realtime.topic() TO postgres;
 --
 
 GRANT ALL ON FUNCTION vault._crypto_aead_det_decrypt(message bytea, additional bytea, key_id bigint, context bytea, nonce bytea) TO postgres WITH GRANT OPTION;
+GRANT ALL ON FUNCTION vault._crypto_aead_det_decrypt(message bytea, additional bytea, key_id bigint, context bytea, nonce bytea) TO service_role;
 
 
 --
@@ -15827,6 +18016,7 @@ GRANT ALL ON FUNCTION vault._crypto_aead_det_decrypt(message bytea, additional b
 --
 
 GRANT ALL ON FUNCTION vault.create_secret(new_secret text, new_name text, new_description text, new_key_id uuid) TO postgres WITH GRANT OPTION;
+GRANT ALL ON FUNCTION vault.create_secret(new_secret text, new_name text, new_description text, new_key_id uuid) TO service_role;
 
 
 --
@@ -15834,6 +18024,7 @@ GRANT ALL ON FUNCTION vault.create_secret(new_secret text, new_name text, new_de
 --
 
 GRANT ALL ON FUNCTION vault.update_secret(secret_id uuid, new_secret text, new_name text, new_description text, new_key_id uuid) TO postgres WITH GRANT OPTION;
+GRANT ALL ON FUNCTION vault.update_secret(secret_id uuid, new_secret text, new_name text, new_description text, new_key_id uuid) TO service_role;
 
 
 --
@@ -15900,6 +18091,38 @@ GRANT SELECT ON TABLE auth.mfa_factors TO postgres WITH GRANT OPTION;
 
 
 --
+-- Name: TABLE oauth_authorizations; Type: ACL; Schema: auth; Owner: supabase_auth_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth_authorizations TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth_authorizations TO dashboard_user;
+
+
+--
+-- Name: TABLE oauth_client_states; Type: ACL; Schema: auth; Owner: supabase_auth_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth_client_states TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth_client_states TO dashboard_user;
+
+
+--
+-- Name: TABLE oauth_clients; Type: ACL; Schema: auth; Owner: supabase_auth_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth_clients TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth_clients TO dashboard_user;
+
+
+--
+-- Name: TABLE oauth_consents; Type: ACL; Schema: auth; Owner: supabase_auth_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth_consents TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.oauth_consents TO dashboard_user;
+
+
+--
 -- Name: TABLE one_time_tokens; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -15941,15 +18164,6 @@ GRANT SELECT ON TABLE auth.saml_providers TO postgres WITH GRANT OPTION;
 GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.saml_relay_states TO dashboard_user;
 GRANT INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.saml_relay_states TO postgres;
 GRANT SELECT ON TABLE auth.saml_relay_states TO postgres WITH GRANT OPTION;
-
-
---
--- Name: TABLE schema_migrations; Type: ACL; Schema: auth; Owner: supabase_auth_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.schema_migrations TO dashboard_user;
-GRANT INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE auth.schema_migrations TO postgres;
-GRANT SELECT ON TABLE auth.schema_migrations TO postgres WITH GRANT OPTION;
 
 
 --
@@ -16003,19 +18217,11 @@ GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE cron.job_
 
 
 --
--- Name: TABLE pg_stat_statements; Type: ACL; Schema: extensions; Owner: postgres
---
-
-REVOKE SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE extensions.pg_stat_statements FROM postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE extensions.pg_stat_statements TO postgres WITH GRANT OPTION;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE extensions.pg_stat_statements TO dashboard_user;
-
-
---
 -- Name: TABLE pg_stat_statements_info; Type: ACL; Schema: extensions; Owner: postgres
 --
 
-REVOKE SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE extensions.pg_stat_statements_info FROM postgres;
+REVOKE ALL ON TABLE extensions.pg_stat_statements_info FROM postgres;
+GRANT MAINTAIN ON TABLE extensions.pg_stat_statements_info TO postgres;
 GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE extensions.pg_stat_statements_info TO postgres WITH GRANT OPTION;
 GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE extensions.pg_stat_statements_info TO dashboard_user;
 
@@ -16111,24 +18317,6 @@ GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.co
 GRANT ALL ON SEQUENCE public.countries_id_seq TO anon;
 GRANT ALL ON SEQUENCE public.countries_id_seq TO authenticated;
 GRANT ALL ON SEQUENCE public.countries_id_seq TO service_role;
-
-
---
--- Name: TABLE finances; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.finances TO anon;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.finances TO authenticated;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.finances TO service_role;
-
-
---
--- Name: SEQUENCE finances_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON SEQUENCE public.finances_id_seq TO anon;
-GRANT ALL ON SEQUENCE public.finances_id_seq TO authenticated;
-GRANT ALL ON SEQUENCE public.finances_id_seq TO service_role;
 
 
 --
@@ -16557,59 +18745,59 @@ GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.
 
 
 --
--- Name: TABLE messages_2025_06_16; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2026_01_07; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_16 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_16 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_06_17; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_17 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_17 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_07 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_07 TO dashboard_user;
 
 
 --
--- Name: TABLE messages_2025_06_18; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2026_01_08; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_18 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_18 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_06_19; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_19 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_19 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_08 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_08 TO dashboard_user;
 
 
 --
--- Name: TABLE messages_2025_06_20; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2026_01_09; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_20 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_20 TO dashboard_user;
-
-
---
--- Name: TABLE messages_2025_06_21; Type: ACL; Schema: realtime; Owner: supabase_admin
---
-
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_21 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_21 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_09 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_09 TO dashboard_user;
 
 
 --
--- Name: TABLE messages_2025_06_22; Type: ACL; Schema: realtime; Owner: supabase_admin
+-- Name: TABLE messages_2026_01_10; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_22 TO postgres;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2025_06_22 TO dashboard_user;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_10 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_10 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2026_01_11; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_11 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_11 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2026_01_12; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_12 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_12 TO dashboard_user;
+
+
+--
+-- Name: TABLE messages_2026_01_13; Type: ACL; Schema: realtime; Owner: supabase_admin
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_13 TO postgres;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE realtime.messages_2026_01_13 TO dashboard_user;
 
 
 --
@@ -16652,30 +18840,51 @@ GRANT ALL ON SEQUENCE realtime.subscription_id_seq TO postgres;
 -- Name: TABLE buckets; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.buckets TO anon;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.buckets TO authenticated;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.buckets TO service_role;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.buckets TO postgres;
+REVOKE ALL ON TABLE storage.buckets FROM supabase_storage_admin;
+GRANT ALL ON TABLE storage.buckets TO supabase_storage_admin WITH GRANT OPTION;
+GRANT ALL ON TABLE storage.buckets TO anon;
+GRANT ALL ON TABLE storage.buckets TO authenticated;
+GRANT ALL ON TABLE storage.buckets TO service_role;
+GRANT ALL ON TABLE storage.buckets TO postgres WITH GRANT OPTION;
 
 
 --
--- Name: TABLE migrations; Type: ACL; Schema: storage; Owner: supabase_storage_admin
+-- Name: TABLE buckets_analytics; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.migrations TO anon;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.migrations TO authenticated;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.migrations TO service_role;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.migrations TO postgres;
+GRANT ALL ON TABLE storage.buckets_analytics TO service_role;
+GRANT ALL ON TABLE storage.buckets_analytics TO authenticated;
+GRANT ALL ON TABLE storage.buckets_analytics TO anon;
+
+
+--
+-- Name: TABLE buckets_vectors; Type: ACL; Schema: storage; Owner: supabase_storage_admin
+--
+
+GRANT SELECT ON TABLE storage.buckets_vectors TO service_role;
+GRANT SELECT ON TABLE storage.buckets_vectors TO authenticated;
+GRANT SELECT ON TABLE storage.buckets_vectors TO anon;
 
 
 --
 -- Name: TABLE objects; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.objects TO anon;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.objects TO authenticated;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.objects TO service_role;
-GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE storage.objects TO postgres;
+REVOKE ALL ON TABLE storage.objects FROM supabase_storage_admin;
+GRANT ALL ON TABLE storage.objects TO supabase_storage_admin WITH GRANT OPTION;
+GRANT ALL ON TABLE storage.objects TO anon;
+GRANT ALL ON TABLE storage.objects TO authenticated;
+GRANT ALL ON TABLE storage.objects TO service_role;
+GRANT ALL ON TABLE storage.objects TO postgres WITH GRANT OPTION;
+
+
+--
+-- Name: TABLE prefixes; Type: ACL; Schema: storage; Owner: supabase_storage_admin
+--
+
+GRANT ALL ON TABLE storage.prefixes TO service_role;
+GRANT ALL ON TABLE storage.prefixes TO authenticated;
+GRANT ALL ON TABLE storage.prefixes TO anon;
 
 
 --
@@ -16697,17 +18906,28 @@ GRANT SELECT ON TABLE storage.s3_multipart_uploads_parts TO anon;
 
 
 --
+-- Name: TABLE vector_indexes; Type: ACL; Schema: storage; Owner: supabase_storage_admin
+--
+
+GRANT SELECT ON TABLE storage.vector_indexes TO service_role;
+GRANT SELECT ON TABLE storage.vector_indexes TO authenticated;
+GRANT SELECT ON TABLE storage.vector_indexes TO anon;
+
+
+--
 -- Name: TABLE secrets; Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
-GRANT SELECT,DELETE ON TABLE vault.secrets TO postgres WITH GRANT OPTION;
+GRANT SELECT,REFERENCES,DELETE,TRUNCATE ON TABLE vault.secrets TO postgres WITH GRANT OPTION;
+GRANT SELECT,DELETE ON TABLE vault.secrets TO service_role;
 
 
 --
 -- Name: TABLE decrypted_secrets; Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
-GRANT SELECT,DELETE ON TABLE vault.decrypted_secrets TO postgres WITH GRANT OPTION;
+GRANT SELECT,REFERENCES,DELETE,TRUNCATE ON TABLE vault.decrypted_secrets TO postgres WITH GRANT OPTION;
+GRANT SELECT,DELETE ON TABLE vault.decrypted_secrets TO service_role;
 
 
 --
@@ -16800,10 +19020,10 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT ALL ON 
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: graphql; Owner: supabase_admin
 --
 
-ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO postgres;
-ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO anon;
-ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO authenticated;
-ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT ALL ON TABLES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT ALL ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT ALL ON TABLES TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT ALL ON TABLES TO service_role;
 
 
 --
@@ -17052,4 +19272,6 @@ ALTER EVENT TRIGGER pgrst_drop_watch OWNER TO supabase_admin;
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict fY6T5xXYmZuy43MhlCgp20Mwd8FDtnebL8Nn0JgdXyTNzmyEW82wCCRR5nahvC6
 
