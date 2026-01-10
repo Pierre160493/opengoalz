@@ -354,7 +354,7 @@ RAISE NOTICE '### Player is clubless and has no bids, already handled in bulk up
             string_parser(inp_entity_type := 'idClub', inp_id := id_club) AS magic_string_club
         FROM players
         WHERE date_end_contract < NOW()
-            AND id_game_currently_playing = NULL
+            AND id_game_currently_playing IS NULL
             AND (
                 inp_id_multiverse IS NULL
                 OR id_multiverse = ANY(inp_id_multiverse)
@@ -362,18 +362,17 @@ RAISE NOTICE '### Player is clubless and has no bids, already handled in bulk up
     ) LOOP
 
         ---- Insert a message to say that the embodied player has left the club
-        INSERT INTO mails (
-            id_club_to, created_at, sender_role, is_transfer_info, title, message)
+        INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
         VALUES
-            (rec_player.id_club, rec_player.date_end_contract, 'Coach', TRUE,
+            (rec_player.id_club, 'Coach', TRUE,
             rec_player.magic_string_player || ' contract ended',
-            rec_player.magic_string_player || ' contract ended, he left the club, lets hope he will find what he is looking for');
+            rec_player.magic_string_player || ' contract ended, he left the club, let''s hope he will find what he is looking for');
 
         ---- Send mail to the clubs following and poaching the player
         INSERT INTO mails (id_club_to, sender_role, is_transfer_info, title, message)
         SELECT DISTINCT id_club, 'Scouts', TRUE,
             rec_player.magic_string_player || ' (followed) contract ended',
-            rec_player.magic_string_player || ' (followed) contract ended and he is now clubless, its probably a good time to make a move !'
+            rec_player.magic_string_player || ' (followed) contract ended and he is now clubless, it''s probably a good time to make a move !'
         FROM (
             SELECT id_club FROM players_favorite WHERE id_player = rec_player.id
             UNION
