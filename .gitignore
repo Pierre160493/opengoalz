@@ -56,3 +56,6 @@ windows/flutter/generated_plugins.cmake
 
 # FVM Version Cache
 .fvm/
+
+# Ignore temporary SQL files
+sql/tmp.sql
