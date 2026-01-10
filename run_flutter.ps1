@@ -5,6 +5,12 @@ param(
     [string]$Device = "windows"
 )
 
+# Map short input to full device name
+switch ($Device.ToLower()) {
+    'w' { $Device = 'windows' }
+    'c' { $Device = 'chrome' }
+}
+
 
 # Path to your .env file
 $envFile = ".env"
