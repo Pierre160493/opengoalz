@@ -168,7 +168,8 @@ class _PlayerTransferBidDialogBoxState
             return AlertDialog(
               title: Row(
                 children: [
-                  Text('Transfer Bid for '),
+                  Text('Transfer Bid for ',
+                      style: TextStyle(fontSize: fontSizeLarge)),
                   PlayerNameTooltip(player: player),
                 ],
               ),
@@ -204,10 +205,13 @@ class _PlayerTransferBidDialogBoxState
                         title: TextFormField(
                           controller: _bidController,
                           keyboardType: TextInputType.number,
+                          style: TextStyle(fontSize: fontSizeMedium),
                           decoration: InputDecoration(
                             labelText: 'Enter your bid amount',
+                            labelStyle: TextStyle(fontSize: fontSizeSmall),
                             border: OutlineInputBorder(),
                             errorText: _bidErrorMessage,
+                            errorStyle: TextStyle(fontSize: fontSizeSmall),
                           ),
                         ),
                         subtitle: Tooltip(
@@ -232,6 +236,7 @@ class _PlayerTransferBidDialogBoxState
                                     Text(
                                       'Minimum bid: ',
                                       style: styleItalicBlueGrey.copyWith(
+                                        fontSize: fontSizeSmall,
                                         decoration: TextDecoration.underline,
                                         color: Colors.blue,
                                       ),
@@ -241,6 +246,7 @@ class _PlayerTransferBidDialogBoxState
                                           .format(_bidMinimum)
                                           .replaceAll(',', ' '),
                                       style: styleItalicBlueGrey.copyWith(
+                                        fontSize: fontSizeSmall,
                                         color: Colors.blue,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -300,14 +306,18 @@ class _PlayerTransferBidDialogBoxState
                           children: [
                             Icon(Icons.gavel, color: Colors.green),
                             formSpacer3,
-                            Text('Bid '),
+                            Text('Bid ',
+                                style: TextStyle(fontSize: fontSizeMedium)),
                             Text(
                               NumberFormat('#,###')
                                   .format(_bidAmount)
                                   .replaceAll(',', ' '),
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: fontSizeMedium),
                             ),
-                            Text(' on '),
+                            Text(' on ',
+                                style: TextStyle(fontSize: fontSizeMedium)),
                             PlayerNameTooltip(player: player)
                           ],
                         ),

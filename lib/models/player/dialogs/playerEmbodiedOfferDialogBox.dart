@@ -121,6 +121,7 @@ class _PlayerEmbodiedOfferDialogBoxState
           child: Text(
             label,
             style: TextStyle(
+              fontSize: fontSizeMedium,
               color: color,
               fontWeight: FontWeight.bold,
             ),
@@ -144,7 +145,7 @@ class _PlayerEmbodiedOfferDialogBoxState
         }
 
         final Player player = snapshot.data!;
-        _offerMin = (player.expensesTarget * 0.5).toInt();
+        _offerMin = (player.expensesTarget * 0.5).ceil();
         _offerMax = _offerMin * 3;
 
         /// Check if the player is in the multiverse of the selected club
@@ -225,10 +226,11 @@ class _PlayerEmbodiedOfferDialogBoxState
                   borderRadius: BorderRadius.circular(12.0),
                   side: BorderSide(color: offerColor, width: 2.0),
                 ),
-                // leading: Icon(
-                //   Icons.attach_money,
-                //   color: offerColor,
-                // ),
+                leading: Icon(
+                  Icons.attach_money,
+                  size: iconSizeLarge,
+                  color: offerColor,
+                ),
                 title: TextFormField(
                   controller: _bidController,
                   keyboardType: TextInputType.number,
@@ -257,6 +259,7 @@ class _PlayerEmbodiedOfferDialogBoxState
                       ),
                     ),
                     errorText: _bidErrorMessage,
+                    errorStyle: TextStyle(fontSize: fontSizeSmall),
                   ),
                 ),
                 subtitle: Column(
@@ -281,24 +284,32 @@ class _PlayerEmbodiedOfferDialogBoxState
                           ),
                         ),
                         Expanded(
-                          child: Slider(
-                            value: (_offerAmount ?? _offerMin).toDouble().clamp(
-                                _offerMin.toDouble(), _offerMax.toDouble()),
-                            min: _offerMin.toDouble(),
-                            max: _offerMax.toDouble(),
-                            divisions: (_offerMax - _offerMin) > 0
-                                ? (_offerMax - _offerMin)
-                                : null,
-                            label: NumberFormat('#,###')
-                                .format(_offerAmount ?? _offerMin),
-                            onChanged: (double value) {
-                              setState(() {
-                                int newValue = value.round();
-                                _bidController.text = newValue.toString();
-                                _offerAmount = newValue;
-                                _bidErrorMessage = _validateBid();
-                              });
-                            },
+                          child: SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              valueIndicatorTextStyle:
+                                  TextStyle(fontSize: fontSizeSmall),
+                            ),
+                            child: Slider(
+                              value: (_offerAmount ?? _offerMin)
+                                  .toDouble()
+                                  .clamp(_offerMin.toDouble(),
+                                      _offerMax.toDouble()),
+                              min: _offerMin.toDouble(),
+                              max: _offerMax.toDouble(),
+                              divisions: (_offerMax - _offerMin) > 0
+                                  ? (_offerMax - _offerMin)
+                                  : null,
+                              label: NumberFormat('#,###')
+                                  .format(_offerAmount ?? _offerMin),
+                              onChanged: (double value) {
+                                setState(() {
+                                  int newValue = value.round();
+                                  _bidController.text = newValue.toString();
+                                  _offerAmount = newValue;
+                                  _bidErrorMessage = _validateBid();
+                                });
+                              },
+                            ),
                           ),
                         ),
                         GestureDetector(
@@ -364,22 +375,21 @@ class _PlayerEmbodiedOfferDialogBoxState
                       ),
                       color: isSelected ? Colors.green : Colors.grey[200],
                       style: ButtonStyle(
-
-                          /// Had to rollback hover color to solid due to flutter issue with version
-                          // backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                          //   (states) =>
-                          //       isSelected ? Colors.green : Colors.grey[200]!,
-                          // ),
-                          // shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                          //   RoundedRectangleBorder(
-                          //     borderRadius: BorderRadius.circular(8),
-                          //     side: BorderSide(
-                          //       color: isSelected ? Colors.green : Colors.grey,
-                          //       width: 2,
-                          //     ),
-                          //   ),
-                          // ),
+                        /// Had to rollback hover color to solid due to flutter issue with version
+                        backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                          (states) =>
+                              isSelected ? Colors.green : Colors.grey[200]!,
+                        ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: isSelected ? Colors.green : Colors.grey,
+                              width: 2,
+                            ),
                           ),
+                        ),
+                      ),
                     );
                   }),
                 ),
