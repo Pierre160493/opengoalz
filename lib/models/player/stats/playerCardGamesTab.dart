@@ -166,6 +166,7 @@ class _PlayerGamesTabState extends State<PlayerGamesTab> {
               : null;
           return Column(
             children: [
+              /// Season Selector and Summary
               ListTile(
                 leading: Icon(Icons.calendar_today,
                     color: Colors.green, size: iconSizeMedium),

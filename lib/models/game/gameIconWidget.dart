@@ -29,6 +29,8 @@ Widget getGameIcon(BuildContext context, Game game) {
             getPositionText(
                 game.playerGameBestStats!.gamePlayerStatsBest!.position),
             style: TextStyle(
+              fontSize: fontSizeMedium,
+              fontWeight: FontWeight.bold,
               color: Colors.blueGrey,
             ),
           ),

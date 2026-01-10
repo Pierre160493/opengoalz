@@ -48,12 +48,11 @@ Widget buildStarIcon(int stars, double iconSize) {
         size: iconSize,
         color: Colors.yellow,
       ),
-      Positioned(
-        top: 10,
+      Center(
         child: Text(
           stars.toString(),
           style: TextStyle(
-            fontSize: iconSize / 3,
+            fontSize: iconSize * 0.4,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
