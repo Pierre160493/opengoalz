@@ -5,10 +5,24 @@ param(
     [string]$Device = "windows"
 )
 
-# Map short input to full device name
+
+# Map short input to full device name or detect Android device
 switch ($Device.ToLower()) {
     'w' { $Device = 'windows' }
     'c' { $Device = 'chrome' }
+    'p' { $Device = 'android' }
+    'phone' { $Device = 'android' }
+}
+
+# If device is 'android', try to detect the first connected Android device
+if ($Device -eq 'android') {
+    $adbOutput = & adb devices | Select-Object -Skip 1 | Where-Object { $_ -match 'device$' -and $_ -notmatch 'List of devices' }
+    if ($adbOutput) {
+        $firstDevice = ($adbOutput -split '\s+')[0]
+        if ($firstDevice) {
+            $Device = $firstDevice
+        }
+    }
 }
 
 
