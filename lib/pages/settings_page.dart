@@ -9,6 +9,7 @@ import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'dart:convert';
 
 class SettingsPage extends StatelessWidget {
   SettingsPage();
@@ -19,8 +20,10 @@ class SettingsPage extends StatelessWidget {
 
   Future<String> _readVersion() async {
     try {
-      final file = File('version.txt');
-      return await file.readAsString();
+      final file = File('assets/app_version.json');
+      final contents = await file.readAsString();
+      final jsonData = jsonDecode(contents);
+      return jsonData['latest_version'] ?? 'Unknown';
     } catch (e) {
       return 'Unknown';
     }

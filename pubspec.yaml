@@ -88,6 +88,6 @@ flutter:
 
   assets:
     - assets/icon/opengoalz.png
-    - version.txt
+    - assets/app_version.json
     - assets/images/Football_field.svg
     - assets/images/Football_field_half++.svg
