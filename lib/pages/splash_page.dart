@@ -6,15 +6,9 @@ import 'package:opengoalz/pages/login_page.dart';
 import 'package:opengoalz/pages/offline_page.dart'; // Import the offline page
 import 'package:opengoalz/provider_version.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../constants.dart';
 import 'dart:convert';
-
-// Helper class for user session result
-class UserSessionResult {
-  final bool sessionExists;
-  final bool userFetched;
-  UserSessionResult({required this.sessionExists, required this.userFetched});
-}
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
@@ -26,6 +20,7 @@ class SplashPage extends StatefulWidget {
 class SplashPageState extends State<SplashPage> {
   bool _showOfflineButton = false;
   bool _isConnected = false;
+  bool _isUpdateRequired = false;
 
   @override
   void initState() {
@@ -37,7 +32,7 @@ class SplashPageState extends State<SplashPage> {
   void _runFullyParallelStartupTasksWithGate() async {
     // Start both tasks in parallel
     Future<bool> versionCheckFuture = _checkVersion();
-    Future<UserSessionResult> userSessionFuture = _fetchUserSession();
+    Future<bool?> userSessionFuture = _fetchUserSession();
 
     // Wait for version check to finish first
     final updateRequired = await versionCheckFuture;
@@ -45,13 +40,17 @@ class SplashPageState extends State<SplashPage> {
     if (updateRequired) {
       print(
           '[SplashPage] Version check finished. Update required: $updateRequired');
-      await _showUpdateDialogIfNeeded();
+      setState(() {
+        _isUpdateRequired = true;
+        _showOfflineButton = false;
+      });
+      await _showUpdateDialog();
       // Do not wait for user session
       return;
     }
     // If no update required, wait for user session and route
-    final userSessionResult = await userSessionFuture;
-    _routeBasedOnUserSession(userSessionResult);
+    final userFetched = await userSessionFuture;
+    _routeBasedOnUserSession(userFetched);
   }
 
   Future<bool> _checkVersion() async {
@@ -83,7 +82,7 @@ class SplashPageState extends State<SplashPage> {
     return needsUpdate;
   }
 
-  Future<void> _showUpdateDialogIfNeeded() async {
+  Future<void> _showUpdateDialog() async {
     final versionProvider =
         Provider.of<VersionProvider>(context, listen: false);
     if (versionProvider.needsUpdate && mounted) {
@@ -99,9 +98,16 @@ class SplashPageState extends State<SplashPage> {
               style: TextStyle(fontSize: fontSizeMedium)),
           actions: [
             TextButton(
-              onPressed: () {
-                // Optionally open update URL
-                // launch(versionProvider.updateUrl ?? '');
+              onPressed: () async {
+                final url = versionProvider.updateUrl ?? githubReleasesUrl;
+                final uri = Uri.parse(url);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } else {
+                  if (mounted) {
+                    context.showSnackBarError('Could not launch update URL');
+                  }
+                }
               },
               child: Text('Update', style: TextStyle(fontSize: fontSizeMedium)),
             ),
@@ -113,7 +119,7 @@ class SplashPageState extends State<SplashPage> {
     }
   }
 
-  Future<UserSessionResult> _fetchUserSession() async {
+  Future<bool?> _fetchUserSession() async {
     final stopwatch = Stopwatch()..start();
     print('[SplashPage: Fetch User] Checking user session for redirection...');
     await Future.delayed(Duration.zero); // Await for the widget to mount
@@ -122,7 +128,7 @@ class SplashPageState extends State<SplashPage> {
       stopwatch.stop();
       print(
           '[SplashPage: Fetch User] Finished in ${stopwatch.elapsedMilliseconds}ms');
-      return UserSessionResult(sessionExists: false, userFetched: false);
+      return null;
     } else {
       print(
           '[SplashPage: Fetch User] Active session found. Fetching user data...');
@@ -136,25 +142,25 @@ class SplashPageState extends State<SplashPage> {
         stopwatch.stop();
         print(
             '[SplashPage: Fetch User] Finished in ${stopwatch.elapsedMilliseconds}ms');
-        return UserSessionResult(sessionExists: true, userFetched: true);
+        return true;
       } catch (error) {
         print('[SplashPage: Fetch User] Error fetching user data: ');
         print('# ${error.toString()}');
         stopwatch.stop();
         print(
             '[SplashPage: Fetch User] Finished (with error) in ${stopwatch.elapsedMilliseconds}ms');
-        return UserSessionResult(sessionExists: true, userFetched: false);
+        return false;
       }
     }
   }
 
-  void _routeBasedOnUserSession(UserSessionResult result) {
-    if (!result.sessionExists) {
+  void _routeBasedOnUserSession(bool? userFetched) {
+    if (userFetched == null) {
       print(
           '[SplashPage: Fetch User] No active session found. Redirecting to LoginPage.');
       Navigator.of(context)
           .pushAndRemoveUntil(LoginPage.route(), (route) => false);
-    } else if (result.userFetched) {
+    } else if (userFetched) {
       print(
           '[SplashPage] User session fetched successfully. Redirecting to UserPage.');
       Navigator.of(context)
@@ -189,7 +195,7 @@ class SplashPageState extends State<SplashPage> {
 
   void _startTimeout() {
     Future.delayed(Duration(seconds: 10), () {
-      if (mounted) {
+      if (mounted && !_isUpdateRequired) {
         setState(() {
           _showOfflineButton = true;
         });

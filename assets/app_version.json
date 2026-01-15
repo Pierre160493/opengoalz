@@ -1,5 +1,5 @@
 {
-  "latest_version": "0.0.2",
+  "latest_version": "0.0.3",
   "min_supported_version": "0.0.3",
-  "update_url": "https://your-update-link.com"
+  "update_url": "https://github.com/Pierre160493/opengoalz/releases"
 }

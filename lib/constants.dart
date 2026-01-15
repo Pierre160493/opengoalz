@@ -10,6 +10,9 @@ final supabase = Supabase.instance.client;
 /// App Name
 const appName = 'OpenGoalZ';
 
+/// Github Releases URL
+const githubReleasesUrl = 'https://github.com/Pierre160493/opengoalz/releases';
+
 /// Simple preloader inside a Center widget
 const preloader = Center(child: CircularProgressIndicator(color: Colors.green));
 
