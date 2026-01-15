@@ -19,11 +19,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Verify tag version
+      - name: Verify app_version.json version
         run: |
-          VERSION=$(cat version.txt)
-          if [ "v$VERSION" != "${{ github.ref_name }}" ]; then
-            echo "Tag version (${{ github.ref_name }}) does not match version in version.txt (v$VERSION)"
+          VERSION_JSON=$(jq -r '.latest_version' assets/app_version.json)
+          if [ "$VERSION_JSON" != "${{ github.ref_name }}" ]; then
+            echo "Tag version (${{ github.ref_name }}) does not match assets/app_version.json latest_version ($VERSION_JSON)"
             exit 1
           fi
 
