@@ -5,7 +5,6 @@ import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:opengoalz/widgets/splash_version_check.dart';
 import 'package:opengoalz/provider_version.dart';
 import 'package:opengoalz/pages/splash_page.dart';
 import 'package:opengoalz/config/supabase_config.dart';
@@ -27,7 +26,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => UserSessionProvider()),
         ChangeNotifierProvider(create: (_) => VersionProvider()),
       ],
-      child: SplashVersionCheck(child: MyApp()),
+      child: MyApp(),
     ),
   );
 }
