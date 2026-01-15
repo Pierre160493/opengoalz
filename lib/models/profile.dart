@@ -112,10 +112,14 @@ class Profile {
         child: getUserName(context));
   }
 
-  Widget returnToConnectedUserIconButton(BuildContext context) {
+  Widget returnToConnectedUserIconButton(BuildContext context,
+      {EdgeInsets? actionPadding, BoxConstraints? actionConstraints}) {
     return Tooltip(
       message: 'Return to your profile',
       child: IconButton(
+        padding: actionPadding,
+        constraints: actionConstraints,
+        visualDensity: VisualDensity.compact,
         onPressed: () async {
           bool switchConfirmed = await showDialog(
             context: context,

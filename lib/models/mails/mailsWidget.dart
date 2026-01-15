@@ -27,7 +27,7 @@ Widget mailToolTip(BuildContext context, Profile user) {
         alignment: Alignment.center,
         children: [
           Icon(iconMails,
-              size: iconSizeMedium,
+              size: iconSizeLarge,
               color: numberMailsUnRead == 0 ? Colors.green : Colors.orange),
           Positioned(
             top: -8, // Adjust the position as needed

@@ -129,7 +129,8 @@ class _UserPageState extends State<UserPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('User not found, please try again', style: TextStyle(fontSize: fontSizeMedium)),
+            Text('User not found, please try again',
+                style: TextStyle(fontSize: fontSizeMedium)),
             formSpacer12,
             ElevatedButton(
               onPressed: () async {
@@ -139,7 +140,8 @@ class _UserPageState extends State<UserPage> {
                   (route) => false,
                 );
               },
-              child: Text('Reset App', style: TextStyle(fontSize: fontSizeMedium)),
+              child:
+                  Text('Reset App', style: TextStyle(fontSize: fontSizeMedium)),
             ),
           ],
         ),
@@ -161,6 +163,12 @@ class _UserPageState extends State<UserPage> {
     final int clubCount = user.clubs.length;
     final int playerCount = user.playersIncarnated.length;
 
+    /// Define it here for dynamic squashing based on screen width
+    final bool useCompactLayout = MediaQuery.of(context).size.width < 500;
+    final EdgeInsets? actionPadding = useCompactLayout ? EdgeInsets.zero : null;
+    final BoxConstraints? actionConstraints =
+        useCompactLayout ? const BoxConstraints() : null;
+
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
@@ -171,6 +179,9 @@ class _UserPageState extends State<UserPage> {
           /// Account deletion notice
           if (user.dateDelete != null)
             IconButton(
+              padding: actionPadding,
+              constraints: actionConstraints,
+              visualDensity: VisualDensity.compact,
               tooltip: 'Account scheduled for deletion',
               icon: Icon(Icons.warning, size: iconSizeLarge, color: Colors.red),
               onPressed: () {
@@ -178,8 +189,29 @@ class _UserPageState extends State<UserPage> {
               },
             ),
 
+          /// Mails or Send Mail button
+          user.isConnectedUser
+              ? mailToolTip(context, user)
+              : Tooltip(
+                  message: 'Send Mail',
+                  child: IconButton(
+                    padding: actionPadding,
+                    constraints: actionConstraints,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () async {
+                      sendMailDialog(context,
+                          idClub: user.selectedClub!.id,
+                          username: user.username);
+                    },
+                    icon: Icon(Icons.quick_contacts_mail, size: iconSizeLarge),
+                  ),
+                ),
+
           /// Settings button
           IconButton(
+            padding: actionPadding,
+            constraints: actionConstraints,
+            visualDensity: VisualDensity.compact,
             tooltip: 'Open Settings Page',
             onPressed: () {
               Navigator.of(context).push(SettingsPage.route());
@@ -190,6 +222,9 @@ class _UserPageState extends State<UserPage> {
 
           /// Reload page button
           IconButton(
+            padding: actionPadding,
+            constraints: actionConstraints,
+            visualDensity: VisualDensity.compact,
             tooltip: 'Reload User Page',
             onPressed: () async {
               // Refetch the user
@@ -204,23 +239,15 @@ class _UserPageState extends State<UserPage> {
             },
             icon: Icon(Icons.refresh, size: iconSizeLarge, color: Colors.green),
           ),
-          user.isConnectedUser
-              ? mailToolTip(context, user)
-              : Tooltip(
-                  message: 'Send Mail',
-                  child: IconButton(
-                    onPressed: () async {
-                      sendMailDialog(context,
-                          idClub: user.selectedClub!.id,
-                          username: user.username);
-                    },
-                    icon: Icon(Icons.quick_contacts_mail, size: iconSizeLarge),
-                  ),
-                ),
+
+          /// Logout or Return to connected user button
           user.isConnectedUser
               ? Tooltip(
                   message: 'Logout',
                   child: IconButton(
+                    padding: actionPadding,
+                    constraints: actionConstraints,
+                    visualDensity: VisualDensity.compact,
                     onPressed: () async {
                       bool logoutConfirmed =
                           await context.showConfirmationDialog(
@@ -237,7 +264,9 @@ class _UserPageState extends State<UserPage> {
                 )
               : Provider.of<UserSessionProvider>(context, listen: false)
                   .user
-                  .returnToConnectedUserIconButton(context),
+                  .returnToConnectedUserIconButton(context,
+                      actionPadding: actionPadding,
+                      actionConstraints: actionConstraints),
         ],
       ),
       drawer: const AppDrawer(),
@@ -293,10 +322,12 @@ class _UserPageState extends State<UserPage> {
       builder: (BuildContext context) {
         return persoAlertDialogWithConstrainedContent(
           title: ListTile(
-            leading: Icon(Icons.warning, color: Colors.red, size: iconSizeLarge),
+            leading:
+                Icon(Icons.warning, color: Colors.red, size: iconSizeLarge),
             title: Text(
               'Account scheduled for deletion on ${formatDate(user.dateDelete!)}.',
-              style: TextStyle(fontSize: fontSizeMedium, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: fontSizeMedium, fontWeight: FontWeight.bold),
             ),
             subtitle: tickingTimeWidget(user.dateDelete!),
             shape: shapePersoRoundedBorder(),
@@ -311,18 +342,18 @@ class _UserPageState extends State<UserPage> {
                   TextButton(
                     onPressed: () async {
                       bool cancelConfirmed = await context.showConfirmationDialog(
-                        'Are you sure you want to cancel the account deletion?');
+                          'Are you sure you want to cancel the account deletion?');
                       if (cancelConfirmed == true) {
                         /// Cancel deletion by setting date_delete to null
                         await operationInDB(context, 'UPDATE', 'profiles',
-                          data: {
-                            'date_delete': null, // Cancel the deletion
-                          },
-                          matchCriteria: {
-                            'uuid_user': supabase.auth.currentUser!.id
-                          },
-                          messageSuccess:
-                            'Account deletion cancelled successfully. Glad to have you back!');
+                            data: {
+                              'date_delete': null, // Cancel the deletion
+                            },
+                            matchCriteria: {
+                              'uuid_user': supabase.auth.currentUser!.id
+                            },
+                            messageSuccess:
+                                'Account deletion cancelled successfully. Glad to have you back!');
 
                         await supabase.auth.signOut(); // Sign out the user
                         Navigator.of(context).pushAndRemoveUntil(
@@ -345,7 +376,8 @@ class _UserPageState extends State<UserPage> {
                   },
                   child: Row(
                     children: [
-                      Icon(iconSuccessfulOperation, size: iconSizeMedium, color: Colors.green),
+                      Icon(iconSuccessfulOperation,
+                          size: iconSizeMedium, color: Colors.green),
                       formSpacer3,
                       Text('Ok', style: TextStyle(fontSize: fontSizeMedium)),
                     ],
