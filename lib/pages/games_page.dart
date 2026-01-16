@@ -16,6 +16,7 @@ import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 
 import '../constants.dart';
+import '../models/club/class/club_widgets.dart';
 
 class GamesPage extends StatefulWidget {
   final int idClub;
@@ -245,7 +246,7 @@ class _HomePageState extends State<GamesPage> {
                   children: [
                     Row(
                       children: [
-                        club.getClubNameClickable(context),
+                        getClubNameClickable(context,club),
                         Text(' Games for season $_seasonNumberDisplayed',
                             style: TextStyle(fontSize: fontSizeLarge)),
                       ],

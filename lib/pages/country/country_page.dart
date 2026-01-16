@@ -21,6 +21,8 @@ import 'package:rxdart/rxdart.dart';
 import 'dart:async';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 
+import '../../models/club/class/club_widgets.dart';
+
 class CountryPage extends StatefulWidget {
   final int idCountry;
   final int? idMultiverse; // Add this parameter
@@ -284,8 +286,8 @@ class _CountryPageState extends State<CountryPage>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                club.getClubNameClickable(context),
-                club.getLastResultsWidget(context),
+                getClubNameClickable(context,club),
+                getLastResultsWidget(context,club),
               ],
             ),
           ),
@@ -298,7 +300,7 @@ class _CountryPageState extends State<CountryPage>
                 _selectedMultiverse == null
                     ? getMultiverseIconFromId_Clickable(
                         context, club.idMultiverse)
-                    : club.getClubRankingRow(context),
+                    : getClubRankingRow(context,club),
               ],
             ),
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/class/club_widgets.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/widgets/continent_display_widget.dart';
@@ -154,15 +155,15 @@ class CurrentRankingTab extends StatelessWidget {
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    club.getClubNameClickable(context),
-                    club.getLastResultsWidget(context),
+                    getClubNameClickable(context, club),
+                    getLastResultsWidget(context, club),
                   ],
                 ),
                 subtitle: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    club.getClubResultsVDLRow(),
-                    club.getClubGoalsForAndAgainstRow()
+                    getClubResultsVDLRow(club),
+                    getClubGoalsForAndAgainstRow(club)
                   ],
                 ),
                 onTap: () async {

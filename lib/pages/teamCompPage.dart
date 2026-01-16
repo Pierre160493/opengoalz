@@ -12,6 +12,8 @@ import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../models/club/class/club_widgets.dart';
+
 class TeamCompPage extends StatefulWidget {
   final int? idClub;
   final int? seasonNumber;
@@ -185,7 +187,7 @@ class _TeamCompPageState extends State<TeamCompPage> {
               appBar: AppBar(
                 title: Row(
                   children: [
-                    club.getClubNameClickable(context),
+                    getClubNameClickable(context,club),
                     Text(
                         ' TeamComp (Week ${club.selectedTeamComp!.weekNumber} of Season ${club.selectedTeamComp!.seasonNumber})',
                         style: TextStyle(fontSize: fontSizeLarge)),

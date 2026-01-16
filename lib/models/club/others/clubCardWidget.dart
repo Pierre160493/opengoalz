@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/class/club_widgets.dart';
 import 'package:opengoalz/models/multiverse/multiverseWidgets.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/postgresql_requests.dart';
@@ -43,16 +44,16 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
             isSelectedCLub ? colorIsSelected : Colors.blueGrey,
           ),
           title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              club.getClubNameClickable(context),
-              club.getLastResultsWidget(context),
+              Expanded(child: getClubNameClickable(context, club)),
+              const SizedBox(width: 8),
+              getLastResultsWidget(context, club),
             ],
           ),
           subtitle: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              club.getClubRankingRow(context),
+              Expanded(child: getClubRankingRow(context, club)),
+              const SizedBox(width: 8),
               getMultiverseIconFromId_Clickable(context, club.idMultiverse),
             ],
           ),
@@ -113,7 +114,7 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
           Column(
             children: [
               const SizedBox(height: 6),
-              club.getQuickAccessWidget(context, user),
+              getQuickAccessWidget(context, club, user),
               const SizedBox(height: 6),
             ],
           ),

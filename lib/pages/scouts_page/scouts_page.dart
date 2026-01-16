@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
-import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:opengoalz/models/player/widgets/cards/player_card.dart';
 import 'package:opengoalz/models/playerPoaching/playersPoachingTab.dart';
@@ -13,6 +12,8 @@ import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:opengoalz/pages/scouts_page/scoutsTab.dart';
 import 'package:provider/provider.dart';
+
+import '../../models/club/class/club_widgets.dart';
 
 enum ScoutsPageTab { scoutingNetwork, followedPlayers, poachedPlayers }
 
@@ -87,7 +88,7 @@ class _ScoutsPageState extends State<ScoutsPage> {
                       DefaultTextStyle.merge(
                         style: TextStyle(fontSize: fontSizeLarge),
                         child:
-                            _user.selectedClub!.getClubNameClickable(context),
+                            getClubNameClickable(context,_user.selectedClub!),
                       ),
                     ],
                   ),

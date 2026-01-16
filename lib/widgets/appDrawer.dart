@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/class/club_widgets.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
@@ -73,8 +74,8 @@ class _AppDrawerState extends State<AppDrawer> {
           CustomListTile(
             leadingIcon: iconClub,
             leadingIconSize: iconSizeLarge,
-            title: selectedClub.getClubNameClickable(context),
-            subtitle: selectedClub.getClubRankingRow(context),
+            title: getClubNameClickable(context, selectedClub),
+            subtitle: getClubRankingRow(context, selectedClub),
             shape: shapePersoRoundedBorder(Colors.green, 3),
           ),
 
@@ -247,7 +248,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   idLeague: selectedClub.idLeague,
                   idSelectedClub: selectedClub.id,
                 ),
-                subtitle: selectedClub.getClubRankingRow(context),
+                subtitle: getClubRankingRow(context, selectedClub),
               ),
             ],
           ),

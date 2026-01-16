@@ -23,8 +23,6 @@ import 'package:opengoalz/models/club/page/club_page.dart';
 import 'package:opengoalz/models/player/class/player.dart';
 import 'package:provider/provider.dart';
 
-part 'clubWidgetHelper.dart';
-
 class Club {
   List<TeamComp> teamComps = []; // List of the teamcomps of the club
   List<TeamComp> defaultTeamComps = []; // List of the teamcomps of the club

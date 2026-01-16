@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/class/club_widgets.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/others/clubCashListTile.dart';
 import 'package:opengoalz/models/club/others/clubHelper.dart';
@@ -96,7 +97,7 @@ class _ClubPageState extends State<ClubPage> {
           Club club = snapshot.data!;
           return Scaffold(
             appBar: AppBar(
-              title: club.getClubName(context),
+              title: getClubName(context, club),
               leading: goBackIconButton(context),
             ),
             body: MaxWidthContainer(
@@ -204,7 +205,7 @@ class _ClubPageState extends State<ClubPage> {
                                 ),
 
                           /// Get last results
-                          club.getLastResultsWidget(context),
+                          getLastResultsWidget(context, club),
                         ],
                       ),
                       subtitle: Row(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/class/club_widgets.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:opengoalz/widgets/history_timeline_widget.dart';
 
@@ -34,7 +35,7 @@ class _ClubHistoryPageState extends State<ClubHistoryPage> {
       appBar: AppBar(
         title: Row(
           children: [
-            widget.club.getClubName(context),
+            getClubName(context, widget.club),
             Text(' History'),
           ],
         ),

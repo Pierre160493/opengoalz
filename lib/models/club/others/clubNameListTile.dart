@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/class/club_widgets.dart';
 import 'package:opengoalz/models/club/page/club_page.dart';
 import 'package:opengoalz/provider_user.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
@@ -10,7 +11,7 @@ Widget getClubNameListTile(BuildContext context, Club club) {
   return ListTile(
       shape: shapePersoRoundedBorder(),
       leading: Icon(iconClub, color: Colors.green, size: iconSizeMedium),
-      title: club.getClubName(context, isRightClub: false),
+      title: getClubName(context, club, isRightClub: false),
       onTap: () async {
         Navigator.push(
           context,

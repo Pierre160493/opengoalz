@@ -6,6 +6,8 @@ import 'package:opengoalz/models/game/gamePlayerStatsTab.dart';
 import 'package:opengoalz/widgets/graph_widget.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 
+import '../models/club/class/club_widgets.dart';
+
 class GamePlayerStatsDialog extends StatelessWidget {
   final Game game;
   final int idPlayer;
@@ -41,9 +43,9 @@ class GamePlayerStatsDialog extends StatelessWidget {
                                 fontSize: 16,
                                 decoration: TextDecoration.underline))),
                     DataColumn(
-                        label: game.leftClub.getClubNameClickable(context)),
+                        label: getClubNameClickable(context, game.leftClub)),
                     DataColumn(
-                        label: game.rightClub.getClubNameClickable(context)),
+                        label: getClubNameClickable(context, game.rightClub)),
                   ],
                   rows: [
                     _buildDataRow(context, 'Left Defense', gameStats,

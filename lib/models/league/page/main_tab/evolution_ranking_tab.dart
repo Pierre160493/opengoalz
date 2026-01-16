@@ -8,6 +8,8 @@ import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../../../club/class/club_widgets.dart';
+
 class EvolutionRankingTab extends StatefulWidget {
   final League league;
   final bool isReturningBotClub;
@@ -268,7 +270,7 @@ class _EvolutionRankingTabState extends State<EvolutionRankingTab> {
                     style: TextStyle(color: Colors.black),
                   ),
                 ),
-                title: league.clubsLeague[index].getClubNameClickable(context),
+                title: getClubNameClickable(context,league.clubsLeague[index]),
                 dense: true,
                 visualDensity: VisualDensity.compact,
                 shape: shapePersoRoundedBorder(),

@@ -18,8 +18,9 @@ extension GameClassWidgetHelper on Game {
           ? MainAxisAlignment.spaceBetween
           : MainAxisAlignment.start,
       children: [
-        leftClub.getClubNameClickable(context),
+        Expanded(child: getClubNameClickable(context, leftClub)),
         formSpacer3,
+
         // If isPlaying is null, the game has not started yet, if true, the game is in progress
         isPlaying == null
             ? Icon(Icons.sync, size: iconSizeSmall, color: Colors.green)
@@ -28,7 +29,8 @@ extension GameClassWidgetHelper on Game {
                     size: iconSizeSmall, color: Colors.green)
                 : getScoreRowFromGame(this),
         formSpacer3,
-        rightClub.getClubNameClickable(context, isRightClub: true),
+        Expanded(
+            child: getClubNameClickable(context, rightClub, isRightClub: true)),
       ],
     );
   }

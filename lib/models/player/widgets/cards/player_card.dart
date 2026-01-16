@@ -126,6 +126,7 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
               : Matrix4.identity(),
           child: InkWell(
             onTap: _getPlayerTapHandler(),
+
             /// Had to rollback hover color to solid due to flutter issue with version
             // hoverColor: Colors.blue.withValues(alpha: 0.05),
             hoverColor: Colors.blue,
@@ -221,10 +222,8 @@ class _PlayerCardState extends State<PlayerCard> with TickerProviderStateMixin {
                     subtitle: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        ClubNameClickable(
-                          club: widget.player.club,
-                          idClub: widget.player.idClub,
-                        ),
+                        if (widget.player.idClub != null)
+                          ClubNameClickable(idClub: widget.player.idClub!),
                         Row(
                           children: [
                             /// Player's shirt number icon

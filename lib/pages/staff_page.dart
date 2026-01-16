@@ -19,6 +19,8 @@ import 'package:rxdart/rxdart.dart';
 import 'package:opengoalz/widgets/staff_detail_tab.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 
+import '../models/club/class/club_widgets.dart';
+
 class StaffPage extends StatefulWidget {
   final int idClub;
   const StaffPage({Key? key, required this.idClub}) : super(key: key);
@@ -98,7 +100,7 @@ class _StaffPageState extends State<StaffPage> {
               title: Row(
                 children: [
                   Text('Staff of ', style: TextStyle(fontSize: fontSizeLarge)),
-                  club.getClubNameClickable(context),
+                  getClubNameClickable(context,club),
                 ],
               ),
               actions: [

@@ -1,6 +1,7 @@
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
 import 'package:opengoalz/models/club/class/club.dart';
+import 'package:opengoalz/models/club/class/club_widgets.dart';
 import 'package:opengoalz/models/club/others/clubHelper.dart';
 import 'package:opengoalz/models/country.dart';
 import 'package:flutter/material.dart';
@@ -227,8 +228,8 @@ class _ContinentPageState extends State<ContinentPage>
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              club.getClubNameClickable(context),
-              club.getLastResultsWidget(context),
+              getClubNameClickable(context, club),
+              getLastResultsWidget(context, club),
             ],
           ),
           subtitle: Row(
@@ -238,7 +239,7 @@ class _ContinentPageState extends State<ContinentPage>
               _selectedMultiverse == null
                   ? getMultiverseIconFromId_Clickable(
                       context, club.idMultiverse)
-                  : club.getClubRankingRow(context),
+                  : getClubRankingRow(context, club),
             ],
           ),
           leading: Icon(iconClub, size: iconSizeMedium, color: Colors.green),

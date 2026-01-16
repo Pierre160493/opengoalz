@@ -10,6 +10,8 @@ import 'package:provider/provider.dart';
 import 'package:opengoalz/models/mails/mail_filter_dialog.dart';
 import 'package:opengoalz/models/mails/mail_list.dart';
 
+import '../models/club/class/club_widgets.dart';
+
 class MailsPage extends StatefulWidget {
   const MailsPage({Key? key}) : super(key: key);
 
@@ -64,7 +66,7 @@ class _MailsPageState extends State<MailsPage> {
           appBar: AppBar(
             title: Row(
               children: [
-                club.getClubNameClickable(context),
+                getClubNameClickable(context,club),
                 Text(' Mails (${mailsAll.length})',
                     style: TextStyle(fontSize: fontSizeLarge)),
               ],

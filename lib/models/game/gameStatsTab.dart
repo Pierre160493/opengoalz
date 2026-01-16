@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/functions/loadingCircularAndText.dart';
-import 'package:opengoalz/models/club/class/club.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/gameWeights.dart';
 import 'package:opengoalz/widgets/graph_widget.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
+
+import '../club/class/club_widgets.dart';
 
 Widget gameStatsWidget(Game game) {
   return FutureBuilder(
@@ -32,8 +33,8 @@ Widget gameStatsWidget(Game game) {
                             fontWeight: FontWeight.bold,
                             fontSize: fontSizeLarge,
                             decoration: TextDecoration.underline))),
-                DataColumn(label: game.leftClub.getClubNameClickable(context)),
-                DataColumn(label: game.rightClub.getClubNameClickable(context)),
+                DataColumn(label: getClubNameClickable(context,game.leftClub)),
+                DataColumn(label: getClubNameClickable(context,game.rightClub)),
               ],
               rows: [
                 _buildDataRow(

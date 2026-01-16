@@ -16,7 +16,7 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
         color: isHandled ? Colors.grey : Colors.green, size: iconSizeMedium),
     title: Row(
       children: [
-        ClubNameClickable(club: null, idClub: offer.idClub),
+        ClubNameClickable(idClub: offer.idClub),
         Text(' offers weekly expenses of ',
             style: TextStyle(fontSize: fontSizeMedium)),
         Text(
@@ -94,7 +94,7 @@ Widget transfersEmbodiedPlayersOfferTile(BuildContext context, Player player,
                     fontSize: fontSizeMedium,
                   ),
                 ),
-                getClubNameClickable(context, null, offer.idClub),
+                ClubNameClickable(idClub: offer.idClub),
               ],
             ),
             content: TransfersEmbodiedPlayersOfferColumn(

@@ -30,8 +30,7 @@ class PlayerTransferTile extends StatelessWidget {
               'Starting price: ',
             ),
           if (player.transferBids.isNotEmpty)
-            getClubNameClickable(
-                context, null, player.transferBids.first.idClub),
+            ClubNameClickable(idClub: player.transferBids.first.idClub),
           formSpacer6,
           Text(
             player.transferPrice != null

@@ -171,9 +171,7 @@ class LeaguePageStatsTab extends StatelessWidget {
           subtitle: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // players[entry.key]!.getClubNameWidget(context),
-              getClubNameClickable(context, players[entry.key]!.club,
-                  players[entry.key]!.idClub),
+              ClubNameClickable(idClub: players[entry.key]!.idClub!),
               if (players[entry.key]!.userName != null)
                 getUserNameClickable(context,
                     userName: players[entry.key]!.userName!),

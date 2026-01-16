@@ -14,6 +14,8 @@ import 'package:opengoalz/widgets/tab_widget_with_icon.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:quiver/iterables.dart' as quiver;
 
+import '../models/club/class/club_widgets.dart';
+
 class FinancesPage extends StatefulWidget {
   final Club club;
   const FinancesPage({Key? key, required this.club}) : super(key: key);
@@ -140,7 +142,7 @@ class _FinancesPageState extends State<FinancesPage> {
             appBar: AppBar(
               title: Row(
                 children: [
-                  widget.club.getClubNameClickable(context),
+                  getClubNameClickable(context, widget.club),
                   Text(' Finances', style: TextStyle(fontSize: fontSizeLarge)),
                 ],
               ),
