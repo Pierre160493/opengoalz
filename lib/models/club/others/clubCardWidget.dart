@@ -22,6 +22,9 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
     child: Column(
       children: [
         ListTile(
+          dense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 6.0),
+          minLeadingWidth: 0,
           onTap: () {
             Provider.of<UserSessionProvider>(context, listen: false)
                 // .providerSetSelectedClub(club.id);
@@ -30,7 +33,7 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
                     selectedIdClub: club.id);
           },
           leading: CircleAvatar(
-            radius: iconSizeMedium,
+            radius: iconSizeSmall,
             backgroundColor: (club.id == user.selectedClub?.id)
                 ? Colors.green
                 : Colors.blueGrey,
@@ -46,7 +49,7 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
           title: Row(
             children: [
               Expanded(child: getClubNameClickable(context, club)),
-              const SizedBox(width: 8),
+              formSpacer6,
               getLastResultsWidget(context, club),
             ],
           ),
@@ -113,9 +116,9 @@ Widget getClubCard(BuildContext context, Profile user, Club club, int index) {
         if (club.id == user.selectedClub?.id)
           Column(
             children: [
-              const SizedBox(height: 6),
+              formSpacer6,
               getQuickAccessWidget(context, club, user),
-              const SizedBox(height: 6),
+              formSpacer6,
             ],
           ),
       ],

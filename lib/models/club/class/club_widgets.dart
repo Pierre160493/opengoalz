@@ -13,6 +13,7 @@ import 'package:opengoalz/provider_user.dart';
 import 'package:provider/provider.dart';
 import 'package:opengoalz/models/player/pages/players_page.dart';
 import 'package:opengoalz/models/club/page/club_page.dart';
+import 'package:opengoalz/widgets/overflow_tooltip_text.dart';
 
 Widget getClubName(BuildContext context, Club club,
     {bool isRightClub = false}) {
@@ -83,14 +84,16 @@ Widget getClubNameClickable(BuildContext context, Club club,
     mainAxisAlignment:
         isRightClub ? MainAxisAlignment.end : MainAxisAlignment.start,
     children: [
-      InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            ClubPage.route(club.id),
-          );
-        },
-        child: getClubName(context, club, isRightClub: isRightClub),
+      Flexible(
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              ClubPage.route(club.id),
+            );
+          },
+          child: getClubName(context, club, isRightClub: isRightClub),
+        ),
       ),
     ],
   );
