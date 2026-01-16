@@ -171,8 +171,10 @@ class _UserPageState extends State<UserPage> {
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 0,
         iconTheme: IconThemeData(
           color: Colors.green,
+          size: iconSizeLarge,
         ),
         title: user.getUserName(context),
         actions: [
