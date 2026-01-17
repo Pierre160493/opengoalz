@@ -2,7 +2,7 @@ name: opengoalz
 description: "Open Source Football Manager Game"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -16,10 +16,15 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.0+1
+version: 0.0.3+1
+
+# Custom metadata for your update system
+update_config:
+  min_supported_version: 0.0.3
+  update_url: https://github.com/Pierre160493/opengoalz/releases
 
 environment:
-  sdk: '>=3.2.6 <4.0.0'
+  sdk: ">=3.2.6 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -45,6 +50,8 @@ dependencies:
   quiver: ^3.2.2
   timeline_tile: ^2.0.0
   url_launcher: ^6.3.1
+  package_info_plus: ^8.1.1
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
@@ -81,7 +88,6 @@ flutter_launcher_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -89,6 +95,5 @@ flutter:
 
   assets:
     - assets/icon/opengoalz.png
-    - assets/app_version.json
     - assets/images/Football_field.svg
     - assets/images/Football_field_half++.svg

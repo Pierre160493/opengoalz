@@ -7,6 +7,7 @@ import 'package:opengoalz/pages/offline_page.dart'; // Import the offline page
 import 'package:opengoalz/provider_version.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../constants.dart';
 import 'dart:convert';
 
@@ -58,12 +59,10 @@ class SplashPageState extends State<SplashPage> {
     print('[SplashPage: Version Check] Starting version check...');
     String localVersion = 'Unknown';
     try {
-      final jsonStr = await DefaultAssetBundle.of(context)
-          .loadString('assets/app_version.json');
-      final jsonData = jsonDecode(jsonStr);
-      localVersion = jsonData['latest_version'] ?? 'Unknown';
+      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      localVersion = packageInfo.version;
       print(
-          '[SplashPage: Version Check] Local version from asset: $localVersion');
+          '[SplashPage: Version Check] Local version from package: $localVersion');
     } catch (e) {
       print('[SplashPage: Version Check] Error reading local version: $e');
     }

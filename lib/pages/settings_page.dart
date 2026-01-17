@@ -8,6 +8,7 @@ import 'package:opengoalz/provider_theme_app.dart';
 import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
 import 'dart:convert';
 
@@ -20,10 +21,8 @@ class SettingsPage extends StatelessWidget {
 
   Future<String> _readVersion() async {
     try {
-      final file = File('assets/app_version.json');
-      final contents = await file.readAsString();
-      final jsonData = jsonDecode(contents);
-      return jsonData['latest_version'] ?? 'Unknown';
+      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      return packageInfo.version;
     } catch (e) {
       return 'Unknown';
     }

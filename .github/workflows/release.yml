@@ -1,10 +1,12 @@
-name: Build and Release Windows and Linux Executables
+name: Build and Release
 
 on:
   push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'  # Trigger on semantic versioning tags starting with 'v'
-  workflow_dispatch:  # Allow manual triggers
+    branches:
+      - main
+    paths:
+      - "pubspec.yaml"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,33 +14,53 @@ permissions:
   issues: read
 
 jobs:
-  verify-version:
+  check-version:
     runs-on: ubuntu-latest
-
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.info.outputs.version }}
+      tag_name: ${{ steps.info.outputs.tag_name }}
+      min_version: ${{ steps.info.outputs.min_version }}
+      update_url: ${{ steps.info.outputs.update_url }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Verify app_version.json version
+      - name: Extract Info from pubspec.yaml
+        id: info
         run: |
-          VERSION_JSON=$(jq -r '.latest_version' assets/app_version.json)
-          if [ "$VERSION_JSON" != "${{ github.ref_name }}" ]; then
-            echo "Tag version (${{ github.ref_name }}) does not match assets/app_version.json latest_version ($VERSION_JSON)"
-            exit 1
+          VERSION=$(yq eval '.version' pubspec.yaml | cut -d'+' -f1)
+          MIN_VERSION=$(yq eval '.update_config.min_supported_version' pubspec.yaml)
+          UPDATE_URL=$(yq eval '.update_config.update_url' pubspec.yaml)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag_name=v$VERSION" >> $GITHUB_OUTPUT
+          echo "min_version=$MIN_VERSION" >> $GITHUB_OUTPUT
+          echo "update_url=$UPDATE_URL" >> $GITHUB_OUTPUT
+
+      - name: Check if tag exists
+        id: check
+        run: |
+          if git rev-parse "${{ steps.info.outputs.tag_name }}" >/dev/null 2>&1; then
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "Version ${{ steps.info.outputs.tag_name }} already exists. Skipping release."
+          else
+            echo "should_release=true" >> $GITHUB_OUTPUT
           fi
 
   build-windows:
-    needs: verify-version
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
     runs-on: windows-latest
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Flutter
-        uses: flutter-actions/setup-flutter@v2
+        uses: flutter-actions/setup-flutter@v3
         with:
-          channel: 'stable' # Use the latest stable Flutter version
+          channel: "stable"
 
       - name: Install dependencies
         run: flutter pub get
@@ -46,105 +68,75 @@ jobs:
       - name: Build Windows executable
         run: flutter build windows
 
-      - name: List build directory contents
-        run: dir build/windows/x64/runner/Release
-
       - name: Zip build directory
-        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/x64/runner/Release/opengoalz-windows-${{ github.ref_name }}.zip
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/x64/runner/Release/opengoalz-windows-${{ needs.check-version.outputs.tag_name }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
-          path: build/windows/x64/runner/Release/opengoalz-windows-${{ github.ref_name }}.zip
+          path: build/windows/x64/runner/Release/opengoalz-windows-${{ needs.check-version.outputs.tag_name }}.zip
 
   build-linux:
-    needs: verify-version
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Flutter
-        uses: flutter-actions/setup-flutter@v2
+        uses: flutter-actions/setup-flutter@v3
         with:
-          channel: 'stable' # Use the latest stable Flutter version
+          channel: "stable"
 
       - name: Install dependencies
         run: flutter pub get
 
       - name: Install build tools
-        run: sudo apt-get install -y ninja-build cmake libgtk-3-dev
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake libgtk-3-dev
 
       - name: Build Linux executable
         run: flutter build linux
 
-      - name: List build directory contents
-        run: ls build/linux/x64/release/bundle
-
       - name: Zip build directory
-        run: zip -r build/linux/x64/release/bundle/opengoalz-linux-${{ github.ref_name }}.zip build/linux/x64/release/bundle/*
+        run: |
+          cd build/linux/x64/release/bundle
+          zip -r opengoalz-linux-${{ needs.check-version.outputs.tag_name }}.zip ./*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-executable
-          path: build/linux/x64/release/bundle/opengoalz-linux-${{ github.ref_name }}.zip
+          path: build/linux/x64/release/bundle/opengoalz-linux-${{ needs.check-version.outputs.tag_name }}.zip
 
   release:
-    needs: [build-windows, build-linux]
+    needs: [check-version, build-windows, build-linux]
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Download Windows artifact
+      - name: Create Git Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ needs.check-version.outputs.tag_name }}" -m "Release ${{ needs.check-version.outputs.tag_name }}"
+          git push origin "${{ needs.check-version.outputs.tag_name }}"
+
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: windows-executable
-          path: build/windows/x64/runner/Release/
-
-      - name: Download Linux artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-executable
-          path: build/linux/x64/release/bundle/
-
-      - name: List build directory contents
-        run: ls build/windows/x64/runner/Release && ls build/linux/x64/release/bundle
+          path: artifacts
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          tag_name: ${{ needs.check-version.outputs.tag_name }}
+          name: Release ${{ needs.check-version.outputs.tag_name }}
           draft: false
           prerelease: false
-
-      - name: Set release upload URL
-        run: echo "RELEASE_UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_ENV
-
-      - name: Upload Windows Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ env.RELEASE_UPLOAD_URL }}
-          asset_path: build/windows/x64/runner/Release/opengoalz-windows-${{ github.ref_name }}.zip
-          asset_name: opengoalz-windows-${{ github.ref_name }}.zip
-          asset_content_type: application/zip
-
-      - name: Upload Linux Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ env.RELEASE_UPLOAD_URL }}
-          asset_path: build/linux/x64/release/bundle/opengoalz-linux-${{ github.ref_name }}.zip
-          asset_name: opengoalz-linux-${{ github.ref_name }}.zip
-          asset_content_type: application/zip
+          files: |
+            artifacts/windows-executable/opengoalz-windows-${{ needs.check-version.outputs.tag_name }}.zip
+            artifacts/linux-executable/opengoalz-linux-${{ needs.check-version.outputs.tag_name }}.zip

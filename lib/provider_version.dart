@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'constants.dart';
 
 class VersionProvider extends ChangeNotifier {
@@ -16,21 +15,31 @@ class VersionProvider extends ChangeNotifier {
   String? get minSupportedVersion => _minSupportedVersion;
   String? get updateUrl => _updateUrl;
 
+  Future<void> _fetchFromGithub() async {
+    const rawUrl =
+        'https://raw.githubusercontent.com/Pierre160493/opengoalz/main/pubspec.yaml';
+    final response = await http.get(Uri.parse(rawUrl));
+
+    if (response.statusCode == 200) {
+      final content = response.body;
+
+      // Simple regex extraction to avoid adding yaml parser dependency
+      _latestVersion = RegExp(r'version:\s*([^\s+]+)')
+          .firstMatch(content)
+          ?.group(1)
+          ?.replaceAll('"', '')
+          .replaceAll("'", "");
+      _minSupportedVersion = RegExp(r'min_supported_version:\s*([^\s\n]+)')
+          .firstMatch(content)
+          ?.group(1);
+      _updateUrl =
+          RegExp(r'update_url:\s*([^\s\n]+)').firstMatch(content)?.group(1);
+    }
+  }
+
   Future<void> checkVersion(String localVersion) async {
     try {
-      // Fetch remote version file from Supabase bucket
-      final response = await Supabase.instance.client.storage
-          .from('app-config')
-          .download('app_version.json');
-      final jsonData = jsonDecode(utf8.decode(response));
-      _latestVersion = jsonData['latest_version'];
-      _minSupportedVersion = jsonData['min_supported_version'];
-
-      // Only override the updateUrl if the JSON actually provides a valid one
-      final remoteUrl = jsonData['update_url'];
-      if (remoteUrl != null && remoteUrl.toString().isNotEmpty) {
-        _updateUrl = remoteUrl;
-      }
+      await _fetchFromGithub();
 
       // Compare versions
       if (_latestVersion != null && _latestVersion != localVersion) {
