@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../constants.dart';
-import 'dart:convert';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
@@ -46,23 +45,22 @@ class SplashPageState extends State<SplashPage> {
         _showOfflineButton = false;
       });
       await _showUpdateDialog();
-      // Do not wait for user session
-      return;
+      if (mounted &&
+          Provider.of<VersionProvider>(context, listen: false)
+              .isUpdateMandatory) {
+        return;
+      }
     }
-    // If no update required, wait for user session and route
+    // Wait for user session and route
     final userFetched = await userSessionFuture;
     _routeBasedOnUserSession(userFetched);
   }
 
   Future<bool> _checkVersion() async {
-    final stopwatch = Stopwatch()..start();
-    print('[SplashPage: Version Check] Starting version check...');
     String localVersion = 'Unknown';
     try {
       final PackageInfo packageInfo = await PackageInfo.fromPlatform();
       localVersion = packageInfo.version;
-      print(
-          '[SplashPage: Version Check] Local version from package: $localVersion');
     } catch (e) {
       print('[SplashPage: Version Check] Error reading local version: $e');
     }
@@ -71,13 +69,9 @@ class SplashPageState extends State<SplashPage> {
     final versionProvider =
         Provider.of<VersionProvider>(context, listen: false);
     bool needsUpdate = versionProvider.needsUpdate;
-    if (needsUpdate) {
-      print(
-          '[SplashPage: Version Check] Update required! Remote version: ${versionProvider.latestVersion}, Local version: ${localVersion}');
-    }
-    stopwatch.stop();
     print(
-        '[SplashPage: Version Check] Version check finished in ${stopwatch.elapsedMilliseconds}ms. Update required: ${needsUpdate}');
+        '[SplashPage: Version Check] Remote version: ${versionProvider.latestVersion}, Local version: ${localVersion}, Needs update: ${needsUpdate}');
+
     return needsUpdate;
   }
 
@@ -85,69 +79,86 @@ class SplashPageState extends State<SplashPage> {
     final versionProvider =
         Provider.of<VersionProvider>(context, listen: false);
     if (versionProvider.needsUpdate && mounted) {
+      final bool isMandatory = versionProvider.isUpdateMandatory;
       await showDialog(
         context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: Text('Update Required',
-              style: TextStyle(
-                  fontSize: fontSizeLarge, fontWeight: FontWeight.bold)),
-          content: Text(
-              'A new version (${versionProvider.latestVersion}) is available. Please update your app.',
-              style: TextStyle(fontSize: fontSizeMedium)),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                final url = versionProvider.updateUrl ?? githubReleasesUrl;
-                final uri = Uri.parse(url);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                } else {
-                  if (mounted) {
-                    context.showSnackBarError('Could not launch update URL');
-                  }
-                }
-              },
-              child: Text('Update', style: TextStyle(fontSize: fontSizeMedium)),
-            ),
-          ],
+        barrierDismissible: !isMandatory,
+        builder: (context) => PopScope(
+          canPop: !isMandatory,
+          child: AlertDialog(
+            title: Text(isMandatory ? 'Update Required' : 'Update Recommended',
+                style: TextStyle(
+                    fontSize: fontSizeLarge, fontWeight: FontWeight.bold)),
+            content: Text(
+                isMandatory
+                    ? 'A new version (${versionProvider.latestVersion}) is required to continue. Your version is too old.'
+                    : 'A new version (${versionProvider.latestVersion}) is available. Please update your app.',
+                style: TextStyle(fontSize: fontSizeMedium)),
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (!isMandatory)
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: persoRowWithIcon(iconContinue, 'Continue',
+                          color: Colors.orange),
+                    ),
+                  TextButton(
+                    onPressed: () async {
+                      final url =
+                          versionProvider.updateUrl ?? githubReleasesUrl;
+                      final uri = Uri.parse(url);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri,
+                            mode: LaunchMode.externalApplication);
+                      } else {
+                        if (mounted) {
+                          context
+                              .showSnackBarError('Could not launch update URL');
+                        }
+                      }
+                    },
+                    child: persoRowWithIcon(iconUpdate, 'Update',
+                        color: Colors.green),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       );
+
+      if (isMandatory) {
+        print(
+            '[SplashPage: Version Check] Mandatory update required. Blocking navigation.');
+        // Stay here if mandatory
+        return;
+      }
       print(
-          '[SplashPage: Version Check] Blocking navigation due to update requirement.');
+          '[SplashPage: Version Check] Optional update dialog dismissed. Proceeding...');
     }
   }
 
   Future<bool?> _fetchUserSession() async {
-    final stopwatch = Stopwatch()..start();
-    print('[SplashPage: Fetch User] Checking user session for redirection...');
     await Future.delayed(Duration.zero); // Await for the widget to mount
     if (supabase.auth.currentSession == null) {
       print('[SplashPage: Fetch User] No active session found.');
-      stopwatch.stop();
-      print(
-          '[SplashPage: Fetch User] Finished in ${stopwatch.elapsedMilliseconds}ms');
       return null;
     } else {
-      print(
-          '[SplashPage: Fetch User] Active session found. Fetching user data...');
       try {
         await Provider.of<UserSessionProvider>(context, listen: false)
             .providerFetchUser(context, userId: supabase.auth.currentUser!.id);
-        print('[SplashPage] User session fetched successfully.');
         setState(() {
           _isConnected = true;
         });
-        stopwatch.stop();
-        print(
-            '[SplashPage: Fetch User] Finished in ${stopwatch.elapsedMilliseconds}ms');
         return true;
       } catch (error) {
         print('[SplashPage: Fetch User] Error fetching user data: ');
         print('# ${error.toString()}');
-        stopwatch.stop();
-        print(
-            '[SplashPage: Fetch User] Finished (with error) in ${stopwatch.elapsedMilliseconds}ms');
+
         return false;
       }
     }

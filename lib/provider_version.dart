@@ -4,12 +4,14 @@ import 'constants.dart';
 
 class VersionProvider extends ChangeNotifier {
   bool _needsUpdate = false;
+  bool _isUpdateMandatory = false;
   bool _checked = false;
   String? _latestVersion;
   String? _minSupportedVersion;
   String? _updateUrl = githubReleasesUrl;
 
   bool get needsUpdate => _needsUpdate;
+  bool get isUpdateMandatory => _isUpdateMandatory;
   bool get checked => _checked;
   String? get latestVersion => _latestVersion;
   String? get minSupportedVersion => _minSupportedVersion;
@@ -32,6 +34,8 @@ class VersionProvider extends ChangeNotifier {
       _minSupportedVersion = RegExp(r'min_supported_version:\s*([^\s\n]+)')
           .firstMatch(content)
           ?.group(1);
+      print(
+          'Pubspec.yaml from Github: Latest Version= [$_latestVersion] Min Supported Version= [$_minSupportedVersion]');
       _updateUrl =
           RegExp(r'update_url:\s*([^\s\n]+)').firstMatch(content)?.group(1);
     }
@@ -41,16 +45,44 @@ class VersionProvider extends ChangeNotifier {
     try {
       await _fetchFromGithub();
 
+      final normalizedLocal = localVersion.split('+').first;
+
       // Compare versions
-      if (_latestVersion != null && _latestVersion != localVersion) {
-        _needsUpdate = true;
+      if (_latestVersion != null) {
+        _needsUpdate = _isVersionNewer(normalizedLocal, _latestVersion!);
+
+        if (_minSupportedVersion != null) {
+          _isUpdateMandatory =
+              _isVersionNewer(normalizedLocal, _minSupportedVersion!);
+        }
       }
+
       _checked = true;
       notifyListeners();
     } catch (e) {
       // On error, allow app to continue
+      print('[VersionProvider] Error checking version: $e');
       _checked = true;
       notifyListeners();
     }
+  }
+
+  bool _isVersionNewer(String current, String target) {
+    List<int> currentParts =
+        current.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    List<int> targetParts =
+        target.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+
+    int maxLength = currentParts.length > targetParts.length
+        ? currentParts.length
+        : targetParts.length;
+
+    for (int i = 0; i < maxLength; i++) {
+      int curr = i < currentParts.length ? currentParts[i] : 0;
+      int targ = i < targetParts.length ? targetParts[i] : 0;
+      if (targ > curr) return true;
+      if (targ < curr) return false;
+    }
+    return false;
   }
 }

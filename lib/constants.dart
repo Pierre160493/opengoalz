@@ -88,6 +88,9 @@ const iconFavorite = Icons.favorite;
 const iconPoaching = Icons.my_location;
 const iconMailDelete = Icons.auto_delete;
 
+const iconUpdate = Icons.update;
+const iconContinue = Icons.play_arrow;
+
 const iconCoach = Icons.campaign;
 const iconScout = Icons.search;
 
