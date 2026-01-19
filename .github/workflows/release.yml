@@ -66,7 +66,10 @@ jobs:
         run: flutter pub get
 
       - name: Build Windows executable
-        run: flutter build windows
+        run: |
+          flutter build windows \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
 
       - name: Zip build directory
         run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/x64/runner/Release/opengoalz-windows-${{ needs.check-version.outputs.tag_name }}.zip
@@ -97,7 +100,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build cmake libgtk-3-dev
 
       - name: Build Linux executable
-        run: flutter build linux
+        run: |
+          flutter build linux \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
 
       - name: Zip build directory
         run: |
@@ -110,8 +116,56 @@ jobs:
           name: linux-executable
           path: build/linux/x64/release/bundle/opengoalz-linux-${{ needs.check-version.outputs.tag_name }}.zip
 
+  build-android:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: flutter-actions/setup-flutter@v3
+        with:
+          channel: "stable"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create keystore from base64 secret
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+
+      - name: Create key.properties
+        run: |
+          echo "storeFile=upload-keystore.jks" > android/key.properties
+          echo "storePassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=upload" >> android/key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
+
+      - name: Build Android APK
+        run: |
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+
+      - name: Rename APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/opengoalz-android-${{ needs.check-version.outputs.tag_name }}.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/opengoalz-android-${{ needs.check-version.outputs.tag_name }}.apk
+
   release:
-    needs: [check-version, build-windows, build-linux]
+    needs: [check-version, build-windows, build-linux, build-android]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -140,3 +194,4 @@ jobs:
           files: |
             artifacts/windows-executable/opengoalz-windows-${{ needs.check-version.outputs.tag_name }}.zip
             artifacts/linux-executable/opengoalz-linux-${{ needs.check-version.outputs.tag_name }}.zip
+            artifacts/android-apk/opengoalz-android-${{ needs.check-version.outputs.tag_name }}.apk
