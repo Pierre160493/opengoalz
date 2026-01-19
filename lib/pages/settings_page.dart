@@ -9,8 +9,6 @@ import 'package:opengoalz/widgets/goBack_tool_tip.dart';
 import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'dart:io';
-import 'dart:convert';
 
 class SettingsPage extends StatelessWidget {
   SettingsPage();
