@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "pubspec.yaml"
   workflow_dispatch:
 
 permissions:
@@ -67,9 +65,9 @@ jobs:
 
       - name: Build Windows executable
         run: |
-          flutter build windows \
-            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+          flutter build windows `
+            "--dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }}" `
+            "--dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}"
 
       - name: Zip build directory
         run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/x64/runner/Release/opengoalz-windows-${{ needs.check-version.outputs.tag_name }}.zip
