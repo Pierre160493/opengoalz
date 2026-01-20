@@ -147,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: Center(
             child: Text(
-          'Welcome to $appName ! Login to manage your club and players',
+          'Welcome to $appName !',
           style: TextStyle(fontSize: fontSizeLarge),
         )),
       ),
@@ -155,6 +155,14 @@ class _LoginPageState extends State<LoginPage> {
         child: ListView(
           padding: formPadding,
           children: [
+            Center(
+              child: Image.asset(
+                'assets/icon/opengoalz.png',
+                height: iconSizeLarge * 6,
+                width: iconSizeLarge * 6,
+              ),
+            ),
+            formSpacer6,
             Row(
               children: [
                 Expanded(
@@ -208,7 +216,8 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const Icon(Icons.person_add),
                   formSpacer6,
-                  Text("I don't have an account", style: TextStyle(fontSize: fontSizeSmall)),
+                  Text("I don't have an account",
+                      style: TextStyle(fontSize: fontSizeSmall)),
                 ],
               ),
             ),
@@ -224,7 +233,8 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const Icon(Icons.lock_open),
                   formSpacer6,
-                  Text('Forgot Password ?', style: TextStyle(fontSize: fontSizeSmall)),
+                  Text('Forgot Password ?',
+                      style: TextStyle(fontSize: fontSizeSmall)),
                 ],
               ),
             ),
