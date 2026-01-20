@@ -18,7 +18,15 @@ extension ShowSnackBar on BuildContext {
                   formSpacer3,
                 ],
               ),
-            Text(message, style: TextStyle(fontSize: fontSizeMedium)),
+            Expanded(
+              child: Text(
+                message,
+                // style: TextStyle(fontSize: fontSizeMedium),
+                style: TextStyle(fontSize: fontSizeSmall),
+                softWrap: true,
+                maxLines: null,
+              ),
+            ),
           ],
         ),
         backgroundColor: backgroundColor,
@@ -66,7 +74,8 @@ extension ConfirmationDialog on BuildContext {
                         color: Colors.green,
                       ),
                       formSpacer3,
-                      Text('Confirm', style: TextStyle(fontSize: fontSizeMedium)),
+                      Text('Confirm',
+                          style: TextStyle(fontSize: fontSizeMedium)),
                     ],
                   ),
                   onPressed: () {
