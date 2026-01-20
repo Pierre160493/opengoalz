@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:opengoalz/extensionBuildContext.dart';
 import 'package:opengoalz/provider_user.dart';
@@ -77,7 +78,12 @@ class _LoginPageState extends State<LoginPage> {
     } on AuthException catch (error) {
       context.showSnackBarError(error.message);
     } catch (error) {
-      context.showSnackBarError('ERROR: ${error}');
+      if (error is SocketException) {
+        context.showSnackBarError(
+            'Network error: Unable to connect to server. Check your internet connection.');
+      } else {
+        context.showSnackBarError('ERROR: ${error}');
+      }
     }
     if (mounted) {
       setState(() {
