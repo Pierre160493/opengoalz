@@ -24,6 +24,7 @@ import 'package:opengoalz/widgets/max_width_widget.dart';
 import 'package:opengoalz/widgets/error_with_back_button.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:opengoalz/models/club/page/edit_coordinates_page.dart';
 
 class ClubPage extends StatefulWidget {
   final int idClub;
@@ -82,6 +83,15 @@ class _ClubPageState extends State<ClubPage> {
                 return club;
               });
         });
+  }
+
+  void _showEditCoordinatesDialog(BuildContext context, Club club) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditCoordinatesPage(club: club),
+      ),
+    );
   }
 
   @override
@@ -343,6 +353,34 @@ class _ClubPageState extends State<ClubPage> {
                     CountryTileFromId(
                       idCountry: club.idCountry,
                       idMultiverse: club.idMultiverse,
+                    ),
+
+                    /// GPS Coordinates
+                    ListTile(
+                      leading: Icon(
+                        Icons.location_on,
+                        size: iconSizeMedium,
+                        color: Colors.blue,
+                      ),
+                      title: Text(
+                        'GPS Coordinates',
+                        style: TextStyle(fontSize: fontSizeMedium),
+                      ),
+                      subtitle: Text(
+                        club.formattedCoordinates ?? 'Not set',
+                        style: TextStyle(fontSize: fontSizeSmall),
+                      ),
+                      trailing: club.isBelongingToConnectedUser
+                          ? IconButton(
+                              icon: Icon(Icons.edit, size: iconSizeSmall),
+                              onPressed: () =>
+                                  _showEditCoordinatesDialog(context, club),
+                            )
+                          : null,
+                      shape: shapePersoRoundedBorder(),
+                      onTap: club.isBelongingToConnectedUser
+                          ? () => _showEditCoordinatesDialog(context, club)
+                          : null,
                     ),
 
                     /// Finances

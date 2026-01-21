@@ -1,27 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:opengoalz/functions/stringFunctions.dart';
+import 'dart:typed_data';
+import 'package:convert/convert.dart';
 import 'package:opengoalz/models/club/class/club_data.dart';
 import 'package:opengoalz/models/club/class/club_history.dart';
 import 'package:opengoalz/models/game/class/game.dart';
 import 'package:opengoalz/models/league/league.dart';
 import 'package:opengoalz/models/mails/mail.dart';
 import 'package:opengoalz/models/multiverse/multiverse.dart';
-import 'package:opengoalz/models/player/pages/players_page.dart';
 import 'package:opengoalz/models/playerFavorite/player_favorite.dart';
 import 'package:opengoalz/models/playerPoaching/player_poaching.dart';
-import 'package:opengoalz/models/playerSearchCriterias.dart';
 import 'package:opengoalz/models/profile.dart';
 import 'package:opengoalz/models/teamcomp/teamComp.dart';
 import 'package:opengoalz/constants.dart';
-import 'package:opengoalz/pages/games_page.dart';
-import 'package:opengoalz/models/league/page/league_page.dart';
-import 'package:opengoalz/pages/scouts_page/scouts_page.dart';
-import 'package:opengoalz/pages/transfer_page.dart';
-import 'package:opengoalz/provider_user.dart';
-import 'package:opengoalz/models/club/page/club_page.dart';
 import 'package:opengoalz/models/player/class/player.dart';
-import 'package:provider/provider.dart';
 
 class Club {
   List<TeamComp> teamComps = []; // List of the teamcomps of the club
@@ -65,6 +55,8 @@ class Club {
   final String continent;
   final int? idCoach;
   final int? idScout;
+  final String?
+      postgisLocation; // PostGIS geography point as String (ex: 0101000020E610000006810294A83503400C600FBA726B4840)
 
   Club.fromMap(Map<String, dynamic> map, Profile user)
       : id = map['id'],
@@ -96,7 +88,11 @@ class Club {
         expensesTransfersExpected = map['expenses_transfers_expected'],
         continent = map['continent'],
         idCoach = map['id_coach'],
-        idScout = map['id_scout'] {}
+        idScout = map['id_scout'],
+        postgisLocation = map['location'] {
+    print(
+        'Location from DB: $postgisLocation, type: ${postgisLocation?.runtimeType}');
+  }
 
   /// Fetch the club from its id
   static Future<Club?> fromId(int id, Profile user) async {
@@ -118,5 +114,65 @@ class Club {
       print('Error fetching club: $e');
       return null;
     }
+  }
+
+  /// Parse PostGIS geography point from WKB hex string
+  static (double, double)? _parsePostgisGeographyPoint(String hexString) {
+    try {
+      final bytes = hex.decode(hexString);
+      final buffer = ByteData.view(Uint8List.fromList(bytes).buffer);
+      int offset = 0;
+      final byteOrder = buffer.getUint8(offset);
+      offset += 1;
+      final endian = byteOrder == 1 ? Endian.little : Endian.big;
+      final type = buffer.getUint32(offset, endian);
+      offset += 4;
+      final hasSrid = (type & 0x20000000) != 0;
+      final geometryType = type & 0x1FFFFFFF;
+      if (geometryType != 1) return null; // not a point
+      if (hasSrid) {
+        offset += 4; // skip SRID
+      }
+      final lng = buffer.getFloat64(offset, endian);
+      offset += 8;
+      final lat = buffer.getFloat64(offset, endian);
+      return (lat, lng);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Extract latitude from PostGIS point (returns null if no location)
+  double? get latitude {
+    print('Extracting latitude from location: $postgisLocation');
+    if (postgisLocation == null) return null;
+    final coords = _parsePostgisGeographyPoint(postgisLocation!);
+    if (coords != null) {
+      print('Parsed coordinates: lat=${coords.$1}, lng=${coords.$2}');
+      return coords.$1;
+    }
+    print('Failed to parse coordinates.');
+    return null;
+  }
+
+  /// Extract longitude from PostGIS point (returns null if no location)
+  double? get longitude {
+    if (postgisLocation == null) return null;
+    final coords = _parsePostgisGeographyPoint(postgisLocation!);
+    if (coords != null) {
+      return coords.$2;
+    }
+    return null;
+  }
+
+  /// Format coordinates as "lat, lng" or return null if no location
+  String? get formattedCoordinates {
+    final lat = latitude;
+    final lng = longitude;
+    print('Formatting coordinates: lat=$lat, lng=$lng');
+    if (lat != null && lng != null) {
+      return '${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}';
+    }
+    return null;
   }
 }
