@@ -19,6 +19,7 @@ List of things to do in the future.
 - Add players bonus money depending on the number of goals, assists, best scorer etc...
 - Weather conditions (rain, snow, etc.) that can affect the game.
 - Game start time depending on the time zone of the club.
+- PGTAP tests for all the database functions and procedures.
 
 ## Hard
 
