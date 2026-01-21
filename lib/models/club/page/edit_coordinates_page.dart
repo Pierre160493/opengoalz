@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:opengoalz/constants.dart';
 import 'package:opengoalz/models/club/class/club.dart';
@@ -20,6 +22,8 @@ class _EditCoordinatesPageState extends State<EditCoordinatesPage> {
   late LatLng markerPosition;
   late double? originalLat;
   late double? originalLng;
+  Map<String, String>? locationInfo;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -50,6 +54,71 @@ class _EditCoordinatesPageState extends State<EditCoordinatesPage> {
       lngController.text = originalLng?.toStringAsFixed(6) ?? '';
       markerPosition = LatLng(originalLat ?? 0, originalLng ?? 0);
     });
+  }
+
+  Future<void> _fetchLocationInfo() async {
+    setState(() => _isLoading = true);
+    final lat = double.tryParse(latController.text.trim());
+    final lng = double.tryParse(lngController.text.trim());
+    if (lat == null || lng == null) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid coordinates')),
+      );
+      return;
+    }
+
+    final url =
+        'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&zoom=10&addressdetails=1';
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'User-Agent':
+              'OpenGoalz/1.0 (https://github.com/Pierre160493/opengoalz)'
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final address = data['address'] ?? {};
+        final country = address['country'] ?? 'Unknown';
+        final city = address['city'] ??
+            address['town'] ??
+            address['village'] ??
+            'Unknown';
+        final state = address['state'] ?? 'Unknown';
+
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Location Info',
+                style: TextStyle(fontSize: fontSizeLarge)),
+            content: Text(
+                'Country: $country\nCity: $city\nState: $state\nTimezone: Not available',
+                style: TextStyle(fontSize: fontSizeMedium)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK', style: TextStyle(fontSize: fontSizeMedium)),
+              ),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Failed to fetch location info: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print('Error fetching location info: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error fetching location info')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -233,6 +302,33 @@ class _EditCoordinatesPageState extends State<EditCoordinatesPage> {
                       },
                     ),
                   ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: iconSizeSmall / 2,
+              right: iconSizeSmall / 2,
+              child: Opacity(
+                opacity: 0.7,
+                child: ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _fetchLocationInfo,
+                  icon: _isLoading
+                      ? SizedBox(
+                          width: iconSizeMedium,
+                          height: iconSizeMedium,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.black),
+                          ),
+                        )
+                      : Icon(Icons.info, size: iconSizeMedium),
+                  label:
+                      Text('Info', style: TextStyle(fontSize: fontSizeSmall)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                  ),
                 ),
               ),
             ),
