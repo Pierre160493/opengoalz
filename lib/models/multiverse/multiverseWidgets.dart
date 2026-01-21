@@ -121,12 +121,14 @@ Widget getMultiverseListTileFromMultiverse(
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('Multiverse: ${multiverse.name}'),
+        Text('Multiverse: ${multiverse.name}',
+            style: TextStyle(
+                fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
         getMultiverseIconFromMultiverse(multiverse),
       ],
     ),
     subtitle: Text(getMultiverseSpeedDescription(multiverse.speed),
-        style: styleItalicBlueGrey),
+        style: styleItalicBlueGrey.copyWith(fontSize: fontSizeSmall)),
     onTap: () {
       Navigator.push(
         context,

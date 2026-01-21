@@ -24,9 +24,11 @@ Widget clubLeagueAndRankingListTile(BuildContext context, Club club) {
       color: getClubColor(club),
     ), // Icon to indicate players
     title: club.league == null
-        ? Text('League Not Found')
+        ? Text('League Not Found', style: TextStyle(fontSize: fontSizeMedium))
         : Text(
-            '${positionWithIndex(club.clubData.posLeague)} of ${club.league!.name}'),
+            '${positionWithIndex(club.clubData.posLeague)} of ${club.league!.name}',
+            style: TextStyle(
+                fontSize: fontSizeMedium, fontWeight: FontWeight.bold)),
     subtitle: clubEloRow(context, club.id, club.clubData.eloPoints),
   );
 }

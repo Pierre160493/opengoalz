@@ -101,243 +101,254 @@ class _ClubPageState extends State<ClubPage> {
               leading: goBackIconButton(context),
             ),
             body: MaxWidthContainer(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Tooltip(
-                    message: 'Tap to see the club\'s history',
-                    waitDuration: const Duration(seconds: 1),
-                    child: ListTile(
-                      leading: Icon(
-                        iconClub,
-                        size: iconSizeLarge,
-                        color: getClubColor(club),
-                      ), // Icon to indicate club
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          /// Club name with possibility to change it
-                          club.isBelongingToConnectedUser
-                              // Club owner can change the name
-                              ? Tooltip(
-                                  message: 'Tap to change the club name',
-                                  child: InkWell(
-                                    onTap: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          String inputText = '';
-                                          return AlertDialog(
-                                            title:
-                                                const Text('Change Club Name'),
-                                            content: TextField(
-                                              onChanged: (value) {
-                                                inputText = value;
-                                              },
-                                              decoration: const InputDecoration(
-                                                  hintText:
-                                                      "Enter the new club name"),
-                                            ),
-                                            actions: <Widget>[
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                children: [
-                                                  TextButton(
-                                                    child: persoCancelRow(),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                  TextButton(
-                                                    child: Row(
-                                                      children: [
-                                                        Icon(
-                                                            iconSuccessfulOperation,
-                                                            color:
-                                                                Colors.green),
-                                                        formSpacer3,
-                                                        const Text('Submit'),
-                                                      ],
-                                                    ),
-                                                    onPressed: () async {
-                                                      await operationInDB(
-                                                          context,
-                                                          'UPDATE',
-                                                          'clubs',
-                                                          data: {
-                                                            'name': inputText
-                                                          },
-                                                          matchCriteria: {
-                                                            'id': club.id
-                                                          },
-                                                          messageSuccess:
-                                                              'Successfully changed the club name to $inputText');
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Tooltip(
+                      message: 'Tap to see the club\'s history',
+                      waitDuration: const Duration(seconds: 1),
+                      child: ListTile(
+                        leading: Icon(
+                          iconClub,
+                          size: iconSizeLarge,
+                          color: getClubColor(club),
+                        ), // Icon to indicate club
+                        title: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            /// Club name with possibility to change it
+                            club.isBelongingToConnectedUser
+                                // Club owner can change the name
+                                ? Tooltip(
+                                    message: 'Tap to change the club name',
+                                    child: InkWell(
+                                      onTap: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            String inputText = '';
+                                            return AlertDialog(
+                                              title: const Text(
+                                                  'Change Club Name'),
+                                              content: TextField(
+                                                onChanged: (value) {
+                                                  inputText = value;
+                                                },
+                                                decoration: const InputDecoration(
+                                                    hintText:
+                                                        "Enter the new club name"),
                                               ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
-                                    child: Text(
-                                      club.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize:
-                                            24, // Increase the font size as needed
+                                              actions: <Widget>[
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    TextButton(
+                                                      child: persoCancelRow(),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                    TextButton(
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(
+                                                              iconSuccessfulOperation,
+                                                              color:
+                                                                  Colors.green),
+                                                          formSpacer3,
+                                                          const Text('Submit'),
+                                                        ],
+                                                      ),
+                                                      onPressed: () async {
+                                                        await operationInDB(
+                                                            context,
+                                                            'UPDATE',
+                                                            'clubs',
+                                                            data: {
+                                                              'name': inputText
+                                                            },
+                                                            matchCriteria: {
+                                                              'id': club.id
+                                                            },
+                                                            messageSuccess:
+                                                                'Successfully changed the club name to $inputText');
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                      child: Text(
+                                        club.name,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: fontSizeLarge,
+                                        ),
                                       ),
                                     ),
+                                  )
+                                : Text(
+                                    club.name,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: fontSizeLarge,
+                                    ),
                                   ),
-                                )
-                              : Text(
-                                  club.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24,
-                                  ),
-                                ),
 
-                          /// Get last results
-                          getLastResultsWidget(context, club),
-                        ],
-                      ),
-                      subtitle: Row(
-                        children: [
-                          Text(
-                            'Creation Date: ',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                            /// Get last results
+                            getLastResultsWidget(context, club),
+                          ],
+                        ),
+                        subtitle: Row(
+                          children: [
+                            Text(
+                              'Creation Date: ',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: fontSizeSmall,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '${formatDate(club.createdAt)}',
-                          ),
-                        ],
+                            Text(
+                              '${formatDate(club.createdAt)}',
+                              style: TextStyle(fontSize: fontSizeSmall),
+                            ),
+                          ],
+                        ),
+                        shape: shapePersoRoundedBorder(),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ClubHistoryPage(club: club),
+                            ),
+                          );
+                        },
                       ),
-                      shape: shapePersoRoundedBorder(),
+                    ),
+
+                    /// Username of the club owner
+                    ListTile(
+                        shape: shapePersoRoundedBorder(),
+                        title: getUserName(context, userName: club.userName),
+                        subtitle: Text(
+                            club.userSince == null
+                                ? 'This club doesn'
+                                    't have a human manager, invite a friend !'
+                                : 'Since: ' +
+                                    DateFormat.yMMMMd('en_US')
+                                        .format(club.userSince!),
+                            style: styleItalicBlueGrey.copyWith(
+                                fontSize: fontSizeSmall)),
+                        onTap: club.userSince == null
+                            ? null
+                            : () async => {
+                                  /// Reset the user to the user that is being visited
+                                  await Provider.of<UserSessionProvider>(
+                                          context,
+                                          listen: false)
+                                      .providerFetchUser(context,
+                                          userName: club.userName),
+
+                                  /// Modify the app theme if the user is not the connected user
+                                  Provider.of<ThemeProvider>(context,
+                                          listen: false)
+                                      .setOtherThemeWhenSelectedUserIsNotConnectedUser(
+                                          Provider.of<UserSessionProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .user
+                                              .isConnectedUser),
+
+                                  /// Go to the User's Page
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => UserPage(
+                                          // userName: club.userName,
+                                          ),
+                                    ),
+                                  ),
+                                }),
+
+                    /// Multiverse
+                    getMultiverseListTileFromId(context, club.idMultiverse),
+
+                    /// Players
+                    ListTile(
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ClubHistoryPage(club: club),
+                            builder: (context) => PlayersPage(
+                              playerSearchCriterias:
+                                  PlayerSearchCriterias(idClub: [club.id]),
+                            ),
                           ),
                         );
                       },
-                    ),
-                  ),
-
-                  /// Username of the club owner
-                  ListTile(
                       shape: shapePersoRoundedBorder(),
-                      title: getUserName(context, userName: club.userName),
+                      leading: const Icon(
+                        Icons.people,
+                        size: 30,
+                        color: Colors.green,
+                      ), // Icon to indicate players
+                      title: Text(
+                        'Number of players: ${club.players.length}',
+                        style: TextStyle(fontSize: fontSizeMedium),
+                      ),
+                    ),
+
+                    /// Fans
+                    ListTile(
+                      onTap: () async {
+                        ClubData.showClubDataHistoryChartDialog(
+                          context,
+                          club.id,
+                          'number_fans',
+                          'Number of fans',
+                        );
+                      },
+                      shape: shapePersoRoundedBorder(),
+                      leading: Icon(
+                        iconFans,
+                        size: iconSizeMedium,
+                        color: Colors.green,
+                      ), // Icon to indicate players
+                      title: Text(
+                        club.clubData.numberFans.toString(),
+                        style: TextStyle(
+                            fontSize: fontSizeMedium,
+                            fontWeight: FontWeight.bold),
+                      ),
                       subtitle: Text(
-                          club.userSince == null
-                              ? 'This club doesn'
-                                  't have a human manager, invite a friend !'
-                              : 'Since: ' +
-                                  DateFormat.yMMMMd('en_US')
-                                      .format(club.userSince!),
-                          style: styleItalicBlueGrey),
-                      onTap: club.userSince == null
-                          ? null
-                          : () async => {
-                                /// Reset the user to the user that is being visited
-                                await Provider.of<UserSessionProvider>(context,
-                                        listen: false)
-                                    .providerFetchUser(context,
-                                        userName: club.userName),
-
-                                /// Modify the app theme if the user is not the connected user
-                                Provider.of<ThemeProvider>(context,
-                                        listen: false)
-                                    .setOtherThemeWhenSelectedUserIsNotConnectedUser(
-                                        Provider.of<UserSessionProvider>(
-                                                context,
-                                                listen: false)
-                                            .user
-                                            .isConnectedUser),
-
-                                /// Go to the User's Page
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => UserPage(
-                                        // userName: club.userName,
-                                        ),
-                                  ),
-                                ),
-                              }),
-
-                  /// Multiverse
-                  getMultiverseListTileFromId(context, club.idMultiverse),
-
-                  /// Players
-                  ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PlayersPage(
-                            playerSearchCriterias:
-                                PlayerSearchCriterias(idClub: [club.id]),
-                          ),
-                        ),
-                      );
-                    },
-                    shape: shapePersoRoundedBorder(),
-                    leading: const Icon(
-                      Icons.people,
-                      size: 30,
-                      color: Colors.green,
-                    ), // Icon to indicate players
-                    title: Text(
-                      'Number of players: ${club.players.length}',
-                      style: TextStyle(fontSize: fontSizeMedium),
+                        'Size of the club fan base',
+                        style: styleItalicBlueGrey.copyWith(
+                            fontSize: fontSizeSmall),
+                      ),
                     ),
-                  ),
 
-                  /// Fans
-                  ListTile(
-                    onTap: () async {
-                      ClubData.showClubDataHistoryChartDialog(
-                        context,
-                        club.id,
-                        'number_fans',
-                        'Number of fans',
-                      );
-                    },
-                    shape: shapePersoRoundedBorder(),
-                    leading: Icon(
-                      iconFans,
-                      size: iconSizeMedium,
-                      color: Colors.green,
-                    ), // Icon to indicate players
-                    title: Text(
-                      club.clubData.numberFans.toString(),
+                    /// League
+                    clubLeagueAndRankingListTile(context, club),
+
+                    /// Country
+                    CountryTileFromId(
+                      idCountry: club.idCountry,
+                      idMultiverse: club.idMultiverse,
                     ),
-                    subtitle: Text(
-                      'Size of the club fan base',
-                      style: styleItalicBlueGrey,
-                    ),
-                  ),
 
-                  /// League
-                  clubLeagueAndRankingListTile(context, club),
-
-                  /// Country
-                  getCountryTileFromIdCountry(
-                      context, club.idCountry, club.idMultiverse),
-
-                  /// Finances
-                  getClubCashListTile(context, club),
-                ],
+                    /// Finances
+                    getClubCashListTile(context, club),
+                  ],
+                ),
               ),
             ),
           );
