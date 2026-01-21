@@ -8,23 +8,22 @@ The goal is to create a more realistic and dynamic experience than Hattrick and 
 
 The game is designed to be played on:
 
-- **Computer**: <https://github.com/Pierre160493/opengoalz/releases>
-
+- **Computer**:
   - Windows: ✅
-  - Linux: ❓
+  - Linux: ✅
   - Mac: ❓
 
 - **Web browser**: <https://opengoalz.vercel.app/>
-
   - Chrome: ✅
   - Firefox: ✅
   - Edge: ✅
   - Safari: ❓
 
-- **Mobile**: Not yet finalized
-
+- **Mobile**:
   - Android: ✅
   - iOS: ❓
+
+You will find all the releases here <https://github.com/Pierre160493/opengoalz/releases>
 
 ## Overview
 
@@ -39,12 +38,12 @@ The game is developed using:
 - **Flutter**: for the front-end
 - **PostgreSQL**: for the database and backend
 
-You'll find all you need to know in the wiki here: (<https://github.com/Pierre160493/opengoalz/wiki/Contributing>)
+To set up your development environment, see [docs/SETUP.md](docs/SETUP.md).
 
 ## Community
 
 Join our community on Discord to discuss the project, share ideas, and get support: <https://discord.gg/M2eQ3HK7vQ>
 
-## License
+## LicenseU
 
 This project is licensed under the MIT License.
